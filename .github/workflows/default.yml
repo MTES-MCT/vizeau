@@ -10,6 +10,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     environment: ci
+    env:
+      APP_KEY: ${{ vars.APP_KEY }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+      DB_PORT: ${{ vars.DB_PORT }}
+      HOST: ${{ vars.HOST }}
+      LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+      SESSION_DRIVER: ${{ vars.SESSION_DRIVER }}
 
     strategy:
       matrix:
