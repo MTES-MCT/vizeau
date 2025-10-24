@@ -12,9 +12,11 @@ jobs:
     environment: ci
     env:
       APP_KEY: ${{ vars.APP_KEY }}
+      DB_DATABASE: ${{ vars.DB_DATABASE }}
       DB_HOST: ${{ vars.DB_HOST }}
       DB_PASSWORD: ${{ vars.DB_PASSWORD }}
       DB_PORT: ${{ vars.DB_PORT }}
+      DB_USER: ${{ vars.DB_USER }}
       HOST: ${{ vars.HOST }}
       LOG_LEVEL: ${{ vars.LOG_LEVEL }}
       SESSION_DRIVER: ${{ vars.SESSION_DRIVER }}
