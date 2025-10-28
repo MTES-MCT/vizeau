@@ -20,4 +20,8 @@ export default defineConfig({
       '~/': `${getDirname(import.meta.url)}/inertia/`,
     },
   },
+
+  ssr: {
+    noExternal: ['@codegouvfr/react-dsfr'],
+  },
 })
