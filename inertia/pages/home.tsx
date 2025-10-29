@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <Layout>
       <Head title="Accueil" />
-      <Box className="fr-container"></Box>
+      <Box component="div" className="fr-container"></Box>
     </Layout>
   )
 }
