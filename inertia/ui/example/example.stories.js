@@ -21,7 +21,7 @@ export const Défaut = {}
 
 export const SansTexte = {
   args: {
-    text: undefined,
+    text: '',
   },
 }
 
