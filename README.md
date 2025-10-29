@@ -1,35 +1,59 @@
 # Viz'eau
 
-## Requirements
+## Prérequis
 
-- Node.js 22 LTS or higher
-- PostgreSQL 16.9 or higher
+- Node.js 22 LTS ou supérieur
+- PostgreSQL 16.9 ou supérieur
 
-## How to run for development
-1. Make sure your PostgreSQL server is running. If you haven't set up one, you can run `start_db.sh` to quickly start a PostgreSQL instance using Docker.
-2. Create a `.env` file in the root directory of the project from the `.env.example` template and set the `APP_KEY`. It's a random string used for encryption, it can be anything in a development environment.
-3. Install the dependencies by running:
-    ```bash
-    npm install
-    ```
-4. Run the database migrations to set up the database schema:
-    ```bash
-    node ace migration:run
-    ```
-5. Start the application:
-    ```bash
-    npm run dev
-    ```
-6. Open your browser and navigate to `http://localhost:3333` to access the application.
+## Exécution en mode développement
 
-## How to run in production
-First read this guide to learn how to build the production bundle, managing database migrations and app logs: https://docs.adonisjs.com/guides/getting-started/deployment
+1. Assurez-vous que votre serveur PostgreSQL est en cours d’exécution.
+   Si vous n’en avez pas encore configuré un, vous pouvez exécuter le script `./start_db.sh` pour lancer rapidement une instance PostgreSQL via Docker.
 
-Deployments should be done automatically using CI/CD pipelines. 
+2. Créez un fichier `.env` à la racine du projet à partir du modèle `.env.example` (`cp .env.example .env`), puis définissez la variable `APP_KEY`.
+   Il s’agit d’une chaîne aléatoire utilisée pour le chiffrement — sa valeur peut être quelconque en environnement de développement.
 
-A few notes about environment variables:
-- `APP_KEY`: A random string used for encryption. In production, make sure this is at least 32 characters.
-- `DB_*`: Database connection settings (host, port, user, password, database name). The default values are set to match the Docker setup, do not keep these.
-- `NODE_ENV`: Should be 'production' in a production or staging environment.
+3. Installez les dépendances en exécutant :
 
-The rest is business logic-dependent and out of the scope of this README.
+   ```bash
+   npm install
+   ```
+
+4. Exécutez les migrations de base de données pour configurer le schéma :
+
+   ```bash
+   node ace migration:run
+   ```
+
+5. Démarrez l’application :
+
+   ```bash
+   npm run dev
+   ```
+
+6. Ouvrez votre navigateur et accédez à `http://localhost:3333` pour utiliser l’application.
+
+## Exécution en production
+
+Lisez d’abord ce guide pour apprendre à construire le bundle de production, à gérer les migrations de base de données et les journaux de l’application :
+[https://docs.adonisjs.com/guides/getting-started/deployment](https://docs.adonisjs.com/guides/getting-started/deployment)
+
+Les déploiements doivent être effectués automatiquement à l’aide de pipelines CI/CD.
+
+Quelques notes sur les variables d’environnement :
+
+- `APP_KEY` : Chaîne aléatoire utilisée pour le chiffrement.
+  En production, elle doit contenir **au moins 32 caractères**.
+- `DB_*` : Paramètres de connexion à la base de données (hôte, port, utilisateur, mot de passe, nom de la base).
+  Les valeurs par défaut correspondent à la configuration Docker, **changez leurs valeurs en production**.
+- `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
+
+Le reste dépend de la logique métier et sort du cadre de ce README.
+
+## Exécution de Storybook
+
+```shell
+npm run storybook
+```
+
+Cela lancera Storybook sur `http://localhost:6006`.
