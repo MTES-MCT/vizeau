@@ -1,7 +1,7 @@
 import Example from './index'
 
 const meta = {
-  title: 'Composant/Test',
+  title: 'Composant/Exemple',
   component: Example,
   tags: ['autodocs'],
   argTypes: {
