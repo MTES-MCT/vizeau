@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react'
-import Layout from './layout'
+import Layout from '~/ui/layouts/layout'
 
 export default function Home() {
   return (
