@@ -1,13 +1,17 @@
 import { Header } from '@codegouvfr/react-dsfr/Header'
 import { headerFooterDisplayItem } from '@codegouvfr/react-dsfr/Display'
 import { Footer } from '@codegouvfr/react-dsfr/Footer'
+import { fr } from '@codegouvfr/react-dsfr'
 
 export default function Layout({
   children,
   hideFooter = false,
 }: React.PropsWithChildren<{ hideFooter?: boolean }>) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ backgroundColor: fr.colors.decisions.background.default.grey.default }}
+    >
       <Header
         brandTop={
           <>
