@@ -1,4 +1,5 @@
 import { Header } from '@codegouvfr/react-dsfr/Header'
+import { headerFooterDisplayItem } from '@codegouvfr/react-dsfr/Display'
 import { Footer } from '@codegouvfr/react-dsfr/Footer'
 
 export default function Layout({
@@ -26,13 +27,8 @@ export default function Layout({
       {!hideFooter && (
         <Footer
           accessibility="fully compliant"
+          bottomItems={[headerFooterDisplayItem]}
           contentDescription=""
-          termsLinkProps={{
-            href: '#',
-          }}
-          websiteMapLinkProps={{
-            href: '#',
-          }}
         />
       )}
     </div>
