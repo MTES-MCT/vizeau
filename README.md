@@ -24,14 +24,20 @@
    ```bash
    node ace migration:run
    ```
+   
+5. Alimentez la base de données avec ses données initiales :
 
-5. Démarrez l’application :
+   ```bash
+   node ace db:seed
+   ```
+
+6. Démarrez l’application :
 
    ```bash
    npm run dev
    ```
 
-6. Ouvrez votre navigateur et accédez à `http://localhost:3333` pour utiliser l’application.
+7. Ouvrez votre navigateur et accédez à `http://localhost:3333` pour utiliser l’application.
 
 ## Exécution en production
 
@@ -46,6 +52,7 @@ Quelques notes sur les variables d’environnement :
   En production, elle doit contenir **au moins 32 caractères**.
 - `DB_*` : Paramètres de connexion à la base de données (hôte, port, utilisateur, mot de passe, nom de la base).
   Les valeurs par défaut correspondent à la configuration Docker, **changez leurs valeurs en production**.
+- `ADMIN_*` : Identifiants de l’administrateur initial. **Changez ces valeurs en production**.
 - `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
