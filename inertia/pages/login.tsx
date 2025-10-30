@@ -6,7 +6,7 @@ export default function Login() {
   const { errors } = usePage().props
   return (
     <Layout>
-      <Head title="Accueil" />
+      <Head title="Connexion" />
       <div className="fr-container">
         {errors &&
           Object.keys(errors).map((errorKey) => (
@@ -19,7 +19,7 @@ export default function Login() {
           ))}
 
         <Form action="/login" method="post" className="flex flex-col">
-          <label htmlFor="username">Adresse e-mail:</label>
+          <label htmlFor="email">Adresse e-mail:</label>
           <input type="email" id="email" name="email" />
 
           <label htmlFor="password">Mot de passe:</label>
