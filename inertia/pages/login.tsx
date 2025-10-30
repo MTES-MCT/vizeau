@@ -1,5 +1,5 @@
 import { Form, Head, usePage } from '@inertiajs/react'
-import Layout from './layout'
+import Layout from '~/ui/layouts/layout'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 
 export default function Login() {
