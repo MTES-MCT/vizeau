@@ -1,12 +1,18 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
+import User from '#models/user'
 
 export default class extends BaseSchema {
   protected tableName = 'remember_me_tokens'
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments()
-      table.uuid('tokenable_id').notNullable().references('id').inTable('users').onDelete('CASCADE')
+      table.increments().unsigned()
+      table
+        .uuid('tokenable_id')
+        .notNullable()
+        .references('id')
+        .inTable(User.table)
+        .onDelete('CASCADE')
 
       table.string('hash').notNullable().unique()
       table.timestamp('created_at').notNullable()
