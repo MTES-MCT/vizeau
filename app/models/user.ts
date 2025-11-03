@@ -1,10 +1,12 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { randomUUID } from 'node:crypto'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
+import ExploitationTag from '#models/exploitation_tag'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -12,7 +14,10 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 })
 
 export default class User extends compose(BaseModel, AuthFinder) {
+  static table = 'users'
   static rememberMeTokens = DbRememberMeTokensProvider.forModel(User)
+  // Disable primary key generation by the DB
+  static selfAssignPrimaryKey = true
 
   @column({ isPrimary: true })
   declare id: string
@@ -31,6 +36,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column({ serializeAs: null })
   declare password: string
+
+  @hasMany(() => ExploitationTag)
+  declare exploitationTags: HasMany<typeof ExploitationTag>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
