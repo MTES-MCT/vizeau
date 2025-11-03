@@ -18,11 +18,11 @@ export default function AuthentificationBloc() {
         className="flex flex-col justify-center items-center fr-p-3w w-full max-w-[700px]"
         style={{ border: `1px solid ${borderColor}`, borderRadius: '8px' }}
       >
-        <div className="fr-m-4w">
+        <div>
           <div className="m-4 flex justify-center">
             <Avatar fontSize="150px" />
           </div>
-          <h4 className="text-center">Authentification</h4>
+          <h4 className="text-center fr-mb-1w">Authentification</h4>
           <p>Entrez votre email pour accéder à l'application</p>
         </div>
         <div className="fr-p-3w">
@@ -33,10 +33,11 @@ export default function AuthentificationBloc() {
               }
               severity="error"
               title="Erreur d'authentification"
+              className="fr-my-3w"
             />
           )}
         </div>
-        <Form className="w-full fr-mt-2w" action="/login" method="post">
+        <Form className="w-full fr-mt-1w" action="/login" method="post">
           <Input
             label="Adresse e-mail"
             nativeInputProps={{
