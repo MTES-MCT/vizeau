@@ -22,6 +22,15 @@ router
   .group(() => {
     router.get('logout', [SessionController, 'delete'])
 
-    router.get('mes-exploitations', [ExploitationsController, 'index'])
+    router
+      .get('mes-exploitations', [ExploitationsController, 'index'])
+      .as('mes-exploitations.index')
+
+    router
+      .post('mes-exploitations', [ExploitationsController, 'store'])
+      .as('mes-exploitations.store')
+    router
+      .patch('mes-exploitations/:id', [ExploitationsController, 'edit'])
+      .as('mes-exploitations.edit')
   })
   .use(middleware.auth())
