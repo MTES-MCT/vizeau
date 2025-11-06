@@ -26,10 +26,26 @@ export default function Layout({
           </>
         }
         homeLinkProps={{
-          href: '/',
+          href: '/accueil',
           title: 'Viz’Eau',
         }}
         serviceTitle="Viz’Eau"
+        navigation={
+          isLoginPage
+            ? []
+            : [
+                {
+                  linkProps: { href: '/accueil' },
+                  text: 'Accueil',
+                  isActive: url === '/accueil',
+                },
+                {
+                  linkProps: { href: '/exploitations' },
+                  text: 'Exploitations',
+                  isActive: url === '/exploitations',
+                },
+              ]
+        }
         quickAccessItems={
           isLoginPage
             ? []
@@ -47,7 +63,7 @@ export default function Layout({
               ]
         }
       />
-      <main className="flex-1">{children}</main>
+      <main className="flex flex-col flex-1">{children}</main>
       {!hideFooter && (
         <Footer
           accessibility="fully compliant"

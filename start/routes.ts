@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+const AccueilController = () => import('#controllers/accueil_controller')
 const ExploitationsController = () => import('#controllers/exploitations_controller')
 const SessionController = () => import('#controllers/session_controller')
 
@@ -22,6 +23,7 @@ router
   .group(() => {
     router.get('logout', [SessionController, 'delete'])
 
-    router.get('mes-exploitations', [ExploitationsController, 'index'])
+    router.get('exploitations', [ExploitationsController, 'index'])
+    router.get('accueil', [AccueilController, 'index'])
   })
   .use(middleware.auth())

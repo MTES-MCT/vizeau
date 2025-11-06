@@ -2,7 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { errors } from '@adonisjs/auth'
 import User from '#models/user'
 
-const redirectAfterLogin = '/mes-exploitations'
+const redirectAfterLogin = '/accueil'
 
 export default class SessionController {
   async index({ inertia, auth, response }: HttpContext) {
