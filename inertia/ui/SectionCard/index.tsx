@@ -3,8 +3,6 @@ import { fr } from '@codegouvfr/react-dsfr'
 
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
-import type { FrIconClassName } from '@codegouvfr/react-dsfr/fr/generatedFromCss/classNames'
-
 export type SectionCardProps = {
   title: string
   children: ReactNode
@@ -48,7 +46,7 @@ export default function SectionCard({
           actionIcon &&
           (size === 'small' ? (
             <Button
-              iconId={`fr-icon-${actionIcon}` as FrIconClassName}
+              iconId={`fr-icon-${actionIcon}` as any}
               onClick={handleAction}
               priority="tertiary"
               size="small"
@@ -56,7 +54,7 @@ export default function SectionCard({
             />
           ) : (
             <Button
-              iconId={`fr-icon-${actionIcon}` as FrIconClassName}
+              iconId={`fr-icon-${actionIcon}` as any}
               onClick={handleAction}
               priority="primary"
             >
