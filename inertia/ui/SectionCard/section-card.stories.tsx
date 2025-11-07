@@ -60,21 +60,21 @@ export const Défaut = {}
 
 export const SansAction = {
   args: {
-    actionIcon: undefined,
-    handleAction: undefined,
+    actionIcon: null,
+    handleAction: null,
   },
 }
 
 export const SansIcone = {
   args: {
-    icon: undefined,
+    icon: null,
   },
 }
 
 export const SansIconeNiAction = {
   args: {
-    icon: undefined,
-    actionIcon: undefined,
-    handleAction: undefined,
+    icon: null,
+    actionIcon: null,
+    handleAction: null,
   },
 }
