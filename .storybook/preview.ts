@@ -5,7 +5,10 @@ import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons.css'
 import '../inertia/css/app.css'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
 
-startReactDsfr({ defaultColorScheme: 'system' })
+startReactDsfr({
+  defaultColorScheme: 'light',
+  useLang: () => 'fr',
+})
 
 const preview: Preview = {
   parameters: {
