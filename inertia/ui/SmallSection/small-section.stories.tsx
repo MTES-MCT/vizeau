@@ -62,9 +62,9 @@ export const Défaut = {}
 export const SansAction = {
   args: {
     title: 'Section sans action',
-    actionIcon: null,
-    actionLabel: null,
-    handleAction: null,
+    actionIcon: undefined,
+    actionLabel: undefined,
+    handleAction: undefined,
     children: <p className="fr-text--sm">Section sans bouton d’action.</p>,
   },
 }
