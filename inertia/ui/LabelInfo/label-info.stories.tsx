@@ -1,4 +1,4 @@
-import LabelInfo, { LabelInfoProps } from './index.js'
+import LabelInfo, { LabelInfoProps } from './index'
 
 const meta = {
   title: 'UI/LabelInfo',
