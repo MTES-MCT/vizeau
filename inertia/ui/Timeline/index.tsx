@@ -87,7 +87,7 @@ export default function Timeline(props: TimelineProps) {
             {/* Contenu */}
             <div>
               {isControl ? (
-                <Button onClick={() => setExpanded(!expanded)} priority='tertiary'>
+                <Button onClick={() => setExpanded(!expanded)} priority="tertiary">
                   {expanded ? (
                     <span>Voir moins</span>
                   ) : (
