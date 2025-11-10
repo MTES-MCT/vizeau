@@ -1,7 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr'
 
 export type LabelInfoProps = {
-  icon?: string
+  icon?: string | null
   label: string
   info: string
   size?: 'sm' | 'md'
