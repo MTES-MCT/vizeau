@@ -22,7 +22,7 @@ export default function SmallSection({
     <section>
       <div className="flex items-center justify-between">
         <h6 className="fr-text--sm bold fr-mb-0">{title}</h6>
-        {handleAction && (
+        {handleAction && actionIcon && (
           <Button
             iconId={`fr-icon-${actionIcon}` as any}
             onClick={handleAction}
