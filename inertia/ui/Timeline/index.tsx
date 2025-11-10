@@ -4,10 +4,18 @@ import { fr } from '@codegouvfr/react-dsfr'
 import './timeline-animation.css'
 import Button from '@codegouvfr/react-dsfr/Button'
 
-interface TimelineItem {
+type TimelineItem = {
   content: React.ReactNode
   dotColor?: string
 }
+
+type ControlItem = {
+  id: string
+  isControl: true
+  content: null
+}
+
+type DisplayItem = TimelineItem | ControlItem
 
 export interface TimelineProps {
   items: TimelineItem[]
@@ -26,15 +34,15 @@ export default function Timeline(props: TimelineProps) {
     visibleItems = items.slice(0, maxVisible ?? 0)
   }
 
-  const displayItems = shouldShowMore
-    ? [...visibleItems, { id: 'show-more', content: null, isControl: true } as any]
-    : visibleItems || []
+  const displayItems: DisplayItem[] = shouldShowMore
+    ? [...visibleItems, { id: 'show-more', isControl: true, content: null }]
+    : visibleItems
 
   return (
     <div className="relative">
-      {displayItems.map((item: any, index) => {
+      {displayItems.map((item: any  , index) => {
         const isLast = index === displayItems.length - 1
-        const isControl = item.isControl
+        const isControl = item?.isControl
         const isNewlyVisible = expanded && maxVisible && index >= maxVisible
 
         return (
@@ -48,7 +56,7 @@ export default function Timeline(props: TimelineProps) {
               <div
                 style={{
                   backgroundColor: item?.dotColor
-                    ? item.dotColor
+                    ? item?.dotColor
                     : isControl
                       ? ''
                       : fr.colors.decisions.border.plain.info.default,
