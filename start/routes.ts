@@ -28,5 +28,8 @@ router
 
     router.post('exploitations', [ExploitationsController, 'store']).as('exploitations.store')
     router.patch('exploitations/:id', [ExploitationsController, 'edit']).as('exploitations.edit')
+    router
+      .delete('exploitations/:id', [ExploitationsController, 'destroy'])
+      .as('exploitations.destroy')
   })
   .use(middleware.auth())
