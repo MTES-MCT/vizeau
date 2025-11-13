@@ -33,6 +33,8 @@ export default class Contact extends BaseModel {
   @column()
   declare phoneNumber: string | null
 
+  // TODO: ajouter isPrimaryContact, un seul contact principal par exploitation
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
