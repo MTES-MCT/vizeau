@@ -1,0 +1,8 @@
+.hover-effect:hover {
+  background-color: var(--background-default-grey) !important;
+  transform: scale(1.05);
+}
+
+.hover-effect {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
