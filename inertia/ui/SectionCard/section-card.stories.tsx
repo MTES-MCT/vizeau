@@ -18,6 +18,11 @@ const meta = {
       options: ['small', 'medium'],
       description: 'Définit la taille du titre et du bouton d’action.',
     },
+    background: {
+      control: { type: 'radio' },
+      options: ['primary', 'secondary'],
+      description: 'Définit la couleur de fond de la section.',
+    },
     actionIcon: {
       control: 'text',
       description: 'Nom de l’icône FR à afficher sur le bouton d’action.',
@@ -42,6 +47,7 @@ const meta = {
     actionIcon: 'edit-line',
     actionLabel: 'Modifier',
     size: 'medium',
+    background: 'primary',
     handleAction: () => alert('Action déclenchée !'),
     children: (
       <p className="fr-m-0">
@@ -57,6 +63,12 @@ const meta = {
 export default meta
 
 export const Défaut = {}
+
+export const CouleurSecondaire = {
+  args: {
+    background: 'secondary',
+  },
+}
 
 export const SansAction = {
   args: {
