@@ -1,8 +1,8 @@
-import { ExploitationTypeStructure } from '#models/exploitation'
-
 export type ContactJson = {
   id: string
-  name: string | null
+  firstName: string | null
+  lastName: string | null
+  role: string | null
   email: string | null
   phoneNumber: string | null
 }
@@ -10,7 +10,7 @@ export type ContactJson = {
 export type ExploitationJson = {
   id: string
   name: string
-  typeStructure: ExploitationTypeStructure | null
+  formeJuridique: string | null
   siret: string | null
   addressLine1: string | null
   addressLine2: string | null

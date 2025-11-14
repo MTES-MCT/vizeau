@@ -5,7 +5,9 @@ import { ExploitationFactory } from '#database/factories/exploitation_factory'
 export const ContactFactory = factory
   .define(Contact, async ({ faker }) => {
     return {
-      name: faker.person.fullName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      role: faker.person.jobTitle(),
       email: faker.internet.email(),
       phoneNumber: faker.phone.number(),
     }
