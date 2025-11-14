@@ -12,6 +12,9 @@ export type ExploitationJson = {
   name: string
   formeJuridique: string | null
   siret: string | null
+  siren: string | null
+  denominationLegale: string | null
+  activite: string | null
   addressLine1: string | null
   addressLine2: string | null
   postalCode: string | null
