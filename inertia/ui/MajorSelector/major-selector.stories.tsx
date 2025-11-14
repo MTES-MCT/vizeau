@@ -30,7 +30,7 @@ const meta = {
   args: {
     value: 'major-1',
     label: 'Major Selector 1',
-    icon: 'star-line',
+    icon: 'fr-icon-star-line',
     isSelected: false,
     getValue: () => {},
   } as MajorSelectorProps,

@@ -45,7 +45,7 @@ export default function MajorSelector({
           }}
         >
           <span
-            className={`fr-icon-${icon}`}
+            className={icon}
             style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
             aria-hidden="true"
           ></span>
