@@ -12,7 +12,7 @@ export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoP
       <div className="flex items-start">
         {icon && (
           <span
-            className={`{icon} fr-icon--${size} fr-mr-1v`}
+            className={`${icon} fr-icon--${size} fr-mr-1v`}
             style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
             aria-hidden="true"
           />
