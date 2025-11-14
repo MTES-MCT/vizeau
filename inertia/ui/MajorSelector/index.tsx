@@ -3,7 +3,7 @@ import './index.css'
 
 export type MajorSelectorProps = {
   value: string
-  label: string
+  label?: string
   icon?: string
   isSelected?: boolean
   getValue?: (value: string) => void
