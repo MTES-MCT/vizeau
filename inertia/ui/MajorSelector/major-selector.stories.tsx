@@ -5,13 +5,6 @@ const meta = {
   title: 'UI/MajorSelector',
   component: MajorSelector,
   tags: ['autodocs'],
-  decorators: [
-    (Story: any, context: any) => {
-      const [value, setValue] = useState(context.args.value)
-
-      return <Story {...context.args} value={value} getValue={setValue} />
-    },
-  ],
   argTypes: {
     value: {
       control: 'text',
@@ -45,12 +38,29 @@ const meta = {
 
 export default meta
 
+const InteractiveTemplate = (args: MajorSelectorProps) => {
+  const [selectedValue, setSelectedValue] = useState<string | null>(null)
+  const isSelected = selectedValue === args.value
+
+  return (
+    <MajorSelector
+      {...args}
+      isSelected={isSelected}
+      getValue={(val: string) => setSelectedValue(val)}
+    />
+  )
+}
+
 export const Défaut = {}
 
 export const Sélectionné = {
   args: {
     isSelected: true,
   },
+}
+
+export const TestDeSélection = {
+  render: InteractiveTemplate,
 }
 
 export const SansLibellé = {
