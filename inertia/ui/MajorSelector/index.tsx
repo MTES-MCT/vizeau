@@ -7,6 +7,7 @@ export type MajorSelectorProps = {
   icon?: string
   isSelected?: boolean
   getValue?: (value: string) => void
+  ariaLabel?: string
 }
 
 export default function MajorSelector({
@@ -15,11 +16,13 @@ export default function MajorSelector({
   icon,
   isSelected,
   getValue,
+  ariaLabel,
 }: MajorSelectorProps) {
   return (
     <button
       type="button"
       onClick={() => getValue?.(value)}
+      aria-label={ariaLabel || label}
       className="flex-col fr-p-4v w-full hover-effect"
       style={{
         display: 'flex',
