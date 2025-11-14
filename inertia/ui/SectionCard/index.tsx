@@ -31,13 +31,13 @@ export default function SectionCard({
         {size === 'small' ? (
           <h6 className="w-full fr-mb-0">
             {icon && (
-              <span className={`fr-icon-${icon} fr-mr-1w fr-icon-md`} aria-hidden="true"></span>
+              <span className={`${icon} fr-mr-1w fr-icon-md`} aria-hidden="true"></span>
             )}
             {title}
           </h6>
         ) : (
           <h4 className="w-full fr-mb-0">
-            {icon && <span className={`fr-icon-${icon} fr-mr-1w`} aria-hidden="true"></span>}
+            {icon && <span className={`${icon} fr-mr-1w`} aria-hidden="true"></span>}
             {title}
           </h4>
         )}
@@ -46,7 +46,7 @@ export default function SectionCard({
           actionIcon &&
           (size === 'small' ? (
             <Button
-              iconId={`fr-icon-${actionIcon}` as any}
+              iconId={actionIcon as any}
               onClick={handleAction}
               priority="tertiary"
               size="small"
@@ -54,7 +54,7 @@ export default function SectionCard({
             />
           ) : (
             <Button
-              iconId={`fr-icon-${actionIcon}` as any}
+              iconId={actionIcon as any}
               onClick={handleAction}
               priority="primary"
             >
