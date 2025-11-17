@@ -43,8 +43,8 @@ const meta = {
   },
   args: {
     title: 'Titre de la section',
-    icon: 'map-pin-2-line',
-    actionIcon: 'edit-line',
+    icon: 'fr-icon-map-pin-2-line',
+    actionIcon: 'fr-icon-edit-line',
     actionLabel: 'Modifier',
     size: 'medium',
     background: 'primary',

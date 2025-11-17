@@ -46,7 +46,7 @@ const meta = {
   },
   args: {
     title: 'Titre de la petite section',
-    actionIcon: 'add-circle-line',
+    actionIcon: 'fr-icon-add-circle-line',
     actionLabel: 'Ajouter',
     handleAction: () => {
       alert('Action déclenchée !')
