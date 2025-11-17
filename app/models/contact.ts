@@ -25,7 +25,13 @@ export default class Contact extends BaseModel {
   declare exploitation: BelongsTo<typeof Exploitation>
 
   @column()
-  declare name: string
+  declare firstName: string | null
+
+  @column()
+  declare lastName: string | null
+
+  @column()
+  declare role: string | null
 
   @column()
   declare email: string | null
@@ -33,7 +39,9 @@ export default class Contact extends BaseModel {
   @column()
   declare phoneNumber: string | null
 
-  // TODO: ajouter isPrimaryContact, un seul contact principal par exploitation
+  // Not used in the MVP
+  @column()
+  declare isPrimaryContact: boolean
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
