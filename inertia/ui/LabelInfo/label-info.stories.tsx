@@ -14,7 +14,7 @@ const meta = {
     },
   },
   args: {
-    icon: 'info-line',
+    icon: 'fr-icon-info-line',
     label: 'Label',
     info: 'info',
     size: 'md',
