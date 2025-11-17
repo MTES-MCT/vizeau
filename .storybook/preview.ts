@@ -4,11 +4,10 @@ import '@codegouvfr/react-dsfr/dsfr/dsfr.css'
 import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons.css'
 import '../inertia/css/app.css'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
+import React from 'react'
+import type { Decorator } from '@storybook/react'
 
-startReactDsfr({
-  defaultColorScheme: 'light',
-  useLang: () => 'fr',
-})
+startReactDsfr({ defaultColorScheme: 'system' })
 
 const preview: Preview = {
   parameters: {
@@ -26,6 +25,43 @@ const preview: Preview = {
       test: 'todo',
     },
   },
+
+  argTypes: {
+    theme: {
+      control: { type: 'radio' },
+      options: ['light', 'dark'],
+      description: 'Thème DSFR (light ou dark)',
+      table: {
+        category: 'Thème',
+        defaultValue: { summary: 'light' },
+      },
+    },
+  },
+
+  args: {
+    theme: 'light',
+  },
+
+  decorators: [
+    ((Story, context) => {
+      const theme = (context.args.theme as string) || 'light'
+      const backgroundColor = theme === 'dark' ? '#1e1e1e' : '#ffffff'
+
+      // Appliquer le thème sur la balise html
+      React.useEffect(() => {
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-fr-scheme', theme)
+          document.documentElement.style.colorScheme = theme
+        }
+      }, [theme])
+
+      return React.createElement(
+        'div',
+        { style: { backgroundColor, padding: '1rem' } },
+        React.createElement(Story)
+      )
+    }) as Decorator,
+  ],
 }
 
 export default preview
