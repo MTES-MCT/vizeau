@@ -1,4 +1,4 @@
-import DeleteAlert, { DeleteAlertProps } from './index.js'
+import DeleteAlert, { DeleteAlertProps } from './index'
 
 const meta = {
   title: 'UI/DeleteAlert',
