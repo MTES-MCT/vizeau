@@ -8,6 +8,7 @@ export type SectionCardProps = {
   children: ReactNode
   icon?: string
   size?: 'small' | 'medium'
+  background?: 'primary' | 'secondary'
   actionIcon?: string
   actionLabel?: string
   handleAction?: () => void
@@ -18,6 +19,7 @@ export default function SectionCard({
   children,
   icon,
   size = 'medium',
+  background = 'primary',
   actionIcon,
   handleAction,
   actionLabel,
@@ -25,7 +27,10 @@ export default function SectionCard({
   return (
     <section
       className="flex flex-col gap-2 fr-p-2w"
-      style={{ border: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}
+      style={{
+        border: `1px solid ${background === 'primary' ? fr.colors.decisions.border.default.grey.default : 'transparent'}`,
+        backgroundColor: background === 'primary' ? fr.colors.decisions.background.default.grey.default : fr.colors.decisions.background.alt.blueFrance.default
+      }}
     >
       <div className="flex justify-between items-center">
         {size === 'small' ? (
