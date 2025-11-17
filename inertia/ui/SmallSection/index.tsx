@@ -24,7 +24,7 @@ export default function SmallSection({
         <h6 className="fr-text--sm bold fr-mb-0">{title}</h6>
         {handleAction && actionIcon && (
           <Button
-            iconId={`fr-icon-${actionIcon}` as any}
+            iconId={actionIcon as any}
             onClick={handleAction}
             priority="tertiary no outline"
             size="small"
