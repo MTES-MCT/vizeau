@@ -30,12 +30,14 @@ export default function DeleteAlert({
         >
           {title}
         </h6>
-        <p
-          className={`${size === 'sm' ? 'fr-text--sm' : 'fr-text'}`}
-          style={{ color: fr.colors.decisions.text.default.error.default }}
-        >
-          {description}
-        </p>
+        {description && (
+          <p
+            className={`${size === 'sm' ? 'fr-text--sm' : 'fr-text'}`}
+            style={{ color: fr.colors.decisions.text.default.error.default }}
+          >
+            {description}
+          </p>
+        )}
         <Button
           onClick={onDelete}
           priority="tertiary"
