@@ -34,8 +34,6 @@ export default function SearchRaisonSociale({
     }
   }, 300)
 
-  console.log('options', options)
-
   return (
     <SearchAutocomplete<Company>
       label="Raison sociale de l'exploitation *"
