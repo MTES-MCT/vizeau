@@ -36,7 +36,7 @@ const Illustration = ()=> {
         <div className="flex flex-col items-center">
           <Illustration />
 
-         {label && <span className='fr-mt-2v' style={{fontWeight: 100}}>{label}</span>}
+         {label && <span className='fr-mt-2v' style={{fontWeight: 300}}>{label}</span>}
         </div>
 
         {hint && <p className='fr-text--sm text-center fr-mt-2v'>{hint}</p>}
