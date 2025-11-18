@@ -17,6 +17,7 @@ interface SearchAutocompleteProps<T> {
   getOptionLabel: (option: T) => string
   getOptionKey?: (option: T) => string | number
   renderOption?: (option: T) => React.ReactNode
+  disableClientFilter?: boolean
 }
 
 export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>) {
@@ -34,6 +35,7 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
     getOptionLabel,
     getOptionKey,
     renderOption,
+    disableClientFilter = false,
   } = props
   const [inputValue, setInputValue] = useState(value ? getOptionLabel(value) : '')
   const [isOpen, setIsOpen] = useState(false)
@@ -42,11 +44,13 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
 
 
   useEffect(() => {
-    const filtered = options.filter((option) =>
-      getOptionLabel(option).toLowerCase().includes(inputValue.toLowerCase())
-    )
+    const filtered = disableClientFilter
+      ? options
+      : options.filter((option) =>
+          getOptionLabel(option).toLowerCase().includes(inputValue.toLowerCase())
+        )
     setFilteredOptions(filtered)
-  }, [inputValue, options, getOptionLabel])
+  }, [inputValue, options, getOptionLabel, disableClientFilter])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

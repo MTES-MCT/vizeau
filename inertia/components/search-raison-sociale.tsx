@@ -4,8 +4,11 @@ import {fr} from '@codegouvfr/react-dsfr'
 import SearchAutocomplete from './search-autocomplete'
 
 export type Company = {
+  name: string
   nom_complet: string
   siren: string
+  categorie_entreprise: string
+  activite_principale: string
   siege: {
     libelle_commune: string
     siret: string
@@ -54,6 +57,7 @@ export default function SearchRaisonSociale({
       getOptionLabel={(opt) => opt.nom_complet}
       getOptionKey={(company) => company.siren}
       onInputChange={fetchCompanies}
+      disableClientFilter={true}
       required
     />
   )
