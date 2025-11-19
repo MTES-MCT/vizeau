@@ -4,6 +4,7 @@ import '@codegouvfr/react-dsfr/dsfr/dsfr.css'
 import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons.css'
 import '../inertia/css/app.css'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
+import { withInertia } from './decorators'
 
 startReactDsfr({
   defaultColorScheme: 'light',
@@ -11,6 +12,7 @@ startReactDsfr({
 })
 
 const preview: Preview = {
+  decorators: [withInertia],
   parameters: {
     controls: {
       matchers: {
