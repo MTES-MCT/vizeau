@@ -13,5 +13,14 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+  viteFinal: async (config) => {
+    // Alias pour mocker @inertiajs/react dans Storybook
+    config.resolve = config.resolve || {}
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@inertiajs/react': new URL('./inertia-mock.tsx', import.meta.url).pathname,
+    }
+    return config
+  },
 }
 export default config
