@@ -41,7 +41,18 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
   const [isOpen, setIsOpen] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState<T[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  const isUserTypingRef = useRef(false)
 
+  // Mise à jour de l’input lorsque la valeur change depuis un autre composant
+  useEffect(() => {
+    if (!isUserTypingRef.current) {
+      if (value) {
+        setInputValue(getOptionLabel(value))
+      } else {
+        setInputValue('')
+      }
+    }
+  }, [value, getOptionLabel])
 
   useEffect(() => {
     const filtered = disableClientFilter
@@ -64,12 +75,14 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
+    isUserTypingRef.current = true
     setInputValue(newValue)
     setIsOpen(true)
     onInputChange?.(newValue)
   }
 
   const handleOptionClick = (option: T) => {
+    isUserTypingRef.current = false
     setInputValue(getOptionLabel(option))
     setIsOpen(false)
     onChange?.(option)
@@ -91,7 +104,7 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
           required: required,
         }}
       />
-      {isOpen && filteredOptions.length > 0 && (
+      {isOpen && filteredOptions?.length > 0 && (
         <ul
           className="fr-menu"
           style={{
