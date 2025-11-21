@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { debounce } from 'lodash-es'
-import {fr} from '@codegouvfr/react-dsfr'
+import { fr } from '@codegouvfr/react-dsfr'
 import SearchAutocomplete from './search-autocomplete'
 
 export type RaisonSociale = {
@@ -45,10 +45,16 @@ export default function SearchRaisonSociale({
         <div className="flex justify-between">
           <div>
             <div>{opt.nom_complet}</div>
-            <div style={{color: fr.colors.decisions.text.mention.grey.default}}><small>{opt.siege.code_postal} - {opt.siege.libelle_commune}</small></div>
+            <div style={{ color: fr.colors.decisions.text.mention.grey.default }}>
+              <small>
+                {opt.siege.code_postal} - {opt.siege.libelle_commune}
+              </small>
+            </div>
           </div>
           <div className="flex items-center">
-            <span style={{color: fr.colors.decisions.text.mention.grey.default}}><small>{opt.siren}</small></span>
+            <span style={{ color: fr.colors.decisions.text.mention.grey.default }}>
+              <small>{opt.siren}</small>
+            </span>
           </div>
         </div>
       )}

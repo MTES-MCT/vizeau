@@ -1,6 +1,6 @@
-import { useState } from "react"
-import SearchAutocomplete from "./search-autocomplete"
-import { debounce } from "lodash-es"
+import { useState } from 'react'
+import SearchAutocomplete from './search-autocomplete'
+import { debounce } from 'lodash-es'
 
 export type Localisation = {
   type: string
@@ -44,9 +44,7 @@ export default function SearchAdresse({
       onInputChange={fetchAdresses}
       getOptionLabel={(opt) => opt.properties.label}
       disableClientFilter={true}
-      renderOption={(opt) => (
-        <div>{opt.properties.label}</div>
-      )}
+      renderOption={(opt) => <div>{opt.properties.label}</div>}
     />
   )
 }

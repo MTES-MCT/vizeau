@@ -130,9 +130,10 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
               style={{
                 cursor: 'pointer',
                 padding: '12px 16px',
-                backgroundColor: index % 2 === 0
-                  ? fr.colors.decisions.background.default.grey.default
-                  : fr.colors.decisions.background.alt.grey.default,
+                backgroundColor:
+                  index % 2 === 0
+                    ? fr.colors.decisions.background.default.grey.default
+                    : fr.colors.decisions.background.alt.grey.default,
               }}
               onClick={() => handleOptionClick(option)}
               onMouseEnter={(e) =>
