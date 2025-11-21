@@ -3,7 +3,7 @@ import { debounce } from 'lodash-es'
 import {fr} from '@codegouvfr/react-dsfr'
 import SearchAutocomplete from './search-autocomplete'
 
-export type Company = {
+export type RaisonSociale = {
   name: string
   nom_complet: string
   siren: string
@@ -21,10 +21,10 @@ export default function SearchRaisonSociale({
   onChange,
   value,
 }: {
-  onChange: (value: Company) => void
-  value: Company | null
+  onChange: (value: RaisonSociale) => void
+  value: RaisonSociale | null
 }) {
-  const [options, setOptions] = useState<Company[]>([])
+  const [options, setOptions] = useState<RaisonSociale[]>([])
 
   const fetchCompanies = debounce(async (search) => {
     if (search.length > 3) {
@@ -35,7 +35,7 @@ export default function SearchRaisonSociale({
   }, 300)
 
   return (
-    <SearchAutocomplete<Company>
+    <SearchAutocomplete<RaisonSociale>
       label="Raison sociale de l'exploitation *"
       placeholder="Rechercher une raison sociale"
       options={options}
