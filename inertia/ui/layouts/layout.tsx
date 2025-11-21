@@ -42,7 +42,7 @@ export default function Layout({
                 {
                   linkProps: { href: '/exploitations' },
                   text: 'Exploitations',
-                  isActive: url === '/exploitations/index' || url === '/exploitations/creation',
+                  isActive: url === '/exploitations' || url === '/exploitations/creation',
                 },
               ]
         }
