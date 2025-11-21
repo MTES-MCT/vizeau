@@ -27,10 +27,15 @@ export default function SearchAdresse({
 
   const fetchAdresses = debounce(async (search) => {
     if (search.length > 3) {
-      const response = await fetch(`https://data.geopf.fr/geocodage/search?q=${search}&limit=5`)
-      const data = await response.json()
+      try {
+        const response = await fetch(`https://data.geopf.fr/geocodage/search?q=${search}&limit=5`)
+        const data = await response.json()
 
-      setOptions(data.features)
+        setOptions(data.features)
+      } catch (error) {
+        console.error(error)
+        setOptions([])
+      }
     }
   }, 300)
 
