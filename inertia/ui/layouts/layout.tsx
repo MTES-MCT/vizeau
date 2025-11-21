@@ -10,6 +10,7 @@ export default function Layout({
   hideFooter = false,
 }: React.PropsWithChildren<{ hideFooter?: boolean }>) {
   const { url } = usePage()
+  const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
 
   return (
@@ -37,12 +38,12 @@ export default function Layout({
                 {
                   linkProps: { href: '/accueil' },
                   text: 'Accueil',
-                  isActive: url === '/accueil',
+                  isActive: pathname === '/accueil',
                 },
                 {
                   linkProps: { href: '/exploitations' },
                   text: 'Exploitations',
-                  isActive: url === '/exploitations' || url === '/exploitations/creation',
+                  isActive: pathname === '/exploitations' || pathname === '/exploitations/creation',
                 },
               ]
         }
