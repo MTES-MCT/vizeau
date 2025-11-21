@@ -40,7 +40,7 @@ export default function Timeline(props: TimelineProps) {
 
   return (
     <div className="relative">
-      {displayItems.map((item: any  , index) => {
+      {displayItems.map((item: any, index) => {
         const isLast = index === displayItems.length - 1
         const isControl = item?.isControl
         const isNewlyVisible = expanded && maxVisible && index >= maxVisible

@@ -24,7 +24,7 @@
    ```bash
    node ace migration:run
    ```
-   
+
 5. Alimentez la base de données avec ses données initiales :
 
    ```bash
