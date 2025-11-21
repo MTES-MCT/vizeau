@@ -28,10 +28,14 @@ export default function SearchRaisonSociale({
 
   const fetchCompanies = debounce(async (search) => {
     if (search.length > 3) {
-      const response = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${search}`)
-      const data = await response.json()
-      setOptions(data.results)
-    }
+      try {
+        const response = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${search}`)
+        const data = await response.json()
+        setOptions(data.results)
+      } catch (error) {
+        console.error(error)
+        setOptions([])
+      }}
   }, 300)
 
   return (
