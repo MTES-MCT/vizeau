@@ -102,6 +102,8 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
           onChange: handleInputChange,
           onFocus: () => setIsOpen(true),
           required: required,
+          'aria-expanded': isOpen,
+          'aria-autocomplete': 'list',
         }}
       />
       {isOpen && filteredOptions?.length > 0 && (
@@ -122,6 +124,7 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
             border: '1px solid var(--border-default-grey)',
             pointerEvents: 'auto',
           }}
+          role="listbox"
         >
           {filteredOptions.map((option, index) => (
             <li
@@ -135,6 +138,7 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
                     ? fr.colors.decisions.background.default.grey.default
                     : fr.colors.decisions.background.alt.grey.default,
               }}
+              role="option"
               onClick={() => handleOptionClick(option)}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor =
