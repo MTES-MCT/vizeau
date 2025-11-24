@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "Photo",
+  "sources": {
+    "ign": {
+      "type": "raster",
+      "tiles": [
+        "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fjpeg"
+      ],
+      "tileSize": 256,
+      "attribution": "<a target='_blank' href='https://geoservices.ign.fr/documentation/donnees/ortho/bdortho'>© IGN</a>"
+    }
+  },
+  "sprite": "https://openmaptiles.github.io/osm-bright-gl-style/sprite",
+  "glyphs": "https://openmaptiles.geo.data.gouv.fr/fonts/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "ign",
+      "type": "raster",
+      "source": "ign",
+      "minzoom": 0,
+      "maxzoom": 18
+    }
+  ]
+}

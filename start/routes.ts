@@ -25,9 +25,15 @@ router
 
     router.get('accueil', [AccueilController, 'index'])
     router.get('exploitations', [ExploitationsController, 'index']).as('exploitations.index')
+    router
+      .get('exploitations/creation', [ExploitationsController, 'create'])
+      .as('exploitations.create')
+
     router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
 
-    router.post('exploitations', [ExploitationsController, 'store']).as('exploitations.store')
+    router
+      .post('exploitations/creation', [ExploitationsController, 'store'])
+      .as('exploitations.store')
     router.patch('exploitations/:id', [ExploitationsController, 'edit']).as('exploitations.edit')
     router
       .delete('exploitations/:id', [ExploitationsController, 'destroy'])
