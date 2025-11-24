@@ -14,7 +14,7 @@ export default function Divider({ label }: DividerProps) {
         <span className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
       </div>
     )
-  } else {
-    return <div className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
   }
+
+  return <div className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
 }
