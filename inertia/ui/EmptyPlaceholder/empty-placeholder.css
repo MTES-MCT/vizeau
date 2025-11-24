@@ -1,0 +1,4 @@
+.custom-size::before {
+  height: 90px;
+  width: 90px;
+}
