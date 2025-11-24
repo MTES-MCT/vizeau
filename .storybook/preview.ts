@@ -1,15 +1,17 @@
+import React from 'react'
 import type { Preview } from '@storybook/react-vite'
 import '@codegouvfr/react-dsfr/main.css'
 import '@codegouvfr/react-dsfr/dsfr/dsfr.css'
 import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons.css'
 import '../inertia/css/app.css'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
-import React from 'react'
+import { withInertia } from './decorators'
 import type { Decorator } from '@storybook/react'
 
 startReactDsfr({ defaultColorScheme: 'system' })
 
 const preview: Preview = {
+  decorators: [withInertia],
   parameters: {
     controls: {
       matchers: {

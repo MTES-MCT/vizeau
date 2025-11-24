@@ -10,6 +10,7 @@ export default function Layout({
   hideFooter = false,
 }: React.PropsWithChildren<{ hideFooter?: boolean }>) {
   const { url } = usePage()
+
   const isLoginPage = url === '/login'
 
   return (
