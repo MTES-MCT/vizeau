@@ -8,7 +8,7 @@ export type DividerProps = {
 export default function Divider({ label }: DividerProps) {
   if (label) {
     return (
-      <div className="flex items-center">
+      <div className="flex items-center" role="separator" aria-label={label}>
         <span className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
         <span className="w-auto whitespace-nowrap fr-mx-2v">{label}</span>
         <span className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
@@ -16,5 +16,7 @@ export default function Divider({ label }: DividerProps) {
     )
   }
 
-  return <div className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} />
+  return (
+    <div className="w-full" style={{ borderTop: `1px solid ${borderColor}` }} role="separator" />
+  )
 }
