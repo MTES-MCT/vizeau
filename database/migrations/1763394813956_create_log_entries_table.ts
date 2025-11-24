@@ -1,30 +1,23 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
+import LogEntry from '#models/log_entry'
+import User from '#models/user'
 import Exploitation from '#models/exploitation'
-import ExploitationTag from '#models/exploitation_tag'
-
-export const ExploitationTagRelationTable = 'exploitation_tag_relations'
 
 export default class extends BaseSchema {
-  protected tableName = ExploitationTagRelationTable
+  protected tableName = LogEntry.table
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
+      table.uuid('id').primary().notNullable()
+      table.text('notes').notNullable()
+      table.uuid('user_id').notNullable().references('id').inTable(User.table).onDelete('CASCADE')
       table
         .uuid('exploitation_id')
         .notNullable()
         .references('id')
         .inTable(Exploitation.table)
         .onDelete('CASCADE')
-      table
-        .integer('exploitation_tag_id')
-        .notNullable()
-        .unsigned()
-        .references('id')
-        .inTable(ExploitationTag.table)
-        .onDelete('CASCADE')
 
-      table.unique(['exploitation_id', 'exploitation_tag_id'])
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

@@ -15,6 +15,14 @@ export default {
 }
 
 export const Default = {
+  parameters: {
+    inertia: {
+      url: '/accueil',
+      component: 'MockComponent',
+      props: {},
+      version: '1',
+    },
+  },
   render: (
     args: JSX.IntrinsicAttributes & { hideFooter?: boolean } & { children?: ReactNode | undefined }
   ) => (
@@ -30,6 +38,14 @@ export const Default = {
 export const WithoutFooter = {
   args: {
     hideFooter: true,
+  },
+  parameters: {
+    inertia: {
+      url: '/accueil',
+      component: 'MockComponent',
+      props: {},
+      version: '1',
+    },
   },
   render: (
     args: JSX.IntrinsicAttributes & { hideFooter?: boolean } & { children?: ReactNode | undefined }
