@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { MouseEventHandler, ReactNode } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import Button from '@codegouvfr/react-dsfr/Button'
@@ -7,7 +7,7 @@ export type SmallSectionProps = {
   title: string
   actionIcon?: string
   actionLabel?: string
-  handleAction?: () => void
+  handleAction?: MouseEventHandler<HTMLButtonElement>
   children?: ReactNode
 }
 

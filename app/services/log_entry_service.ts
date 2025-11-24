@@ -2,7 +2,7 @@ import LogEntry from '#models/log_entry'
 
 export class LogEntryService {
   async createLogEntry(logData: {
-    notes: string
+    notes?: string
     userId: string
     exploitationId: string
     tags?: number[]
