@@ -27,11 +27,11 @@ export class LogEntryService {
 
   async updateLogEntry(id: string, logData: { notes?: string; tags?: number[] }) {
     const logEntry = await LogEntry.findOrFail(id)
-    if (logData.notes) {
+    if (logData.notes !== undefined) {
       logEntry.notes = logData.notes
       await logEntry.save()
     }
-    if (logData.tags) {
+    if (logData.tags !== undefined) {
       await logEntry.related('tags').sync(logData.tags)
     }
     return logEntry

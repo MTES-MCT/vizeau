@@ -29,6 +29,8 @@ router
       .get('exploitations/creation', [ExploitationsController, 'create'])
       .as('exploitations.create')
 
+    router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
+
     router
       .post('exploitations/creation', [ExploitationsController, 'store'])
       .as('exploitations.store')
