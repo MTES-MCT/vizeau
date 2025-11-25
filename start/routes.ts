@@ -30,6 +30,9 @@ router
       .as('exploitations.create')
 
     router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
+    router
+      .get('exploitations/siret/:siret', [ExploitationsController, 'getBySiret'])
+      .as('exploitations.getBySiret')
 
     router
       .post('exploitations/creation', [ExploitationsController, 'store'])
