@@ -18,7 +18,7 @@ interface SearchAutocompleteProps<T> {
   getOptionKey?: (option: T) => string | number
   renderOption?: (option: T) => React.ReactNode
   disableClientFilter?: boolean
-  error?: {[key: string]: any}
+  error?: { [key: string]: any }
 }
 
 export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>) {
