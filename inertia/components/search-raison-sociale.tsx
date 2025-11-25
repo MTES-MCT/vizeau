@@ -20,11 +20,11 @@ export type RaisonSociale = {
 export default function SearchRaisonSociale({
   onChange,
   value,
-  error
+  error,
 }: {
   onChange: (value: RaisonSociale) => void
   value: RaisonSociale | null
-  error?: {[key: string]: any}
+  error?: { [key: string]: any }
 }) {
   const [options, setOptions] = useState<RaisonSociale[]>([])
 
@@ -37,7 +37,8 @@ export default function SearchRaisonSociale({
       } catch (error) {
         console.error(error)
         setOptions([])
-      }}
+      }
+    }
   }, 300)
 
   return (
