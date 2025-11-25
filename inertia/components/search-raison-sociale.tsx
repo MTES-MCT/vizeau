@@ -24,7 +24,7 @@ export default function SearchRaisonSociale({
 }: {
   onChange: (value: RaisonSociale) => void
   value: RaisonSociale | null
-  error?: any
+  error?: {[key: string]: any}
 }) {
   const [options, setOptions] = useState<RaisonSociale[]>([])
 
