@@ -5,7 +5,7 @@ export default class extends BaseSchema {
   protected tableName = Exploitation.table
 
   async up() {
-    this.raw(
+    await this.raw(
       `ALTER TABLE ${this.tableName} DROP CONSTRAINT IF EXISTS exploitations_type_structure_check;`
     )
   }
