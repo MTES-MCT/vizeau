@@ -18,6 +18,7 @@ interface SearchAutocompleteProps<T> {
   getOptionKey?: (option: T) => string | number
   renderOption?: (option: T) => React.ReactNode
   disableClientFilter?: boolean
+  error?: { [key: string]: any }
 }
 
 export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>) {
@@ -36,6 +37,7 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
     getOptionKey,
     renderOption,
     disableClientFilter = false,
+    error,
   } = props
   const [inputValue, setInputValue] = useState(value ? getOptionLabel(value) : '')
   const [isOpen, setIsOpen] = useState(false)
@@ -94,14 +96,16 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
         label={label}
         className={className}
         style={{ margin: 0, padding: 0 }}
+        state={error && 'error'}
+        stateRelatedMessage={error?.message}
         nativeInputProps={{
           id,
           placeholder,
           type,
-          value: inputValue,
-          onChange: handleInputChange,
-          onFocus: () => setIsOpen(true),
-          required: required,
+          'value': inputValue,
+          'onChange': handleInputChange,
+          'onFocus': () => setIsOpen(true),
+          'required': required,
           'aria-expanded': isOpen,
           'aria-autocomplete': 'list',
         }}

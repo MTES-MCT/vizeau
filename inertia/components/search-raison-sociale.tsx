@@ -20,9 +20,11 @@ export type RaisonSociale = {
 export default function SearchRaisonSociale({
   onChange,
   value,
+  error,
 }: {
   onChange: (value: RaisonSociale) => void
   value: RaisonSociale | null
+  error?: { [key: string]: any }
 }) {
   const [options, setOptions] = useState<RaisonSociale[]>([])
 
@@ -35,7 +37,8 @@ export default function SearchRaisonSociale({
       } catch (error) {
         console.error(error)
         setOptions([])
-      }}
+      }
+    }
   }, 300)
 
   return (
@@ -45,6 +48,7 @@ export default function SearchRaisonSociale({
       options={options}
       value={value ?? null}
       onChange={onChange}
+      error={error}
       renderOption={(opt) => (
         <div className="flex justify-between">
           <div>
