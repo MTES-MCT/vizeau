@@ -7,6 +7,7 @@ export type RaisonSociale = {
   name: string
   nom_complet: string
   siren: string
+  siret?: string
   categorie_entreprise: string
   activite_principale: string
   siege: {
