@@ -29,10 +29,14 @@ router
       .get('exploitations/creation', [ExploitationsController, 'create'])
       .as('exploitations.create')
 
-    router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
+    router
+      .get('exploitations/edition/:id', [ExploitationsController, 'getForEdition'])
+      .as('exploitation.edition')
     router
       .get('exploitations/siret/:siret', [ExploitationsController, 'getBySiret'])
       .as('exploitations.getBySiret')
+
+    router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
 
     router
       .post('exploitations/creation', [ExploitationsController, 'store'])
