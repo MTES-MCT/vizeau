@@ -43,7 +43,7 @@ export default function Layout({
                 {
                   linkProps: { href: '/exploitations' },
                   text: 'Exploitations',
-                  isActive: pathname === '/exploitations' || pathname === '/exploitations/creation',
+                  isActive: pathname.startsWith('/exploitations'),
                 },
               ]
         }
