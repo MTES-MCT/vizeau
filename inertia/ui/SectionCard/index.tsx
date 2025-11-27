@@ -35,19 +35,20 @@ export default function SectionCard({
             : fr.colors.decisions.background.alt.blueFrance.default,
       }}
     >
-      <div className="flex justify-between items-center">
-        {size === 'small' ? (
-          <h6 className="w-full fr-mb-0">
-            {icon && <span className={`${icon} fr-mr-1w fr-icon-md`} aria-hidden="true"></span>}
-            {title}
-          </h6>
-        ) : (
-          <h4 className="w-full fr-mb-0">
-            {icon && <span className={`${icon} fr-mr-1w`} aria-hidden="true"></span>}
-            {title}
-          </h4>
-        )}
-
+      <div className="flex items-center">
+        <div className="flex-1 min-w-0">
+          {size === 'small' ? (
+            <h6 className="fr-mb-0">
+              {icon && <span className={`${icon} fr-mr-1w fr-icon-md`} aria-hidden="true"></span>}
+              {title}
+            </h6>
+          ) : (
+            <h4 className="fr-mb-0">
+              {icon && <span className={`${icon} fr-mr-1w`} aria-hidden="true"></span>}
+              {title}
+            </h4>
+          )}
+        </div>
         {handleAction &&
           actionIcon &&
           (size === 'small' ? (
@@ -57,9 +58,15 @@ export default function SectionCard({
               priority="tertiary"
               size="small"
               title={actionLabel || 'Action'}
+              className="whitespace-nowrap"
             />
           ) : (
-            <Button iconId={actionIcon as any} onClick={handleAction} priority="primary">
+            <Button
+              iconId={actionIcon as any}
+              onClick={handleAction}
+              priority="primary"
+              className="whitespace-nowrap"
+            >
               {actionLabel}
             </Button>
           ))}
