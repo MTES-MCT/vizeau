@@ -31,7 +31,7 @@ router
 
     router
       .get('exploitations/edition/:id', [ExploitationsController, 'getForEdition'])
-      .as('exploitation.edition')
+      .as('exploitations.edition')
     router
       .get('exploitations/siret/:siret', [ExploitationsController, 'getBySiret'])
       .as('exploitations.getBySiret')
