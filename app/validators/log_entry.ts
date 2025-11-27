@@ -2,7 +2,7 @@ import vine from '@vinejs/vine'
 
 export const createLogEntryValidator = vine.compile(
   vine.object({
-    notes: vine.string().maxLength(4000).optional().requiredIfMissing(['tags']),
+    notes: vine.string().maxLength(1000).optional().requiredIfMissing(['tags']),
     tags: vine
       .array(vine.number().positive().withoutDecimals())
       .optional()
