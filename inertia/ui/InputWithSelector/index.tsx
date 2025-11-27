@@ -2,10 +2,15 @@ import { useRef, useState, useEffect } from 'react'
 import Input from '@codegouvfr/react-dsfr/Input'
 import DropdownItem from './dropdown-item'
 
+import type { DropdownAction } from './dropdown-item'
+
+import { fr } from '@codegouvfr/react-dsfr'
+
 export type OptionType = {
   value: string
   label: string
   isSelected: boolean
+  actions?: DropdownAction[]
 }
 
 export type InputWithSelectorProps = {
@@ -22,8 +27,6 @@ export default function InputWithSelector({
   options,
   handleInputChange,
   onOptionsChange,
-  label,
-  hintText,
   ...props
 }: InputWithSelectorProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -32,7 +35,10 @@ export default function InputWithSelector({
   // Fermer le dropdown au clic en dehors
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      // Ignore clicks on dropdown action menu
+      const target = event.target as HTMLElement
+      if (target.closest('.dropdown-action-menu')) return
+      if (containerRef.current && !containerRef.current.contains(target)) {
         setDropdownOpen(false)
       }
     }
@@ -52,17 +58,9 @@ export default function InputWithSelector({
     onOptionsChange(updatedOptions)
   }
 
-  // Gestion suppression
-  const handleDelete = (value: string) => {
-    const updatedOptions = options.filter((opt) => opt.value !== value)
-    onOptionsChange(updatedOptions)
-  }
-
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
       <Input
-        label={label}
-        hintText={hintText}
         nativeInputProps={{
           value: inputValue,
           onChange: (e) => handleInputChange(e.currentTarget.value),
@@ -71,32 +69,21 @@ export default function InputWithSelector({
         }}
         {...props}
       />
-      {dropdownOpen && (
+
+      {options?.length > 0 && dropdownOpen && (
         <div
+          className="absolute shadow-lg z-10"
           style={{
-            position: 'absolute',
             top: '100%',
             left: 0,
             right: 0,
-            background: 'white',
-            border: '1px solid #ccc',
-            zIndex: 10,
-            maxHeight: 200,
+            background: fr.colors.decisions.background.default.grey.default,
             overflowY: 'auto',
           }}
         >
-          {options.length > 0 ? (
-            options.map((opt) => (
-              <DropdownItem
-                key={opt.value}
-                item={opt}
-                onToggle={handleToggle}
-                onDelete={handleDelete}
-              />
-            ))
-          ) : (
-            <div style={{ padding: '8px', color: '#888' }}>Aucune option</div>
-          )}
+          {options.map((opt) => {
+            return <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
+          })}
         </div>
       )}
     </div>

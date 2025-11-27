@@ -1,5 +1,7 @@
-import InputWithSelector, { InputWithSelectorProps, OptionType } from './index.js'
+import InputWithSelector, { OptionType } from './index.js'
 import { useState } from 'react'
+
+import { fr } from '@codegouvfr/react-dsfr'
 
 const meta = {
   title: 'UI/InputWithSelector',
@@ -8,36 +10,145 @@ const meta = {
   argTypes: {
     inputValue: {
       control: 'text',
-      description: "Valeur actuelle de l'input",
+      description: "Valeur actuelle de l'input.",
+      type: { name: 'string', required: true },
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: "''" },
+      },
     },
     options: {
       control: 'object',
-      description: 'Liste des options avec leur état de sélection',
+      description:
+        'Liste des options avec leur état de sélection et leurs actions.\n\nModèle obligatoire :\n[\n  {\n    value: string,\n    label: string,\n    isSelected: boolean,\n    actions?: [\n      {\n        label: string,\n        iconId?: string,\n        isCritical?: bool,\n        onClick: (value: string) => void,\n      }\n    ]\n  }\n]',
+      type: { name: 'array', required: true },
+      table: {
+        type: {
+          summary:
+            '[{ value: string; label: string; isSelected: boolean; actions?: DropdownAction[] }]',
+        },
+        defaultValue: { summary: '[]' },
+      },
     },
     label: {
       control: 'text',
-      description: 'Label du champ',
+      description: 'Label du champ.\n\nModèle obligatoire :\nstring',
+      type: { name: 'string', required: true },
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: "''" },
+      },
     },
     hintText: {
       control: 'text',
-      description: "Texte d'aide sous le champ",
+      description: "Texte d'aide sous le champ.\n\nModèle obligatoire :\nstring",
+      type: { name: 'string', required: false },
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: "''" },
+      },
+    },
+    handleInputChange: {
+      control: false,
+      description:
+        "Callback appelé lors du changement de l'input.\n\nModèle obligatoire :\n(value: string) => void",
+      type: { name: 'function', required: true },
+      table: {
+        type: { summary: '(value: string) => void' },
+      },
+    },
+    onOptionsChange: {
+      control: false,
+      description:
+        'Callback appelé lors du changement des options.\n\nModèle obligatoire :\n(options: OptionType[]) => void',
+      type: { name: 'function', required: true },
+      table: {
+        type: { summary: '(options: OptionType[]) => void' },
+      },
     },
   },
 }
 
 export default meta
 
-/**
- * Story par défaut avec gestion complète de l'état.
- * Cliquez sur l'input pour ouvrir le dropdown et cochez/décochez les options.
- * L'état des options sélectionnées est affiché en temps réel.
- */
-export const Défaut = (props: Partial<InputWithSelectorProps> & Record<string, any>) => {
+export const Défaut = () => {
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState<OptionType[]>([
-    { value: 'option1', label: 'Option 1', isSelected: false },
-    { value: 'option2', label: 'Option 2', isSelected: false },
-    { value: 'option3', label: 'Option 3', isSelected: false },
+    {
+      value: 'option1',
+      label: 'Option 1',
+      isSelected: false,
+      actions: [
+        {
+          value: 'delete',
+          label: 'Supprimer',
+          iconId: 'fr-icon-delete-line',
+          isCritical: true,
+          onClick: (value: string) => {
+            alert(`Option supprimée: ${value}`)
+            const updatedOptions = options.filter((opt) => opt.value !== value)
+            setOptions(updatedOptions)
+          },
+        },
+        {
+          value: 'option1',
+          label: 'Autre action',
+          onClick: (value: string) => {
+            alert(`Action effectuée: ${value}`)
+          },
+        },
+      ],
+    },
+    {
+      value: 'option2',
+      label: 'Option 2',
+      isSelected: false,
+      actions: [
+        {
+          value: 'delete',
+          label: 'Supprimer',
+          iconId: 'fr-icon-delete-line',
+          isCritical: true,
+          onClick: (value: string) => {
+            alert(`Option supprimée: ${value}`)
+            const updatedOptions = options.filter((opt) => opt.value !== value)
+            setOptions(updatedOptions)
+          },
+        },
+        {
+          value: 'option2',
+          label: 'Autre action',
+          onClick: (value: string) => {
+            alert(`Action effectuée: ${value}`)
+          },
+        },
+      ],
+    },
+    {
+      value: 'option3',
+      label: 'Option 3',
+      isSelected: false,
+      actions: [
+        {
+          value: 'delete',
+          label: 'Supprimer',
+          iconId: 'fr-icon-delete-line',
+          isCritical: true,
+          onClick: (value: string) => {
+            alert(`Option supprimée: ${value}`)
+            const updatedOptions = options.filter((opt) => opt.value !== value)
+            setOptions(updatedOptions)
+          },
+        },
+        {
+          value: 'delete',
+          label: 'Autre action',
+          onClick: (value: string) => {
+            alert(`Action effectuée: ${value}`)
+          },
+        },
+      ],
+    },
   ])
 
   const handleOptionsChange = (updatedOptions: OptionType[]) => {
@@ -58,115 +169,49 @@ export const Défaut = (props: Partial<InputWithSelectorProps> & Record<string, 
         onOptionsChange={handleOptionsChange}
         label="Sélectionnez des options"
         hintText="Cliquez pour ouvrir et cocher les options"
-        {...props}
       />
 
       <div
-        style={{ marginTop: '20px', padding: '15px', background: '#f0f0f0', borderRadius: '4px' }}
+        className="fr-p-4v fr-mt-2v"
+        style={{
+          border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+          backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
+        }}
       >
-        <h4 style={{ marginTop: 0 }}>État actuel :</h4>
-        <p>
-          <strong>Valeur de l'input:</strong> {inputValue || '(vide)'}
-        </p>
-        <p>
-          <strong>Nombre d'options:</strong> {options.length}
-        </p>
-        <p>
-          <strong>Options sélectionnées:</strong>{' '}
-          {options
-            .filter((opt) => opt.isSelected)
-            .map((opt) => opt.label)
-            .join(', ') || '(aucune)'}
-        </p>
-        <details>
-          <summary style={{ cursor: 'pointer' }}>Voir l'état complet des options</summary>
-          <pre style={{ marginTop: '10px', fontSize: '12px' }}>
-            {JSON.stringify(options, null, 2)}
-          </pre>
-        </details>
+        <h6>Valeurs récupérées par le champ :</h6>
+
+        <div className="flex flex-col gap-2">
+          <p className="fr-text fr-m-0"><strong>Valeur de l'input :&nbsp;</strong>{inputValue || '(vide)'}</p>
+          <p className="fr-text fr-m-0"><strong className="bold">Nombre d'options :&nbsp;</strong>{options.length}</p>
+          <p className="fr-text fr-m-0">
+            <strong >Options sélectionnées :&nbsp;</strong>
+            {options
+              .filter((opt) => opt.isSelected)
+              .map((opt) => opt.label)
+              .join(', ') || '(aucune)'}
+          </p>
+
+          <details>
+            <summary className="cursor-pointer">Voir l'état complet des options</summary>
+            <pre className="fr-text--xs fr-mt-2v">{JSON.stringify(options, null, 2)}</pre>
+          </details>
+        </div>
       </div>
     </div>
   )
 }
 
-/**
- * Story avec des options pré-sélectionnées.
- */
-export const AvecOptionsPrésélectionnées = () => {
-  const [inputValue, setInputValue] = useState('Recherche...')
-  const [options, setOptions] = useState<OptionType[]>([
-    { value: 'fruits', label: 'Fruits', isSelected: true },
-    { value: 'legumes', label: 'Légumes', isSelected: false },
-    { value: 'viandes', label: 'Viandes', isSelected: true },
-    { value: 'poissons', label: 'Poissons', isSelected: false },
-  ])
-
-  return (
-    <div>
-      <InputWithSelector
-        inputValue={inputValue}
-        options={options}
-        handleInputChange={setInputValue}
-        onOptionsChange={setOptions}
-        label="Catégories de produits"
-        hintText="2 catégories déjà sélectionnées"
-      />
-
-      <div
-        style={{ marginTop: '20px', padding: '15px', background: '#e8f5e9', borderRadius: '4px' }}
-      >
-        <p>
-          <strong>Sélectionnées:</strong>{' '}
-          {options
-            .filter((opt) => opt.isSelected)
-            .map((opt) => opt.label)
-            .join(', ')}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-/**
- * Story avec nombreuses options pour tester le défilement.
- */
-export const AvecNombreusesOptions = () => {
-  const [inputValue, setInputValue] = useState('')
-  const [options, setOptions] = useState<OptionType[]>(
-    Array.from({ length: 15 }, (_, i) => ({
-      value: `option${i + 1}`,
-      label: `Option ${i + 1}`,
-      isSelected: i % 3 === 0, // Sélectionne toutes les 3 options
-    }))
-  )
-
-  return (
-    <InputWithSelector
-      inputValue={inputValue}
-      options={options}
-      handleInputChange={setInputValue}
-      onOptionsChange={setOptions}
-      label="Liste avec défilement"
-      hintText="15 options disponibles (max-height: 200px)"
-    />
-  )
-}
-
-/**
- * Story sans options pour tester le cas vide.
- */
 export const SansOptions = () => {
   const [inputValue, setInputValue] = useState('')
-  const [options, setOptions] = useState<OptionType[]>([])
 
   return (
     <InputWithSelector
       inputValue={inputValue}
-      options={options}
+      options={[]}
       handleInputChange={setInputValue}
-      onOptionsChange={setOptions}
-      label="Aucune option disponible"
-      hintText="Le dropdown affichera un message 'Aucune option'"
+      onOptionsChange={() => {}}
+      label="Sélectionnez des options"
+      hintText="Aucune option disponible"
     />
   )
 }
