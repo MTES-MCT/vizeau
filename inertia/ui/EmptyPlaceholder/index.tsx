@@ -63,7 +63,7 @@ export default function EmptyPlaceholder({
           iconId={buttonIcon as any}
           onClick={handleClick}
           aria-label={actionAriaLabel || buttonLabel}
-          className='fr-mt-2v'
+          className="fr-mt-2v"
         >
           {buttonLabel}
         </Button>
