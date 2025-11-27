@@ -54,7 +54,7 @@ export default function EmptyPlaceholder({
           )}
         </div>
 
-        {hint && <p className="fr-text--sm text-center fr-mt-2v">{hint}</p>}
+        {hint && <p className="fr-text--sm text-center fr-m-2v">{hint}</p>}
       </div>
 
       {buttonLabel && (
@@ -63,6 +63,7 @@ export default function EmptyPlaceholder({
           iconId={buttonIcon as any}
           onClick={handleClick}
           aria-label={actionAriaLabel || buttonLabel}
+          className='fr-mt-2v'
         >
           {buttonLabel}
         </Button>
