@@ -50,5 +50,11 @@ router
     router
       .post('exploitations/:exploitationId/journal/creation', [LogEntriesController, 'create'])
       .as('log_entries.create')
+    router
+      .post('exploitations/:exploitationId/tags/creation', [
+        LogEntriesController,
+        'createTagForExploitation',
+      ])
+      .as('log_entries.createTagForExploitation')
   })
   .use(middleware.auth())

@@ -13,8 +13,16 @@ export class LogEntryTagService {
     })
   }
 
-  async getTagsForExploitation(exploitationId: string) {
-    return LogEntryTag.query().where('exploitationId', exploitationId).orderBy('updatedAt', 'desc')
+  async getTagsForExploitation(exploitationId: string, searchQuery?: string) {
+    const query = LogEntryTag.query()
+      .where('exploitationId', exploitationId)
+      .orderBy('updatedAt', 'desc')
+
+    if (searchQuery) {
+      query.andWhere('name', 'ilike', `%${searchQuery}%`)
+    }
+
+    return query.exec()
   }
 
   async updateTag(tagId: number, tagName: string) {

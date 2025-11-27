@@ -3,12 +3,16 @@ import { inject } from '@adonisjs/core'
 import { createLogEntryValidator } from '#validators/log_entry'
 import { LogEntryService } from '#services/log_entry_service'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
+import { LogEntryTagService } from '#services/log_entry_tag_service'
 
 @inject()
 export default class LogEntriesController {
-  constructor(public logEntryService: LogEntryService) {}
+  constructor(
+    public logEntryService: LogEntryService,
+    public logEntryTagService: LogEntryTagService
+  ) {}
 
-  public async create({ auth, request, response, session, logger }: HttpContext) {
+  async create({ auth, request, response, session, logger }: HttpContext) {
     const user = auth.getUserOrFail()
     const payload = await request.validateUsing(createLogEntryValidator)
 
@@ -29,5 +33,23 @@ export default class LogEntriesController {
     }
 
     return response.redirect().toRoute('exploitations.get', [payload.params.exploitationId])
+  }
+
+  async createTagForExploitation({ auth, request, response, session, logger }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const exploitationId = request.param('exploitationId')
+    const tagName = request.input('name')
+
+    try {
+      await this.logEntryTagService.createTagForExploitation(exploitationId, user.id, tagName)
+      createSuccessFlashMessage(session, "L'étiquette a été créée avec succès.")
+    } catch (error) {
+      logger.error('Error creating tag for exploitation:', error)
+      createErrorFlashMessage(
+        session,
+        "Une erreur est survenue lors de la création de l'étiquette."
+      )
+    }
+    return response.redirect().back()
   }
 }
