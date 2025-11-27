@@ -64,7 +64,7 @@ export default function SectionCard({
             <Button
               iconId={actionIcon as any}
               onClick={handleAction}
-              priority="primary"
+              priority="secondary"
               className="whitespace-nowrap"
             >
               {actionLabel}
