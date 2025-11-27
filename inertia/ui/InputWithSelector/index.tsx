@@ -61,6 +61,7 @@ export default function InputWithSelector<T extends string | number>({
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
       <Input
+        className="fr-m-0"
         nativeInputProps={{
           value: inputValue,
           onChange: (e) => handleInputChange(e.currentTarget.value),
@@ -72,7 +73,7 @@ export default function InputWithSelector<T extends string | number>({
 
       {options?.length > 0 && dropdownOpen && (
         <div
-          className="absolute shadow-lg z-10"
+          className="absolute shadow-lg z-9999"
           style={{
             top: '100%',
             left: 0,
