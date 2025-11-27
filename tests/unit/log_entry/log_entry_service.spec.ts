@@ -3,22 +3,25 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { LogEntryService } from '#services/log_entry_service'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { UserFactory } from '#database/factories/user_factory'
+import { LogEntryTagFactory } from '#database/factories/log_entry_tag_factory'
 
 test.group('LogEntryService', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('I can create a log entry', async ({ assert }) => {
     const user = await UserFactory.create()
-    const exploitation = await ExploitationFactory.with('tags', 5, (builder) =>
-      builder.merge({ userId: user.id })
-    ).create()
+    const exploitation = await ExploitationFactory.create()
+    const tags = await LogEntryTagFactory.merge({
+      userId: user.id,
+      exploitationId: exploitation.id,
+    }).createMany(5)
 
     const logEntryService = new LogEntryService()
     const logData = {
       notes: 'This is a test log entry',
       userId: user.id,
       exploitationId: exploitation.id,
-      tags: exploitation.tags.map((tag) => tag.id),
+      tags: tags.slice(1, 3).map((tag) => tag.id),
     }
     const logEntry = await logEntryService.createLogEntry(logData)
     await logEntry.load('tags')
@@ -35,9 +38,11 @@ test.group('LogEntryService', (group) => {
 
   test('I can get log entries for an exploitation', async ({ assert }) => {
     const user = await UserFactory.create()
-    const exploitation = await ExploitationFactory.with('tags', 5, (builder) =>
-      builder.merge({ userId: user.id })
-    ).create()
+    const exploitation = await ExploitationFactory.create()
+    const tags = await LogEntryTagFactory.merge({
+      userId: user.id,
+      exploitationId: exploitation.id,
+    }).createMany(5)
     const logEntryService = new LogEntryService()
 
     // Create multiple log entries
@@ -46,7 +51,7 @@ test.group('LogEntryService', (group) => {
         notes: `Log entry ${i + 1}`,
         userId: user.id,
         exploitationId: exploitation.id,
-        tags: exploitation.tags.slice(0, 2).map((tag) => tag.id),
+        tags: tags.slice(0, 2).map((tag) => tag.id),
       })
     }
     const paginatedLogs = await logEntryService.getLogForExploitation(exploitation.id)
@@ -59,16 +64,18 @@ test.group('LogEntryService', (group) => {
 
   test('I can update a log entry', async ({ assert }) => {
     const user = await UserFactory.create()
-    const exploitation = await ExploitationFactory.with('tags', 5, (builder) =>
-      builder.merge({ userId: user.id })
-    ).create()
+    const exploitation = await ExploitationFactory.create()
+    const tags = await LogEntryTagFactory.merge({
+      userId: user.id,
+      exploitationId: exploitation.id,
+    }).createMany(5)
     const logEntryService = new LogEntryService()
 
     const logEntry = await logEntryService.createLogEntry({
       notes: 'Original log entry',
       userId: user.id,
       exploitationId: exploitation.id,
-      tags: exploitation.tags.slice(0, 2).map((tag) => tag.id),
+      tags: tags.slice(0, 2).map((tag) => tag.id),
     })
 
     const updatedNotes = 'Updated log entry'
@@ -81,19 +88,21 @@ test.group('LogEntryService', (group) => {
 
   test('I can update a log entry tags', async ({ assert }) => {
     const user = await UserFactory.create()
-    const exploitation = await ExploitationFactory.with('tags', 5, (builder) =>
-      builder.merge({ userId: user.id })
-    ).create()
+    const exploitation = await ExploitationFactory.create()
+    const tags = await LogEntryTagFactory.merge({
+      userId: user.id,
+      exploitationId: exploitation.id,
+    }).createMany(5)
     const logEntryService = new LogEntryService()
 
     const logEntry = await logEntryService.createLogEntry({
       notes: 'Original log entry',
       userId: user.id,
       exploitationId: exploitation.id,
-      tags: exploitation.tags.slice(0, 2).map((tag) => tag.id),
+      tags: tags.slice(0, 2).map((tag) => tag.id),
     })
 
-    const newTagIds = exploitation.tags.slice(2, 4).map((tag) => tag.id)
+    const newTagIds = tags.slice(2, 4).map((tag) => tag.id)
     const updatedLogEntry = await logEntryService.updateLogEntry(logEntry.id, {
       tags: newTagIds,
     })
@@ -107,9 +116,7 @@ test.group('LogEntryService', (group) => {
 
   test('I can delete a log entry', async ({ assert }) => {
     const user = await UserFactory.create()
-    const exploitation = await ExploitationFactory.with('tags', 5, (builder) =>
-      builder.merge({ userId: user.id })
-    ).create()
+    const exploitation = await ExploitationFactory.create()
     const logEntryService = new LogEntryService()
 
     const logEntry = await logEntryService.createLogEntry({

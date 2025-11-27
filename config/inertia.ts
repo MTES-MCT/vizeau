@@ -1,5 +1,6 @@
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
+import { FlashMessageValue, FlashMessageType } from '../types/flash_messages.js'
 
 const inertiaConfig = defineConfig({
   /**
@@ -12,6 +13,10 @@ const inertiaConfig = defineConfig({
    */
   sharedData: {
     user: (ctx) => ctx.inertia.always(() => ctx.auth.user),
+    flashMessages: (ctx) =>
+      ctx.inertia.always(
+        () => ctx.session.flashMessages.toJSON() as Record<FlashMessageType, FlashMessageValue>
+      ),
   },
 
   /**

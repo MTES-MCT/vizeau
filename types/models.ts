@@ -7,6 +7,22 @@ export type ContactJson = {
   phoneNumber: string | null
 }
 
+export type ExploitationTagJson = {
+  id: number
+  name: string
+}
+
+export type LogEntryTagJson = {
+  id: number
+  name: string
+}
+
+export type LogEntryJson = {
+  id: string
+  notes: string | null
+  tags?: LogEntryTagJson[] | null
+}
+
 export type ExploitationJson = {
   id: string
   name: string
@@ -22,6 +38,8 @@ export type ExploitationJson = {
   location: { x: number; y: number } | null
   notes: string | null
   contacts?: ContactJson[] | null
+  tags?: ExploitationTagJson[] | null
+  logEntries?: LogEntryJson[] | null
 }
 
 export type PaginatedExploitationJson = {

@@ -2,7 +2,7 @@ import factory from '@adonisjs/lucid/factories'
 import LogEntry from '#models/log_entry'
 import { UserFactory } from '#database/factories/user_factory'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
-import { ExploitationTagFactory } from '#database/factories/exploitation_tag_factory'
+import { LogEntryTagFactory } from '#database/factories/log_entry_tag_factory'
 
 export const LogEntryFactory = factory
   .define(LogEntry, async ({ faker }) => {
@@ -12,5 +12,5 @@ export const LogEntryFactory = factory
   })
   .relation('author', () => UserFactory)
   .relation('exploitation', () => ExploitationFactory)
-  .relation('tags', () => ExploitationTagFactory)
+  .relation('tags', () => LogEntryTagFactory)
   .build()
