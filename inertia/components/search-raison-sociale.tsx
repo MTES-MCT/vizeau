@@ -6,7 +6,8 @@ import SearchAutocomplete from './search-autocomplete'
 export type RaisonSociale = {
   name: string
   nom_complet: string
-  siren: string
+  siren?: string
+  siret?: string
   categorie_entreprise: string
   activite_principale: string
   siege: {
@@ -61,13 +62,13 @@ export default function SearchRaisonSociale({
           </div>
           <div className="flex items-center">
             <span style={{ color: fr.colors.decisions.text.mention.grey.default }}>
-              <small>{opt.siren}</small>
+              <small>{opt.siret}</small>
             </span>
           </div>
         </div>
       )}
       getOptionLabel={(opt) => opt.nom_complet}
-      getOptionKey={(company) => company.siren}
+      getOptionKey={(company) => company.siret ?? company.siege.siret}
       onInputChange={fetchCompanies}
       disableClientFilter={true}
       required
