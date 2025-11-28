@@ -8,7 +8,6 @@ export type MapLayoutProps = {
   headerAdditionalContent?: React.ReactNode
   leftContent?: React.ReactNode
   rightContent?: React.ReactNode
-  actionsList?: any[]
   map?: React.ReactNode
 }
 
