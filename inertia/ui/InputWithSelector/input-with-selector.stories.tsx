@@ -84,11 +84,10 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: (value: string) => {
-            alert(`Option supprimée: ${value}`)
-            const updatedOptions = options.filter((opt) => opt.value !== value)
-            setOptions(updatedOptions)
-          },
+            onClick: (value: string) => {
+              alert(`Option supprimée: ${value}`)
+              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
+            },
         },
         {
           value: 'option1',
@@ -109,11 +108,10 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: (value: string) => {
-            alert(`Option supprimée: ${value}`)
-            const updatedOptions = options.filter((opt) => opt.value !== value)
-            setOptions(updatedOptions)
-          },
+            onClick: (value: string) => {
+              alert(`Option supprimée: ${value}`)
+              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
+            },
         },
         {
           value: 'option2',
@@ -134,11 +132,10 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: (value: string) => {
-            alert(`Option supprimée: ${value}`)
-            const updatedOptions = options.filter((opt) => opt.value !== value)
-            setOptions(updatedOptions)
-          },
+            onClick: (value: string) => {
+              alert(`Option supprimée: ${value}`)
+              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
+            },
         },
         {
           value: 'delete',
