@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
+import { OptionType } from './index.js'
 import { fr } from '@codegouvfr/react-dsfr'
 
 export type DropdownAction = {
@@ -11,13 +13,6 @@ export type DropdownAction = {
   iconId?: string
   isCritical?: boolean
   onClick: (value: string) => void
-}
-
-export type OptionType = {
-  value: string
-  label: string
-  isSelected: boolean
-  actions?: DropdownAction[]
 }
 
 export type DropdownItemProps = {
