@@ -178,7 +178,7 @@ export const Défaut = () => {
           <p className="fr-text fr-m-0"><strong>Valeur de l'input :&nbsp;</strong>{inputValue || '(vide)'}</p>
           <p className="fr-text fr-m-0"><strong>Nombre d'options :&nbsp;</strong>{options.length}</p>
           <p className="fr-text fr-m-0">
-            <strong >Options sélectionnées :&nbsp;</strong>
+            <strong>Options sélectionnées :&nbsp;</strong>
             {options
               .filter((opt) => opt.isSelected)
               .map((opt) => opt.label)
