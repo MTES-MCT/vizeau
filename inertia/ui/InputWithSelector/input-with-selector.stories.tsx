@@ -73,6 +73,12 @@ export default meta
 
 export const Défaut = () => {
   const [inputValue, setInputValue] = useState('')
+
+  const handleDeleteOption = (value: string) => {
+    alert(`Option supprimée: ${value}`)
+    setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
+  }
+
   const [options, setOptions] = useState<OptionType[]>([
     {
       value: 'option1',
@@ -84,10 +90,7 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-            onClick: (value: string) => {
-              alert(`Option supprimée: ${value}`)
-              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
-            },
+          onClick: handleDeleteOption,
         },
         {
           value: 'other',
@@ -108,10 +111,7 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-            onClick: (value: string) => {
-              alert(`Option supprimée: ${value}`)
-              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
-            },
+          onClick: handleDeleteOption,
         },
         {
           value: 'other',
@@ -132,10 +132,7 @@ export const Défaut = () => {
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-            onClick: (value: string) => {
-              alert(`Option supprimée: ${value}`)
-              setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
-            },
+          onClick: handleDeleteOption,
         },
         {
           value: 'other',
