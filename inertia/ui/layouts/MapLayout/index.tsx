@@ -49,7 +49,7 @@ export default function MapLayout({
                 }}
               >
                 <h6
-                  className="fr-text--lg w-full font-medium fr-m-0 w-fit fr-pr-2v"
+                  className="fr-text--lgfont-medium fr-m-0 w-full fr-pr-2v"
                   style={{
                     borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
                   }}
