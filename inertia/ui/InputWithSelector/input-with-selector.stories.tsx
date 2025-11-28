@@ -90,7 +90,7 @@ export const Défaut = () => {
             },
         },
         {
-          value: 'option1',
+          value: 'other',
           label: 'Autre action',
           onClick: (value: string) => {
             alert(`Action effectuée: ${value}`)
@@ -114,7 +114,7 @@ export const Défaut = () => {
             },
         },
         {
-          value: 'option2',
+          value: 'other',
           label: 'Autre action',
           onClick: (value: string) => {
             alert(`Action effectuée: ${value}`)
@@ -138,7 +138,7 @@ export const Défaut = () => {
             },
         },
         {
-          value: 'delete',
+          value: 'other',
           label: 'Autre action',
           onClick: (value: string) => {
             alert(`Action effectuée: ${value}`)
