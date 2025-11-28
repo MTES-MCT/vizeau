@@ -4,9 +4,9 @@ import { randomUUID } from 'node:crypto'
 import User from '#models/user'
 import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Exploitation from '#models/exploitation'
-import ExploitationTag from '#models/exploitation_tag'
+import LogEntryTag from '#models/log_entry_tag'
 
-export const ExploitationTagLogEntryRelationTable = 'exploitations_tags_log_entries_relations'
+export const LogEntryTagsRelationTable = 'log_entry_tag_relations'
 
 export default class LogEntry extends BaseModel {
   static table = 'log_entries'
@@ -23,7 +23,7 @@ export default class LogEntry extends BaseModel {
   }
 
   @column()
-  declare notes: string
+  declare notes: string | null
 
   @column()
   declare userId: string
@@ -37,11 +37,11 @@ export default class LogEntry extends BaseModel {
   @belongsTo(() => Exploitation)
   declare exploitation: BelongsTo<typeof Exploitation>
 
-  @manyToMany(() => ExploitationTag, {
-    pivotTable: ExploitationTagLogEntryRelationTable,
+  @manyToMany(() => LogEntryTag, {
+    pivotTable: LogEntryTagsRelationTable,
     pivotTimestamps: true,
   })
-  declare tags: ManyToMany<typeof ExploitationTag>
+  declare tags: ManyToMany<typeof LogEntryTag>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

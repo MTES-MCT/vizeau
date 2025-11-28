@@ -1,9 +1,9 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import LogEntry from '#models/log_entry'
-import ExploitationTag from '#models/exploitation_tag'
+import LogEntry, { LogEntryTagsRelationTable } from '#models/log_entry'
+import LogEntryTag from '#models/log_entry_tag'
 
 export default class extends BaseSchema {
-  protected tableName = 'exploitations_tags_log_entries_relations'
+  protected tableName = LogEntryTagsRelationTable
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
@@ -15,14 +15,14 @@ export default class extends BaseSchema {
         .inTable(LogEntry.table)
         .onDelete('CASCADE')
       table
-        .integer('exploitation_tag_id')
+        .integer('log_entry_tag_id')
         .notNullable()
         .unsigned()
         .references('id')
-        .inTable(ExploitationTag.table)
+        .inTable(LogEntryTag.table)
         .onDelete('CASCADE')
 
-      table.unique(['log_entry_id', 'exploitation_tag_id'])
+      table.unique(['log_entry_id', 'log_entry_tag_id'])
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

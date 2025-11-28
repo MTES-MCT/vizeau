@@ -12,6 +12,7 @@ import { middleware } from '#start/kernel'
 const AccueilController = () => import('#controllers/accueil_controller')
 const ExploitationsController = () => import('#controllers/exploitations_controller')
 const SessionController = () => import('#controllers/session_controller')
+const LogEntriesController = () => import('#controllers/log_entries_controller')
 
 router.get('/', ({ response }) => response.redirect('login'))
 
@@ -45,5 +46,9 @@ router
     router
       .delete('exploitations/:id', [ExploitationsController, 'destroy'])
       .as('exploitations.destroy')
+
+    router
+      .post('exploitations/:exploitationId/journal/creation', [LogEntriesController, 'create'])
+      .as('log_entries.create')
   })
   .use(middleware.auth())
