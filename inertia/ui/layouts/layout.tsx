@@ -8,14 +8,15 @@ import { usePage } from '@inertiajs/react'
 export default function Layout({
   children,
   hideFooter = false,
-}: React.PropsWithChildren<{ hideFooter?: boolean }>) {
+  isMapLayout = false,
+}: React.PropsWithChildren<{ hideFooter?: boolean; isMapLayout?: boolean }>) {
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
 
   return (
     <div
-      className="flex flex-col min-h-screen"
+      className={`flex flex-col ${isMapLayout ? 'h-screen overflow-hidden' : 'min-h-screen'}`}
       style={{ backgroundColor: fr.colors.decisions.background.default.grey.default }}
     >
       <Header
@@ -64,7 +65,9 @@ export default function Layout({
               ]
         }
       />
-      <main className="flex flex-col flex-1">{children}</main>
+      <main className={`flex flex-col flex-1 ${isMapLayout ? 'overflow-hidden' : ''}`}>
+        {children}
+      </main>
       {!hideFooter && (
         <Footer
           accessibility="fully compliant"
