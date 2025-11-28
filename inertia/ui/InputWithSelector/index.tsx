@@ -6,29 +6,29 @@ import type { DropdownAction } from './dropdown-item'
 
 import { fr } from '@codegouvfr/react-dsfr'
 
-export type OptionType = {
-  value: string
+export type OptionType<T> = {
+  value: T
   label: string
   isSelected: boolean
-  actions?: DropdownAction[]
+  actions?: DropdownAction<T>[]
 }
 
-export type InputWithSelectorProps = {
+export type InputWithSelectorProps<T> = {
   inputValue: string
-  options: OptionType[]
+  options: OptionType<T>[]
   handleInputChange: (value: string) => void
-  onOptionsChange: (options: OptionType[]) => void
+  onOptionsChange: (options: OptionType<T>[]) => void
   label: string
   hintText?: string
 }
 
-export default function InputWithSelector({
+export default function InputWithSelector<T extends string | number>({
   inputValue,
   options,
   handleInputChange,
   onOptionsChange,
   ...props
-}: InputWithSelectorProps) {
+}: InputWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -51,7 +51,7 @@ export default function InputWithSelector({
   }, [dropdownOpen])
 
   // Gestion sélection/désélection
-  const handleToggle = (value: string) => {
+  const handleToggle = (value: T) => {
     const updatedOptions = options.map((opt) =>
       opt.value === value ? { ...opt, isSelected: !opt.isSelected } : opt
     )
@@ -82,7 +82,7 @@ export default function InputWithSelector({
           }}
         >
           {options.map((opt) => {
-            return <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
+            return <DropdownItem<T> key={opt.value} item={opt} onToggle={handleToggle} />
           })}
         </div>
       )}

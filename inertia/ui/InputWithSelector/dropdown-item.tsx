@@ -7,20 +7,23 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { OptionType } from './index.js'
 import { fr } from '@codegouvfr/react-dsfr'
 
-export type DropdownAction = {
-  value: string
+export type DropdownAction<T> = {
+  value: T
   label: string
   iconId?: string
   isCritical?: boolean
-  onClick: (value: string) => void
+  onClick: (value: T) => void
 }
 
-export type DropdownItemProps = {
-  item: OptionType
-  onToggle: (value: string) => void
+export type DropdownItemProps<T> = {
+  item: OptionType<T>
+  onToggle: (value: T) => void
 }
 
-export default function DropdownItem({ item, onToggle }: DropdownItemProps) {
+export default function DropdownItem<T extends string | number>({
+  item,
+  onToggle,
+}: DropdownItemProps<T>) {
   const buttonRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -87,7 +90,7 @@ export default function DropdownItem({ item, onToggle }: DropdownItemProps) {
             {
               label: item.label,
               nativeInputProps: {
-                name: item.value,
+                name: item.value.toString(),
                 value: item.value,
                 onChange: () => onToggle(item.value),
                 checked: item.isSelected,
