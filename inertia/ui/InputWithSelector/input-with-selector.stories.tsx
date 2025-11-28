@@ -176,7 +176,7 @@ export const Défaut = () => {
 
         <div className="flex flex-col gap-2">
           <p className="fr-text fr-m-0"><strong>Valeur de l'input :&nbsp;</strong>{inputValue || '(vide)'}</p>
-          <p className="fr-text fr-m-0"><strong className="bold">Nombre d'options :&nbsp;</strong>{options.length}</p>
+          <p className="fr-text fr-m-0"><strong>Nombre d'options :&nbsp;</strong>{options.length}</p>
           <p className="fr-text fr-m-0">
             <strong >Options sélectionnées :&nbsp;</strong>
             {options
