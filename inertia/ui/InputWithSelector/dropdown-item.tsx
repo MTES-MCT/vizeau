@@ -18,7 +18,6 @@ export type DropdownAction = {
 export type DropdownItemProps = {
   item: OptionType
   onToggle: (value: string) => void
-  actions?: DropdownAction[]
 }
 
 export default function DropdownItem({ item, onToggle }: DropdownItemProps) {
