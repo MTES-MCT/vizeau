@@ -104,6 +104,7 @@ export default function DropdownItem<T extends string | number>({
         <div>
           <div className="relative" ref={buttonRef}>
             <Button
+              type="button"
               onClick={() => setMenuOpen(!menuOpen)}
               title="Ouvrir le menu des options"
               iconId="fr-icon-more-fill"

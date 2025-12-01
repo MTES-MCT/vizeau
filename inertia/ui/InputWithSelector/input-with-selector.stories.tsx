@@ -57,13 +57,13 @@ const meta = {
         type: { summary: '(value: string) => void' },
       },
     },
-    onOptionsChange: {
+    onOptionChange: {
       control: false,
       description:
-        'Callback appelé lors du changement des options.\n\nModèle obligatoire :\n(options: OptionType[]) => void',
+        "Callback appelé lors du changement d'une option.\n\nModèle obligatoire :\n(option: OptionType) => void",
       type: { name: 'function', required: true },
       table: {
-        type: { summary: '(options: OptionType[]) => void' },
+        type: { summary: '(option: OptionType) => void' },
       },
     },
   },
@@ -79,7 +79,7 @@ export const Défaut = () => {
     setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
   }
 
-  const [options, setOptions] = useState<OptionType[]>([
+  const [options, setOptions] = useState<OptionType<string>[]>([
     {
       value: 'option1',
       label: 'Option 1',
@@ -145,13 +145,11 @@ export const Défaut = () => {
     },
   ])
 
-  const handleOptionsChange = (updatedOptions: OptionType[]) => {
-    setOptions(updatedOptions)
-    console.log('Options mises à jour:', updatedOptions)
-    console.log(
-      'Options sélectionnées:',
-      updatedOptions.filter((opt) => opt.isSelected)
+  const handleOptionChange = (updatedOption: OptionType<string>) => {
+    setOptions((prev) =>
+      prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
     )
+    console.log('Option mise à jour:', updatedOption)
   }
 
   return (
@@ -160,7 +158,7 @@ export const Défaut = () => {
         inputValue={inputValue}
         options={options}
         handleInputChange={setInputValue}
-        onOptionsChange={handleOptionsChange}
+        onOptionChange={handleOptionChange}
         label="Sélectionnez des options"
         hintText="Cliquez pour ouvrir et cocher les options"
       />
@@ -175,8 +173,14 @@ export const Défaut = () => {
         <h6>Valeurs récupérées par le champ :</h6>
 
         <div className="flex flex-col gap-2">
-          <p className="fr-text fr-m-0"><strong>Valeur de l'input :&nbsp;</strong>{inputValue || '(vide)'}</p>
-          <p className="fr-text fr-m-0"><strong>Nombre d'options :&nbsp;</strong>{options.length}</p>
+          <p className="fr-text fr-m-0">
+            <strong>Valeur de l'input :&nbsp;</strong>
+            {inputValue || '(vide)'}
+          </p>
+          <p className="fr-text fr-m-0">
+            <strong>Nombre d'options :&nbsp;</strong>
+            {options.length}
+          </p>
           <p className="fr-text fr-m-0">
             <strong>Options sélectionnées :&nbsp;</strong>
             {options
@@ -203,7 +207,7 @@ export const SansOptions = () => {
       inputValue={inputValue}
       options={[]}
       handleInputChange={setInputValue}
-      onOptionsChange={() => {}}
+      onOptionChange={() => {}}
       label="Sélectionnez des options"
       hintText="Aucune option disponible"
     />

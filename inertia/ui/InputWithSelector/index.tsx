@@ -17,7 +17,7 @@ export type InputWithSelectorProps<T> = {
   inputValue: string
   options: OptionType<T>[]
   handleInputChange: (value: string) => void
-  onOptionsChange: (options: OptionType<T>[]) => void
+  onOptionChange: (updatedOption: OptionType<T>) => void
   label: string
   hintText?: string
 }
@@ -26,7 +26,7 @@ export default function InputWithSelector<T extends string | number>({
   inputValue,
   options,
   handleInputChange,
-  onOptionsChange,
+  onOptionChange,
   ...props
 }: InputWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -52,10 +52,12 @@ export default function InputWithSelector<T extends string | number>({
 
   // Gestion sélection/désélection
   const handleToggle = (value: T) => {
-    const updatedOptions = options.map((opt) =>
-      opt.value === value ? { ...opt, isSelected: !opt.isSelected } : opt
-    )
-    onOptionsChange(updatedOptions)
+    const updatedOption = options.find((opt) => opt.value === value)
+
+    if (!updatedOption) return
+
+    updatedOption.isSelected = !updatedOption.isSelected
+    onOptionChange(updatedOption)
   }
 
   return (
