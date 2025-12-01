@@ -19,7 +19,7 @@ export default function TagsList({ tags, size = 'md' }: TagsListProps) {
           <Badge
             className="fr-mb-0"
             noIcon={!hasIcon}
-            small={size === 'sm' ? true : false}
+            small={size === 'sm'}
             severity={severity}
           >
             {label}
