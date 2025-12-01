@@ -1,5 +1,7 @@
 import Timeline, { TimelineProps } from './index'
 import { fr } from '@codegouvfr/react-dsfr'
+import type { StoryObj } from '@storybook/react'
+import { useEffect, useState } from 'react'
 
 const timelineData = [
   {
@@ -112,6 +114,24 @@ const meta = {
       table: {
         type: { summary: 'number' },
         defaultValue: { summary: 'null' },
+      },
+    },
+    onShowMore: {
+      control: 'function',
+      description:
+        'Callback optionnel déclenché lors du clic sur "Voir plus". Permet de gérer le chargement ou l\'affichage de plus d\'éléments depuis le composant parent.',
+      table: {
+        type: { summary: '() => Promise<void>' },
+        defaultValue: { summary: 'null' },
+      },
+    },
+    hasMore: {
+      control: 'boolean',
+      description:
+        "Indique s'il y a plus d'éléments à charger. Utilisé uniquement en mode externe avec onShowMore.",
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: 'false' },
       },
     },
   },
@@ -276,3 +296,39 @@ export const Vide = {
     maxVisible: 5,
   },
 }
+
+export const AvecPagination = {
+  args: {
+    items: timelineData.slice(0, 5),
+    maxVisible: undefined,
+    hasMore: true,
+  },
+  render: (args: TimelineProps) => {
+    const [items, setItems] = useState(args.items)
+
+    useEffect(() => {
+      setItems(args.items)
+    }, [args.items])
+
+    const onShowMore = () => {
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setItems((prev) => [
+            ...prev,
+            {
+              content: (
+                <div>
+                  <strong>Nouvelle étape</strong>
+                  <p className="text-gray-600 text-sm mt-1">Elément de la nouvelle page</p>
+                </div>
+              ),
+            },
+          ])
+          resolve()
+        }, 400)
+      })
+    }
+
+    return <Timeline {...args} items={items} onShowMore={onShowMore} />
+  },
+} satisfies StoryObj<typeof Timeline>

@@ -3,7 +3,7 @@ import { errors } from '@adonisjs/auth'
 
 export class LogEntryService {
   async createLogEntry(logData: {
-    notes?: string
+    notes?: string | null
     userId: string
     exploitationId: string
     tags?: number[]
@@ -42,7 +42,7 @@ export class LogEntryService {
     id: string,
     userId: string,
     exploitationId: string,
-    logData: { notes?: string; tags?: number[] }
+    logData: { notes?: string | null; tags?: number[] }
   ) {
     const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
 

@@ -4,7 +4,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import './timeline-animation.css'
 import Button from '@codegouvfr/react-dsfr/Button'
 
-type TimelineItem = {
+export type TimelineItem = {
   content: React.ReactNode
   dotColor?: string
 }
@@ -20,30 +20,68 @@ type DisplayItem = TimelineItem | ControlItem
 export interface TimelineProps {
   items: TimelineItem[]
   maxVisible?: number
+  // Optional callback when "Voir plus" is clicked. If not provided, the component will handle expansion internally.
+  onShowMore?: () => Promise<void>
+  // In external mode, indicates if there are more items to load
+  hasMore?: boolean
 }
 
 export default function Timeline(props: TimelineProps) {
-  const { items, maxVisible } = props
+  const { items, maxVisible, onShowMore, hasMore } = props
 
+  // State to track if the timeline is expanded, used only if onShowMore is not provided
   const [expanded, setExpanded] = useState(false)
+  // Loading state for external mode
+  const [isLoading, setIsLoading] = useState(false)
+  const externalMode = typeof onShowMore === 'function'
 
-  const shouldShowMore = maxVisible && items.length > maxVisible
-  let visibleItems = items || []
+  let visibleItems: TimelineItem[]
 
-  if (shouldShowMore && !expanded) {
-    visibleItems = items.slice(0, maxVisible ?? 0)
+  if (externalMode) {
+    // In external mode: if maxVisible is set, show first maxVisible items; otherwise show all
+    visibleItems = typeof maxVisible === 'number' ? items.slice(0, maxVisible) : items
+  } else {
+    // Internal mode: only slice when needed and not expanded
+    const shouldLimit = typeof maxVisible === 'number' && items.length > maxVisible
+    visibleItems = shouldLimit && !expanded ? items.slice(0, maxVisible!) : items
   }
 
-  const displayItems: DisplayItem[] = shouldShowMore
+  const showMoreButtonNeeded =
+    (externalMode && hasMore !== false) ||
+    (typeof maxVisible === 'number' && items.length > maxVisible)
+
+  const displayItems: DisplayItem[] = showMoreButtonNeeded
     ? [...visibleItems, { id: 'show-more', isControl: true, content: null }]
     : visibleItems
+
+  const handleButtonClick = () => {
+    if (externalMode) {
+      setIsLoading(true)
+      onShowMore!().finally(() => setIsLoading(false))
+    } else {
+      setExpanded((s) => !s)
+    }
+  }
+
+  const getButtonLabel = () => {
+    if (isLoading) {
+      return 'Chargement...'
+    }
+
+    if (externalMode) {
+      return `Voir plus${typeof maxVisible === 'number' ? ` (${Math.max(0, items.length - maxVisible)})` : ''}`
+    }
+
+    return expanded ? 'Voir moins' : `Voir plus (${items.length - (maxVisible ?? 0)})`
+  }
 
   return (
     <div className="relative">
       {displayItems.map((item: any, index) => {
         const isLast = index === displayItems.length - 1
         const isControl = item?.isControl
-        const isNewlyVisible = expanded && maxVisible && index >= maxVisible
+        const isNewlyVisible =
+          !externalMode && expanded && typeof maxVisible === 'number' && index >= maxVisible
 
         return (
           <div
@@ -85,18 +123,14 @@ export default function Timeline(props: TimelineProps) {
             </div>
 
             {/* Contenu */}
-              {isControl ? (
-                <Button onClick={() => setExpanded(!expanded)} priority="tertiary">
-                  {expanded ? (
-                    <span>Voir moins</span>
-                  ) : (
-                    <span>Voir plus ({items.length - maxVisible!})</span>
-                  )}
-                </Button>
-              ) : (
-                <div className='fr-mb-5v'>{item.content}</div>
-              )}
-            </div>
+            {isControl ? (
+              <Button onClick={handleButtonClick} priority="tertiary">
+                <span>{getButtonLabel()}</span>
+              </Button>
+            ) : (
+              <div className="fr-mb-5v">{item.content}</div>
+            )}
+          </div>
         )
       })}
     </div>
