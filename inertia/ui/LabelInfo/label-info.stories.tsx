@@ -42,3 +42,9 @@ export const LongueInfo = {
     info: 'Ceci est une information très longue qui doit démontrer comment le composant gère le texte qui dépasse normalement la largeur disponible dans son conteneur parent.',
   },
 }
+
+export const SansInfo = {
+  args: {
+    info: undefined,
+  },
+}
