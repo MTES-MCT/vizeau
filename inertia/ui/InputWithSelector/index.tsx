@@ -73,7 +73,7 @@ export default function InputWithSelector<T extends string | number>({
 
       {options?.length > 0 && dropdownOpen && (
         <div
-          className="absolute shadow-lg z-9999"
+          className="absolute shadow-lg z-[9999]"
           style={{
             top: '100%',
             left: 0,

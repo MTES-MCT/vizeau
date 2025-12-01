@@ -57,7 +57,10 @@ router
       ])
       .as('log_entries.createTagForExploitation')
     router
-      .delete('exploitations/:exploitationId/tags', [LogEntriesController, 'destroy'])
+      .delete('exploitations/:exploitationId/tags', [
+        LogEntriesController,
+        'destroyTagForExploitation',
+      ])
       .as('log_entries.destroyTagForExploitation')
   })
   .use(middleware.auth())

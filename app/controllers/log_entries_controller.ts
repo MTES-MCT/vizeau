@@ -56,7 +56,7 @@ export default class LogEntriesController {
     return response.redirect().back()
   }
 
-  async destroy({ request, response, session, logger }: HttpContext) {
+  async destroyTagForExploitation({ request, response, session, logger }: HttpContext) {
     const payload = await request.validateUsing(deleteLogEntryTagValidator)
 
     try {
