@@ -6,12 +6,17 @@ import '@codegouvfr/react-dsfr/dsfr/dsfr.css'
 import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons.css'
 import '../css/app.css'
 import { hydrateRoot } from 'react-dom/client'
-import { createInertiaApp } from '@inertiajs/react'
+import { createInertiaApp, Link } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
 import { fr } from '@codegouvfr/react-dsfr'
 
-startReactDsfr({ defaultColorScheme: 'system' })
+startReactDsfr({ defaultColorScheme: 'system', Link })
+declare module '@codegouvfr/react-dsfr/spa' {
+  interface RegisterLink {
+    Link: typeof Link
+  }
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Viz’Eau'
 
