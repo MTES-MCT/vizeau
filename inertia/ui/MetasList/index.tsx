@@ -8,8 +8,8 @@ export type MetasListProps = {
 export default function MetasList({ metas, size }: MetasListProps) {
   return (
     <div className="flex gap-4">
-      {metas.map((meta, index) => (
-        <LabelInfo key={index} icon={meta.iconId} label={meta.content} size={size || 'md'} />
+      {metas.map((meta) => (
+        <LabelInfo key={meta.iconId + meta.content} icon={meta.iconId} label={meta.content} size={size || 'md'} />
       ))}
     </div>
   )
