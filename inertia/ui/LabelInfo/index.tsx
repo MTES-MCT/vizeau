@@ -3,7 +3,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 export type LabelInfoProps = {
   icon?: string | null
   label: string
-  info: string
+  info?: string
   size?: 'sm' | 'md'
 }
 export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoProps) {
@@ -20,21 +20,23 @@ export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoP
         <span
           className={`fr-text--${size} fr-mb-0 w-fit flex-shrink-0 whitespace-nowrap`}
           style={{
-            fontWeight: 800,
+            fontWeight: info ? 800 : 500,
           }}
         >
-          {label} :
+          {info ? label + ' :' : label}
         </span>
       </div>
 
-      <p
-        className={`fr-text--${size} fr-ml-1w flex-1 break-words`}
-        style={{
-          color: fr.colors.decisions.text.mention.grey.default,
-        }}
-      >
-        {info}
-      </p>
+      {info && (
+        <p
+          className={`fr-text--${size} fr-ml-1w flex-1 break-words`}
+          style={{
+            color: fr.colors.decisions.text.mention.grey.default,
+          }}
+        >
+          {info}
+        </p>
+      )}
     </div>
   )
 }
