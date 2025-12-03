@@ -13,21 +13,10 @@ export default class AccueilController {
     const user = auth.getUserOrFail()
     const latestExploitations = await this.exploitationService.queryLatestExploitations()
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
-    const latestLogEntriesWithExploitationNames = await Promise.all(
-      latestLogEntries.map(async (logEntry) => {
-        const exploitationName = await this.exploitationService.getExploitationName(
-          logEntry.exploitationId
-        )
-        return {
-          ...logEntry.toJSON(),
-          exploitationName,
-        }
-      })
-    )
 
     return inertia.render('accueil', {
       latestExploitations,
-      latestLogEntries: latestLogEntriesWithExploitationNames,
+      latestLogEntries,
     })
   }
 }

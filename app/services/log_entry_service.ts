@@ -29,6 +29,9 @@ export class LogEntryService {
     return LogEntry.query()
       .where('userId', userId)
       .preload('tags')
+      .preload('exploitation', (query) => {
+        query.select('id', 'name')
+      })
       .orderBy('createdAt', 'desc')
       .limit(limit)
   }

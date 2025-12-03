@@ -11,7 +11,10 @@ interface AccueilProps {
   latestExploitations: ExploitationJson[]
   latestLogEntries: Array<
     LogEntryJson & {
-      exploitationName: string | null
+      exploitation: {
+        id: number
+        name: string | null
+    }
       createdAt: string
       tags: Array<{
         id: number
@@ -79,7 +82,7 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
                   iconId: 'fr-icon-calendar-event-line',
                 },
                 {
-                  content: log.exploitationName || 'Exploitation inconnue',
+                  content: log.exploitation.name || 'Exploitation inconnue',
                   iconId: 'fr-icon-map-pin-user-line',
                 },
               ]}
