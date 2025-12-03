@@ -9,14 +9,16 @@ import Layout from '~/ui/layouts/layout'
 
 interface AccueilProps {
   latestExploitations: ExploitationJson[]
-  latestLogEntries: Array<LogEntryJson & {
-    exploitationName: string | null
-    createdAt: string
-    tags: Array<{
-      id: number
-      name: string
-    }> | null
-  }>
+  latestLogEntries: Array<
+    LogEntryJson & {
+      exploitationName: string | null
+      createdAt: string
+      tags: Array<{
+        id: number
+        name: string
+      }> | null
+    }
+  >
 }
 
 export default function Accueil({ latestExploitations, latestLogEntries }: AccueilProps) {
@@ -39,10 +41,10 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
               </small>
             </p>
             <div className="fr-grid-row fr-grid-row--gutters fr-mt-6w">
-              <Button iconId="fr-icon-map-pin-user-line" className="fr-m-1w">
+              <Button iconId="fr-icon-map-pin-user-line" className="fr-m-1w" linkProps={{ href: '/exploitations/creation' }}>
                 Ajouter une exploitation
               </Button>
-              <Button iconId="fr-icon-pen-nib-line" priority="secondary" className="fr-m-1w">
+              <Button disabled iconId="fr-icon-pen-nib-line" priority="secondary" className="fr-m-1w">
                 Remplir le journal de bord
               </Button>
             </div>
@@ -57,7 +59,7 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
           <div className="flex justify-between">
             <h3>Dernières notes de terrain ajoutées</h3>
             <div>
-              <Button iconId="fr-icon-pen-nib-line">Consulter le journal de bord</Button>
+              <Button iconId="fr-icon-pen-nib-line" disabled>Remplir le journal de bord</Button>
             </div>
           </div>
           {latestLogEntries.map((log) => (
@@ -68,7 +70,9 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
                   ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
                   : 'Note sans contenu'
               }
-              tags={log.tags && log.tags.length > 0 ? log.tags.map((tag) => ({ label: tag.name })) : []}
+              tags={
+                log.tags && log.tags.length > 0 ? log.tags.map((tag) => ({ label: tag.name })) : []
+              }
               metas={[
                 {
                   content: new Date(log.createdAt).toLocaleDateString(),
@@ -92,7 +96,9 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
           <div className="flex justify-between">
             <h3>Dernières exploitations créées</h3>
             <div>
-              <Button iconId="fr-icon-arrow-right-line">Consulter les exploitations</Button>
+              <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
+                Consulter les exploitations
+              </Button>
             </div>
           </div>
           <div className="fr-my-4w">
