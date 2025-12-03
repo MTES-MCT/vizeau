@@ -26,9 +26,24 @@ export default function MapLayout({
   const [headerHeight, setHeaderHeight] = useState<number>(68) // 4.25rem = 68px
 
   useLayoutEffect(() => {
-    if (mapHeaderRef.current) {
-      const height = mapHeaderRef.current.offsetHeight
-      setHeaderHeight(height)
+    if (!mapHeaderRef.current) return
+
+    const updateHeight = () => {
+      if (mapHeaderRef.current) {
+        const height = mapHeaderRef.current.offsetHeight
+        setHeaderHeight(height)
+      }
+    }
+
+    // Mise à jour initiale
+    updateHeight()
+
+    // Observer les changements de taille du header
+    const resizeObserver = new ResizeObserver(updateHeight)
+    resizeObserver.observe(mapHeaderRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
     }
   }, [headerAdditionalContent, leftSidebarOpen, rightSidebarOpen])
 
@@ -73,7 +88,7 @@ export default function MapLayout({
         {/* Map Header */}
         <div
           ref={mapHeaderRef}
-          className="w-full min-h-17 fr-p-2v flex items-center justify-between"
+          className="w-full flex-wrap min-h-17 fr-p-2v flex items-center justify-between"
           style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
         >
           <div className="flex items-center">

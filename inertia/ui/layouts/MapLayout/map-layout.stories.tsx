@@ -34,7 +34,7 @@ const meta = {
   args: {
     pageName: 'Tableau de bord',
     headerAdditionalContent: (
-      <div className="w-full flex justify-end gap-2">
+      <div className="w-full flex flex-wrap justify-end gap-2">
         <Button size="small" priority="secondary">
           Action 1
         </Button>
