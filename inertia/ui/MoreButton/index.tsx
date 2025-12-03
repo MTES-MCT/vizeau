@@ -19,9 +19,19 @@ export default function MoreButton({ actions }: MoreButtonProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
 
-  // Ferme le menu si clic en dehors
+  // Gère le focus sur le menu quand il s'ouvre et la touche Échap
   useEffect(() => {
     if (!menuOpen) return
+
+    // Focus sur le premier élément du menu après le rendu
+    const timer = setTimeout(() => {
+      if (menuRef.current) {
+        const firstItem = menuRef.current.querySelector('[role="menuitem"]') as HTMLElement
+        if (firstItem) {
+          firstItem.focus()
+        }
+      }
+    }, 0)
 
     const handleClickOutside = (event: PointerEvent) => {
       const btn = buttonRef.current
@@ -35,10 +45,22 @@ export default function MoreButton({ actions }: MoreButtonProps) {
         setMenuOpen(false)
       }
     }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        // Remet le focus sur le bouton
+        buttonRef.current?.querySelector('button')?.focus()
+      }
+    }
+
     document.addEventListener('pointerdown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+      clearTimeout(timer)
     }
   }, [menuOpen])
 
@@ -107,7 +129,15 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                       action.onClick()
                       setMenuOpen(false)
                     }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        action.onClick()
+                        setMenuOpen(false)
+                      }
+                    }}
                     role='menuitem'
+                    tabIndex={0}
                   >
                     {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
                     {action.label}
