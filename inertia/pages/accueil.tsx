@@ -6,6 +6,7 @@ import CompactListItem from '~/ui/CompactListItem'
 import type { ExploitationJson, LogEntryJson } from '../../types/models'
 
 import Layout from '~/ui/layouts/layout'
+import Timeline from '~/ui/Timeline'
 
 interface AccueilProps {
   latestExploitations: ExploitationJson[]
@@ -14,7 +15,7 @@ interface AccueilProps {
       exploitation: {
         id: number
         name: string | null
-    }
+      }
       createdAt: string
       tags: Array<{
         id: number
@@ -44,10 +45,19 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
               </small>
             </p>
             <div className="fr-grid-row fr-grid-row--gutters fr-mt-6w">
-              <Button iconId="fr-icon-map-pin-user-line" className="fr-m-1w" linkProps={{ href: '/exploitations/creation' }}>
+              <Button
+                iconId="fr-icon-map-pin-user-line"
+                className="fr-m-1w"
+                linkProps={{ href: '/exploitations/creation' }}
+              >
                 Ajouter une exploitation
               </Button>
-              <Button disabled iconId="fr-icon-pen-nib-line" priority="secondary" className="fr-m-1w">
+              <Button
+                disabled
+                iconId="fr-icon-pen-nib-line"
+                priority="secondary"
+                className="fr-m-1w"
+              >
                 Remplir le journal de bord
               </Button>
             </div>
@@ -62,33 +72,41 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
           <div className="flex justify-between">
             <h3>Dernières notes de terrain ajoutées</h3>
             <div>
-              <Button iconId="fr-icon-pen-nib-line" disabled>Remplir le journal de bord</Button>
+              <Button iconId="fr-icon-pen-nib-line" disabled>
+                Remplir le journal de bord
+              </Button>
             </div>
           </div>
-          {latestLogEntries.map((log) => (
-            <CompactListItem
-              key={log.id}
-              label={
-                log.notes
-                  ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
-                  : 'Note sans contenu'
-              }
-              tags={
-                log.tags && log.tags.length > 0 ? log.tags.map((tag) => ({ label: tag.name })) : []
-              }
-              metas={[
-                {
-                  content: new Date(log.createdAt).toLocaleDateString(),
-                  iconId: 'fr-icon-calendar-event-line',
-                },
-                {
-                  content: log.exploitation.name || 'Exploitation inconnue',
-                  iconId: 'fr-icon-map-pin-user-line',
-                },
-              ]}
-              actions={[]}
-            />
-          ))}
+          <Timeline
+            items={latestLogEntries.map((log) => ({
+              content: (
+                <CompactListItem
+                  key={log.id}
+                  label={
+                    log.notes
+                      ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
+                      : 'Note sans contenu'
+                  }
+                  tags={
+                    log.tags && log.tags.length > 0
+                      ? log.tags.map((tag) => ({ label: tag.name }))
+                      : []
+                  }
+                  metas={[
+                    {
+                      content: new Date(log.createdAt).toLocaleDateString(),
+                      iconId: 'fr-icon-calendar-event-line',
+                    },
+                    {
+                      content: log.exploitation.name || 'Exploitation inconnue',
+                      iconId: 'fr-icon-map-pin-user-line',
+                    },
+                  ]}
+                  actions={[]}
+                />
+              ),
+            }))}
+          />
         </div>
       </div>
       <div
