@@ -43,6 +43,24 @@ const meta = {
         type: { summary: '() => void' },
       },
     },
+    options: {
+      control: false,
+      description:
+        'Liste des options disponibles dans le sélecteur.\n\nChaque option peut contenir des actions associées.\n\nModèle obligatoire :\nOptionType<T>[]',
+      type: { name: 'array', required: true },
+      table: {
+        type: { summary: 'OptionType<T>[]' },
+      },
+    },
+    onOptionChange: {
+      control: false,
+      description:
+        "Callback appelé lorsqu'une option est sélectionnée ou désélectionnée.\n\nModèle obligatoire :\n(updatedOption: OptionType<T>) => void",
+      type: { name: 'function', required: true },
+      table: {
+        type: { summary: '(updatedOption: OptionType<T>) => void' },
+      },
+    },
   },
   args: {
     label: 'Cliquez-moi',
@@ -86,7 +104,6 @@ const meta = {
       )
     },
     priority: 'secondary',
-    onClick: () => alert('Bouton cliqué !'),
   } as ButtonWithSelectorProps<string>
 }
 
