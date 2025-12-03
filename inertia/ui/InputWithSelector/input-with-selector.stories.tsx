@@ -1,4 +1,4 @@
-import InputWithSelector, { OptionType } from './index.js'
+import InputWithSelector, { OptionType } from './index'
 import { useState } from 'react'
 
 import { fr } from '@codegouvfr/react-dsfr'
@@ -74,11 +74,6 @@ export default meta
 export const Défaut = () => {
   const [inputValue, setInputValue] = useState('')
 
-  const handleDeleteOption = (value: string) => {
-    alert(`Option supprimée: ${value}`)
-    setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
-  }
-
   const [options, setOptions] = useState<OptionType<string>[]>([
     {
       value: 'option1',
@@ -86,17 +81,22 @@ export const Défaut = () => {
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option1',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option1')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option1')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option1',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
@@ -107,17 +107,22 @@ export const Défaut = () => {
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option2',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option2')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option2')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option2',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
@@ -128,17 +133,22 @@ export const Défaut = () => {
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option3',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option3')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option3')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option3',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
@@ -184,8 +194,8 @@ export const Défaut = () => {
           <p className="fr-text fr-m-0">
             <strong>Options sélectionnées :&nbsp;</strong>
             {options
-              .filter((opt) => opt.isSelected)
-              .map((opt) => opt.label)
+              .filter((opt: OptionType<string>) => opt.isSelected)
+              .map((opt: OptionType<string>) => opt.label)
               .join(', ') || '(aucune)'}
           </p>
 
