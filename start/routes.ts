@@ -48,7 +48,19 @@ router
       .as('exploitations.destroy')
 
     router
-      .post('exploitations/:exploitationId/journal/creation', [LogEntriesController, 'create'])
+      .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
       .as('log_entries.create')
+    router
+      .post('exploitations/:exploitationId/tags', [
+        LogEntriesController,
+        'createTagForExploitation',
+      ])
+      .as('log_entries.createTagForExploitation')
+    router
+      .delete('exploitations/:exploitationId/tags', [
+        LogEntriesController,
+        'destroyTagForExploitation',
+      ])
+      .as('log_entries.destroyTagForExploitation')
   })
   .use(middleware.auth())

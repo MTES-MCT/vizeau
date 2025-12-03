@@ -13,8 +13,20 @@ export class LogEntryTagService {
     })
   }
 
-  async getTagsForExploitation(exploitationId: string) {
-    return LogEntryTag.query().where('exploitationId', exploitationId).orderBy('updatedAt', 'desc')
+  async getTagsForExploitation(exploitationId: string, searchQuery?: string, limit?: number) {
+    const query = LogEntryTag.query()
+      .where('exploitationId', exploitationId)
+      .orderBy('updatedAt', 'desc')
+
+    if (searchQuery) {
+      query.andWhere('name', 'ilike', `%${searchQuery}%`)
+    }
+
+    if (limit) {
+      query.limit(limit)
+    }
+
+    return query.exec()
   }
 
   async updateTag(tagId: number, tagName: string) {
@@ -24,8 +36,10 @@ export class LogEntryTagService {
     return tag
   }
 
-  async deleteTag(tagId: number) {
-    const tag = await LogEntryTag.findOrFail(tagId)
+  // For security, we require the parent exploitation id to ensure the tag belongs to the correct exploitation
+  async deleteTag(tagId: number, parentExploitationId: string) {
+    const tag = await LogEntryTag.findByOrFail({ id: tagId, exploitationId: parentExploitationId })
+
     await tag.delete()
     return tag
   }
