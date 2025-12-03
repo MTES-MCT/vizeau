@@ -43,7 +43,7 @@ const meta = {
     ),
     leftContent: <div>Contenu de la barre latérale gauche</div>,
     rightContent: <div>Contenu de la barre latérale droite</div>,
-    map: <div className="w-full flex items-center justify-center">Carte interactive ici</div>,
+    map: null,
   } as MapLayoutProps,
 }
 

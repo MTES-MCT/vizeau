@@ -117,10 +117,10 @@ export default function MapLayout({
           className="relative shadow-lg z-10"
           style={{ height: `calc(100% - ${headerHeight}px)` }}
         >
-          {map && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-gray-400 text-xl">Map Content</div>
-            </div>
+          {map ? (
+            map
+          ) : (
+            <div className="w-full flex items-center justify-center">Aucune carte disponible</div>
           )}
         </div>
       </div>
