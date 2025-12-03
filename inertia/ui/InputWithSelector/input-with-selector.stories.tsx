@@ -57,13 +57,13 @@ const meta = {
         type: { summary: '(value: string) => void' },
       },
     },
-    onOptionsChange: {
+    onOptionChange: {
       control: false,
       description:
-        'Callback appelé lors du changement des options.\n\nModèle obligatoire :\n(options: OptionType[]) => void',
+        "Callback appelé lors du changement d'une option.\n\nModèle obligatoire :\n(option: OptionType) => void",
       type: { name: 'function', required: true },
       table: {
-        type: { summary: '(options: OptionType[]) => void' },
+        type: { summary: '(option: OptionType) => void' },
       },
     },
   },
@@ -155,13 +155,11 @@ export const Défaut = () => {
     },
   ])
 
-  const handleOptionsChange = (updatedOptions: OptionType<string>[]) => {
-    setOptions(updatedOptions)
-    console.log('Options mises à jour:', updatedOptions)
-    console.log(
-      'Options sélectionnées:',
-      updatedOptions.filter((opt) => opt.isSelected)
+  const handleOptionChange = (updatedOption: OptionType<string>) => {
+    setOptions((prev) =>
+      prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
     )
+    console.log('Option mise à jour:', updatedOption)
   }
 
   return (
@@ -170,7 +168,7 @@ export const Défaut = () => {
         inputValue={inputValue}
         options={options}
         handleInputChange={setInputValue}
-        onOptionsChange={handleOptionsChange}
+        onOptionChange={handleOptionChange}
         label="Sélectionnez des options"
         hintText="Cliquez pour ouvrir et cocher les options"
       />
@@ -219,7 +217,7 @@ export const SansOptions = () => {
       inputValue={inputValue}
       options={[]}
       handleInputChange={setInputValue}
-      onOptionsChange={() => {}}
+      onOptionChange={() => {}}
       label="Sélectionnez des options"
       hintText="Aucune option disponible"
     />
