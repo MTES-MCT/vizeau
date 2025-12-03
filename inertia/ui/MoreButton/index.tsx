@@ -91,7 +91,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
 
   return (
     actions.length > 0 && (
-      <div className='fr-ml-2v'>
+      <div className="fr-ml-2v">
         <div className="relative w-fit" ref={buttonRef}>
           <Button
             onClick={() => setMenuOpen(!menuOpen)}
