@@ -1,5 +1,3 @@
-import { useState, useRef, useEffect } from 'react'
-
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 
 import { OptionType } from './index.js'
@@ -24,33 +22,6 @@ export default function DropdownItem<T extends string | number>({
   item,
   onToggle,
 }: DropdownItemProps<T>) {
-  const buttonRef = useRef<HTMLDivElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // Ferme le menu si clic en dehors
-  useEffect(() => {
-    if (!menuOpen) return
-
-    const handleClickOutside = (event: PointerEvent) => {
-      const btn = buttonRef.current
-      const menu = menuRef.current
-      if (
-        btn &&
-        !btn.contains(event.target as Node) &&
-        menu &&
-        !menu.contains(event.target as Node)
-      ) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('pointerdown', handleClickOutside)
-
-    return () => {
-      document.removeEventListener('pointerdown', handleClickOutside)
-    }
-  }, [menuOpen])
 
   return (
     <div
