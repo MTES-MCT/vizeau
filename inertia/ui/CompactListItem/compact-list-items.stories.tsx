@@ -5,7 +5,55 @@ const meta = {
   component: CompactListItem,
   tags: ['autodocs'],
   argTypes: {
-    // Définir les argTypes si nécessaire
+    label: {
+      control: 'text',
+      description: 'Libellé principal affiché en gras',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
+    tags: {
+      control: 'object',
+      description: 'Liste des badges/étiquettes à afficher',
+      table: {
+        type: {
+          summary: 'Array<Tag>',
+          detail: `{
+  label: string;           // Texte du badge
+  severity?: 'info' | 'success' | 'warning' | 'error' | 'new';  // Couleur du badge
+  hasIcon?: boolean;        // Afficher l'icône (défaut: true)
+}[]`,
+        },
+      },
+    },
+    metas: {
+      control: 'object',
+      description: 'Liste des métadonnées avec icône à afficher en bas',
+      table: {
+        type: {
+          summary: 'Array<Meta>',
+          detail: `{
+  content: string;          // Texte de la métadonnée
+  iconId: string;           // ID de l'icône DSFR (ex: 'fr-icon-calendar-line')
+}[]`,
+        },
+      },
+    },
+    actions: {
+      control: 'object',
+      description: 'Liste des actions disponibles dans le menu contextuel',
+      table: {
+        type: {
+          summary: 'Array<Action>',
+          detail: `{
+  label: string;            // Libellé de l'action
+  iconId?: string;          // ID de l'icône DSFR optionnel
+  isCritical?: boolean;     // Afficher en rouge pour les actions critiques
+  onClick: () => void;      // Fonction appelée au clic
+}[]`,
+        },
+      },
+    },
   },
   args: {
     label: 'Compact List Item Example',
