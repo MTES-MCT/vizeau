@@ -1,10 +1,15 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import { createLogEntryValidator } from '#validators/log_entry'
+import {
+  createLogEntryValidator,
+  destroyLogEntryValidator,
+  updateLogEntryValidator,
+} from '#validators/log_entry'
 import { LogEntryService } from '#services/log_entry_service'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { LogEntryTagService } from '#services/log_entry_tag_service'
 import { createLogEntryTagValidator, deleteLogEntryTagValidator } from '#validators/log_entry_tag'
+import { errors } from '@adonisjs/auth'
 
 @inject()
 export default class LogEntriesController {
@@ -34,6 +39,53 @@ export default class LogEntriesController {
     }
 
     return response.redirect().toRoute('exploitations.get', [payload.params.exploitationId])
+  }
+
+  async edit({ auth, request, response, session, logger }: HttpContext) {
+    const { id, params, ...payload } = await request.validateUsing(updateLogEntryValidator)
+    const user = auth.getUserOrFail()
+
+    try {
+      await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, {
+        notes: payload.notes,
+        tags: payload.tags,
+      })
+      createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
+    } catch (error) {
+      logger.error('Error updating log entry:', error)
+      if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
+        createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
+      } else {
+        createErrorFlashMessage(
+          session,
+          "Une erreur est survenue lors de la mise à jour de l'entrée de journal."
+        )
+      }
+    }
+
+    return response.redirect().toRoute('exploitations.get', [params.exploitationId])
+  }
+
+  async destroy({ auth, request, response, session, logger }: HttpContext) {
+    const { id, params } = await request.validateUsing(destroyLogEntryValidator)
+    const user = auth.getUserOrFail()
+
+    try {
+      await this.logEntryService.deleteLogEntry(id, user.id, params.exploitationId)
+      createSuccessFlashMessage(session, "L'entrée de journal a été supprimée avec succès.")
+    } catch (error) {
+      logger.error('Error deleting log entry:', error)
+      if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
+        createErrorFlashMessage(session, 'Vous ne pouvez supprimer que vos entrées de journal.')
+      } else {
+        createErrorFlashMessage(
+          session,
+          "Une erreur est survenue lors de la suppression de l'entrée de journal."
+        )
+      }
+    }
+
+    return response.redirect().toRoute('exploitations.get', [params.exploitationId])
   }
 
   async createTagForExploitation({ auth, request, response, session, logger }: HttpContext) {

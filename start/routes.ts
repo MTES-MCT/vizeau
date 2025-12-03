@@ -51,6 +51,13 @@ router
       .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
       .as('log_entries.create')
     router
+      .patch('exploitations/:exploitationId/journal', [LogEntriesController, 'edit'])
+      .as('log_entries.edit')
+    router
+      .delete('exploitations/:exploitationId/journal', [LogEntriesController, 'destroy'])
+      .as('log_entries.destroy')
+
+    router
       .post('exploitations/:exploitationId/tags', [
         LogEntriesController,
         'createTagForExploitation',
