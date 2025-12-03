@@ -5,7 +5,8 @@ const meta = {
   title: 'UI/SelectorMenu',
   component: SelectorMenu,
   tags: ['autodocs'],
-  decorators: [(Story: React.ComponentType) => (
+  decorators: [
+    (Story: React.ComponentType) => (
       <div style={{ height: '200px' }}>
         <Story />
       </div>
@@ -38,46 +39,55 @@ const meta = {
       },
     },
   },
-  args: {} as SelectorMenuProps<string>
+  args: {} as SelectorMenuProps<string>,
 }
 
 export default meta
 
 export const Défaut = () => {
   const [options, setOptions] = useState([
-      {
-        value: 'option1',
-        label: 'Option 1',
-        isSelected: false,
-        actions: [
-          {
-            value: 'action1',
-            label: 'Action A',
-            onClick: (value: string) => {
-              alert(`Option supprimée : Action A pour ${value}`)
-            },
+    {
+      value: 'option1',
+      label: 'Option 1',
+      isSelected: false,
+      actions: [
+        {
+          value: 'action1',
+          label: 'Action A',
+          onClick: (value: string) => {
+            alert(`Option supprimée : Action A pour ${value}`)
           },
-          {
-            value: 'action2',
-            label: 'Action B',
-            onClick: (value: string) => {alert(`Action effectuée : Action B pour ${value}`)},
+        },
+        {
+          value: 'action2',
+          label: 'Action B',
+          onClick: (value: string) => {
+            alert(`Action effectuée : Action B pour ${value}`)
           },
-        ]
-      },
-      { value: 'option2', label: 'Option 2', isSelected: true, actions: [] },
-      { value: 'option3', label: 'Option 3', isSelected: false, actions: [] },
-    ])
+        },
+      ],
+    },
+    { value: 'option2', label: 'Option 2', isSelected: true, actions: [] },
+    { value: 'option3', label: 'Option 3', isSelected: false, actions: [] },
+  ])
 
-    const handleOptionChange = (updatedOption: { value: string; label: string; isSelected: boolean; actions?: { value: string; label: string; onClick: (value: string) => void; }[] }) => {
-      setOptions((prev) =>
-        prev.map((opt) => (opt.value === updatedOption.value ? { ...opt, isSelected: updatedOption.isSelected } : opt))
+  const handleOptionChange = (updatedOption: {
+    value: string
+    label: string
+    isSelected: boolean
+    actions?: { value: string; label: string; onClick: (value: string) => void }[]
+  }) => {
+    setOptions((prev) =>
+      prev.map((opt) =>
+        opt.value === updatedOption.value ? { ...opt, isSelected: updatedOption.isSelected } : opt
       )
+    )
 
-      console.log('Option mise à jour:', updatedOption)
-    }
+    console.log('Option mise à jour:', updatedOption)
+  }
 
   return (
-    <div className='relative'>
+    <div className="relative">
       <SelectorMenu
         options={options}
         onOptionChange={(updatedOption) => {

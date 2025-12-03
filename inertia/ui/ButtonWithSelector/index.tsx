@@ -13,44 +13,47 @@ export type OptionType<T extends string | number> = {
 
 export type ButtonWithSelectorProps<T extends string | number> = {
   label: string
-  priority?: 'primary' | 'secondary' | 'tertiary' | 'tertiary no outline',
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'tertiary no outline'
   options: OptionType<T>[]
   onOptionChange: (option: OptionType<T>) => void
 }
 
-export default function ButtonWithSelector<T extends string | number> ({label, priority='secondary', options, onOptionChange}: ButtonWithSelectorProps<T>) {
-const [dropdownOpen, setDropdownOpen] = useState(false)
+export default function ButtonWithSelector<T extends string | number>({
+  label,
+  priority = 'secondary',
+  options,
+  onOptionChange,
+}: ButtonWithSelectorProps<T>) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Fermer le dropdown au clic en dehors
-    useEffect(() => {
-      function handlePointerDown(event: PointerEvent) {
-        // Ignore clicks on dropdown action menu
-        const target = event.target as HTMLElement
-        if (target.closest('.dropdown-action-menu')) return
-        if (containerRef.current && !containerRef.current.contains(target)) {
-          setDropdownOpen(false)
-        }
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      // Ignore clicks on dropdown action menu
+      const target = event.target as HTMLElement
+      if (target.closest('.dropdown-action-menu')) return
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        setDropdownOpen(false)
       }
-      if (dropdownOpen) {
-        document.addEventListener('pointerdown', handlePointerDown)
-      }
-      return () => {
-        document.removeEventListener('pointerdown', handlePointerDown)
-      }
-    }, [dropdownOpen])
+    }
+    if (dropdownOpen) {
+      document.addEventListener('pointerdown', handlePointerDown)
+    }
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+    }
+  }, [dropdownOpen])
 
   return (
     <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
-      <Button
-        className='fr-m-0'
-        onClick={() => setDropdownOpen(true)}
-        priority={priority}
-      >
+      <Button className="fr-m-0" onClick={() => setDropdownOpen(true)} priority={priority}>
         {label}
       </Button>
 
-       {(options?.length > 0 && dropdownOpen) && <SelectorMenu options={options} onOptionChange={onOptionChange} />}
+      {options?.length > 0 && dropdownOpen && (
+        <SelectorMenu options={options} onOptionChange={onOptionChange} />
+      )}
     </div>
-  );
+  )
 }

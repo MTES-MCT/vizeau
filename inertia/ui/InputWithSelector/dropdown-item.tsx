@@ -22,7 +22,6 @@ export default function DropdownItem<T extends string | number>({
   item,
   onToggle,
 }: DropdownItemProps<T>) {
-
   return (
     <div
       className="flex items-center justify-between fr-py-1v fr-px-2v relative"

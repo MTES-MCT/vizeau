@@ -1,5 +1,5 @@
-import { fr } from "@codegouvfr/react-dsfr"
-import DropdownItem, { DropdownAction } from "../InputWithSelector/dropdown-item"
+import { fr } from '@codegouvfr/react-dsfr'
+import DropdownItem, { DropdownAction } from '../InputWithSelector/dropdown-item'
 
 export type SelectorMenuProps<T extends string | number> = {
   options: {
@@ -16,8 +16,10 @@ export type SelectorMenuProps<T extends string | number> = {
   }) => void
 }
 
-export default function SelectorMenu<T extends string | number> ({options, onOptionChange}: SelectorMenuProps<T>) {
-
+export default function SelectorMenu<T extends string | number>({
+  options,
+  onOptionChange,
+}: SelectorMenuProps<T>) {
   const handleToggle = (value: T) => {
     const updatedOption = options.find((opt) => opt.value === value)
 
@@ -43,5 +45,5 @@ export default function SelectorMenu<T extends string | number> ({options, onOpt
         return <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
       })}
     </div>
-  );
+  )
 }

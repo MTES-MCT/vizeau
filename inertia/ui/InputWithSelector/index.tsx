@@ -62,7 +62,9 @@ export default function InputWithSelector<T extends string | number>({
         {...props}
       />
 
-      {(options?.length > 0 && dropdownOpen) && <SelectorMenu options={options} onOptionChange={onOptionChange} />}
+      {options?.length > 0 && dropdownOpen && (
+        <SelectorMenu options={options} onOptionChange={onOptionChange} />
+      )}
     </div>
   )
 }
