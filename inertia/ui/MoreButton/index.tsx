@@ -116,7 +116,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                 zIndex: 9999,
               }}
             >
-              <ul className="fr-px-2v w-fit flex flex-col gap-2" role='menu'>
+              <ul className="fr-px-2v w-fit flex flex-col gap-2" role="menu">
                 {actions.map((action) => (
                   <li
                     key={action.label}
@@ -136,7 +136,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                         setMenuOpen(false)
                       }
                     }}
-                    role='menuitem'
+                    role="menuitem"
                     tabIndex={0}
                   >
                     {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
