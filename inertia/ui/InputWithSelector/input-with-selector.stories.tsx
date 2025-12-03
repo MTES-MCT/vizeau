@@ -1,4 +1,4 @@
-import InputWithSelector, { OptionType } from './index.js'
+import InputWithSelector, { OptionType } from './index'
 import { useState } from 'react'
 
 import { fr } from '@codegouvfr/react-dsfr'
@@ -74,29 +74,29 @@ export default meta
 export const Défaut = () => {
   const [inputValue, setInputValue] = useState('')
 
-  const handleDeleteOption = (value: string) => {
-    alert(`Option supprimée: ${value}`)
-    setOptions((prevOptions) => prevOptions.filter((opt) => opt.value !== value))
-  }
-
-  const [options, setOptions] = useState<OptionType[]>([
+  const [options, setOptions] = useState<OptionType<string>[]>([
     {
       value: 'option1',
       label: 'Option 1',
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option1',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option1')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option1')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option1',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
@@ -107,17 +107,22 @@ export const Défaut = () => {
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option2',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option2')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option2')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option2',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
@@ -128,24 +133,29 @@ export const Défaut = () => {
       isSelected: false,
       actions: [
         {
-          value: 'delete',
+          value: 'option3',
           label: 'Supprimer',
           iconId: 'fr-icon-delete-line',
           isCritical: true,
-          onClick: handleDeleteOption,
+          onClick: () => {
+            alert('Option supprimée: option3')
+            setOptions((prevOptions: OptionType<string>[]) =>
+              prevOptions.filter((opt) => opt.value !== 'option3')
+            )
+          },
         },
         {
-          value: 'other',
+          value: 'option3',
           label: 'Autre action',
-          onClick: (value: string) => {
-            alert(`Action effectuée: ${value}`)
+          onClick: () => {
+            alert('Action effectuée : other')
           },
         },
       ],
     },
   ])
 
-  const handleOptionsChange = (updatedOptions: OptionType[]) => {
+  const handleOptionsChange = (updatedOptions: OptionType<string>[]) => {
     setOptions(updatedOptions)
     console.log('Options mises à jour:', updatedOptions)
     console.log(
@@ -175,13 +185,19 @@ export const Défaut = () => {
         <h6>Valeurs récupérées par le champ :</h6>
 
         <div className="flex flex-col gap-2">
-          <p className="fr-text fr-m-0"><strong>Valeur de l'input :&nbsp;</strong>{inputValue || '(vide)'}</p>
-          <p className="fr-text fr-m-0"><strong>Nombre d'options :&nbsp;</strong>{options.length}</p>
+          <p className="fr-text fr-m-0">
+            <strong>Valeur de l'input :&nbsp;</strong>
+            {inputValue || '(vide)'}
+          </p>
+          <p className="fr-text fr-m-0">
+            <strong>Nombre d'options :&nbsp;</strong>
+            {options.length}
+          </p>
           <p className="fr-text fr-m-0">
             <strong>Options sélectionnées :&nbsp;</strong>
             {options
-              .filter((opt) => opt.isSelected)
-              .map((opt) => opt.label)
+              .filter((opt: OptionType<string>) => opt.isSelected)
+              .map((opt: OptionType<string>) => opt.label)
               .join(', ') || '(aucune)'}
           </p>
 
