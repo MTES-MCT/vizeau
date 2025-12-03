@@ -44,21 +44,13 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
                 les collectivités et services de l‘État dans la protection de la ressource en eau.
               </small>
             </p>
-            <div className="fr-grid-row fr-grid-row--gutters fr-mt-6w">
+            <div>
               <Button
                 iconId="fr-icon-map-pin-user-line"
                 className="fr-m-1w"
                 linkProps={{ href: '/exploitations/creation' }}
               >
                 Ajouter une exploitation
-              </Button>
-              <Button
-                disabled
-                iconId="fr-icon-pen-nib-line"
-                priority="secondary"
-                className="fr-m-1w"
-              >
-                Remplir le journal de bord
               </Button>
             </div>
           </div>
@@ -69,13 +61,8 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
       </div>
       <div>
         <div className="fr-container fr-my-8w">
-          <div className="flex justify-between">
+          <div>
             <h3>Dernières notes de terrain ajoutées</h3>
-            <div>
-              <Button iconId="fr-icon-pen-nib-line" disabled>
-                Remplir le journal de bord
-              </Button>
-            </div>
           </div>
           <Timeline
             items={latestLogEntries.map((log) => ({
