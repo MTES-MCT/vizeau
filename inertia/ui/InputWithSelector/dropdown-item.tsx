@@ -28,7 +28,7 @@ export default function DropdownItem<T extends string | number>({
       className="flex items-center justify-between fr-py-1v fr-px-2v relative"
       style={{ borderBottom: `solid 1px ${fr.colors.decisions.border.default.grey.default}` }}
     >
-      <div className="w-full">
+      <div className="flex-1 gap-2 flex items-center">
         <Checkbox
           small
           options={[

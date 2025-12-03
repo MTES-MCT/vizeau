@@ -1,10 +1,9 @@
 import { useRef, useState, useEffect } from 'react'
 import Input from '@codegouvfr/react-dsfr/Input'
-import DropdownItem from './dropdown-item'
 
 import type { DropdownAction } from './dropdown-item'
 
-import { fr } from '@codegouvfr/react-dsfr'
+import SelectorMenu from '../SelectorMenu'
 
 export type OptionType<T> = {
   value: T
@@ -50,16 +49,6 @@ export default function InputWithSelector<T extends string | number>({
     }
   }, [dropdownOpen])
 
-  // Gestion sélection/désélection
-  const handleToggle = (value: T) => {
-    const updatedOption = options.find((opt) => opt.value === value)
-
-    if (!updatedOption) return
-
-    updatedOption.isSelected = !updatedOption.isSelected
-    onOptionChange(updatedOption)
-  }
-
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
       <Input
@@ -73,22 +62,7 @@ export default function InputWithSelector<T extends string | number>({
         {...props}
       />
 
-      {options?.length > 0 && dropdownOpen && (
-        <div
-          className="absolute shadow-lg z-[9999]"
-          style={{
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: fr.colors.decisions.background.default.grey.default,
-            overflowY: 'auto',
-          }}
-        >
-          {options.map((opt) => {
-            return <DropdownItem<T> key={opt.value} item={opt} onToggle={handleToggle} />
-          })}
-        </div>
-      )}
+      {(options?.length > 0 && dropdownOpen) && <SelectorMenu options={options} onOptionChange={onOptionChange} />}
     </div>
   )
 }
