@@ -25,6 +25,14 @@ export class LogEntryService {
       .paginate(page, pageSize)
   }
 
+  async getLatestLogEntriesFromUser(userId: string, limit = 5) {
+    return LogEntry.query()
+      .where('userId', userId)
+      .preload('tags')
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+  }
+
   async updateLogEntry(id: string, logData: { notes?: string; tags?: number[] }) {
     const logEntry = await LogEntry.findOrFail(id)
     if (logData.notes !== undefined) {
