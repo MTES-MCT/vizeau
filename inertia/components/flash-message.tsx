@@ -26,7 +26,15 @@ export function FlashMessage({
       severity = 'info'
   }
 
-  return <Alert severity={severity} title={message} description={description} />
+  return (
+    <Alert
+      severity={severity}
+      title={message}
+      description={description || ''}
+      closable={true}
+      small={true}
+    />
+  )
 }
 
 export function FlashMessages({
