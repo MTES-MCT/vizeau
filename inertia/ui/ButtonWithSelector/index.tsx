@@ -1,33 +1,29 @@
-import { useRef, useState, useEffect } from 'react'
-import Input from '@codegouvfr/react-dsfr/Input'
-
-import type { DropdownAction } from './dropdown-item'
+import { useState, useRef, useEffect } from 'react'
 
 import SelectorMenu from '../SelectorMenu'
+import Button from '@codegouvfr/react-dsfr/Button'
+import { DropdownAction } from '../InputWithSelector/dropdown-item'
 
-export type OptionType<T> = {
+export type OptionType<T extends string | number> = {
   value: T
   label: string
   isSelected: boolean
   actions?: DropdownAction<T>[]
 }
 
-export type InputWithSelectorProps<T> = {
-  inputValue: string
-  options: OptionType<T>[]
-  handleInputChange: (value: string) => void
-  onOptionChange: (updatedOption: OptionType<T>) => void
+export type ButtonWithSelectorProps<T extends string | number> = {
   label: string
-  hintText?: string
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'tertiary no outline'
+  options: OptionType<T>[]
+  onOptionChange: (option: OptionType<T>) => void
 }
 
-export default function InputWithSelector<T extends string | number>({
-  inputValue,
+export default function ButtonWithSelector<T extends string | number>({
+  label,
+  priority = 'secondary',
   options,
-  handleInputChange,
   onOptionChange,
-  ...props
-}: InputWithSelectorProps<T>) {
+}: ButtonWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -50,17 +46,10 @@ export default function InputWithSelector<T extends string | number>({
   }, [dropdownOpen])
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <Input
-        className="fr-m-0"
-        nativeInputProps={{
-          value: inputValue,
-          onChange: (e) => handleInputChange(e.currentTarget.value),
-          onFocus: () => setDropdownOpen(true),
-          onClick: () => setDropdownOpen(true),
-        }}
-        {...props}
-      />
+    <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
+      <Button className="fr-m-0" onClick={() => setDropdownOpen(true)} priority={priority}>
+        {label}
+      </Button>
 
       {options?.length > 0 && dropdownOpen && (
         <SelectorMenu options={options} onOptionChange={onOptionChange} />
