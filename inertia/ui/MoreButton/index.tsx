@@ -6,9 +6,10 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 
 export type MoreButtonProps = {
   actions: {
-    label: string
+    label: string | React.ReactNode
     iconId?: string
     isCritical?: boolean
+    isDisabled?: boolean
     onClick: () => void
   }[]
 }
@@ -118,10 +119,11 @@ export default function MoreButton({ actions }: MoreButtonProps) {
               }}
             >
               <ul className="fr-px-2v w-fit flex flex-col gap-2" role="menu">
-                {actions.map((action) => (
-                  <li
-                    key={action.label}
-                    className="list-none w-fit flex items-center gap-2 cursor-pointer"
+                {actions.map((action, index) => (
+                  <button
+                    key={`label-${index}`}
+                    disabled={action.isDisabled}
+                    className="fr-p-1v list-none w-full flex items-center gap-2 cursor-pointer"
                     style={{
                       color: `${action.isCritical ? fr.colors.decisions.text.default.error.default : ''}`,
                     }}
@@ -137,12 +139,13 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                         setMenuOpen(false)
                       }
                     }}
+                    type="button"
                     role="menuitem"
                     tabIndex={0}
                   >
                     {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
                     {action.label}
-                  </li>
+                  </button>
                 ))}
               </ul>
             </div>,

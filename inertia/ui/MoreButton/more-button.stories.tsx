@@ -1,4 +1,5 @@
 import MoreButton, { MoreButtonProps } from './index.js'
+import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip'
 
 const meta = {
   title: 'UI/MoreButton',
@@ -17,6 +18,12 @@ const meta = {
         label: 'Modifier',
         iconId: 'fr-icon-edit-line',
         onClick: () => alert('Modifier action clicked'),
+      },
+      {
+        label: <Tooltip title="Impossible de dupliquer cet élément">Dupliquer</Tooltip>,
+        iconId: 'fr-icon-stack-line',
+        isDisabled: true,
+        onClick: () => alert('Dupliquer action clicked'),
       },
       {
         label: 'Supprimer',
