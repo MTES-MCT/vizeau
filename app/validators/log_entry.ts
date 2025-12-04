@@ -1,9 +1,10 @@
 import vine from '@vinejs/vine'
 
 const logEntryFormFieldsValidator = {
-  notes: vine.string().maxLength(1000).optional().requiredIfMissing(['tags']),
+  notes: vine.string().maxLength(1000).nullable().optional().requiredIfMissing(['tags']),
   tags: vine
     .array(vine.number().positive().withoutDecimals())
+    .nullable()
     .optional()
     .requiredIfMissing(['notes']),
   params: vine.object({
