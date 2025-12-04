@@ -47,7 +47,7 @@ export default function ButtonWithSelector<T extends string | number>({
 
   return (
     <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
-      <Button className="fr-m-0" onClick={() => setDropdownOpen(true)} priority={priority}>
+      <Button className="fr-m-0" onClick={() => setDropdownOpen(!dropdownOpen)} priority={priority}>
         {label}
       </Button>
 
