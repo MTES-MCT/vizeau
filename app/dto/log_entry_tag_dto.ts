@@ -8,6 +8,10 @@ export class LogEntryTagDto {
     return {
       id: tag.id,
       name: tag.name,
+      userId: tag.userId,
+      exploitationId: tag.exploitationId,
+      createdAt: tag.createdAt.toISO() as string,
+      updatedAt: tag.updatedAt.toISO() as string,
     }
   }
 
