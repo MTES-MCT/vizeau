@@ -10,10 +10,10 @@ const meta = {
   },
   args: {
     tags: [
-      {label: 'Rappel', iconId: 'fr-icon-phone-line' },
-      {label: 'Rendez-vous', iconId: 'fr-icon-calendar-line' },
-      {label: 'Visite', iconId: 'fr-icon-user-line' },
-      {label: 'Information', iconId: 'fr-icon-information-line' },
+      { label: 'Rappel', iconId: 'fr-icon-phone-line' },
+      { label: 'Rendez-vous', iconId: 'fr-icon-calendar-line' },
+      { label: 'Visite', iconId: 'fr-icon-user-line' },
+      { label: 'Information', iconId: 'fr-icon-information-line' },
     ],
     size: 'sm',
   } as TagsListProps,
@@ -26,5 +26,5 @@ export const Défaut = {}
 export const PetitsTags = {
   args: {
     size: 'sm',
-  }
+  },
 }

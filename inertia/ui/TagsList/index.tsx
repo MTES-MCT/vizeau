@@ -13,9 +13,9 @@ export default function TagsList({ tags, size = 'sm' }: TagsListProps) {
 
   return (
     <ul className="fr-badges-group">
-      {uniqueMetas.map(({ label, iconId}) => (
+      {uniqueMetas.map(({ label, iconId }) => (
         <li key={label}>
-          <CustomTag label={label} iconId={iconId} size={size}  />
+          <CustomTag label={label} iconId={iconId} size={size} />
         </li>
       ))}
     </ul>

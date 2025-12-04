@@ -10,14 +10,14 @@ const meta = {
     size: {
       control: { type: 'select' },
       options: ['sm', 'xs'],
-      defaultValue: 'sm'
-    }
+      defaultValue: 'sm',
+    },
   },
   args: {
     label: 'Exemple de tag',
     iconId: 'fr-icon-add-circle-line',
-    size: 'sm'
-  } as CustomTagProps
+    size: 'sm',
+  } as CustomTagProps,
 }
 
 export default meta
@@ -26,14 +26,14 @@ export const Défaut = {}
 
 export const SansIcône = {
   args: {
-    iconId: undefined
-  }
+    iconId: undefined,
+  },
 }
 
 export const TailleXS = {
   args: {
-    size: 'xs'
-  }
+    size: 'xs',
+  },
 }
 
 export const SansLibellé = {
