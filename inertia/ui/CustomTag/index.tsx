@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge'
-import { fr } from '@codegouvfr/react-dsfr'
 
 export type CustomTagProps = {
   label?: string
