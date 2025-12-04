@@ -38,7 +38,7 @@ export default function SelectorMenu<T extends string | number>({
         right: 0,
         background: fr.colors.decisions.background.default.grey.default,
         overflowY: 'auto',
-        width: '100%',
+        width: 'fit-content',
       }}
     >
       {options.map((opt) => {
