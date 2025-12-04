@@ -79,9 +79,14 @@ test.group('LogEntryService', (group) => {
     })
 
     const updatedNotes = 'Updated log entry'
-    const updatedLogEntry = await logEntryService.updateLogEntry(logEntry.id, {
-      notes: updatedNotes,
-    })
+    const updatedLogEntry = await logEntryService.updateLogEntry(
+      logEntry.id,
+      user.id,
+      exploitation.id,
+      {
+        notes: updatedNotes,
+      }
+    )
 
     assert.equal(updatedLogEntry.notes, updatedNotes)
   })
@@ -103,9 +108,14 @@ test.group('LogEntryService', (group) => {
     })
 
     const newTagIds = tags.slice(2, 4).map((tag) => tag.id)
-    const updatedLogEntry = await logEntryService.updateLogEntry(logEntry.id, {
-      tags: newTagIds,
-    })
+    const updatedLogEntry = await logEntryService.updateLogEntry(
+      logEntry.id,
+      user.id,
+      exploitation.id,
+      {
+        tags: newTagIds,
+      }
+    )
     await updatedLogEntry.load('tags')
 
     assert.deepEqual(
@@ -125,7 +135,11 @@ test.group('LogEntryService', (group) => {
       exploitationId: exploitation.id,
     })
 
-    const deletedLogEntry = await logEntryService.deleteLogEntry(logEntry.id)
+    const deletedLogEntry = await logEntryService.deleteLogEntry(
+      logEntry.id,
+      user.id,
+      exploitation.id
+    )
 
     assert.equal(deletedLogEntry.id, logEntry.id)
 

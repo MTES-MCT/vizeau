@@ -1,4 +1,5 @@
 import LogEntryTag from '#models/log_entry_tag'
+import LogEntry from '#models/log_entry'
 
 export class LogEntryTagService {
   /*
@@ -27,6 +28,15 @@ export class LogEntryTagService {
     }
 
     return query.exec()
+  }
+
+  async getTagsForLogEntry(logEntryId?: string) {
+    if (!logEntryId) {
+      return []
+    }
+    const logEntry = await LogEntry.query().where('id', logEntryId).preload('tags').firstOrFail()
+
+    return logEntry.tags
   }
 
   async updateTag(tagId: number, tagName: string) {

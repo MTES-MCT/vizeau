@@ -61,7 +61,7 @@ test.group('Log entry tag service', (group) => {
       'Urgent'
     )
 
-    await logEntryTagService.deleteTag(tag.id)
+    await logEntryTagService.deleteTag(tag.id, exploitation.id)
 
     const tags = await logEntryTagService.getTagsForExploitation(exploitation.id)
 

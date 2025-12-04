@@ -1,4 +1,4 @@
-import { Alert, AlertProps } from '@codegouvfr/react-dsfr/Alert'
+import Notice, { NoticeProps } from '@codegouvfr/react-dsfr/Notice'
 import { FlashMessageType, FlashMessageValue } from '../../types/flash_messages'
 
 export function FlashMessage({
@@ -10,14 +10,11 @@ export function FlashMessage({
   message: string
   description?: string
 }) {
-  let severity: AlertProps.Severity
+  let severity: NoticeProps.Severity
 
   switch (type) {
-    case 'success':
-      severity = 'success'
-      break
     case 'error':
-      severity = 'error'
+      severity = 'alert'
       break
     case 'warning':
       severity = 'warning'
@@ -26,7 +23,7 @@ export function FlashMessage({
       severity = 'info'
   }
 
-  return <Alert severity={severity} title={message} description={description} />
+  return <Notice severity={severity} title={message} description={description} isClosable={true} />
 }
 
 export function FlashMessages({

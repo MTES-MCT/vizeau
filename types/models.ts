@@ -20,6 +20,9 @@ export type LogEntryTagJson = {
 export type LogEntryJson = {
   id: string
   notes: string | null
+  userId: string
+  createdAt: string
+  updatedAt: string
   tags?: LogEntryTagJson[] | null
 }
 

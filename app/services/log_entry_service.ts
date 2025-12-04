@@ -1,4 +1,5 @@
 import LogEntry from '#models/log_entry'
+import { errors } from '@adonisjs/auth'
 
 export class LogEntryService {
   async createLogEntry(logData: {
@@ -36,8 +37,19 @@ export class LogEntryService {
       .limit(limit)
   }
 
-  async updateLogEntry(id: string, logData: { notes?: string; tags?: number[] }) {
-    const logEntry = await LogEntry.findOrFail(id)
+  // We require the exploitationId to ensure the log entry belongs to the correct exploitation
+  async updateLogEntry(
+    id: string,
+    userId: string,
+    exploitationId: string,
+    logData: { notes?: string; tags?: number[] }
+  ) {
+    const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
+
+    if (logEntry.userId !== userId) {
+      throw errors.E_UNAUTHORIZED_ACCESS
+    }
+
     if (logData.notes !== undefined) {
       logEntry.notes = logData.notes
       await logEntry.save()
@@ -48,8 +60,14 @@ export class LogEntryService {
     return logEntry
   }
 
-  async deleteLogEntry(id: string) {
-    const logEntry = await LogEntry.findOrFail(id)
+  // We require the exploitationId to ensure the log entry belongs to the correct exploitation
+  async deleteLogEntry(id: string, userId: string, exploitationId: string) {
+    const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
+
+    if (logEntry.userId !== userId) {
+      throw errors.E_UNAUTHORIZED_ACCESS
+    }
+
     await logEntry.delete()
     return logEntry
   }

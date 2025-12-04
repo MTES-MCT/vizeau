@@ -94,6 +94,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
       <div className="fr-ml-2v">
         <div className="relative w-fit" ref={buttonRef}>
           <Button
+            type="button"
             onClick={() => setMenuOpen(!menuOpen)}
             title="Ouvrir le menu des options"
             iconId="fr-icon-more-fill"
