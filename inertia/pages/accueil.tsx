@@ -1,31 +1,19 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
 import { Head } from '@inertiajs/react'
+import { InferPageProps } from '@adonisjs/inertia/types'
+import AccueilController from '#controllers/accueil_controller'
 import ExploitationsList from '~/components/exploitations/exploitations-list'
 import CompactListItem from '~/ui/CompactListItem'
-import type { ExploitationJson, LogEntryJson } from '../../types/models'
 
 import Layout from '~/ui/layouts/layout'
 import Timeline from '~/ui/Timeline'
+import { ExploitationJson } from '../../types/models'
 
-interface AccueilProps {
-  latestExploitations: ExploitationJson[]
-  latestLogEntries: Array<
-    LogEntryJson & {
-      exploitation: {
-        id: number
-        name: string | null
-      }
-      createdAt: string
-      tags: Array<{
-        id: number
-        name: string
-      }> | null
-    }
-  >
-}
-
-export default function Accueil({ latestExploitations, latestLogEntries }: AccueilProps) {
+export default function Accueil({
+  latestExploitations,
+  latestLogEntries,
+}: InferPageProps<AccueilController, 'index'>) {
   return (
     <Layout>
       <Head title="Accueil" />
@@ -76,7 +64,7 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
                   }
                   tags={
                     log.tags && log.tags.length > 0
-                      ? log.tags.map((tag) => ({ label: tag.name }))
+                      ? log.tags.map((tag: { name: string }) => ({ label: tag.name }))
                       : []
                   }
                   metas={[
@@ -110,7 +98,7 @@ export default function Accueil({ latestExploitations, latestLogEntries }: Accue
             </div>
           </div>
           <div className="fr-my-4w">
-            <ExploitationsList exploitations={latestExploitations} />
+            <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
           </div>
         </div>
       </div>
