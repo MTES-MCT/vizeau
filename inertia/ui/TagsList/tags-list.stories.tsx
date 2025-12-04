@@ -15,7 +15,7 @@ const meta = {
       { label: 'Visite', iconId: 'fr-icon-user-line' },
       { label: 'Information', iconId: 'fr-icon-information-line' },
     ],
-    size: 'sm',
+    size: 'md',
   } as TagsListProps,
 }
 
