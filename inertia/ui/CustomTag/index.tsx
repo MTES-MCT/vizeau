@@ -22,7 +22,7 @@ function getContrastColor(hslColor: string) {
   const match = hslColor.match(/hsl\(\d+,\s*\d+%,\s*(\d+)%\)/)
   const lightness = match ? parseInt(match[1], 10) : 50
   // Si la luminosité est élevée, texte foncé, sinon texte clair
-  return lightness > 70 ? fr.colors.decisions.text.default.grey.default : fr.colors.decisions.text.inverted.grey.default
+  return lightness > 70 ? "#3a3a3a" : "#ffffff"
 }
 
 export default function CustomTag({ label, iconId, size = 'sm' }: CustomTagProps) {
