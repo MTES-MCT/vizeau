@@ -108,11 +108,13 @@ export default class LogEntriesController {
     return response.redirect().back()
   }
 
-  async destroyTagForExploitation({ request, response, session, logger }: HttpContext) {
+  async destroyTagForExploitation({ auth, request, response, session, logger }: HttpContext) {
     const payload = await request.validateUsing(deleteLogEntryTagValidator)
 
+    const user = auth.getUserOrFail()
+
     try {
-      await this.logEntryTagService.deleteTag(payload.tagId, payload.params.exploitationId)
+      await this.logEntryTagService.deleteTag(payload.tagId, payload.params.exploitationId, user.id)
     } catch (error) {
       logger.error('Error deleting tag:', error)
       createErrorFlashMessage(

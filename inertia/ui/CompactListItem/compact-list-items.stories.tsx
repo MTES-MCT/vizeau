@@ -12,6 +12,13 @@ const meta = {
         type: { summary: 'string' },
       },
     },
+    iconId: {
+      control: 'text',
+      description: "ID de l'icône DSFR à afficher à gauche du libellé (optionnel)",
+      table: {
+        type: { summary: 'string | undefined' },
+      },
+    },
     tags: {
       control: 'object',
       description: 'Liste des badges/étiquettes à afficher',
@@ -20,8 +27,7 @@ const meta = {
           summary: 'Array<Tag>',
           detail: `{
   label: string;           // Texte du badge
-  severity?: 'info' | 'success' | 'warning' | 'error' | 'new';  // Couleur du badge
-  hasIcon?: boolean;        // Afficher l'icône (défaut: true)
+  iconId?: string;         // ID de l'icône DSFR optionnel
 }[]`,
         },
       },
@@ -57,10 +63,11 @@ const meta = {
   },
   args: {
     label: 'Compact List Item Example',
+    iconId: 'fr-icon-user-line',
     tags: [
-      { label: 'Tag 1', severity: 'info', hasIcon: true },
-      { label: 'Tag 2', severity: 'success', hasIcon: true },
-      { label: 'Tag 3', severity: 'warning', hasIcon: false },
+      { label: 'Tag 1', iconId: 'fr-icon-check-line' },
+      { label: 'Tag 2', iconId: 'fr-icon-star-line' },
+      { label: 'Tag 3' },
     ],
     metas: [
       { content: 'Meta 1', iconId: 'fr-icon-calendar-line' },
@@ -113,12 +120,12 @@ export const AvecLongLabel = {
 export const AvecBeaucoupDeTags = {
   args: {
     tags: [
-      { label: 'Tag 1', severity: 'info', hasIcon: true },
-      { label: 'Tag 2', severity: 'success', hasIcon: true },
-      { label: 'Tag 3', severity: 'warning', hasIcon: false },
-      { label: 'Tag 4', severity: 'error', hasIcon: true },
-      { label: 'Tag 5', severity: 'info', hasIcon: false },
-      { label: 'Tag 6', severity: 'success', hasIcon: true },
+      { label: 'Tag 1', iconId: 'fr-icon-check-line' },
+      { label: 'Tag 2', iconId: 'fr-icon-star-line' },
+      { label: 'Tag 3' },
+      { label: 'Tag 4', iconId: 'fr-icon-alert-line' },
+      { label: 'Tag 5' },
+      { label: 'Tag 6', iconId: 'fr-icon-heart-line' },
     ],
   },
 }

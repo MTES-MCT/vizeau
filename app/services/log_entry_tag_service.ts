@@ -1,5 +1,6 @@
 import LogEntryTag from '#models/log_entry_tag'
 import LogEntry from '#models/log_entry'
+import { errors } from '@adonisjs/auth'
 
 export class LogEntryTagService {
   /*
@@ -39,16 +40,24 @@ export class LogEntryTagService {
     return logEntry.tags
   }
 
-  async updateTag(tagId: number, tagName: string) {
+  async updateTag(tagId: number, tagName: string, userId: string) {
     const tag = await LogEntryTag.findOrFail(tagId)
+
+    if (tag.userId !== userId) {
+      throw errors.E_UNAUTHORIZED_ACCESS
+    }
     tag.name = tagName
     await tag.save()
     return tag
   }
 
   // For security, we require the parent exploitation id to ensure the tag belongs to the correct exploitation
-  async deleteTag(tagId: number, parentExploitationId: string) {
+  async deleteTag(tagId: number, parentExploitationId: string, userId: string) {
     const tag = await LogEntryTag.findByOrFail({ id: tagId, exploitationId: parentExploitationId })
+
+    if (tag.userId !== userId) {
+      throw errors.E_UNAUTHORIZED_ACCESS
+    }
 
     await tag.delete()
     return tag
