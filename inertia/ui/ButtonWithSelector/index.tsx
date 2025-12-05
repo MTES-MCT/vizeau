@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 
 import SelectorMenu from '../SelectorMenu'
 import Button from '@codegouvfr/react-dsfr/Button'
@@ -25,10 +25,9 @@ export default function ButtonWithSelector<T extends string | number>({
   onOptionChange,
 }: ButtonWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
+    <div style={{ position: 'relative', width: 'fit-content' }}>
       <Button className="fr-m-0" onClick={() => setDropdownOpen(!dropdownOpen)} priority={priority}>
         {label}
       </Button>
