@@ -64,7 +64,7 @@ export default function ListItem({
           </div>
         </div>
 
-        {metas && metas.length > 0 && <MetasList metas={metas || []} size="sm" />}
+        {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
       </div>
     </Wrapper>
   )
