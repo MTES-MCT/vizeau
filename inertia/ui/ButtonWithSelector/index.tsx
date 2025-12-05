@@ -1,4 +1,4 @@
-import { useState, useRef} from 'react'
+import { useState, useRef } from 'react'
 
 import SelectorMenu from '../SelectorMenu'
 import Button from '@codegouvfr/react-dsfr/Button'
