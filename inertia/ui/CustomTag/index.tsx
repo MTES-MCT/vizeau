@@ -18,7 +18,7 @@ export default function CustomTag({ label, iconId, size}: CustomTagProps) {
 
   return (
     <Badge
-      className={`height-fit w-fit flex gap-2`}
+      className={`height-fit w-fit flex gap-2 fr-mb-0`}
       style={{ backgroundColor, color: "#3a3a3a" }}
       small={size === 'sm'}
     >
