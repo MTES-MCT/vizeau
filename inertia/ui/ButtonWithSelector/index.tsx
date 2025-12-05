@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef} from 'react'
 
 import SelectorMenu from '../SelectorMenu'
 import Button from '@codegouvfr/react-dsfr/Button'
@@ -26,24 +26,6 @@ export default function ButtonWithSelector<T extends string | number>({
 }: ButtonWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Fermer le dropdown au clic en dehors
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent) {
-      // Ignore clicks on dropdown action menu
-      const target = event.target as HTMLElement
-      if (target.closest('.dropdown-action-menu')) return
-      if (containerRef.current && !containerRef.current.contains(target)) {
-        setDropdownOpen(false)
-      }
-    }
-    if (dropdownOpen) {
-      document.addEventListener('pointerdown', handlePointerDown)
-    }
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown)
-    }
-  }, [dropdownOpen])
 
   return (
     <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
