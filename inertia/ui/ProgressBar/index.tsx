@@ -41,11 +41,11 @@ export default function ProgressBar({
         />
       </div>
       {unit ? (
-        <p className={`flex-2 fr-m-0 fr-text--${size}`}>
+        <p className={`fr-m-0 fr-text--${size}`}>
           {value || 0}/{total || 0} {unit}
         </p>
       ) : (
-        <p className={`flex-2 fr-m-0 fr-text--${size}`}>{percent || 0}%</p>
+        <p className={`fr-m-0 fr-text--${size}`}>{percent || 0}%</p>
       )}
     </div>
   )
