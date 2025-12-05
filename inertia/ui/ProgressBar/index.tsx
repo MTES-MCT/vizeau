@@ -15,6 +15,7 @@ export default function ProgressBar({
   unit,
   size = 'md',
 }: ProgressBarProps) {
+  const BORDER_RADIUS = 5;
   const percent = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0
   const color = progressColor || fr.colors.decisions.background.actionHigh.blueFrance.default
 
@@ -25,7 +26,7 @@ export default function ProgressBar({
         style={{
           height: size === 'md' ? 10 : 5,
           background: `${fr.colors.decisions.background.default.grey.hover}`,
-          borderRadius: 5,
+          borderRadius: BORDER_RADIUS,
         }}
       >
         <div
@@ -35,7 +36,7 @@ export default function ProgressBar({
             height: '100%',
             background: color,
             transition: 'width 0.3s',
-            borderRadius: 5,
+            borderRadius: BORDER_RADIUS,
           }}
         />
       </div>
