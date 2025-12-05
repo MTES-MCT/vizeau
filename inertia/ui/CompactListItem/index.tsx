@@ -11,7 +11,7 @@ export type CompactListItemProps = {
 
 export default function CompactListItem({ label, tags, metas, actions }: CompactListItemProps) {
   return (
-    <div className="flex flex-col fr-p-2w">
+    <div className="flex flex-col">
       <div className="flex-1 items-center flex gap-2">
         <div className="flex flex-1 items-start gap-2 flex-wrap">
           <div className="flex-1 font-bold">{label}</div>

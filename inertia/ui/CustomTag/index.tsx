@@ -3,7 +3,7 @@ import Badge from '@codegouvfr/react-dsfr/Badge'
 export type CustomTagProps = {
   label?: string
   iconId?: string
-  size?: 'sm' | 'xs'
+  size?: 'md' | 'sm'
 }
 
 function stringToColor(str: string) {
@@ -13,13 +13,14 @@ function stringToColor(str: string) {
   return `hsl(${hue}, 80%, 85%)`
 }
 
-export default function CustomTag({ label, iconId, size = 'sm' }: CustomTagProps) {
+export default function CustomTag({ label, iconId, size}: CustomTagProps) {
   const backgroundColor = stringToColor(label || '')
 
   return (
     <Badge
-      className={`height-fit w-fit fr-p-2 flex gap-2 fr-text--${size}`}
+      className={`height-fit w-fit flex gap-2`}
       style={{ backgroundColor, color: "#3a3a3a" }}
+      small={size === 'sm'}
     >
       {iconId && <span className={`${iconId} fr-icon--sm`}></span>}
       {label}

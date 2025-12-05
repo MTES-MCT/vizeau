@@ -52,7 +52,7 @@ export default function Timeline(props: TimelineProps) {
             style={isNewlyVisible ? { animationDelay: `${(index - maxVisible) * 0.1}s` } : {}}
           >
             {/* Point et ligne verticale */}
-            <div className="flex flex-col items-center fr-mr-2v fr-m-1v">
+            <div className="flex flex-col items-center fr-mr-5v fr-m-1v">
               <div
                 style={{
                   backgroundColor: item?.dotColor
@@ -85,7 +85,6 @@ export default function Timeline(props: TimelineProps) {
             </div>
 
             {/* Contenu */}
-            <div>
               {isControl ? (
                 <Button onClick={() => setExpanded(!expanded)} priority="tertiary">
                   {expanded ? (
@@ -95,10 +94,9 @@ export default function Timeline(props: TimelineProps) {
                   )}
                 </Button>
               ) : (
-                <div>{item.content}</div>
+                <div className='fr-mb-5v'>{item.content}</div>
               )}
             </div>
-          </div>
         )
       })}
     </div>

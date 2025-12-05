@@ -6,9 +6,9 @@ export type TagsListProps = {
     label: string
     iconId?: string
   }[]
-  size?: 'sm' | 'xs'
+  size?: 'md' | 'sm'
 }
-export default function TagsList({ tags, size = 'sm' }: TagsListProps) {
+export default function TagsList({ tags, size = 'md' }: TagsListProps) {
   const uniqueMetas = uniqBy(tags, 'label')
 
   return (
