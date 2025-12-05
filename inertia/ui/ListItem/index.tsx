@@ -7,7 +7,6 @@ import TagsList, { TagsListProps } from '../TagsList'
 
 export type ListItemProps = {
   title: string
-  iconId: string
   subtitle?: string
   href?: string
   priority?: 'primary' | 'secondary'
