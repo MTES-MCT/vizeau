@@ -12,6 +12,13 @@ const meta = {
         type: { summary: 'string' },
       },
     },
+    iconId: {
+      control: 'text',
+      description: "ID de l'icône DSFR à afficher à gauche du libellé (optionnel)",
+      table: {
+        type: { summary: 'string | undefined' },
+      },
+    },
     tags: {
       control: 'object',
       description: 'Liste des badges/étiquettes à afficher',
@@ -57,6 +64,7 @@ const meta = {
   },
   args: {
     label: 'Compact List Item Example',
+    iconId: 'fr-icon-user-line',
     tags: [
       { label: 'Tag 1', severity: 'info', hasIcon: true },
       { label: 'Tag 2', severity: 'success', hasIcon: true },
