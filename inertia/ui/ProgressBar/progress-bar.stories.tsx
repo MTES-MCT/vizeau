@@ -52,8 +52,8 @@ export const AvecCouleurPersonnalisée = {
 
 export const ValeurEtTotalNuls = {
   args: {
-    value: undefined,
-    total: undefined,
+    value: 0,
+    total: 0,
   },
 }
 
