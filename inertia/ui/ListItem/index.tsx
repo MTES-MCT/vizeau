@@ -25,9 +25,10 @@ export default function ListItem({
   priority = 'primary',
 }: ListItemProps) {
   const Wrapper = href ? Link : 'div'
+  const wrapperProps = href ? { href } : {}
 
   return (
-    <Wrapper href={href || ''}>
+    <Wrapper {...wrapperProps}>
       <div
         className="flex-1 fr-p-2w flex flex-col gap-3"
         style={{
@@ -53,7 +54,14 @@ export default function ListItem({
             )}
           </div>
 
-          {actions && actions.length > 0 && <MoreButton actions={actions} />}
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+            }}
+          >
+            {actions && actions.length > 0 && <MoreButton actions={actions} />}
+          </div>
         </div>
 
         {metas && metas.length > 0 && <MetasList metas={metas || []} size="sm" />}

@@ -16,7 +16,7 @@ const meta = {
   args: {
     title: "Titre de l'élément de liste",
     subtitle: "Sous-titre de l'élément",
-    href: '/exemple-de-lien',
+    href: undefined,
     priority: 'primary',
     tags: [
       { label: 'Tag 1', iconId: 'fr-icon-seedling-line' },
