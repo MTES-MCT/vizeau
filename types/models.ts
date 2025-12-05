@@ -15,6 +15,10 @@ export type ExploitationTagJson = {
 export type LogEntryTagJson = {
   id: number
   name: string
+  userId: string
+  exploitationId: string
+  createdAt: string
+  updatedAt: string
 }
 
 export type LogEntryJson = {

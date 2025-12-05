@@ -14,6 +14,11 @@ export default class extends BaseSeeder {
         email: process.env.ADMIN_EMAIL,
         password: process.env.ADMIN_PASSWORD,
       },
+      {
+        fullName: 'Pierre Dupont',
+        email: 'beta@livingdata.co',
+        password: 'password',
+      },
     ])
   }
 }

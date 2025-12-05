@@ -45,7 +45,7 @@ test.group('Log entry tag service', (group) => {
       'Urgent'
     )
 
-    const updatedTag = await logEntryTagService.updateTag(tag.id, 'High Priority')
+    const updatedTag = await logEntryTagService.updateTag(tag.id, 'High Priority', user.id)
 
     assert.equal(updatedTag.name, 'High Priority')
   })
@@ -61,10 +61,29 @@ test.group('Log entry tag service', (group) => {
       'Urgent'
     )
 
-    await logEntryTagService.deleteTag(tag.id, exploitation.id)
+    await logEntryTagService.deleteTag(tag.id, exploitation.id, user.id)
 
     const tags = await logEntryTagService.getTagsForExploitation(exploitation.id)
 
     assert.lengthOf(tags, 0)
+  })
+
+  test("I cannot delete a log entry tag that doesn't belong to the current user", async ({
+    assert,
+  }) => {
+    const user1 = await UserFactory.create()
+    const user2 = await UserFactory.create()
+    const exploitation = await ExploitationFactory.create()
+    const logEntryTagService = new LogEntryTagService()
+
+    const tag = await logEntryTagService.createTagForExploitation(
+      exploitation.id,
+      user1.id,
+      'Urgent'
+    )
+
+    assert.rejects(async () => {
+      await logEntryTagService.deleteTag(tag.id, exploitation.id, user2.id)
+    })
   })
 })
