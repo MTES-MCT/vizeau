@@ -7,9 +7,9 @@ import { fr } from '@codegouvfr/react-dsfr'
 export type CompactListItemProps = {
   label: string
   iconId?: string
-  tags: TagsListProps['tags']
-  metas: MetasListProps['metas']
-  actions: MoreButtonProps['actions']
+  tags: TagsListProps['tags'] | null
+  metas: MetasListProps['metas'] | null
+  actions: MoreButtonProps['actions'] | null
 }
 
 export default function CompactListItem({ label, iconId, tags, metas, actions }: CompactListItemProps) {
@@ -21,13 +21,13 @@ export default function CompactListItem({ label, iconId, tags, metas, actions }:
             {iconId && <span className={`${iconId} fr-icon--md`} aria-hidden="true" style={{ color: fr.colors.decisions.text.label.blueFrance.default}}></span>}
             <div className="flex-1 font-bold">{label}</div>
           </div>
-          <TagsList tags={tags} size="sm" />
+          {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
         </div>
 
-        <MoreButton actions={actions} />
+        {actions && actions.length > 0 && <MoreButton actions={actions} />}
       </div>
 
-      <MetasList metas={metas} size="sm" />
+      {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
     </div>
   )
 }
