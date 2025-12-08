@@ -35,12 +35,9 @@ export default function Timeline(props: TimelineProps) {
   const [isLoading, setIsLoading] = useState(false)
   const externalMode = typeof onShowMore === 'function'
 
-  let visibleItems: TimelineItem[]
+  let visibleItems: TimelineItem[] = items
 
-  if (externalMode) {
-    // In external mode: if maxVisible is set, show first maxVisible items; otherwise show all
-    visibleItems = typeof maxVisible === 'number' ? items.slice(0, maxVisible) : items
-  } else {
+  if (!externalMode) {
     // Internal mode: only slice when needed and not expanded
     const shouldLimit = typeof maxVisible === 'number' && items.length > maxVisible
     visibleItems = shouldLimit && !expanded ? items.slice(0, maxVisible!) : items
@@ -69,7 +66,7 @@ export default function Timeline(props: TimelineProps) {
     }
 
     if (externalMode) {
-      return `Voir plus${typeof maxVisible === 'number' ? ` (${Math.max(0, items.length - maxVisible)})` : ''}`
+      return 'Voir plus'
     }
 
     return expanded ? 'Voir moins' : `Voir plus (${items.length - (maxVisible ?? 0)})`
