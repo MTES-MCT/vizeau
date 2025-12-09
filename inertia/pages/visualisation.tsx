@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from 'react'
-import { router } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
 import VisualisationMap from '~/components/map/VisualisationMap'
 import Layout from '~/ui/layouts/layout'
@@ -26,6 +26,7 @@ export default function VisualisationPage({
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>
+      <Head title="Visualisation" />
       <MapLayout
         pageName="Exploitations"
         leftContent={
