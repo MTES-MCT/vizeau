@@ -2,8 +2,6 @@ import { LogEntryTagJson } from '../../types/models.js'
 import LogEntryTag from '#models/log_entry_tag'
 
 export class LogEntryTagDto {
-  constructor(private tags: LogEntryTag[]) {}
-
   static fromModel(tag: LogEntryTag): LogEntryTagJson {
     return {
       id: tag.id,
@@ -15,7 +13,7 @@ export class LogEntryTagDto {
     }
   }
 
-  toArray(): LogEntryTagJson[] {
-    return this.tags.map(LogEntryTagDto.fromModel)
+  static fromArray(tags: LogEntryTag[]): LogEntryTagJson[] {
+    return tags.map(LogEntryTagDto.fromModel)
   }
 }

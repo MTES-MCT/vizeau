@@ -25,6 +25,7 @@ export type LogEntryJson = {
   id: string
   notes: string | null
   userId: string
+  exploitationId: string
   createdAt: string
   updatedAt: string
   tags?: LogEntryTagJson[] | null
@@ -49,7 +50,7 @@ export type ExploitationJson = {
   logEntries?: LogEntryJson[] | null
 }
 
-export type PaginatedExploitationJson = {
+export type PaginatedJson<T> = {
   meta: {
     total: number
     perPage: number
@@ -61,5 +62,5 @@ export type PaginatedExploitationJson = {
     nextPageUrl: string | null
     previousPageUrl: string | null
   }
-  data: ExploitationJson[]
+  data: T[]
 }
