@@ -32,7 +32,7 @@ export const CulturesPictos = () => {
         style={{ width: '33%', minWidth: '320px', marginBottom: '50px' }}
       />
 
-      <div className='flex flex-wrap gap-6'>
+      <div className="flex flex-wrap gap-6">
         {filteredGroupes.map((groupe) => (
           <div
             key={groupe.code}
