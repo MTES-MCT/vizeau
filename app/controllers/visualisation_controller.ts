@@ -4,7 +4,7 @@ import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
 
 @inject()
-export default class VisaualisationController {
+export default class VisualisationController {
   constructor(public exploitationService: ExploitationService) {}
 
   async index({ request, inertia, auth }: HttpContext) {
