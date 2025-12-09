@@ -4,9 +4,10 @@ import { fr } from '@codegouvfr/react-dsfr'
 import MetasList, { MetasListProps } from '../MetasList'
 import MoreButton, { MoreButtonProps } from '../MoreButton'
 import TagsList, { TagsListProps } from '../TagsList'
+import { ReactNode } from 'react'
 
 export type ListItemProps = {
-  title: string
+  title: string | ReactNode
   subtitle?: string
   href?: string
   priority?: 'primary' | 'secondary'
