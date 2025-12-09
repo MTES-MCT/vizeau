@@ -41,7 +41,7 @@ export default function CustomTag({ label, iconId, size, color }: CustomTagProps
       style={{ backgroundColor, color: textColor }}
       small={size === 'sm'}
     >
-      {iconId && <span className={`${iconId} fr-icon--sm`}></span>}
+      {iconId && <span className={`${iconId} fr-icon--sm flex items-center`}></span>}
       {label}
     </Badge>
   )
