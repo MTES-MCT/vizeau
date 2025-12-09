@@ -9,10 +9,12 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+
 const AccueilController = () => import('#controllers/accueil_controller')
 const ExploitationsController = () => import('#controllers/exploitations_controller')
 const SessionController = () => import('#controllers/session_controller')
 const LogEntriesController = () => import('#controllers/log_entries_controller')
+const VisaualisationController = () => import('#controllers/visualisation_controller')
 
 router.get('/', ({ response }) => response.redirect('login'))
 
@@ -25,6 +27,7 @@ router
     router.get('logout', [SessionController, 'delete'])
 
     router.get('accueil', [AccueilController, 'index'])
+    router.get('visualisation', [VisaualisationController, 'index'])
     router.get('exploitations', [ExploitationsController, 'index']).as('exploitations.index')
     router
       .get('exploitations/creation', [ExploitationsController, 'create'])
