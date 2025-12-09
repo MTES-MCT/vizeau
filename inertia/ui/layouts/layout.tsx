@@ -46,6 +46,11 @@ export default function Layout({
                   text: 'Exploitations',
                   isActive: pathname.startsWith('/exploitations'),
                 },
+                {
+                  linkProps: { href: '/visualisation' },
+                  text: 'Visualisations',
+                  isActive: pathname.startsWith('/visualisation'),
+                },
               ]
         }
         quickAccessItems={
