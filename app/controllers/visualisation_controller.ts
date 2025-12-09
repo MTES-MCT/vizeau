@@ -11,12 +11,12 @@ export default class VisualisationController {
     const user = auth.getUserOrFail()
 
     return inertia.render('visualisation', {
-      exploitationsWithPagination: async () => {
-        const results = await this.exploitationService.searchActiveExploitationsByNameOrContactName(
+      exploitations: async () => {
+        const results = await this.exploitationService.getAllActiveExploitationsByNameOrContactName(
           request.input('recherche')
         )
 
-        return new ExploitationDto(results).toJson()
+        return ExploitationDto.toJsonArray(results)
       },
       user,
       queryString: request.qs(),

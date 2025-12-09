@@ -11,17 +11,17 @@ import { ExploitationJson } from '../../types/models'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
-    only: ['exploitationsWithPagination'],
+    only: ['exploitations'],
     data: { recherche: e.target.value },
     replace: true,
   })
 }, 300)
 
 export default function VisualisationPage({
-  exploitationsWithPagination,
+  exploitations,
   queryString,
 }: InferPageProps<VisualisationController, 'index'>) {
-  const { data: exploitations } = exploitationsWithPagination
+  const filteredExploitation = exploitations
   const [selectedExploitation, setSelectedExploitation] = useState<ExploitationJson | undefined>(undefined)
 
   return (
@@ -31,7 +31,7 @@ export default function VisualisationPage({
         pageName="Exploitations"
         leftContent={
           <VisualisationLeftSideBar
-            exploitations={exploitations}
+            exploitations={filteredExploitation}
             handleSearch={handleSearch}
             queryString={queryString}
             selectedExploitation={selectedExploitation}
@@ -40,7 +40,7 @@ export default function VisualisationPage({
         }
         map={
           <VisualisationMap
-            exploitations={exploitations}
+            exploitations={filteredExploitation}
             exploitation={selectedExploitation}
             setExploitation={setSelectedExploitation}
           />
