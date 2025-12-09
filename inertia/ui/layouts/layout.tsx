@@ -48,7 +48,7 @@ export default function Layout({
                 },
                 {
                   linkProps: { href: '/visualisation' },
-                  text: 'Visualisations',
+                  text: 'Visualisation',
                   isActive: pathname.startsWith('/visualisation'),
                 },
               ]
