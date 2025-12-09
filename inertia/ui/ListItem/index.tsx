@@ -11,9 +11,9 @@ export type ListItemProps = {
   subtitle?: string
   href?: string
   priority?: 'primary' | 'secondary'
-  tags?: TagsListProps['tags']
-  metas?: MetasListProps['metas']
-  actions?: MoreButtonProps['actions']
+  tags?: TagsListProps['tags'] | null
+  metas?: MetasListProps['metas'] | null
+  actions?: MoreButtonProps['actions'] | null
 }
 
 export default function ListItem({
