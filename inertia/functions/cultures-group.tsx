@@ -1,9 +1,13 @@
 import { has } from 'lodash-es'
 
-export type GroupeCulturauxItem = { label: string; code: string; picto: string; color: string }
-type GroupeCulturauxMap = { [key: string]: GroupeCulturauxItem }
+export type GroupeCulturauxItem = {
+  label: string
+  code: string
+  picto: string
+  color: string
+}
 
-export const GROUPES_CULTURAUX: GroupeCulturauxMap = {
+export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   BTH: {
     label: 'Blé tendre',
     code: 'BTH',
