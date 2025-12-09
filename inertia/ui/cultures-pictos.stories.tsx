@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { values } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { getContrastedPicto, GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
 import Input from '@codegouvfr/react-dsfr/Input'
 export default {
@@ -13,10 +13,10 @@ export const CulturesPictos = () => {
   const groupesArray = values(GROUPES_CULTURAUX)
   const [search, setSearch] = useState('')
 
-  const filteredGroupes = groupesArray.filter(
-    (groupe) =>
-      groupe.code.toLowerCase().includes(search.toLowerCase()) ||
-      groupe.label.toLowerCase().includes(search.toLowerCase())
+  const filteredCultures = groupesArray.filter(
+    (culture) =>
+      culture.code.toLowerCase().includes(search.toLowerCase()) ||
+      culture.label.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -33,33 +33,52 @@ export const CulturesPictos = () => {
       />
 
       <div className="flex flex-wrap gap-6">
-        {filteredGroupes.map((groupe) => (
+        {filteredCultures.map((culture) => (
           <div
-            key={groupe.code}
+            key={culture.code}
             className="flex flex-col items-center justify-between fr-p-3v rounded-sm box-border gap-3"
             style={{
               border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
             }}
           >
-            <div
-              className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
-              style={{ backgroundColor: '#FFFFFF' }}
-            >
-              <img src={groupe.picto} alt={groupe.label} className="h-full w-full object-contain" />
-            </div>
+            <div className="flex gap-2">
+              <div
+                className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
+                style={{ backgroundColor: '#FFFFFF' }}
+              >
+                <img
+                  src={culture.picto_light}
+                  alt={culture.label}
+                  className="h-full w-full object-contain"
+                />
+              </div>
 
+              <div
+                className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
+                style={{ backgroundColor: culture.color }}
+              >
+                <img
+                  src={getContrastedPicto(culture, culture.color)}
+                  alt={culture.label}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            </div>
             <div className="text-start fr-mb-2">
               <div>
-                <strong>libellé :</strong> <span>{groupe.label}</span>
+                <strong>libellé :</strong> <span>{culture.label}</span>
               </div>
               <div>
-                <strong>code :</strong> <span>{groupe.code}</span>
+                <strong>code :</strong> <span>{culture.code}</span>
               </div>
             </div>
 
             <div className="flex flex-col items-center w-full gap-1.25">
-              <div className="h-[30px] min-w-[300px] rounded" style={{ backgroundColor: groupe.color }} />
-              <span style={{ color: '#666666' }}>{groupe.color}</span>
+              <div
+                className="h-[30px] min-w-[300px] rounded"
+                style={{ backgroundColor: culture.color }}
+              />
+              <span style={{ color: '#666666' }}>{culture.color}</span>
             </div>
           </div>
         ))}
