@@ -129,7 +129,7 @@ export default function MapLayout({
 
         {/* Map Content */}
         <div
-          className="relative shadow-lg z-10"
+          className="relative z-10"
           style={{ height: `calc(100% - ${headerHeight}px)` }}
         >
           {map ? (
