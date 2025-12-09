@@ -1,9 +1,11 @@
 import Badge from '@codegouvfr/react-dsfr/Badge'
+import tinycolor from 'tinycolor2'
 
 export type CustomTagProps = {
   label?: string
   iconId?: string
   size?: 'md' | 'sm'
+  color?: string
 }
 
 function stringToColor(str: string) {
@@ -13,13 +15,14 @@ function stringToColor(str: string) {
   return `hsl(${hue}, 80%, 85%)`
 }
 
-export default function CustomTag({ label, iconId, size}: CustomTagProps) {
-  const backgroundColor = stringToColor(label || '')
+export default function CustomTag({ label, iconId, size, color }: CustomTagProps) {
+  const backgroundColor = color || stringToColor(label || '')
+  const textColor = color ? (tinycolor(color).isLight() ? '#000000' : '#ffffff') : '#3a3a3a'
 
   return (
     <Badge
       className={`height-fit w-fit flex gap-2 fr-mb-0`}
-      style={{ backgroundColor, color: "#3a3a3a" }}
+      style={{ backgroundColor, color: textColor }}
       small={size === 'sm'}
     >
       {iconId && <span className={`${iconId} fr-icon--sm`}></span>}
