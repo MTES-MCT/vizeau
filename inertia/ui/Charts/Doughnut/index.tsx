@@ -14,6 +14,12 @@ export type DoughnutProps = {
 }
 
 export default function Doughnut({ chartItems, legendSize = 'md', legendSide }: DoughnutProps) {
+  const legendSizeMap = {
+    sm: { box: 15, font: 12 },
+    md: { box: 25, font: 16 },
+    lg: { box: 35, font: 20 },
+  }
+
   const options = {
     plugins: {
       tooltip: {
@@ -25,10 +31,10 @@ export default function Doughnut({ chartItems, legendSize = 'md', legendSide }: 
         align: 'center' as const,
         fullSize: true,
         labels: {
-          boxWidth: legendSize === 'sm' ? 15 : legendSize === 'lg' ? 35 : 25,
-          boxHeight: legendSize === 'sm' ? 15 : legendSize === 'lg' ? 35 : 25,
+          boxWidth: legendSizeMap[legendSize].box,
+          boxHeight: legendSizeMap[legendSize].box,
           font: {
-            size: legendSize === 'sm' ? 12 : legendSize === 'lg' ? 20 : 16,
+            size: legendSizeMap[legendSize].font,
           },
         },
       },
@@ -49,5 +55,5 @@ export default function Doughnut({ chartItems, legendSize = 'md', legendSide }: 
     ],
   }
 
-  return <ReactChartDoughnut data={data} options={options} width={'100%'} />
+  return <ReactChartDoughnut data={data} options={options} />
 }
