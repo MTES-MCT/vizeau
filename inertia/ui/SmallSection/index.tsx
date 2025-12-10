@@ -28,7 +28,7 @@ export default function SmallSection({
     <section
       style={{
         padding: hasBorder ? 10 : undefined,
-        border: `1px solid ${hasBorder ? fr.colors.decisions.border.default.grey.default : 'transparent'} `,
+        border: hasBorder ? `1px solid ${fr.colors.decisions.border.default.grey.default}` : undefined,
       }}
     >
       <div className="flex items-center justify-between">
