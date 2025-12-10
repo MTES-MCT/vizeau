@@ -28,7 +28,9 @@ export default function SmallSection({
     <section
       style={{
         padding: hasBorder ? 10 : undefined,
-        border: hasBorder ? `1px solid ${fr.colors.decisions.border.default.grey.default}` : undefined,
+        border: hasBorder
+          ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
+          : undefined,
       }}
     >
       <div className="flex items-center justify-between">
@@ -48,7 +50,7 @@ export default function SmallSection({
       </div>
 
       <div
-        className={`fr-p-${priority==="secondary" ? 0 : 1}w fr-mt-1w`}
+        className={`fr-p-${priority === 'secondary' ? 0 : 1}w fr-mt-1w`}
         style={{
           backgroundColor:
             priority === 'primary'

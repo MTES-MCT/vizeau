@@ -27,7 +27,8 @@ const meta = {
     },
     priority: {
       control: { type: 'radio', options: ['primary', 'secondary'] },
-      description: "Priorité visuelle de la section. 'primary' pour une mise en avant, 'secondary' pour un style plus discret.",
+      description:
+        "Priorité visuelle de la section. 'primary' pour une mise en avant, 'secondary' pour un style plus discret.",
       table: {
         type: { summary: 'string' },
         defaultValue: { summary: 'primary' },
@@ -84,7 +85,7 @@ export const Défaut = {}
 
 export const AvecBordure = {
   args: {
-    hasBorder: true
+    hasBorder: true,
   },
 }
 
