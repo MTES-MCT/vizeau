@@ -22,7 +22,9 @@ export default function VisualisationPage({
   queryString,
 }: InferPageProps<VisualisationController, 'index'>) {
   const filteredExploitation = exploitations
-  const [selectedExploitation, setSelectedExploitation] = useState<ExploitationJson | undefined>(undefined)
+  const [selectedExploitation, setSelectedExploitation] = useState<ExploitationJson | undefined>(
+    undefined
+  )
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>

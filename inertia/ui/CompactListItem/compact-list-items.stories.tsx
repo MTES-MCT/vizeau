@@ -113,7 +113,8 @@ export const SansTags = {
 
 export const AvecLongLabel = {
   args: {
-    label: 'This is a very long label to test how the CompactListItem component handles overflow and text wrapping in its layout',
+    label:
+      'This is a very long label to test how the CompactListItem component handles overflow and text wrapping in its layout',
   },
 }
 

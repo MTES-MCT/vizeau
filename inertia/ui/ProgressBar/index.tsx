@@ -15,7 +15,7 @@ export default function ProgressBar({
   unit,
   size = 'md',
 }: ProgressBarProps) {
-  const BORDER_RADIUS = 5;
+  const BORDER_RADIUS = 5
   const percent = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0
   const color = progressColor || fr.colors.decisions.background.actionHigh.blueFrance.default
 
