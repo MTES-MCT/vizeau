@@ -94,6 +94,12 @@ export const Secondaire = {
   },
 }
 
+export const SansIcône = {
+  args: {
+    iconId: undefined,
+  },
+}
+
 export const SansAction = {
   args: {
     title: 'Section sans action',
