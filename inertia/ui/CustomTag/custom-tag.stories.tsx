@@ -24,6 +24,12 @@ export default meta
 
 export const Défaut = {}
 
+export const AvecCouleurPersonnalisée = {
+  args: {
+    color: '#FFD700',
+  },
+}
+
 export const SansIcône = {
   args: {
     iconId: undefined,
