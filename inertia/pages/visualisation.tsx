@@ -8,6 +8,7 @@ import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 import VisualisationController from '#controllers/visualisation_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import { ExploitationJson } from '../../types/models'
+import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -45,6 +46,7 @@ export default function VisualisationPage({
             setExploitation={setSelectedExploitation}
           />
         }
+        rightContent={<VisualisationRightSide />}
       />
     </Layout>
   )
