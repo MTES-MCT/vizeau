@@ -66,7 +66,7 @@ const meta = {
   },
   args: {
     title: 'Titre de la petite section',
-    icondId: 'fr-icon-information-line',
+    iconId: 'fr-icon-information-line',
     hasBorder: false,
     priority: 'primary',
     actionIcon: 'fr-icon-add-circle-line',
