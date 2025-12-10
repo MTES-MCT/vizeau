@@ -1,4 +1,5 @@
 import { has } from 'lodash-es'
+import tinycolor from 'tinycolor2'
 
 export type GroupeCulturauxItem = {
   label: string
@@ -190,17 +191,8 @@ export function getContrastedPicto(
   culture: { picto_light: string; picto_dark: string },
   background: string
 ): string {
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = 1
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return culture.picto_light
+  const color = tinycolor(background)
+  const isLight = color.isLight()
 
-  ctx.fillStyle = background
-  ctx.fillRect(0, 0, 1, 1)
-  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data
-
-  // Calcule la luminosité relative (formule WCAG)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-
-  return luminance > 0.5 ? culture.picto_light : culture.picto_dark
+  return isLight ? culture.picto_light : culture.picto_dark
 }
