@@ -5,6 +5,9 @@ import Button from '@codegouvfr/react-dsfr/Button'
 
 export type SmallSectionProps = {
   title: string
+  iconId?: string
+  priority?: 'primary' | 'secondary'
+  hasBorder?: boolean
   actionIcon?: string
   actionLabel?: string
   handleAction?: MouseEventHandler<HTMLButtonElement>
@@ -13,15 +16,26 @@ export type SmallSectionProps = {
 
 export default function SmallSection({
   title,
+  iconId,
+  priority = 'primary',
+  hasBorder,
   actionIcon,
   handleAction,
   actionLabel,
   children,
 }: SmallSectionProps) {
   return (
-    <section>
+    <section
+      style={{
+        padding: hasBorder ? 10 : undefined,
+        border: `1px solid ${hasBorder ? fr.colors.decisions.border.default.grey.default : 'transparent'} `,
+      }}
+    >
       <div className="flex items-center justify-between">
-        <h6 className="fr-text--sm bold fr-mb-0">{title}</h6>
+        <h6 className="fr-text--sm bold fr-mb-0 flex items-center gap-1">
+          {iconId && <i className={`${iconId} fr-icon--sm`} aria-hidden="true" />} {title}
+        </h6>
+
         {handleAction && actionIcon && (
           <Button
             iconId={actionIcon as any}
@@ -34,9 +48,12 @@ export default function SmallSection({
       </div>
 
       <div
-        className="fr-p-1w fr-mt-1w"
+        className={`fr-p-${priority==="secondary" ? 0 : 1}w fr-mt-1w`}
         style={{
-          backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
+          backgroundColor:
+            priority === 'primary'
+              ? fr.colors.decisions.background.alt.blueFrance.default
+              : fr.colors.decisions.background.default.grey.default,
         }}
       >
         {children}
