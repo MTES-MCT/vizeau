@@ -1,0 +1,52 @@
+import { BaseSchema } from '@adonisjs/lucid/schema'
+import Parcelle from '#models/parcelle'
+import Exploitation from '#models/exploitation'
+
+export default class extends BaseSchema {
+  protected tableName = Parcelle.table
+
+  //TODO : reste à faire le service
+
+  async up() {
+    this.schema.createTable(this.tableName, (table) => {
+      table.uuid('id').primary().notNullable()
+      // Stable unique identifier for the parcelle through years
+      table.uuid('parcelle_physique_id').notNullable()
+
+      table
+        .uuid('exploitation_id')
+        .references('id')
+        .inTable(Exploitation.table)
+        .onDelete('SET NULL')
+
+      table.integer('year', 4).notNullable()
+      // id_parcel from RPG. Will be used to link with RPG data
+      table.string('rpg_id', 10)
+
+      // unique parcelle for a given year. Will also optimize queries
+      table.unique(['parcelle_physique_id', 'year'])
+
+      // surface in hectares, surf_parc in RPG
+      table.decimal('surface', 8, 2).nullable()
+      table
+        .string('code_culture', 3)
+        .references('code')
+        .inTable('cultures')
+        .onDelete('SET NULL')
+        .nullable()
+      table
+        .integer('code_group', 2)
+        .references('code')
+        .inTable('culture_groups')
+        .onDelete('SET NULL')
+        .nullable()
+
+      table.timestamp('created_at')
+      table.timestamp('updated_at')
+    })
+  }
+
+  async down() {
+    this.schema.dropTable(this.tableName)
+  }
+}
