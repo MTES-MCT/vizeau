@@ -9,9 +9,10 @@ const meta = {
     iconId: { control: 'text' },
     size: {
       control: { type: 'select' },
-      options: ['sm', 'xs'],
+      options: ['sm', 'md'],
       defaultValue: 'sm',
     },
+    color: { control: 'color' },
   },
   args: {
     label: 'Exemple de tag',
@@ -36,9 +37,9 @@ export const SansIcône = {
   },
 }
 
-export const TailleXS = {
+export const TailleMD = {
   args: {
-    size: 'xs',
+    size: 'md',
   },
 }
 
