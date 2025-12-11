@@ -11,7 +11,6 @@ import type { Decorator } from '@storybook/react'
 startReactDsfr({ defaultColorScheme: 'system' })
 
 const preview: Preview = {
-  decorators: [withInertia],
   parameters: {
     controls: {
       matchers: {
@@ -45,6 +44,7 @@ const preview: Preview = {
   },
 
   decorators: [
+    withInertia,
     ((Story, context) => {
       const theme = (context.args.theme as string) || 'light'
       const backgroundColor = theme === 'dark' ? '#1e1e1e' : '#ffffff'

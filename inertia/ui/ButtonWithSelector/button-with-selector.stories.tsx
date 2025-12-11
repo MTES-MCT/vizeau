@@ -7,7 +7,8 @@ const meta = {
   title: 'UI/ButtonWithSelector',
   component: ButtonWithSelector,
   tags: ['autodocs'],
-  decorators: [(Story: React.ComponentType) => (
+  decorators: [
+    (Story: React.ComponentType) => (
       <div style={{ height: '200px' }}>
         <Story />
       </div>
@@ -37,7 +38,7 @@ const meta = {
     handleClick: {
       control: false,
       description:
-        "Callback appelé lors du clic sur le bouton.\n\nModèle obligatoire :\n() => void",
+        'Callback appelé lors du clic sur le bouton.\n\nModèle obligatoire :\n() => void',
       type: { name: 'function', required: true },
       table: {
         type: { summary: '() => void' },
@@ -104,45 +105,49 @@ const meta = {
       )
     },
     priority: 'secondary',
-  } as ButtonWithSelectorProps<string>
+  } as ButtonWithSelectorProps<string>,
 }
 
 export default meta
 
 export const Défaut = () => {
   const [options, setOptions] = useState<OptionType<string>[]>([
-      {
-        value: 'option1',
-        label: 'Option 1',
-        isSelected: false,
-        actions: [
-          {
-            value: 'action1',
-            label: 'Action A',
-            onClick: (value: string) => alert(`Action effectuée : Action A pour ${value}`)
-          },
-          {
-            value: 'action2',
-            label: 'Action B',
-            onClick: (value: string) => alert(`Action effectuée : Action B pour ${value}`)
-          },
-        ]
-      },
-      { value: 'option2', label: 'Option 2', isSelected: true },
-      { value: 'option3', label: 'Option 3', isSelected: false },
-    ])
+    {
+      value: 'option1',
+      label: 'Option 1',
+      isSelected: false,
+      actions: [
+        {
+          value: 'action1',
+          label: 'Action A',
+          onClick: (value: string) => alert(`Action effectuée : Action A pour ${value}`),
+        },
+        {
+          value: 'action2',
+          label: 'Action B',
+          onClick: (value: string) => alert(`Action effectuée : Action B pour ${value}`),
+        },
+      ],
+    },
+    { value: 'option2', label: 'Option 2', isSelected: true },
+    { value: 'option3', label: 'Option 3', isSelected: false },
+  ])
 
-    const handleOptionChange = (updatedOption: OptionType<string>) => {
-      setOptions((prev) =>
-        prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
-      )
-      console.log('Option mise à jour:', updatedOption)
-    }
+  const handleOptionChange = (updatedOption: OptionType<string>) => {
+    setOptions((prev) =>
+      prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
+    )
+    console.log('Option mise à jour:', updatedOption)
+  }
 
   return (
-  <div>
-    <ButtonWithSelector label='Cliquez sur moi !' options={options} onOptionChange={handleOptionChange} />
-     <div
+    <div>
+      <ButtonWithSelector
+        label="Cliquez sur moi !"
+        options={options}
+        onOptionChange={handleOptionChange}
+      />
+      <div
         className="fr-p-4v fr-mt-2v"
         style={{
           border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,

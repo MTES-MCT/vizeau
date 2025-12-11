@@ -128,10 +128,7 @@ export default function MapLayout({
         </div>
 
         {/* Map Content */}
-        <div
-          className="relative z-10"
-          style={{ height: `calc(100% - ${headerHeight}px)` }}
-        >
+        <div className="relative z-10" style={{ height: `calc(100% - ${headerHeight}px)` }}>
           {map ? (
             map
           ) : (

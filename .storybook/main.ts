@@ -20,6 +20,14 @@ const config: StorybookConfig = {
       ...viteConfig.resolve.alias,
       '@inertiajs/react': new URL('./inertia-mock.tsx', import.meta.url).pathname,
     }
+    // Configuration pour éviter les erreurs de modules dynamiques
+    viteConfig.optimizeDeps = viteConfig.optimizeDeps || {}
+    viteConfig.optimizeDeps.include = [
+      ...(viteConfig.optimizeDeps.include || []),
+      '@codegouvfr/react-dsfr',
+      'lodash-es',
+    ]
+
     return viteConfig
   },
 }
