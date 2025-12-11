@@ -5,7 +5,7 @@ export type ProgressBarProps = {
   total: number
   unit?: string
   progressColor?: string
-  size?: 'md' | 'sm'
+  size?: 'md' | 'sm' | 'lg'
 }
 
 export default function ProgressBar({
@@ -20,11 +20,11 @@ export default function ProgressBar({
   const color = progressColor || fr.colors.decisions.background.actionHigh.blueFrance.default
 
   return (
-    <div className="w-full flex gap-3 items-center">
+    <div className="min-w-sm flex gap-3 items-center">
       <div
         className="flex-1 rounded-md overflow-hidden"
         style={{
-          height: size === 'md' ? 10 : 5,
+          height: size === 'sm' ? 5 : size === 'lg' ? 8 : 7,
           background: `${fr.colors.decisions.background.default.grey.hover}`,
           borderRadius: BORDER_RADIUS,
         }}

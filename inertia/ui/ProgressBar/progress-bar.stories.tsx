@@ -11,7 +11,7 @@ const meta = {
     unit: { control: 'text', description: "L'unité de mesure (optionnel)" },
     size: {
       control: 'select',
-      options: ['md', 'sm'],
+      options: ['md', 'sm', 'lg'],
       description: 'La taille de la barre de progression',
     },
     progressColor: {
