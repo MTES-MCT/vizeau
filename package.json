@@ -64,7 +64,6 @@
     "playwright": "^1.56.1",
     "prettier": "^3.5.3",
     "storybook": "^10.0.0",
-    "ts-node-maintained": "^10.9.5",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vitest": "^4.0.4"
@@ -94,7 +93,8 @@
     "react-dom": "^19.2.0",
     "reflect-metadata": "^0.2.2",
     "tailwindcss": "^4.1.16",
-    "tinycolor2": "^1.6.0"
+    "tinycolor2": "^1.6.0",
+    "ts-node-maintained": "^10.9.5"
   },
   "hotHook": {
     "boundaries": [
