@@ -13,6 +13,27 @@ const meta = {
         defaultValue: { summary: 'Titre de la petite section' },
       },
     },
+    iconId: {
+      control: 'text',
+      description: 'Nom de l’icône FR à afficher à gauche du titre (ex: "map-pin-2-line").',
+    },
+    hasBorder: {
+      control: 'boolean',
+      description: 'Indique si la section doit afficher une bordure autour de son contenu.',
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: false },
+      },
+    },
+    priority: {
+      control: { type: 'radio', options: ['primary', 'secondary'] },
+      description:
+        "Priorité visuelle de la section. 'primary' pour une mise en avant, 'secondary' pour un style plus discret.",
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: 'primary' },
+      },
+    },
     actionIcon: {
       control: 'text',
       description: "Nom de l'icône à afficher dans le bouton d'action (ex: 'add-circle-line').",
@@ -46,6 +67,9 @@ const meta = {
   },
   args: {
     title: 'Titre de la petite section',
+    iconId: 'fr-icon-information-line',
+    hasBorder: false,
+    priority: 'primary',
     actionIcon: 'fr-icon-add-circle-line',
     actionLabel: 'Ajouter',
     handleAction: () => {
@@ -58,6 +82,24 @@ const meta = {
 export default meta
 
 export const Défaut = {}
+
+export const AvecBordure = {
+  args: {
+    hasBorder: true,
+  },
+}
+
+export const Secondaire = {
+  args: {
+    priority: 'secondary',
+  },
+}
+
+export const SansIcône = {
+  args: {
+    iconId: undefined,
+  },
+}
 
 export const SansAction = {
   args: {
