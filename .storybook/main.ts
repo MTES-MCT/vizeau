@@ -13,6 +13,7 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+  staticDirs: ['../public'],
   viteFinal: async (viteConfig) => {
     // Alias pour mocker @inertiajs/react dans Storybook
     viteConfig.resolve = viteConfig.resolve || {}
