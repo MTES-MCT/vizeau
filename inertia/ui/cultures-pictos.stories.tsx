@@ -15,7 +15,7 @@ export const CulturesPictos = () => {
 
   const filteredCultures = groupesArray.filter(
     (culture) =>
-      culture.code.toLowerCase().includes(search.toLowerCase()) ||
+      culture.code_group.toString().toLowerCase().includes(search.toLowerCase()) ||
       culture.label.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -35,7 +35,7 @@ export const CulturesPictos = () => {
       <div className="flex flex-wrap gap-6">
         {filteredCultures.map((culture) => (
           <div
-            key={culture.code}
+            key={culture.code_group}
             className="flex flex-col items-center justify-between fr-p-3v rounded-sm box-border gap-3"
             style={{
               border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
@@ -69,7 +69,7 @@ export const CulturesPictos = () => {
                 <strong>libellé :</strong> <span>{culture.label}</span>
               </div>
               <div>
-                <strong>code :</strong> <span>{culture.code}</span>
+                <strong>code :</strong> <span>{culture.code_group}</span>
               </div>
             </div>
 
