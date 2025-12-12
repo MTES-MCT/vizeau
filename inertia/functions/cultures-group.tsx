@@ -54,7 +54,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   },
   7: {
     label: 'Autre oléagineux',
-    code_group: 'AUL',
+    code_group: 7,
     picto_light: '/public/cultures-pictos/light/groupe-7.png',
     picto_dark: '/public/cultures-pictos/dark/groupe-7.png',
     color: '#FDC103',
@@ -103,7 +103,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   },
   14: {
     label: 'Riz',
-    code_group: 'RIZ',
+    code_group: 14,
     picto_light: '/public/cultures-pictos/light/groupe-14.png',
     picto_dark: '/public/cultures-pictos/dark/groupe-14.png',
     color: '#8FB5FE',
