@@ -3,186 +3,214 @@ import tinycolor from 'tinycolor2'
 
 export type GroupeCulturauxItem = {
   label: string
-  code: string
+  code_group: number | string
   picto_light: string
   picto_dark: string
   color: string
 }
 
 export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
-  BTH: {
+  1: {
     label: 'Blé tendre',
-    code: 'BTH',
-    picto_light: '/public/cultures-pictos/light/BTH.png',
-    picto_dark: '/public/cultures-pictos/dark/BTH.png',
+    code_group: 1,
+    picto_light: '/public/cultures-pictos/light/groupe-1.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-1.png',
     color: '#FDFF8E',
   },
-  MIG: {
+  2: {
     label: 'Maïs grain et ensilage',
-    code: 'MIG',
-    picto_light: '/public/cultures-pictos/light/MIG.png',
-    picto_dark: '/public/cultures-pictos/dark/MIG.png',
+    code_group: 2,
+    picto_light: '/public/cultures-pictos/light/groupe-2.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-2.png',
     color: '#00FC07',
   },
-  ORG: {
+  3: {
     label: 'Orge',
-    code: 'ORG',
-    picto_light: '/public/cultures-pictos/light/ORG.png',
-    picto_dark: '/public/cultures-pictos/dark/ORG.png',
+    code_group: 3,
+    picto_light: '/public/cultures-pictos/light/groupe-3.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-3.png',
     color: '#F0FF62',
   },
-  AUTC: {
+  4: {
     label: 'Autres céréales',
-    code: 'AUTC',
-    picto_light: '/public/cultures-pictos/light/AUTC.png',
-    picto_dark: '/public/cultures-pictos/dark/AUTC.png',
+    code_group: 4,
+    picto_light: '/public/cultures-pictos/light/groupe-4.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-4.png',
     color: '#DAEB02',
   },
-  COL: {
+  5: {
     label: 'Colza',
-    code: 'COL',
-    picto_light: '/public/cultures-pictos/light/COL.png',
-    picto_dark: '/public/cultures-pictos/dark/COL.png',
+    code_group: 5,
+    picto_light: '/public/cultures-pictos/light/groupe-5.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-5.png',
     color: '#FFECB2',
   },
-  TOU: {
+  6: {
     label: 'Tournesol',
-    code: 'TOU',
-    picto_light: '/public/cultures-pictos/light/TOU.png',
-    picto_dark: '/public/cultures-pictos/dark/TOU.png',
+    code_group: 6,
+    picto_light: '/public/cultures-pictos/light/groupe-6.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-6.png',
     color: '#FFFF00',
   },
-  AUL: {
+  7: {
     label: 'Autre oléagineux',
-    code: 'AUL',
-    picto_light: '/public/cultures-pictos/light/AUL.png',
-    picto_dark: '/public/cultures-pictos/dark/AUL.png',
+    code_group: 'AUL',
+    picto_light: '/public/cultures-pictos/light/groupe-7.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-7.png',
     color: '#FDC103',
   },
-  PRO: {
+  8: {
     label: 'Protéagineux',
-    code: 'PRO',
-    picto_light: '/public/cultures-pictos/light/PRO.png',
-    picto_dark: '/public/cultures-pictos/dark/PRO.png',
+    code_group: 8,
+    picto_light: '/public/cultures-pictos/light/groupe-8.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-8.png',
     color: '#F0B401',
   },
-  PLA: {
+  9: {
     label: 'Plantes à fibres',
-    code: 'PLA',
-    picto_light: '/public/cultures-pictos/light/PLA.png',
-    picto_dark: '/public/cultures-pictos/dark/PLA.png',
+    code_group: 9,
+    picto_light: '/public/cultures-pictos/light/groupe-9.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-9.png',
     color: '#BB9200',
   },
-  SEM: {
+  10: {
     label: 'Semences',
-    code: 'SEM',
-    picto_light: '/public/cultures-pictos/light/SEM.png',
-    picto_dark: '/public/cultures-pictos/dark/SEM.png',
+    code_group: 10,
+    picto_light: '/public/cultures-pictos/light/groupe-10.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-10.png',
     color: '#624700',
   },
-  RIZ: {
+  11: {
+    label: 'Gel',
+    code_group: 11,
+    picto_light: '/public/cultures-pictos/light/groupe-11.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-11.png',
+    color: '#F0F0F0',
+  },
+  12: {
+    label: 'Gel industriel',
+    code_group: 12,
+    picto_light: '/public/cultures-pictos/light/groupe-12.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-12.png',
+    color: '#B0B0B0',
+  },
+  13: {
+    label: 'Autres gels',
+    code_group: 13,
+    picto_light: '/public/cultures-pictos/light/groupe-13.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-13.png',
+    color: '#D0D0D0',
+  },
+  14: {
     label: 'Riz',
-    code: 'RIZ',
-    picto_light: '/public/cultures-pictos/light/RIZ.png',
-    picto_dark: '/public/cultures-pictos/dark/RIZ.png',
+    code_group: 'RIZ',
+    picto_light: '/public/cultures-pictos/light/groupe-14.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-14.png',
     color: '#8FB5FE',
   },
-  LEG: {
+  15: {
     label: 'Légumineux à grains',
-    code: 'LEG',
-    picto_light: '/public/cultures-pictos/light/LEG.png',
-    picto_dark: '/public/cultures-pictos/dark/LEG.png',
+    code_group: 15,
+    picto_light: '/public/cultures-pictos/light/groupe-15.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-15.png',
     color: '#FFA07D',
   },
-  FOU: {
+  16: {
     label: 'Fourrage',
-    code: 'FOU',
-    picto_light: '/public/cultures-pictos/light/FOU.png',
-    picto_dark: '/public/cultures-pictos/dark/FOU.png',
+    code_group: 16,
+    picto_light: '/public/cultures-pictos/light/groupe-16.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-16.png',
     color: '#A0C75D',
   },
-  PRA: {
+  17: {
+    label: 'Estives et landes',
+    code_group: 17,
+    picto_light: '/public/cultures-pictos/light/groupe-17.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-17.png',
+    color: '#B5E56D',
+  },
+  18: {
     label: 'Prairies permanentes',
-    code: 'PRA',
-    picto_light: '/public/cultures-pictos/light/PRA.png',
-    picto_dark: '/public/cultures-pictos/dark/PRA.png',
+    code_group: 18,
+    picto_light: '/public/cultures-pictos/light/groupe-18.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-18.png',
     color: '#BFFF60',
   },
-  PRT: {
+  19: {
     label: 'Prairies temporaires',
-    code: 'PRT',
-    picto_light: '/public/cultures-pictos/light/PRT.png',
-    picto_dark: '/public/cultures-pictos/dark/PRT.png',
+    code_group: 19,
+    picto_light: '/public/cultures-pictos/light/groupe-19.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-19.png',
     color: '#E0FFB3',
   },
-  VER: {
+  20: {
     label: 'Vergers',
-    code: 'VER',
-    picto_light: '/public/cultures-pictos/light/VER.png',
-    picto_dark: '/public/cultures-pictos/dark/VER.png',
+    code_group: 20,
+    picto_light: '/public/cultures-pictos/light/groupe-20.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-20.png',
     color: '#FE0100',
   },
-  VIN: {
+  21: {
     label: 'Vignes',
-    code: 'VIN',
-    picto_light: '/public/cultures-pictos/light/VIN.png',
-    picto_dark: '/public/cultures-pictos/dark/VIN.png',
+    code_group: 21,
+    picto_light: '/public/cultures-pictos/light/groupe-21.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-21.png',
     color: '#DF00E4',
   },
-  FRU: {
+  22: {
     label: 'Fruits à coque',
-    code: 'FRU',
-    picto_light: '/public/cultures-pictos/light/FRU.png',
-    picto_dark: '/public/cultures-pictos/dark/FRU.png',
+    code_group: 22,
+    picto_light: '/public/cultures-pictos/light/groupe-22.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-22.png',
     color: '#008001',
   },
-  OLI: {
+  23: {
     label: 'Oliviers',
-    code: 'OLI',
-    picto_light: '/public/cultures-pictos/light/OLI.png',
-    picto_dark: '/public/cultures-pictos/dark/OLI.png',
+    code_group: 23,
+    picto_light: '/public/cultures-pictos/light/groupe-23.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-23.png',
     color: '#9FA600',
   },
-  CUL: {
+  24: {
     label: 'Autres cultures industrielles',
-    code: 'CUL',
-    picto_light: '/public/cultures-pictos/light/CUL.png',
-    picto_dark: '/public/cultures-pictos/dark/CUL.png',
+    code_group: 24,
+    picto_light: '/public/cultures-pictos/light/groupe-24.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-24.png',
     color: '#008081',
   },
-  LEGF: {
+  25: {
     label: 'Légumes ou fleurs',
-    code: 'LEGF',
-    picto_light: '/public/cultures-pictos/light/LEGF.png',
-    picto_dark: '/public/cultures-pictos/dark/LEGF.png',
+    code_group: 25,
+    picto_light: '/public/cultures-pictos/light/groupe-25.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-25.png',
     color: '#FEA1CE',
   },
-  CAS: {
+  26: {
     label: 'Canne à sucre',
-    code: 'CAS',
-    picto_light: '/public/cultures-pictos/light/CAS.png',
-    picto_dark: '/public/cultures-pictos/dark/CAS.png',
+    code_group: 26,
+    picto_light: '/public/cultures-pictos/light/groupe-26.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-26.png',
     color: '#0000FF',
   },
-  ARB: {
+  27: {
     label: 'Arboriculture',
-    code: 'ARB',
-    picto_light: '/public/cultures-pictos/light/ARB.png',
-    picto_dark: '/public/cultures-pictos/dark/ARB.png',
+    code_group: 27,
+    picto_light: '/public/cultures-pictos/light/groupe-27.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-27.png',
     color: '#02B558',
   },
-  DIV: {
+  28: {
     label: 'Divers - non disponible',
-    code: 'DIV',
-    picto_light: '/public/cultures-pictos/light/DIV.png',
-    picto_dark: '/public/cultures-pictos/dark/DIV.png',
+    code_group: 28,
+    picto_light: '/public/cultures-pictos/light/groupe-28.png',
+    picto_dark: '/public/cultures-pictos/dark/groupe-28.png',
     color: '#81017F',
   },
 }
 
-export function getCulturesGroup({ code }: { code: string }): GroupeCulturauxItem {
+export function getCulturesGroup(code: string | number) {
   if (!has(GROUPES_CULTURAUX, code)) {
-    return GROUPES_CULTURAUX.DIV
+    return GROUPES_CULTURAUX[18]
   }
   return GROUPES_CULTURAUX[code]
 }
