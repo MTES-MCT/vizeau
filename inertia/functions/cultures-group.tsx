@@ -1,6 +1,8 @@
 import { has } from 'lodash-es'
 import tinycolor from 'tinycolor2'
 
+import { useIsLightTheme } from '~/hooks/use-is-light'
+
 export type GroupeCulturauxItem = {
   label: string
   code_group: number | string
@@ -217,10 +219,9 @@ export function getCulturesGroup(code: string | number) {
 
 export function getContrastedPicto(
   culture: { picto_light: string; picto_dark: string },
-  background: string
+  background?: string
 ): string {
-  const color = tinycolor(background)
-  const isLight = color.isLight()
+  const isLight = background ? tinycolor(background).isLight() : useIsLightTheme()
 
   return isLight ? culture.picto_light : culture.picto_dark
 }
