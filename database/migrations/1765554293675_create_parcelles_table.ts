@@ -8,8 +8,6 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().notNullable()
-      // Stable unique identifier for the parcelle through years
-      table.uuid('parcelle_physique_id').notNullable()
 
       table
         .uuid('exploitation_id')
@@ -19,10 +17,7 @@ export default class extends BaseSchema {
 
       table.integer('year', 4).notNullable()
       // id_parcel from RPG. Will be used to link with RPG data
-      table.string('rpg_id', 10)
-
-      // unique parcelle for a given year. Will also optimize queries
-      table.unique(['parcelle_physique_id', 'year'])
+      table.string('rpg_id', 10).index()
 
       // surface in hectares, surf_parc in RPG
       table.decimal('surface', 8, 2).nullable()

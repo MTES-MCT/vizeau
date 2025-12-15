@@ -14,17 +14,10 @@ export default class Parcelle extends BaseModel {
   @column({ isPrimary: true })
   declare id: string
 
-  // Stable unique identifier for the parcelle through years
-  @column()
-  declare parcellePhysiqueId: string
-
   // Auto-generate UUID before DB insertion
   @beforeCreate()
   static assignUuid(parcelle: Parcelle) {
     parcelle.id = randomUUID()
-    if (!parcelle.parcellePhysiqueId) {
-      parcelle.parcellePhysiqueId = randomUUID()
-    }
   }
 
   @column()
