@@ -43,15 +43,15 @@ export default class Parcelle extends BaseModel {
   declare surface: number | null
 
   @column()
-  declare codeCulture: string | null
+  declare cultureCode: string | null
 
-  @hasOne(() => Culture, { localKey: 'codeCulture', foreignKey: 'code' })
+  @hasOne(() => Culture, { localKey: 'culture_code', foreignKey: 'code' })
   declare culture: HasOne<typeof Culture>
 
   @column()
-  declare codeGroup: string | null
+  declare groupCode: number | null
 
-  @hasOne(() => CultureGroup, { localKey: 'codeGroup', foreignKey: 'code' })
+  @hasOne(() => CultureGroup, { localKey: 'group_code', foreignKey: 'code' })
   declare cultureGroup: HasOne<typeof CultureGroup>
 
   @column.dateTime({ autoCreate: true })

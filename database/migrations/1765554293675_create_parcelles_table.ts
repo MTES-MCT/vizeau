@@ -27,13 +27,13 @@ export default class extends BaseSchema {
       // surface in hectares, surf_parc in RPG
       table.decimal('surface', 8, 2).nullable()
       table
-        .string('code_culture', 3)
+        .string('culture_code', 3)
         .references('code')
         .inTable('cultures')
         .onDelete('SET NULL')
         .nullable()
       table
-        .integer('code_group', 2)
+        .integer('group_code', 2)
         .references('code')
         .inTable('culture_groups')
         .onDelete('SET NULL')
