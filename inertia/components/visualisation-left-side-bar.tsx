@@ -34,8 +34,8 @@ export default function VisualisationLeftSideBar({
             className="fr-p-1w fr-m-1w"
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
           >
-            <div className="flex justify-between items-center">
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+            <div className="flex justify-between items-center fr-mb-3w">
+              <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
                 {selectedExploitation?.name}
               </div>
               <div>
