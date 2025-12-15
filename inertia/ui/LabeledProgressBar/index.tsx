@@ -8,7 +8,7 @@ export type LabeledProgressBarProps = {
   progressBarValues: {
     value: ProgressBarProps['value']
     total: ProgressBarProps['total']
-    unit: ProgressBarProps['unit']
+    unit?: ProgressBarProps['unit']
     progressColor?: ProgressBarProps['progressColor']
   }
 }
