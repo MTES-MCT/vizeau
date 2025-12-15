@@ -5,8 +5,6 @@ import Exploitation from '#models/exploitation'
 export default class extends BaseSchema {
   protected tableName = Parcelle.table
 
-  //TODO : reste à faire le service
-
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().notNullable()
