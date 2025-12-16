@@ -21,7 +21,7 @@ export default class VisualisationController {
       },
       user,
       queryString: request.qs(),
-      pmtilesUrl: env.get('PMTILES_URL'),
+      pmtilesUrl: env.get('PMTILES_URL', ''),
     })
   }
 }

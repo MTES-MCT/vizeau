@@ -15,6 +15,7 @@ const ExploitationsController = () => import('#controllers/exploitations_control
 const SessionController = () => import('#controllers/session_controller')
 const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
+const ParcellesController = () => import('#controllers/parcelles_controller')
 
 router.get('/', ({ response }) => response.redirect('login'))
 
@@ -28,6 +29,11 @@ router
 
     router.get('accueil', [AccueilController, 'index'])
     router.get('visualisation', [VisualisationController, 'index'])
+    router.get('parcelles/:rpgId', [ParcellesController, 'show'])
+    router.post('parcelles', [ParcellesController, 'store'])
+    router.patch('parcelles/:id/associate', [ParcellesController, 'associateToExploitation'])
+    router.patch('parcelles/:id/dissociate', [ParcellesController, 'dissociateFromExploitation'])
+
     router.get('exploitations', [ExploitationsController, 'index']).as('exploitations.index')
     router
       .get('exploitations/creation', [ExploitationsController, 'create'])

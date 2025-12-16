@@ -14,6 +14,10 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
+import { usePage } from '@inertiajs/react'
+import { InferPageProps } from '@adonisjs/inertia/types'
+import VisualisationController from '#controllers/visualisation_controller'
+import { setParcellesOutline, setParcellesOpacity } from '~/functions/map'
 
 export type GeoPoint = {
   type: 'Point'
@@ -37,23 +41,62 @@ export default function VisualisationMap({
   exploitations,
   exploitation,
   setExploitation,
-  pmtilesUrl,
+  onParcelleClick,
+  selectedParcelleIds = [],
+  resetSelectedParcelleIds,
 }: {
   exploitations: ExploitationJson[]
   exploitation?: ExploitationJson
   setExploitation?: (exploitation: ExploitationJson) => void
-  pmtilesUrl: string
+  onParcelleClick: (parcelleProperties: { [name: string]: any }) => void
+  selectedParcelleIds: string[]
+  resetSelectedParcelleIds: () => void
 }) {
+  const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibre.Map | null>(null)
   const markerRef = useRef<maplibre.Marker | null>(null)
-  const selectedParcelRef = useRef<string | null>(null)
   const parcelPopupRef = useRef<maplibre.Popup | null>(null)
   const currentStyleRef = useRef<string>('plan-ign')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
   const [millesime, setMillesime] = useState<string>('2024')
   const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
+  const handleParcelClick = (e: maplibre.MapLayerMouseEvent) => {
+    if (!mapRef.current) {
+      return
+    }
+
+    const feature = e.features?.[0]
+    const props = feature?.properties
+
+    // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
+    const codeGroup = props?.code_group ?? props?.CODE_GROUP
+    const surfParc = props?.surf_parc ?? props?.SURF_PARC
+
+    const popupContent = `
+          <div style="padding: 10px">
+            <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
+            <strong>Surface :</strong> ${surfParc}<br>
+          </div>
+      `
+
+    if (parcelPopupRef.current) {
+      parcelPopupRef.current.remove()
+    }
+
+    const popup = new maplibre.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(popupContent)
+      .addTo(mapRef.current)
+    parcelPopupRef.current = popup
+
+    if (onParcelleClick && feature?.properties) {
+      onParcelleClick(feature.properties)
+    }
+  }
+
+  // Map initialization
   useEffect(() => {
     if (!mapContainerRef.current) {
       return
@@ -70,63 +113,6 @@ export default function VisualisationMap({
     })
 
     mapRef.current = map
-
-    const handleParcelClick = (e: maplibre.MapLayerMouseEvent) => {
-      const feature = e.features?.[0]
-      const props = feature?.properties
-
-      // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
-      const idParcel = props?.id_parcel ?? props?.ID_PARCEL
-      const codeGroup = props?.code_group ?? props?.CODE_GROUP
-      const surfParc = props?.surf_parc ?? props?.SURF_PARC
-
-      if (idParcel) {
-        selectedParcelRef.current = idParcel
-
-        requestAnimationFrame(() => {
-          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
-            'case',
-            ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
-            1,
-            0.5,
-          ])
-
-          map.setPaintProperty('parcelles-outline', 'line-width', [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            15,
-            [
-              'case',
-              ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
-              2,
-              0.5,
-            ],
-            18,
-            [
-              'case',
-              ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
-              4,
-              1,
-            ],
-          ])
-        })
-      }
-
-      const popupContent = `
-          <div style="padding: 10px">
-            <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
-            <strong>Surface :</strong> ${surfParc}<br>
-          </div>
-      `
-
-      if (parcelPopupRef.current) {
-        parcelPopupRef.current.remove()
-      }
-
-      const popup = new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
-      parcelPopupRef.current = popup
-    }
 
     map.on('load', () => {
       if (!map.getSource('parcelles')) {
@@ -181,15 +167,21 @@ export default function VisualisationMap({
           markerRef.current = marker
         }
       })
-
-      map.on('click', 'parcelles-fill', handleParcelClick)
     })
 
     return () => {
-      map.off('click', 'parcelles-fill', handleParcelClick)
       map.remove()
     }
   }, [exploitations])
+
+  // Click event update handler
+  useEffect(() => {
+    mapRef.current?.on('click', 'parcelles-fill', handleParcelClick)
+
+    return () => {
+      mapRef.current?.off('click', 'parcelles-fill', handleParcelClick)
+    }
+  }, [onParcelleClick])
 
   // Mise à jour du style de la carte
   useEffect(() => {
@@ -221,38 +213,26 @@ export default function VisualisationMap({
             map.addLayer(layer)
           }
         })
-
-        // Restaurer la sélection de parcelle si elle existe
-        if (selectedParcelRef.current) {
-          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
-            'case',
-            ['==', ['get', 'id_parcel'], selectedParcelRef.current],
-            1,
-            0.5,
-          ])
-
-          map.setPaintProperty('parcelles-outline', 'line-width', [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            15,
-            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 2, 0.5],
-            18,
-            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 4, 1],
-          ])
-        }
       })
 
       currentStyleRef.current = style
     }
   }, [style])
 
+  // Selected parcelles display handler
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setParcellesOpacity(mapRef.current, selectedParcelleIds)
+      setParcellesOutline(mapRef.current, selectedParcelleIds)
+    })
+  }, [mapRef.current, selectedParcelleIds, style])
+
   // Mise à jour du millésime des parcelles
   useEffect(() => {
     const map = mapRef.current
 
     if (map && map.getSource('parcelles')) {
-      selectedParcelRef.current = null
+      resetSelectedParcelleIds()
 
       if (parcelPopupRef.current) {
         parcelPopupRef.current.remove()
