@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { getContrastedPicto, getCulturesGroup } from '~/functions/cultures-group'
 import { fr } from '@codegouvfr/react-dsfr'
+import { orderBy } from 'lodash-es'
 
 import DataVisualization from '@codegouvfr/react-dsfr/picto/DataVisualization'
 
@@ -45,7 +46,7 @@ export default function AnalysesSection({ parcelles = [] }: AnalysesSectionProps
             <Divider label="Répartition des cultures de l'exploitation" />
 
             <div className="flex flex-col gap-2">
-              {parcelles.map((parcelle) => {
+              {orderBy(parcelles, 'surf_parc', 'desc').map((parcelle) => {
                 const cultureGroup = getCulturesGroup(parcelle.code_group)
 
                 return (
