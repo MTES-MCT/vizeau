@@ -1,9 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr'
+import React from 'react'
 
 export type LabelInfoProps = {
   icon?: string | null
   label: string
-  info?: string
+  info?: string | React.ReactNode
   size?: 'sm' | 'md'
 }
 export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoProps) {
@@ -29,7 +30,7 @@ export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoP
 
       {info && (
         <p
-          className={`fr-text--${size} fr-ml-1w flex-1 break-words`}
+          className={`fr-text--${size} fr-ml-1w fr-mb-0 flex-1 break-words`}
           style={{
             color: fr.colors.decisions.text.mention.grey.default,
           }}

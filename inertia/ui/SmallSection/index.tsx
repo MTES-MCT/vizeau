@@ -27,6 +27,7 @@ export default function SmallSection({
   return (
     <section
       style={{
+        backgroundColor: fr.colors.decisions.background.default.grey.default,
         padding: hasBorder ? 10 : undefined,
         border: hasBorder
           ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
