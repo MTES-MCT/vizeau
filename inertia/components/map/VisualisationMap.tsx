@@ -69,6 +69,41 @@ export default function VisualisationMap({
 
     mapRef.current = map
 
+    const handleParcelClick = (e: maplibre.MapLayerMouseEvent) => {
+      const feature = e.features?.[0]
+      const props = feature?.properties
+
+      if (props?.id_parcel) {
+        selectedParcelRef.current = props.id_parcel
+
+        requestAnimationFrame(() => {
+          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
+            'case',
+            ['==', ['get', 'id_parcel'], props.id_parcel],
+            1,
+            0.5,
+          ])
+
+          map.setPaintProperty('parcelles-outline', 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 2, 0.5],
+            18,
+            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 4, 1],
+          ])
+        })
+      }
+
+      const popupContent = `
+          <strong>Parcelle cultu:</strong> ${getCulturesGroup(props?.code_group).label}<br>
+          <strong>Parcelle surface:</strong> ${props?.surf_parc}<br>
+      `
+
+      new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
+    }
+
     map.on('load', () => {
       if (!map.getSource('parcelles')) {
         map.addSource('parcelles', getParcellesSource({ pmtilesUrl }))
@@ -122,40 +157,12 @@ export default function VisualisationMap({
           markerRef.current = marker
         }
       })
-      map.on('click', 'parcelles-fill', (e) => {
-        const feature = e.features?.[0]
-        const props = feature?.properties
 
-        if (props?.id_parcel) {
-          selectedParcelRef.current = props.id_parcel
-          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
-            'case',
-            ['==', ['get', 'id_parcel'], props.id_parcel],
-            1,
-            0.5,
-          ])
-
-          map.setPaintProperty('parcelles-outline', 'line-width', [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            15,
-            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 2, 0.5],
-            18,
-            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 4, 1],
-          ])
-        }
-
-        const popupContent = `
-          <strong>Parcelle cultu:</strong> ${getCulturesGroup(props?.code_group).label}<br>
-          <strong>Parcelle surface:</strong> ${props?.surf_parc}<br>
-      `
-
-        new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
-      })
+      map.on('click', 'parcelles-fill', handleParcelClick)
     })
 
     return () => {
+      map.off('click', 'parcelles-fill', handleParcelClick)
       map.remove()
     }
   }, [exploitations])
