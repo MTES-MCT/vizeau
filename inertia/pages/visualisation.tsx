@@ -21,6 +21,7 @@ const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
 export default function VisualisationPage({
   exploitations,
   queryString,
+  pmtilesUrl,
 }: InferPageProps<VisualisationController, 'index'>) {
   const filteredExploitation = exploitations
   const [selectedExploitation, setSelectedExploitation] = useState<ExploitationJson | undefined>(
@@ -46,6 +47,7 @@ export default function VisualisationPage({
             exploitations={filteredExploitation}
             exploitation={selectedExploitation}
             setExploitation={setSelectedExploitation}
+            pmtilesUrl={pmtilesUrl || ''}
           />
         }
         rightContent={<VisualisationRightSide />}
