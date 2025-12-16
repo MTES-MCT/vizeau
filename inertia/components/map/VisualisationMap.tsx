@@ -206,6 +206,16 @@ export default function VisualisationMap({
             1,
             0.5,
           ])
+
+          map.setPaintProperty('parcelles-outline', 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 2, 0.5],
+            18,
+            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 4, 1],
+          ])
         }
       })
 
