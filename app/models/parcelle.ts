@@ -4,7 +4,6 @@ import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
 import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
 import Culture from '#models/culture'
-import CultureGroup from '#models/culture_group'
 
 export default class Parcelle extends BaseModel {
   static table = 'parcelles'
@@ -40,12 +39,6 @@ export default class Parcelle extends BaseModel {
 
   @hasOne(() => Culture, { localKey: 'culture_code', foreignKey: 'code' })
   declare culture: HasOne<typeof Culture>
-
-  @column()
-  declare groupCode: number | null
-
-  @hasOne(() => CultureGroup, { localKey: 'group_code', foreignKey: 'code' })
-  declare cultureGroup: HasOne<typeof CultureGroup>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

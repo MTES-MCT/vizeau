@@ -5,7 +5,7 @@ import type { HasMany } from '@adonisjs/lucid/types/relations'
 
 export default class CultureGroup extends BaseModel {
   @column({ isPrimary: true })
-  declare code: number
+  declare code: string
 
   @column()
   declare label: string

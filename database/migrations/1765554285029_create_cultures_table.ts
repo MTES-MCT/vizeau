@@ -6,7 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.string('code', 3).primary().notNullable()
-      table.integer('group_code').references('code').inTable('culture_groups').onDelete('SET NULL')
+      table.string('group_code').references('code').inTable('culture_groups').onDelete('SET NULL')
       table.string('label', 255).notNullable()
       table.integer('starting_year', 4).notNullable()
       table.integer('ending_year', 4)

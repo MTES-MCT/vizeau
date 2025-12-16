@@ -11,7 +11,7 @@ export default class Culture extends BaseModel {
   declare label: string
 
   @column()
-  declare groupCode: number
+  declare groupCode: string
 
   @belongsTo(() => CultureGroup, { localKey: 'groupCode', foreignKey: 'code' })
   declare cultureGroup: BelongsTo<typeof CultureGroup>

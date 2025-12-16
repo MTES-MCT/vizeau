@@ -27,12 +27,6 @@ export default class extends BaseSchema {
         .inTable('cultures')
         .onDelete('SET NULL')
         .nullable()
-      table
-        .integer('group_code', 2)
-        .references('code')
-        .inTable('culture_groups')
-        .onDelete('SET NULL')
-        .nullable()
 
       table.timestamp('created_at')
       table.timestamp('updated_at')
