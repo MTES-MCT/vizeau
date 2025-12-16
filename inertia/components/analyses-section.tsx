@@ -25,17 +25,11 @@ export default function AnalysesSection({ parcelles = [] }: AnalysesSectionProps
   const totalParcellesSurface = parcelles.reduce((total, parcelle) => total + parcelle.surf_parc, 0)
 
   const chartItems = useMemo(() => {
-    const items: { data: number; label: string; backgroundColor: string }[] = []
-
-    parcelles.map((parcelle) => {
-      items.push({
-        data: parcelle.surf_parc,
-        label: getCulturesGroup(parcelle.code_group).label,
-        backgroundColor: getCulturesGroup(parcelle.code_group).color,
-      })
-    })
-
-    return items
+    return parcelles.map((parcelle) => ({
+      data: parcelle.surf_parc,
+      label: getCulturesGroup(parcelle.code_group).label,
+      backgroundColor: getCulturesGroup(parcelle.code_group).color,
+    }))
   }, [parcelles])
 
   return (
@@ -65,14 +59,14 @@ export default function AnalysesSection({ parcelles = [] }: AnalysesSectionProps
             </div>
           </div>
 
-              <div
-                className="fr-p-2w"
-                style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
-              >
-                <div style={{ width: 300 }}>
-                  <Doughnut chartItems={chartItems} legendSize="sm" />
-                </div>
-              </div>
+          <div
+            className="fr-p-2w"
+            style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
+          >
+            <div style={{ width: 300 }}>
+              <Doughnut chartItems={chartItems} legendSize="sm" />
+            </div>
+          </div>
         </div>
       ) : (
         <EmptyPlaceholder pictogram={DataVisualization} label="Données indisponibles" />

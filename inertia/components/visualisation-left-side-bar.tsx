@@ -52,7 +52,7 @@ export default function VisualisationLeftSideBar({
 
             <div className="flex flex-col gap-4">
               <VisualisationExploitationInfos exploitation={selectedExploitation} />
-              <AnalysesSection parcelles={[]} /> { /* Renvoie un tableau vide le temps de disposer de cette information */ }
+              <AnalysesSection parcelles={[]} /> {/* Renvoie un tableau vide le temps de disposer de cette information */}
             </div>
           </div>
         </div>
