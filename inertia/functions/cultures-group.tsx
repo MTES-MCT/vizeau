@@ -212,7 +212,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
 
 export function getCulturesGroup(code: string | number) {
   if (!has(GROUPES_CULTURAUX, code)) {
-    return GROUPES_CULTURAUX[18]
+    return GROUPES_CULTURAUX[28]
   }
   return GROUPES_CULTURAUX[code]
 }
