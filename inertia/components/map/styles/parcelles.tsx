@@ -31,7 +31,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'minzoom': 12,
       'paint': {
         'line-color': '#000000',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 15, 0.5, 18, 1] as any,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 15, 0.1, 18, 1] as any,
         'line-opacity': 0.8,
       },
     },
@@ -40,7 +40,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
 
 export const getParcellesSource = ({
   pmtilesUrl,
-  millesime
+  millesime,
 }: {
   pmtilesUrl: string
   millesime: string

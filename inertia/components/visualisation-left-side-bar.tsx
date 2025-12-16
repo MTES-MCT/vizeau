@@ -13,13 +13,13 @@ export default function VisualisationLeftSideBar({
   queryString,
   handleSearch,
   selectedExploitation,
-  setSelectedExploitation,
+  setSelectedExploitationId,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
-  setSelectedExploitation: (exploitation: ExploitationJson) => void
+  setSelectedExploitationId: (exploitationId: string) => void
 }) {
   return (
     <div>
@@ -75,7 +75,7 @@ export default function VisualisationLeftSideBar({
           </div>
           {exploitations.map((exploitation, index) => (
             <div
-              onClick={() => setSelectedExploitation(exploitation)}
+              onClick={() => setSelectedExploitationId(exploitation.id)}
               style={{ cursor: 'pointer' }}
               key={exploitation.id}
             >
