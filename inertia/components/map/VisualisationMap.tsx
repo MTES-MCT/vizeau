@@ -30,6 +30,9 @@ const stylesMap: StylesMap = {
   'vector': vector,
 }
 
+const protocol = new Protocol()
+maplibre.addProtocol('pmtiles', protocol.tile)
+
 export default function VisualisationMap({
   exploitations,
   exploitation,
@@ -48,8 +51,6 @@ export default function VisualisationMap({
   const currentStyleRef = useRef<string>('plan-ign')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
   const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
-  const protocol = new Protocol()
-  maplibre.addProtocol('pmtiles', protocol.tile)
 
   useEffect(() => {
     if (!mapContainerRef.current) {
