@@ -3,8 +3,12 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import maplibre, { type LngLatLike } from 'maplibre-gl'
+import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
 import Popup from '~/components/map/popup'
+import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
+
+import { getCulturesGroup } from '~/functions/cultures-group'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
@@ -26,18 +30,24 @@ const stylesMap: StylesMap = {
   'vector': vector,
 }
 
+const protocol = new Protocol()
+maplibre.addProtocol('pmtiles', protocol.tile)
+
 export default function VisualisationMap({
   exploitations,
   exploitation,
   setExploitation,
+  pmtilesUrl,
 }: {
   exploitations: ExploitationJson[]
   exploitation?: ExploitationJson
   setExploitation?: (exploitation: ExploitationJson) => void
+  pmtilesUrl: string
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibre.Map | null>(null)
   const markerRef = useRef<maplibre.Marker | null>(null)
+  const selectedParcelRef = useRef<string | null>(null)
   const currentStyleRef = useRef<string>('plan-ign')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
   const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
@@ -59,7 +69,53 @@ export default function VisualisationMap({
 
     mapRef.current = map
 
+    const handleParcelClick = (e: maplibre.MapLayerMouseEvent) => {
+      const feature = e.features?.[0]
+      const props = feature?.properties
+
+      if (props?.id_parcel) {
+        selectedParcelRef.current = props.id_parcel
+
+        requestAnimationFrame(() => {
+          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
+            'case',
+            ['==', ['get', 'id_parcel'], props.id_parcel],
+            1,
+            0.5,
+          ])
+
+          map.setPaintProperty('parcelles-outline', 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 2, 0.5],
+            18,
+            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 4, 1],
+          ])
+        })
+      }
+
+      const popupContent = `
+          <strong>Parcelle cultu:</strong> ${getCulturesGroup(props?.code_group).label}<br>
+          <strong>Parcelle surface:</strong> ${props?.surf_parc}<br>
+      `
+
+      new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
+    }
+
     map.on('load', () => {
+      if (!map.getSource('parcelles')) {
+        map.addSource('parcelles', getParcellesSource({ pmtilesUrl }))
+      }
+
+      const parceLayers = getParcellesLayers()
+      parceLayers.forEach((layer) => {
+        if (!map.getLayer(layer.id)) {
+          map.addLayer(layer)
+        }
+      })
+
       exploitations.forEach((exploitation) => {
         if (exploitation.location) {
           const coords: [number, number] = [exploitation.location.x, exploitation.location.y]
@@ -101,9 +157,12 @@ export default function VisualisationMap({
           markerRef.current = marker
         }
       })
+
+      map.on('click', 'parcelles-fill', handleParcelClick)
     })
 
     return () => {
+      map.off('click', 'parcelles-fill', handleParcelClick)
       map.remove()
     }
   }, [exploitations])
@@ -126,6 +185,38 @@ export default function VisualisationMap({
         if (marker) {
           marker.addTo(map)
         }
+
+        // Rajouter les couches parcelles après le chargement de style
+        if (!map.getSource('parcelles')) {
+          map.addSource('parcelles', getParcellesSource({ pmtilesUrl }))
+        }
+
+        const parcelLayers = getParcellesLayers()
+        parcelLayers.forEach((layer) => {
+          if (!map.getLayer(layer.id)) {
+            map.addLayer(layer)
+          }
+        })
+
+        // Restaurer la sélection de parcelle si elle existe
+        if (selectedParcelRef.current) {
+          map.setPaintProperty('parcelles-fill', 'fill-opacity', [
+            'case',
+            ['==', ['get', 'id_parcel'], selectedParcelRef.current],
+            1,
+            0.5,
+          ])
+
+          map.setPaintProperty('parcelles-outline', 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 2, 0.5],
+            18,
+            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 4, 1],
+          ])
+        }
       })
 
       currentStyleRef.current = style
@@ -139,7 +230,7 @@ export default function VisualisationMap({
       const coords: [number, number] = [exploitation.location.x, exploitation.location.y]
       map.flyTo({
         center: coords as LngLatLike,
-        zoom: 10,
+        zoom: 12,
         essential: true,
       })
     }
