@@ -35,4 +35,20 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_USER: Env.schema.string(),
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for admin account creation
+  |----------------------------------------------------------
+   */
+  ADMIN_EMAIL: Env.schema.string({ format: 'email' }),
+  ADMIN_PASSWORD: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for external services
+  |----------------------------------------------------------
+   */
+  // If set, enables the integration with the PMTiles server for map tile hosting
+  PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
 })
