@@ -21,6 +21,7 @@ export default function Doughnut({ chartItems, legendSize = 'md', legendSide }: 
   }
 
   const options = {
+    maintainAspectRatio: false,
     plugins: {
       tooltip: {
         enabled: false,
