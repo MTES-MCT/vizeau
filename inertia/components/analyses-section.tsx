@@ -16,7 +16,6 @@ export type AnalysesSectionProps = {
     id_parcel: string
     surf_parc: number
     code_group: string
-    cat_cult_p: string
   }[]
   surf_territoire?: number
 }
