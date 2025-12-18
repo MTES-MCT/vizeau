@@ -21,7 +21,7 @@ export type AnalysesSectionProps = {
   surf_territoire?: number
 }
 
-export default function AnalysesSection({ parcelles = [] }: AnalysesSectionProps) {
+export default function AnalysesSection({ parcelles }: AnalysesSectionProps) {
   const totalParcellesSurface = parcelles.reduce((total, parcelle) => total + parcelle.surf_parc, 0)
 
   const chartItems = useMemo(() => {
@@ -63,7 +63,7 @@ export default function AnalysesSection({ parcelles = [] }: AnalysesSectionProps
             className="fr-p-2w"
             style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
           >
-            <div style={{ width: 300 }}>
+            <div className="w-[300px]">
               <Doughnut chartItems={chartItems} legendSize="sm" />
             </div>
           </div>
