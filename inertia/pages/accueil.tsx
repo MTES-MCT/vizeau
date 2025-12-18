@@ -91,11 +91,13 @@ export default function Accueil({
         <div className="fr-container">
           <div className="flex justify-between">
             <h3>Dernières exploitations créées</h3>
-            <div>
-              <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
-                Consulter les exploitations
-              </Button>
-            </div>
+            {latestExploitations.length > 0 && (
+              <div>
+                <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
+                  Consulter les exploitations
+                </Button>
+              </div>
+            )}
           </div>
           <div className="fr-my-4w">
             <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
