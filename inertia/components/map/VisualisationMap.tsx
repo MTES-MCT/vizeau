@@ -48,8 +48,10 @@ export default function VisualisationMap({
   const mapRef = useRef<maplibre.Map | null>(null)
   const markerRef = useRef<maplibre.Marker | null>(null)
   const selectedParcelRef = useRef<string | null>(null)
+  const parcelPopupRef = useRef<maplibre.Popup | null>(null)
   const currentStyleRef = useRef<string>('plan-ign')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
+  const [millesime, setMillesime] = useState<string>('2024')
   const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
   useEffect(() => {
@@ -73,13 +75,18 @@ export default function VisualisationMap({
       const feature = e.features?.[0]
       const props = feature?.properties
 
-      if (props?.id_parcel) {
-        selectedParcelRef.current = props.id_parcel
+      // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
+      const idParcel = props?.id_parcel ?? props?.ID_PARCEL
+      const codeGroup = props?.code_group ?? props?.CODE_GROUP
+      const surfParc = props?.surf_parc ?? props?.SURF_PARC
+
+      if (idParcel) {
+        selectedParcelRef.current = idParcel
 
         requestAnimationFrame(() => {
           map.setPaintProperty('parcelles-fill', 'fill-opacity', [
             'case',
-            ['==', ['get', 'id_parcel'], props.id_parcel],
+            ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
             1,
             0.5,
           ])
@@ -89,24 +96,41 @@ export default function VisualisationMap({
             ['linear'],
             ['zoom'],
             15,
-            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 2, 0.5],
+            [
+              'case',
+              ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
+              2,
+              0.5,
+            ],
             18,
-            ['case', ['==', ['get', 'id_parcel'], props.id_parcel], 4, 1],
+            [
+              'case',
+              ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], idParcel],
+              4,
+              1,
+            ],
           ])
         })
       }
 
       const popupContent = `
-          <strong>Parcelle cultu:</strong> ${getCulturesGroup(props?.code_group).label}<br>
-          <strong>Parcelle surface:</strong> ${props?.surf_parc}<br>
+          <div style="padding: 10px">
+            <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
+            <strong>Surface :</strong> ${surfParc}<br>
+          </div>
       `
 
-      new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
+      if (parcelPopupRef.current) {
+        parcelPopupRef.current.remove()
+      }
+
+      const popup = new maplibre.Popup().setLngLat(e.lngLat).setHTML(popupContent).addTo(map)
+      parcelPopupRef.current = popup
     }
 
     map.on('load', () => {
       if (!map.getSource('parcelles')) {
-        map.addSource('parcelles', getParcellesSource({ pmtilesUrl }))
+        map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
       }
 
       const parceLayers = getParcellesLayers()
@@ -188,7 +212,7 @@ export default function VisualisationMap({
 
         // Rajouter les couches parcelles après le chargement de style
         if (!map.getSource('parcelles')) {
-          map.addSource('parcelles', getParcellesSource({ pmtilesUrl }))
+          map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
         }
 
         const parcelLayers = getParcellesLayers()
@@ -222,6 +246,36 @@ export default function VisualisationMap({
       currentStyleRef.current = style
     }
   }, [style])
+
+  // Mise à jour du millésime des parcelles
+  useEffect(() => {
+    const map = mapRef.current
+
+    if (map && map.getSource('parcelles')) {
+      selectedParcelRef.current = null
+
+      if (parcelPopupRef.current) {
+        parcelPopupRef.current.remove()
+        parcelPopupRef.current = null
+      }
+
+      if (map.getLayer('parcelles-fill')) {
+        map.removeLayer('parcelles-fill')
+      }
+
+      if (map.getLayer('parcelles-outline')) {
+        map.removeLayer('parcelles-outline')
+      }
+
+      map.removeSource('parcelles')
+      map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
+
+      const parcelLayers = getParcellesLayers()
+      parcelLayers.forEach((layer) => {
+        map.addLayer(layer)
+      })
+    }
+  }, [millesime])
 
   // Zoom sur l'exploitation sélectionnée
   useEffect(() => {
@@ -260,6 +314,18 @@ export default function VisualisationMap({
           { value: 'plan-ign', label: 'Plan IGN' },
           { value: 'orthophoto', label: 'Photographie aérienne' },
           { value: 'vector', label: 'Carte vectorielle' },
+        ]}
+      />
+      <Select
+        label=""
+        style={{ position: 'absolute', right: 0 }}
+        nativeSelectProps={{
+          defaultValue: '2024',
+          onChange: (e) => setMillesime(e.target.value),
+        }}
+        options={[
+          { value: '2024', label: '2024' },
+          { value: '2023', label: '2023' },
         ]}
       />
     </div>

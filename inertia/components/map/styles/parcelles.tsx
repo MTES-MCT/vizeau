@@ -2,7 +2,7 @@ import type { LayerSpecification } from 'maplibre-gl'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
 export const getParcellesLayers = (): LayerSpecification[] => {
-  const colorMatch: any[] = ['match', ['get', 'code_group']]
+  const colorMatch: any[] = ['match', ['coalesce', ['get', 'code_group'], ['get', 'CODE_GROUP']]]
 
   Object.entries(GROUPES_CULTURAUX).forEach(([code, info]) => {
     colorMatch.push(code.toString())
@@ -40,11 +40,13 @@ export const getParcellesLayers = (): LayerSpecification[] => {
 
 export const getParcellesSource = ({
   pmtilesUrl,
+  millesime
 }: {
   pmtilesUrl: string
+  millesime: string
 }): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
-    url: `pmtiles://${pmtilesUrl}`,
+    url: `pmtiles://${pmtilesUrl}/${millesime}/parcelles_france.pmtiles`,
   }
 }
