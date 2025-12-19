@@ -49,7 +49,7 @@ export default function VisualisationMap({
   const markerRef = useRef<maplibre.Marker | null>(null)
   const selectedParcelRef = useRef<string | null>(null)
   const parcelPopupRef = useRef<maplibre.Popup | null>(null)
-  const currentStyleRef = useRef<string>('plan-ign')
+  const currentStyleRef = useRef<string>('vector')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
   const [millesime, setMillesime] = useState<string>('2024')
   const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
@@ -134,9 +134,12 @@ export default function VisualisationMap({
       }
 
       const parceLayers = getParcellesLayers()
+
       parceLayers.forEach((layer) => {
         if (!map.getLayer(layer.id)) {
-          map.addLayer(layer)
+          const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+
+          map.addLayer(layer, beforeId)
         }
       })
 
@@ -218,7 +221,8 @@ export default function VisualisationMap({
         const parcelLayers = getParcellesLayers()
         parcelLayers.forEach((layer) => {
           if (!map.getLayer(layer.id)) {
-            map.addLayer(layer)
+            const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+            map.addLayer(layer, beforeId)
           }
         })
 
@@ -226,7 +230,7 @@ export default function VisualisationMap({
         if (selectedParcelRef.current) {
           map.setPaintProperty('parcelles-fill', 'fill-opacity', [
             'case',
-            ['==', ['get', 'id_parcel'], selectedParcelRef.current],
+            ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], selectedParcelRef.current],
             1,
             0.5,
           ])
@@ -236,9 +240,9 @@ export default function VisualisationMap({
             ['linear'],
             ['zoom'],
             15,
-            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 2, 0.5],
+            ['case', ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], selectedParcelRef.current], 2, 0.5],
             18,
-            ['case', ['==', ['get', 'id_parcel'], selectedParcelRef.current], 4, 1],
+            ['case', ['==', ['coalesce', ['get', 'id_parcel'], ['get', 'ID_PARCEL']], selectedParcelRef.current], 4, 1],
           ])
         }
       })
@@ -272,7 +276,8 @@ export default function VisualisationMap({
 
       const parcelLayers = getParcellesLayers()
       parcelLayers.forEach((layer) => {
-        map.addLayer(layer)
+        const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+        map.addLayer(layer, beforeId)
       })
     }
   }, [millesime])
@@ -307,13 +312,13 @@ export default function VisualisationMap({
         label=""
         style={{ position: 'absolute' }}
         nativeSelectProps={{
-          defaultValue: 'plan-ign',
+          defaultValue: 'vector',
           onChange: (e) => setStyle(e.target.value),
         }}
         options={[
-          { value: 'plan-ign', label: 'Plan IGN' },
-          { value: 'orthophoto', label: 'Photographie aérienne' },
           { value: 'vector', label: 'Carte vectorielle' },
+          { value: 'orthophoto', label: 'Photographie aérienne' },
+          { value: 'plan-ign', label: 'Plan IGN' },
         ]}
       />
       <Select
