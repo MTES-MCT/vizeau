@@ -114,7 +114,7 @@ export default function VisualisationMap({
       }
 
       const popupContent = `
-          <div style=": 10px">
+          <div style="padding: 10px">
             <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
             <strong>Surface :</strong> ${surfParc}<br>
           </div>
