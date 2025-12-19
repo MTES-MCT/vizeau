@@ -317,7 +317,7 @@ export default function VisualisationMap({
         ]}
       />
       <Select
-        label=""
+        label="Millésime"
         style={{ position: 'absolute', right: 0 }}
         nativeSelectProps={{
           defaultValue: '2024',
