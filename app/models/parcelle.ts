@@ -29,7 +29,7 @@ export default class Parcelle extends BaseModel {
   declare year: number
 
   @column()
-  declare rpgId: string | null
+  declare rpgId: string
 
   @column()
   declare surface: number | null
