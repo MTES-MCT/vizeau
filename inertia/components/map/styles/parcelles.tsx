@@ -1,6 +1,15 @@
 import type { LayerSpecification } from 'maplibre-gl'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
+const defaultOpacity = 0.5
+const selectedOpacity = 1
+const unavailableOpacity = 0.2
+
+const defaultZoomedOutLineWidth = 0.1
+const defaultZoomedInLineWidth = 1
+const selectedZoomedOutLineWidth = 2
+const selectedZoomedInLineWidth = 4
+
 export const getParcellesLayers = (): LayerSpecification[] => {
   const colorMatch: any[] = ['match', ['coalesce', ['get', 'code_group'], ['get', 'CODE_GROUP']]]
 
@@ -20,7 +29,14 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'minzoom': 12,
       'paint': {
         'fill-color': colorMatch as any,
-        'fill-opacity': 0.5,
+        'fill-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'unavailable'], false],
+          unavailableOpacity,
+          ['boolean', ['feature-state', 'highlighted'], false],
+          selectedOpacity,
+          defaultOpacity,
+        ],
       },
     },
     {
@@ -31,11 +47,34 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'minzoom': 12,
       'paint': {
         'line-color': '#000000',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 15, 0.1, 18, 1] as any,
+        'line-width': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          15,
+          [
+            'case',
+            ['boolean', ['feature-state', 'highlighted'], false],
+            selectedZoomedOutLineWidth,
+            defaultZoomedOutLineWidth,
+          ],
+          18,
+          [
+            'case',
+            ['boolean', ['feature-state', 'highlighted'], false],
+            selectedZoomedInLineWidth,
+            defaultZoomedInLineWidth,
+          ],
+        ],
         'line-opacity': 0.8,
       },
     },
   ]
+}
+
+const millesimeToIdKey: { [key: string]: string } = {
+  '2023': 'ID_PARCEL',
+  '2024': 'id_parcel',
 }
 
 export const getParcellesSource = ({
@@ -48,5 +87,6 @@ export const getParcellesSource = ({
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/${millesime}/parcelles_france.pmtiles`,
+    promoteId: millesimeToIdKey[millesime] || 'id_parcel',
   }
 }

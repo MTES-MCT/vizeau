@@ -7,8 +7,8 @@ export class ParcelleService {
   /*
    * Query a parcelle by its RPG ID. A parcelle RPG ID is unique for a given year.
    */
-  queryParcelleByRpgId(rpgId: string, trx?: TransactionClientContract) {
-    return Parcelle.query({ client: trx }).where('rpgId', rpgId)
+  queryParcelleByRpgId(rpgId: string, year: number, trx?: TransactionClientContract) {
+    return Parcelle.query({ client: trx }).where('rpgId', rpgId).andWhere('year', year)
   }
 
   async createParcelle(data: Partial<ModelAttributes<Parcelle>>, trx?: TransactionClientContract) {
@@ -30,11 +30,16 @@ export class ParcelleService {
         // First, dissociate all parcelles currently associated with the exploitation
         await Parcelle.query({ client: trx })
           .where('exploitationId', exploitationId)
+          .andWhere('year', year)
           .update({ exploitationId: null })
 
         for (const parcelle of parcellePayloads) {
           // Before associating, check if the parcelle already exists
-          const existingParcelle = await this.queryParcelleByRpgId(parcelle.rpgId, trx).first()
+          const existingParcelle = await this.queryParcelleByRpgId(
+            parcelle.rpgId,
+            year,
+            trx
+          ).first()
 
           if (!existingParcelle) {
             await this.createParcelle(

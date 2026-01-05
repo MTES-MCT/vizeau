@@ -17,7 +17,7 @@ import vector from '~/components/map/styles/vector.json'
 import { router, usePage } from '@inertiajs/react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import VisualisationController from '#controllers/visualisation_controller'
-import { highlightParcelles } from '~/functions/map'
+import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
 
 export type GeoPoint = {
   type: 'Point'
@@ -37,32 +37,34 @@ const stylesMap: StylesMap = {
 const protocol = new Protocol()
 maplibre.addProtocol('pmtiles', protocol.tile)
 
+const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
+
 export default function VisualisationMap({
   exploitations,
   selectedExploitation,
   onParcelleClick,
-  onParcelleMouseEnter,
+  onParcelleMouseMove,
   onParcelleMouseLeave,
   onMarkerClick,
   onMarkerMouseEnter,
   onMarkerMouseLeave,
-  highlightedParcelleIds = [],
+  formParcelleIds = [],
   unavailableParcelleIds = [],
   millesime,
-  millesimeSelectDisabled = false,
+  editMode = false,
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
   onParcelleClick?: (parcelleProperties: { [name: string]: any }) => void
-  onParcelleMouseEnter?: (parcelleProperties: { [name: string]: any }) => void
+  onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
   onMarkerClick?: (exploitation: ExploitationJson) => void
   onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
   onMarkerMouseLeave?: () => void
-  highlightedParcelleIds?: string[]
+  formParcelleIds?: string[]
   unavailableParcelleIds?: string[]
   millesime: string
-  millesimeSelectDisabled?: boolean
+  editMode?: boolean
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -74,41 +76,58 @@ export default function VisualisationMap({
   )
   const currentStyleRef = useRef<string>('vector')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
-  const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
-  const handleParcelleMouseMove = useCallback((e: maplibre.MapLayerMouseEvent) => {
-    if (!mapRef.current) {
-      return
-    }
+  const handleParcelleMouseMove = useCallback(
+    (e: maplibre.MapLayerMouseEvent) => {
+      if (!mapRef.current) {
+        return
+      }
 
-    const props = e.features?.[0]?.properties
+      const props = e.features?.[0]?.properties
 
-    // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
-    const codeGroup = props?.code_group ?? props?.CODE_GROUP
-    const surfParc = props?.surf_parc ?? props?.SURF_PARC
+      // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
+      const codeGroup = props?.code_group ?? props?.CODE_GROUP
+      const surfParc = props?.surf_parc ?? props?.SURF_PARC
 
-    const popupContent = `
+      const popupContent = `
           <div style="padding: 0.3em 0.5em">
             <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
             <strong>Surface :</strong> ${surfParc}<br>
           </div>
       `
 
-    parcellePopupRef.current.setLngLat(e.lngLat).setHTML(popupContent).addTo(mapRef.current)
-  }, [])
+      parcellePopupRef.current.setLngLat(e.lngLat).setHTML(popupContent).addTo(mapRef.current)
 
-  const handleParcelleMouseEnter = useCallback(
-    (e: maplibre.MapLayerMouseEvent) => {
-      onParcelleMouseEnter?.(e.features?.[0]?.properties || {})
+      if (props) {
+        const id = props.id_parcel || props.ID_PARCEL
+
+        if (unavailableParcelleIds.includes(id)) {
+          mapRef.current.getCanvas().style.cursor = 'not-allowed'
+        } else {
+          mapRef.current.getCanvas().style.cursor = ''
+        }
+      }
     },
-    [onParcelleMouseEnter]
+    [
+      onParcelleMouseMove,
+      editMode,
+      formParcelleIds,
+      millesime,
+      selectedExploitation,
+      unavailableParcelleIds,
+    ]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
+    if (!mapRef.current) {
+      return
+    }
+
+    mapRef.current.getCanvas().style.cursor = ''
     parcellePopupRef.current.remove()
 
     onParcelleMouseLeave?.()
-  }, [onParcelleMouseLeave])
+  }, [onParcelleMouseLeave, editMode, formParcelleIds, millesime, selectedExploitation])
 
   const handleParcelleClick = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
@@ -192,7 +211,7 @@ export default function VisualisationMap({
           .addTo(mapRef.current)
 
         const markerElement = marker.getElement()
-        markerElement.style.cursor = 'pointer'
+        markerElement.style.cursor = editMode ? 'not-allowed' : 'pointer'
         markerElement.addEventListener('mouseenter', () => {
           if (!mapRef.current) {
             return
@@ -206,15 +225,46 @@ export default function VisualisationMap({
             .setDOMContent(popupNode)
             .addTo(mapRef.current)
 
+          // Highlight parcelles on marker hover if it's not the selected exploitation
+          if (
+            (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
+            exploitation.parcelles &&
+            exploitation.parcelles.length > 0
+          ) {
+            setParcellesHighlight(
+              mapRef.current,
+              exploitation.parcelles.map((p) => p.rpgId),
+              true
+            )
+          }
+
           onMarkerMouseEnter?.(exploitation)
         })
 
         markerElement.addEventListener('mouseleave', () => {
           popup.remove()
+
+          // Unhighlight parcelles on marker leave if it's not the selected exploitation
+          if (
+            (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
+            exploitation.parcelles &&
+            exploitation.parcelles.length > 0
+          ) {
+            setParcellesHighlight(
+              mapRef.current,
+              exploitation.parcelles.map((p) => p.rpgId),
+              false
+            )
+          }
+
           onMarkerMouseLeave?.()
         })
 
         markerElement.addEventListener('click', () => {
+          if (editMode) {
+            return
+          }
+          popup.remove()
           onMarkerClick?.(exploitation)
         })
 
@@ -230,7 +280,7 @@ export default function VisualisationMap({
 
       markersRef.current = []
     }
-  }, [exploitations])
+  }, [exploitations, selectedExploitation, editMode])
 
   // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
   useEffect(() => {
@@ -239,13 +289,6 @@ export default function VisualisationMap({
       mapRef.current?.off('click', 'parcelles-fill', handleParcelleClick)
     }
   }, [handleParcelleClick])
-
-  useEffect(() => {
-    mapRef.current?.on('mouseenter', 'parcelles-fill', handleParcelleMouseEnter)
-    return () => {
-      mapRef.current?.off('mouseenter', 'parcelles-fill', handleParcelleMouseEnter)
-    }
-  }, [handleParcelleMouseEnter])
 
   useEffect(() => {
     mapRef.current?.on('mousemove', 'parcelles-fill', handleParcelleMouseMove)
@@ -296,11 +339,6 @@ export default function VisualisationMap({
     currentStyleRef.current = style
   }, [style])
 
-  // Selected parcelles display handler
-  useEffect(() => {
-    highlightParcelles(mapRef.current, highlightedParcelleIds)
-  }, [highlightedParcelleIds, style])
-
   // Mise à jour du millésime des parcelles
   useEffect(() => {
     if (!mapRef.current || mapRef.current.getSource('parcelles') === undefined) {
@@ -342,6 +380,32 @@ export default function VisualisationMap({
     }
   }, [selectedExploitation])
 
+  useEffect(() => {
+    // Détermine les parcelles à highlight selon le mode
+    let parcelleIds: string[] = []
+    if (editMode) {
+      parcelleIds = formParcelleIds
+    } else if (selectedExploitation?.parcelles) {
+      parcelleIds = selectedExploitation.parcelles
+        .filter((parcelle) => parcelle.year.toString() === millesime)
+        .map((parcelle) => parcelle.rpgId)
+    }
+
+    setParcellesHighlight(mapRef.current, parcelleIds, true)
+
+    return () => {
+      setParcellesHighlight(mapRef.current, parcelleIds, false)
+    }
+  }, [editMode, formParcelleIds, selectedExploitation, style, millesime])
+
+  // Manage unavailable parcelles highlighting
+  useEffect(() => {
+    setParcellesUnavailability(mapRef.current, unavailableParcelleIds, true)
+    return () => {
+      setParcellesUnavailability(mapRef.current, unavailableParcelleIds, false)
+    }
+  }, [unavailableParcelleIds, style, millesime])
+
   return (
     <div className="flex flex-col h-full w-full relative border">
       <style>{`
@@ -371,7 +435,7 @@ export default function VisualisationMap({
       <Select
         label=""
         style={{ position: 'absolute', right: 0 }}
-        disabled={millesimeSelectDisabled}
+        disabled={editMode}
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {

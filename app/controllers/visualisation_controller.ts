@@ -9,7 +9,7 @@ import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
 import router from '@adonisjs/core/services/router'
 
-// TODO: Dynamically get the current millesime
+// TODO V1: Dynamically get the current millesime
 const currentMillesime = 2024
 
 // Définition centralisée des noms d'événements pour ce contrôleur
@@ -44,7 +44,9 @@ export default class VisualisationController {
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitationsByNameOrContactName(request.input('recherche'))
-          .preload('parcelles')
+          .preload('parcelles', (parcelleQuery) => {
+            parcelleQuery.where('year', request.qs().millesime)
+          })
 
         return ExploitationDto.toJsonArray(results)
       },

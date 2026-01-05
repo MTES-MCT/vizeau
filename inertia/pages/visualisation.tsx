@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
 import VisualisationMap from '~/components/map/VisualisationMap'
@@ -41,28 +41,23 @@ export default function VisualisationPage({
   )
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
-  // In view mode, we highlight parcelles on hover. In edit mode, the highlighted parcelles are those selected in the form.
-  const [viewModeHighlightedParcelleIds, setViewModeHighlightedParcelleIds] = useState<string[]>([])
   const millesime = queryString?.millesime
 
-  const { data, setData, post, reset, processing, transform } = useForm<ParcelleFormData>({
-    parcelles: [],
-  })
+  const { data, setData, post, reset, processing, transform, isDirty, setDefaults } =
+    useForm<ParcelleFormData>({
+      parcelles: [],
+    })
 
-  const selectedExploitation = filteredExploitations.find(
-    (exp) => exp.id === selectedExploitationId
+  // We need to memoize the selected exploitation to avoid unnecessary re-renders
+  const selectedExploitation = useMemo(
+    () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
+    [selectedExploitationId, filteredExploitations]
   )
 
-  /*
-   * Determine which parcelles should be highlighted on the map.
-   * In edit mode, highlight the parcelles selected in the form.
-   * In view mode, highlight the parcelles of the selected exploitation and those hovered by the mouse.
-   */
-  const highlightedParcelleIds = editMode
-    ? data.parcelles.map((parcelle) => parcelle.rpgId)
-    : viewModeHighlightedParcelleIds.concat(
-        selectedExploitation?.parcelles?.map((p) => p.rpgId) || []
-      )
+  const formParcelleIds = useMemo(
+    () => data.parcelles.map((parcelle) => parcelle.rpgId),
+    [data.parcelles]
+  )
 
   // Prepare data before sending the form
   transform((data) => ({
@@ -75,7 +70,6 @@ export default function VisualisationPage({
       preserveState: true,
       onSuccess: () => {
         setEditMode(false)
-        reset()
       },
       // Reload the exploitations to get updated parcelle data
       only: ['filteredExploitations'],
@@ -85,19 +79,6 @@ export default function VisualisationPage({
   /*
    * Map events handlers. We need stable references for these callbacks to avoid detaching and reattaching event listeners on each render.
    */
-
-  const handleParcelleMouseEnter = useCallback((parcelleProperties: { [name: string]: any }) => {
-    const parcelleId = parcelleProperties
-      ? parcelleProperties['id_parcel'] || parcelleProperties['ID_PARCEL']
-      : null
-
-    setViewModeHighlightedParcelleIds([parcelleId])
-  }, [])
-
-  const handleParcelleMouseLeave = useCallback(() => {
-    setViewModeHighlightedParcelleIds([])
-  }, [])
-
   const handleParcelleClick: (parcelleProperties: { [p: string]: any }) => void = useCallback(
     (parcelleProperties) => {
       const newId = parcelleProperties['id_parcel'] || parcelleProperties['ID_PARCEL']
@@ -105,37 +86,25 @@ export default function VisualisationPage({
       // In edit mode, we can select multiple parcelles to attach them to the exploitation
       if (editMode && selectedExploitationId) {
         setData((previousData) => {
-          let updatedParcelles: ParcelleFormData['parcelles'] = previousData.parcelles.filter(
-            (parcelle) => parcelle.rpgId !== newId
-          )
-
-          if (previousData.parcelles.length === updatedParcelles.length) {
-            updatedParcelles = updatedParcelles.concat([
+          const exists = previousData.parcelles.some((parcelle) => parcelle.rpgId === newId)
+          let updatedParcelles: ParcelleFormData['parcelles']
+          if (exists) {
+            updatedParcelles = previousData.parcelles.filter((parcelle) => parcelle.rpgId !== newId)
+          } else {
+            updatedParcelles = [
+              ...previousData.parcelles,
               {
                 rpgId: newId,
                 surface: parcelleProperties['surf_parc'] || parcelleProperties['SURF_PARC'],
                 cultureCode: parcelleProperties['code_cultu'] || parcelleProperties['CODE_CULTU'],
               },
-            ])
+            ]
           }
           return { parcelles: updatedParcelles }
         })
       }
     },
     [editMode, selectedExploitationId, setData]
-  )
-
-  const handleMarkerMouseLeave = useCallback(() => {
-    setViewModeHighlightedParcelleIds([])
-  }, [])
-
-  const handleMarkerMouseEnter = useCallback(
-    (exploitation: ExploitationJson) => {
-      if (!editMode && exploitation.parcelles) {
-        setViewModeHighlightedParcelleIds(exploitation.parcelles.map((p) => p.rpgId))
-      }
-    },
-    [editMode]
   )
 
   const handleMarkerClick = useCallback(
@@ -147,19 +116,33 @@ export default function VisualisationPage({
     [editMode]
   )
 
-  // When entering edit mode, we need to refresh the unavailable parcelles from the server.
+  // When edit mode changes, we need to refresh the unavailable parcelles from the server.
   useEffect(() => {
-    if (!editMode || !selectedExploitationId) return
+    if (!selectedExploitationId) return
 
-    router.reload({
-      only: ['unavailableParcellesIds'],
-      data: {
-        exploitationId: selectedExploitationId,
-        millesime,
-      },
-      replace: true,
-    })
-  }, [editMode, selectedExploitationId])
+    // When entering edit mode, we query unavailable parcelles for the selected exploitation
+    if (editMode) {
+      router.reload({
+        only: ['unavailableParcellesIds'],
+        data: {
+          exploitationId: selectedExploitationId,
+          millesime,
+        },
+        replace: true,
+      })
+    }
+    // Else when exiting edit mode, we clear the unavailable parcelles
+    else {
+      router.reload({
+        only: ['unavailableParcellesIds'],
+        data: {
+          exploitationId: undefined,
+          millesime,
+        },
+        replace: true,
+      })
+    }
+  }, [editMode, millesime, selectedExploitationId])
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>
@@ -184,7 +167,8 @@ export default function VisualisationPage({
                   <Button
                     priority="secondary"
                     onClick={() => {
-                      if (data.parcelles.length > 0) {
+                      // Only display a confirmation modal if there are unsaved changes
+                      if (isDirty) {
                         cancelEditModeModal.open()
                         return
                       } else {
@@ -207,7 +191,14 @@ export default function VisualisationPage({
               ) : (
                 <Button
                   onClick={() => {
-                    setData('parcelles', selectedExploitation?.parcelles || [])
+                    setData(
+                      'parcelles',
+                      selectedExploitation?.parcelles?.filter(
+                        (p) => p.year.toString() === millesime
+                      ) || []
+                    )
+                    // We set the new data as default so the form is not dirty at the beginning of edit mode
+                    setDefaults()
                     setEditMode(true)
                   }}
                 >
@@ -245,16 +236,12 @@ export default function VisualisationPage({
           <VisualisationMap
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
-            onParcelleMouseEnter={handleParcelleMouseEnter}
-            onParcelleMouseLeave={handleParcelleMouseLeave}
             onParcelleClick={handleParcelleClick}
-            onMarkerMouseEnter={handleMarkerMouseEnter}
-            onMarkerMouseLeave={handleMarkerMouseLeave}
             onMarkerClick={handleMarkerClick}
-            highlightedParcelleIds={highlightedParcelleIds}
+            formParcelleIds={formParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
-            millesimeSelectDisabled={editMode}
+            editMode={editMode}
           />
         }
         rightContent={<VisualisationRightSide />}
