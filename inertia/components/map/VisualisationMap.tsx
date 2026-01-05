@@ -49,6 +49,7 @@ export default function VisualisationMap({
   highlightedParcelleIds = [],
   unavailableParcelleIds = [],
   millesime,
+  millesimeSelectDisabled = false,
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
@@ -61,6 +62,7 @@ export default function VisualisationMap({
   highlightedParcelleIds?: string[]
   unavailableParcelleIds?: string[]
   millesime: string
+  millesimeSelectDisabled?: boolean
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -369,6 +371,7 @@ export default function VisualisationMap({
       <Select
         label=""
         style={{ position: 'absolute', right: 0 }}
+        disabled={millesimeSelectDisabled}
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {

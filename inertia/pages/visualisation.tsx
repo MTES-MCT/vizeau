@@ -254,6 +254,7 @@ export default function VisualisationPage({
             highlightedParcelleIds={highlightedParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
+            millesimeSelectDisabled={editMode}
           />
         }
         rightContent={<VisualisationRightSide />}
