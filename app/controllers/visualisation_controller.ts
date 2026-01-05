@@ -9,6 +9,9 @@ import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
 import router from '@adonisjs/core/services/router'
 
+// TODO: Dynamically get the current millesime
+const currentMillesime = 2024
+
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
   PAGE_VIEW: { name: 'visualisation_page_viewed' },
@@ -66,12 +69,16 @@ export default class VisualisationController {
   }
 
   async assignParcellesToExploitation({ request, response, session, logger }: HttpContext) {
-    const { exploitationId, year, parcelles } = await request.validateUsing(
+    const { exploitationId, parcelles } = await request.validateUsing(
       assignParcellesToExploitationValidator
     )
 
     try {
-      await this.parcelleService.syncParcellesForExploitation(exploitationId, year, parcelles)
+      await this.parcelleService.syncParcellesForExploitation(
+        exploitationId,
+        currentMillesime,
+        parcelles
+      )
     } catch (error) {
       logger.warn(error)
       createErrorFlashMessage(session, error)

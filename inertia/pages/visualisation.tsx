@@ -67,7 +67,6 @@ export default function VisualisationPage({
   // Prepare data before sending the form
   transform((data) => ({
     exploitationId: selectedExploitationId || null,
-    year: millesime,
     parcelles: data.parcelles,
   }))
 
@@ -148,8 +147,7 @@ export default function VisualisationPage({
     [editMode]
   )
 
-  // When entering edit mode, or when the set of rendered parcelles changes in edit mode (by moving in the map),
-  // we need to refresh the unavailable parcelles from the server.
+  // When entering edit mode, we need to refresh the unavailable parcelles from the server.
   useEffect(() => {
     if (!editMode || !selectedExploitationId) return
 
@@ -180,6 +178,7 @@ export default function VisualisationPage({
         headerAdditionalContent={
           <div className="flex flex-1 items-center justify-end gap-4">
             {selectedExploitationId &&
+              millesime === '2024' &&
               (editMode ? (
                 <>
                   <Button
@@ -216,7 +215,7 @@ export default function VisualisationPage({
                 </Button>
               ))}
             <cancelEditModeModal.Component
-              title="Modification non enregistrées"
+              title="Modifications non enregistrées"
               iconId="fr-icon-arrow-right-line"
               buttons={[
                 {
