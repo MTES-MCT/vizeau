@@ -20,7 +20,7 @@ export default function ProgressBar({
   const color = progressColor || fr.colors.decisions.background.actionHigh.blueFrance.default
 
   return (
-    <div className="min-w-sm flex gap-3 items-center">
+    <div className="flex gap-3 items-center">
       <div
         className="flex-1 rounded-md overflow-hidden"
         style={{

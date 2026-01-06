@@ -6,6 +6,7 @@ import SearchBar from '@codegouvfr/react-dsfr/SearchBar'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import Button from '@codegouvfr/react-dsfr/Button'
 import VisualisationExploitationInfos from './visualisation-exploitation-infos'
+import AnalysesSection from './analyses-section'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -48,7 +49,11 @@ export default function VisualisationLeftSideBar({
                 </Button>
               </div>
             </div>
-            <VisualisationExploitationInfos exploitation={selectedExploitation} />
+
+            <div className="flex flex-col gap-4">
+              <VisualisationExploitationInfos exploitation={selectedExploitation} />
+              <AnalysesSection parcelles={[]} /> {/* Renvoie un tableau vide le temps de disposer de cette information */}
+            </div>
           </div>
         </div>
       ) : (
