@@ -195,7 +195,7 @@ await new Promise((resolve, reject) => {
   let stderrData = ''
   const p = spawn('tippecanoe', [
     '-o',
-    MBTILES,
+    OUT_PM,
     '--force',
     '--no-tile-compression',
     '--maximum-zoom=14',
