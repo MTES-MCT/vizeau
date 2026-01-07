@@ -101,6 +101,10 @@ export default defineConfig({
   */
   metaFiles: [
     {
+      pattern: 'database/data/*.json',
+      reloadServer: false,
+    },
+    {
       pattern: 'resources/views/**/*.edge',
       reloadServer: false,
     },
