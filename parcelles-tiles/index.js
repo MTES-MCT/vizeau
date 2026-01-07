@@ -97,7 +97,7 @@ if (fileName.endsWith('.7z.001')) {
 
   const archivePath = path.join(WORKDIR, fileName)
 
-  await pipeline(got.stream(DATA_URL), createWriteStream(archivePath))
+  await downloadPart(DATA_URL, archivePath)
 
   archiveToExtract = archivePath
 }
@@ -106,11 +106,25 @@ if (fileName.endsWith('.7z.001')) {
 console.log('📦 Décompression...')
 
 await new Promise((resolve, reject) => {
+  let stderrData = ''
   const p = spawn('7z', ['x', archiveToExtract, `-o${WORKDIR}`])
 
   p.stdout.pipe(process.stdout)
   p.stderr.pipe(process.stderr)
-  p.on('close', (c) => (c === 0 ? resolve() : reject(new Error('7z a échoué'))))
+  p.stderr.on('data', (chunk) => {
+    stderrData += chunk.toString()
+  })
+
+  p.on('close', (c) => {
+    if (c === 0) {
+      resolve()
+    } else {
+      const message =
+        `L'extraction de l'archive a échoué avec le code :  ${c}` +
+        (stderrData ? `; erreur : ${stderrData}` : '')
+      reject(new Error(message))
+    }
+  })
 })
 
 // Recherche du fichier GPKG
@@ -146,6 +160,7 @@ console.log('ℹ GPKG trouvé :', GPKG)
 console.log('🗺  Conversion en GeoJSONSeq...')
 
 await new Promise((resolve, reject) => {
+  let stderrData = ''
   const p = spawn('ogr2ogr', [
     '-f',
     'GeoJSONSeq',
@@ -156,28 +171,53 @@ await new Promise((resolve, reject) => {
     'RPG_Parcelles',
   ])
 
+  p.stderr.on('data', (chunk) => {
+    stderrData += chunk.toString()
+  })
   p.stderr.pipe(process.stderr)
-  p.on('close', (c) => (c === 0 ? resolve() : reject(new Error('ogr2ogr a échoué'))))
+
+  p.on('close', (c) => {
+    if (c === 0) {
+      resolve()
+    } else {
+      const message =
+        `La conversion ogr2ogr a échoué avec le code : ${c}` +
+        (stderrData ? `; erreur : ${stderrData}` : '')
+      reject(new Error(message))
+    }
+  })
 })
 
 // Conversion GeoJSON → PMTiles
 console.log('🧱 Génération PMTiles...')
 
 await new Promise((resolve, reject) => {
+  let stderrData = ''
   const p = spawn('tippecanoe', [
-    '-zg',
-    '--force',
-    '--drop-densest-as-needed',
-    '-l',
-    'parcelles',
     '-o',
-    OUT_PM,
+    MBTILES,
+    '--force',
+    '--no-tile-compression',
+    '--maximum-zoom=14',
+    '--drop-densest-as-needed',
+    '--extend-zooms-if-still-dropping',
     GEOJSON,
   ])
 
-  p.stdout.pipe(process.stdout)
+  p.stderr.on('data', (chunk) => {
+    stderrData += chunk.toString()
+  })
   p.stderr.pipe(process.stderr)
-  p.on('close', (c) => (c === 0 ? resolve() : reject(new Error('tippecanoe a échoué'))))
+
+  p.on('close', (c) => {
+    if (c === 0) {
+      resolve()
+    } else {
+      const message =
+        `La génération tippecanoe a échoué avec le code : ${c}` + (stderrData ? `; erreur : ${stderrData}` : '')
+      reject(new Error(message))
+    }
+  })
 })
 
 console.log('✅ PMTiles généré dans', OUT_PM)
