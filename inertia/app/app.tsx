@@ -10,6 +10,7 @@ import { createInertiaApp, Link } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
 import { fr } from '@codegouvfr/react-dsfr'
+import { Toaster } from '../ui/Toaster'
 
 startReactDsfr({ defaultColorScheme: 'system', Link })
 declare module '@codegouvfr/react-dsfr/spa' {
@@ -32,6 +33,11 @@ createInertiaApp({
   },
 
   setup({ el, App, props }) {
-    hydrateRoot(el, <App {...props} />)
+    hydrateRoot(el, (
+      <>
+        <App {...props} />
+        <Toaster />
+      </>
+    ))
   },
 })
