@@ -43,7 +43,6 @@ export default function VisualisationMap({
   exploitations,
   selectedExploitation,
   onParcelleClick,
-  onParcelleMouseMove,
   onParcelleMouseLeave,
   onMarkerClick,
   onMarkerMouseEnter,
@@ -108,14 +107,7 @@ export default function VisualisationMap({
         }
       }
     },
-    [
-      onParcelleMouseMove,
-      editMode,
-      formParcelleIds,
-      millesime,
-      selectedExploitation,
-      unavailableParcelleIds,
-    ]
+    [unavailableParcelleIds]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -127,7 +119,7 @@ export default function VisualisationMap({
     parcellePopupRef.current.remove()
 
     onParcelleMouseLeave?.()
-  }, [onParcelleMouseLeave, editMode, formParcelleIds, millesime, selectedExploitation])
+  }, [onParcelleMouseLeave])
 
   const handleParcelleClick = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
@@ -233,7 +225,9 @@ export default function VisualisationMap({
           ) {
             setParcellesHighlight(
               mapRef.current,
-              exploitation.parcelles.map((p) => p.rpgId),
+              exploitation.parcelles
+                .filter((p) => p.year.toString() === millesime)
+                .map((p) => p.rpgId),
               true
             )
           }
@@ -252,7 +246,9 @@ export default function VisualisationMap({
           ) {
             setParcellesHighlight(
               mapRef.current,
-              exploitation.parcelles.map((p) => p.rpgId),
+              exploitation.parcelles
+                .filter((p) => p.year.toString() === millesime)
+                .map((p) => p.rpgId),
               false
             )
           }
@@ -280,7 +276,15 @@ export default function VisualisationMap({
 
       markersRef.current = []
     }
-  }, [exploitations, selectedExploitation, editMode])
+  }, [
+    exploitations,
+    selectedExploitation,
+    editMode,
+    millesime,
+    onMarkerClick,
+    onMarkerMouseEnter,
+    onMarkerMouseLeave,
+  ])
 
   // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
   useEffect(() => {
@@ -439,7 +443,10 @@ export default function VisualisationMap({
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {
-            router.reload({ only: ['queryString'], data: { millesime: e.target.value } })
+            router.reload({
+              only: ['queryString', 'filteredExploitations'],
+              data: { millesime: e.target.value },
+            })
           },
         }}
         options={[

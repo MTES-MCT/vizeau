@@ -6,7 +6,11 @@ export function setParcellesHighlight(
   highlighted: boolean = true
 ) {
   requestAnimationFrame(() => {
-    if (!map || !map?.getLayer('parcelles-fill') || !map?.getLayer('parcelles-outline')) {
+    if (
+      !map?.getSource('parcelles') ||
+      !map?.getLayer('parcelles-fill') ||
+      !map?.getLayer('parcelles-outline')
+    ) {
       return
     }
 
@@ -25,7 +29,11 @@ export function setParcellesUnavailability(
   unavailable: boolean = true
 ) {
   requestAnimationFrame(() => {
-    if (!map || !map?.getLayer('parcelles-fill') || !map?.getLayer('parcelles-outline')) {
+    if (
+      !map?.getSource('parcelles') ||
+      !map?.getLayer('parcelles-fill') ||
+      !map?.getLayer('parcelles-outline')
+    ) {
       return
     }
 

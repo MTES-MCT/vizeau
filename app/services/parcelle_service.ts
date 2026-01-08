@@ -78,7 +78,7 @@ export class ParcelleService {
   // Get the RPG IDs of parcelles assigned to other exploitations for the given year.
   // Maybe we'll find a better filter (by bounding box?) if this becomes a performance issue
   async getParcellesRpgIdsForOtherExploitations(
-    year: number,
+    year: number | string,
     exploitationId: string
   ): Promise<string[]> {
     const parcelles = await Parcelle.query()
