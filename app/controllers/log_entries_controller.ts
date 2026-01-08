@@ -10,16 +10,36 @@ import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/f
 import { LogEntryTagService } from '#services/log_entry_tag_service'
 import { createLogEntryTagValidator, deleteLogEntryTagValidator } from '#validators/log_entry_tag'
 import { errors } from '@adonisjs/auth'
+import { EventLoggerService } from '#services/event_logger_service'
+
+// Définition centralisée des noms d'événements pour ce contrôleur
+const EVENTS = {
+  CREATE_SUBMITTED: { name: 'log_entries_create', step: 'submitted' },
+  CREATE_CREATED: { name: 'log_entries_create', step: 'created' },
+  UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
+  UPDATE_UPDATED: { name: 'log_entries_update', step: 'updated' },
+  DELETED: { name: 'log_entries_deleted' },
+  TAG_CREATE_SUBMITTED: { name: 'log_entry_tags_create', step: 'submitted' },
+  TAG_CREATE_CREATED: { name: 'log_entry_tags_create', step: 'created' },
+  TAG_DELETED: { name: 'log_entry_tags_deleted' },
+}
 
 @inject()
 export default class LogEntriesController {
   constructor(
     public logEntryService: LogEntryService,
-    public logEntryTagService: LogEntryTagService
+    public logEntryTagService: LogEntryTagService,
+    public eventLogger: EventLoggerService
   ) {}
 
   async create({ auth, request, response, session, logger }: HttpContext) {
     const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.CREATE_SUBMITTED,
+      context: { payload: request.all() },
+    })
+
     const payload = await request.validateUsing(createLogEntryValidator)
 
     try {
@@ -29,6 +49,12 @@ export default class LogEntriesController {
         notes: payload.notes,
         tags: payload.tags,
       })
+
+      this.eventLogger.logEvent({
+        userId: user.id,
+        ...EVENTS.CREATE_CREATED,
+      })
+
       createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
     } catch (error) {
       logger.error('Error creating log entry:', error)
@@ -42,14 +68,25 @@ export default class LogEntriesController {
   }
 
   async edit({ auth, request, response, session, logger }: HttpContext) {
-    const { id, params, ...payload } = await request.validateUsing(updateLogEntryValidator)
     const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.UPDATE_SUBMITTED,
+      context: { payload: request.all() },
+    })
+    const { id, params, ...payload } = await request.validateUsing(updateLogEntryValidator)
 
     try {
       await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, {
         notes: payload.notes,
         tags: payload.tags,
       })
+
+      this.eventLogger.logEvent({
+        userId: user.id,
+        ...EVENTS.UPDATE_UPDATED,
+      })
+
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
     } catch (error) {
       logger.error('Error updating log entry:', error)
@@ -67,8 +104,13 @@ export default class LogEntriesController {
   }
 
   async destroy({ auth, request, response, session, logger }: HttpContext) {
-    const { id, params } = await request.validateUsing(destroyLogEntryValidator)
     const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.DELETED,
+      context: { payload: request.all() },
+    })
+    const { id, params } = await request.validateUsing(destroyLogEntryValidator)
 
     try {
       await this.logEntryService.deleteLogEntry(id, user.id, params.exploitationId)
@@ -90,6 +132,11 @@ export default class LogEntriesController {
 
   async createTagForExploitation({ auth, request, response, session, logger }: HttpContext) {
     const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.TAG_CREATE_SUBMITTED,
+      context: { payload: request.all() },
+    })
     const payload = await request.validateUsing(createLogEntryTagValidator)
 
     try {
@@ -98,6 +145,11 @@ export default class LogEntriesController {
         user.id,
         payload.name
       )
+
+      this.eventLogger.logEvent({
+        userId: user.id,
+        ...EVENTS.TAG_CREATE_CREATED,
+      })
     } catch (error) {
       logger.error('Error creating tag for exploitation:', error)
       createErrorFlashMessage(
@@ -109,9 +161,12 @@ export default class LogEntriesController {
   }
 
   async destroyTagForExploitation({ auth, request, response, session, logger }: HttpContext) {
-    const payload = await request.validateUsing(deleteLogEntryTagValidator)
-
     const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.TAG_DELETED,
+    })
+    const payload = await request.validateUsing(deleteLogEntryTagValidator)
 
     try {
       await this.logEntryTagService.deleteTag(payload.tagId, payload.params.exploitationId, user.id)
