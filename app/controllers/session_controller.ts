@@ -6,6 +6,12 @@ import { inject } from '@adonisjs/core'
 
 const redirectAfterLogin = '/accueil'
 
+// Définition centralisée des noms d'événements pour ce contrôleur
+const EVENTS = {
+  LOG_BACK: { name: 'session_log_back' },
+  LOGIN: { name: 'session_login' },
+}
+
 @inject()
 export default class SessionController {
   constructor(public eventLogger: EventLoggerService) {}
@@ -15,7 +21,7 @@ export default class SessionController {
     try {
       const user = await auth.use('web').authenticate()
 
-      this.eventLogger.logEvent({ userId: user.id, name: 'session_log_back' })
+      this.eventLogger.logEvent({ userId: user.id, ...EVENTS.LOG_BACK })
 
       return response.redirect(redirectAfterLogin)
     } catch (error) {
@@ -33,7 +39,7 @@ export default class SessionController {
     const { email, password } = request.only(['email', 'password'])
 
     const user = await User.verifyCredentials(email.toLowerCase(), password)
-    this.eventLogger.logEvent({ userId: user.id, name: 'session_login' })
+    this.eventLogger.logEvent({ userId: user.id, ...EVENTS.LOGIN })
     await auth.use('web').login(user, !!request.input('remember_me'))
 
     response.redirect(redirectAfterLogin)

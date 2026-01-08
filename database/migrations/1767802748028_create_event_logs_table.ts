@@ -15,6 +15,10 @@ export default class extends BaseSchema {
       table.integer('version').defaultTo(1)
 
       table.timestamp('created_at')
+
+      table.index(['created_at'])
+      table.index(['user_id', 'created_at'])
+      table.index(['name', 'created_at'])
     })
   }
 

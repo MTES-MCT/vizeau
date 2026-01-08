@@ -4,6 +4,11 @@ import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
 import { EventLoggerService } from '#services/event_logger_service'
 
+// Définition centralisée des noms d'événements pour ce contrôleur
+const EVENTS = {
+  PAGE_VIEW: { name: 'accueil_page_viewed' },
+}
+
 @inject()
 export default class AccueilController {
   constructor(
@@ -14,7 +19,7 @@ export default class AccueilController {
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
 
-    this.eventLogger.logEvent({ userId: user.id, name: 'accueil_page_viewed' })
+    this.eventLogger.logEvent({ userId: user.id, ...EVENTS.PAGE_VIEW })
 
     const latestExploitations = await this.exploitationService.queryLatestExploitations()
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)

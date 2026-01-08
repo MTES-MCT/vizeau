@@ -12,6 +12,18 @@ import { createLogEntryTagValidator, deleteLogEntryTagValidator } from '#validat
 import { errors } from '@adonisjs/auth'
 import { EventLoggerService } from '#services/event_logger_service'
 
+// Définition centralisée des noms d'événements pour ce contrôleur
+const EVENTS = {
+  CREATE_SUBMITTED: { name: 'log_entries_create', step: 'submitted' },
+  CREATE_CREATED: { name: 'log_entries_create', step: 'created' },
+  UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
+  UPDATE_UPDATED: { name: 'log_entries_update', step: 'updated' },
+  DELETED: { name: 'log_entries_deleted' },
+  TAG_CREATE_SUBMITTED: { name: 'log_entry_tags_create', step: 'submitted' },
+  TAG_CREATE_CREATED: { name: 'log_entry_tags_create', step: 'created' },
+  TAG_DELETED: { name: 'log_entry_tags_deleted' },
+}
+
 @inject()
 export default class LogEntriesController {
   constructor(
@@ -24,8 +36,7 @@ export default class LogEntriesController {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'log_entries_create',
-      step: 'submitted',
+      ...EVENTS.CREATE_SUBMITTED,
       context: { payload: request.all() },
     })
 
@@ -41,8 +52,7 @@ export default class LogEntriesController {
 
       this.eventLogger.logEvent({
         userId: user.id,
-        name: 'log_entries_create',
-        step: 'created',
+        ...EVENTS.CREATE_CREATED,
       })
 
       createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
@@ -61,8 +71,7 @@ export default class LogEntriesController {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'log_entries_update',
-      step: 'submitted',
+      ...EVENTS.UPDATE_SUBMITTED,
       context: { payload: request.all() },
     })
     const { id, params, ...payload } = await request.validateUsing(updateLogEntryValidator)
@@ -75,8 +84,7 @@ export default class LogEntriesController {
 
       this.eventLogger.logEvent({
         userId: user.id,
-        name: 'log_entries_update',
-        step: 'updated',
+        ...EVENTS.UPDATE_UPDATED,
       })
 
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
@@ -99,7 +107,7 @@ export default class LogEntriesController {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'log_entries_deleted',
+      ...EVENTS.DELETED,
       context: { payload: request.all() },
     })
     const { id, params } = await request.validateUsing(destroyLogEntryValidator)
@@ -126,8 +134,7 @@ export default class LogEntriesController {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'log_entry_tag_create',
-      step: 'submitted',
+      ...EVENTS.TAG_CREATE_SUBMITTED,
       context: { payload: request.all() },
     })
     const payload = await request.validateUsing(createLogEntryTagValidator)
@@ -141,8 +148,7 @@ export default class LogEntriesController {
 
       this.eventLogger.logEvent({
         userId: user.id,
-        name: 'log_entry_tag_create',
-        step: 'created',
+        ...EVENTS.TAG_CREATE_CREATED,
       })
     } catch (error) {
       logger.error('Error creating tag for exploitation:', error)
@@ -158,7 +164,7 @@ export default class LogEntriesController {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'log_entry_tag_deleted',
+      ...EVENTS.TAG_DELETED,
     })
     const payload = await request.validateUsing(deleteLogEntryTagValidator)
 

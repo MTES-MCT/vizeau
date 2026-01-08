@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasOne } from '@adonisjs/lucid/orm'
-import type { HasOne } from '@adonisjs/lucid/types/relations'
+import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 
 /*
@@ -28,8 +28,8 @@ export default class EventLog extends BaseModel {
   /*
     The ID of the user who performed the event. Null if the user is not logged in.
    */
-  @hasOne(() => User)
-  declare user: HasOne<typeof User> | null
+  @belongsTo(() => User)
+  declare user: BelongsTo<typeof User> | null
 
   @column()
   declare userId: string | null

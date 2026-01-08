@@ -5,6 +5,11 @@ import { ExploitationService } from '#services/exploitation_service'
 import env from '#start/env'
 import { EventLoggerService } from '#services/event_logger_service'
 
+// Définition centralisée des noms d'événements pour ce contrôleur
+const EVENTS = {
+  PAGE_VIEW: { name: 'visualisation_page_viewed' },
+}
+
 @inject()
 export default class VisualisationController {
   constructor(
@@ -17,7 +22,7 @@ export default class VisualisationController {
 
     this.eventLogger.logEvent({
       userId: user.id,
-      name: 'visualisation_page_viewed',
+      ...EVENTS.PAGE_VIEW,
       context: request.all(),
     })
 
