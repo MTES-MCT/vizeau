@@ -41,7 +41,7 @@ export default function VisualisationPage({
   )
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
-  const millesime = queryString?.millesime
+  const millesime = queryString?.millesime as string
 
   const { data, setData, post, reset, processing, transform, isDirty, setDefaults } =
     useForm<ParcelleFormData>({
@@ -51,7 +51,7 @@ export default function VisualisationPage({
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
     () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
-    [selectedExploitationId, filteredExploitations]
+    [selectedExploitationId, filteredExploitations, millesime]
   )
 
   const formParcelleIds = useMemo(
@@ -62,6 +62,7 @@ export default function VisualisationPage({
   // Prepare data before sending the form
   transform((data) => ({
     exploitationId: selectedExploitationId || null,
+    year: parseInt(millesime, 10),
     parcelles: data.parcelles,
   }))
 
@@ -161,7 +162,6 @@ export default function VisualisationPage({
         headerAdditionalContent={
           <div className="flex flex-1 items-center justify-end gap-4">
             {selectedExploitationId &&
-              millesime === '2024' &&
               (editMode ? (
                 <>
                   <Button
