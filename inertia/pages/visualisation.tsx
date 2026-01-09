@@ -35,6 +35,7 @@ export default function VisualisationPage({
   assignParcellesToExploitationUrl,
   unavailableParcellesIds,
 }: InferPageProps<VisualisationController, 'index'>) {
+  const [isMapLoading, setIsMapLoading] = useState(true)
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
     undefined
@@ -157,6 +158,7 @@ export default function VisualisationPage({
             queryString={queryString}
             selectedExploitation={selectedExploitation}
             setSelectedExploitationId={setSelectedExploitationId}
+            isMapLoading={isMapLoading}
           />
         }
         headerAdditionalContent={
@@ -236,6 +238,10 @@ export default function VisualisationPage({
           <VisualisationMap
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
+            isMapLoading={isMapLoading}
+            onMapLoaded={() => {
+              setIsMapLoading(false)
+            }}
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
             formParcelleIds={formParcelleIds}
