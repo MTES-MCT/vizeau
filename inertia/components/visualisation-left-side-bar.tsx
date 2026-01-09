@@ -14,12 +14,14 @@ export default function VisualisationLeftSideBar({
   handleSearch,
   selectedExploitation,
   setSelectedExploitationId,
+  isMapLoading,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
   setSelectedExploitationId: (exploitationId: string) => void
+  isMapLoading: boolean
 }) {
   return (
     <div>
@@ -54,7 +56,7 @@ export default function VisualisationLeftSideBar({
 
             <div className="flex flex-col gap-4">
               <VisualisationExploitationInfos exploitation={selectedExploitation} />
-              <AnalysesSection parcelles={[]} />{' '}
+              <AnalysesSection parcelles={[]} />
               {/* Renvoie un tableau vide le temps de disposer de cette information */}
             </div>
           </div>
@@ -78,8 +80,12 @@ export default function VisualisationLeftSideBar({
           </div>
           {exploitations.map((exploitation, index) => (
             <div
-              onClick={() => setSelectedExploitationId(exploitation.id)}
-              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                if (!isMapLoading) {
+                  setSelectedExploitationId(exploitation.id)
+                }
+              }}
+              style={{ cursor: !isMapLoading ? 'pointer' : 'progress' }}
               key={exploitation.id}
             >
               <ListItem
