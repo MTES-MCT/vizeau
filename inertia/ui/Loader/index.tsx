@@ -6,14 +6,18 @@ export type LoaderProps = {
 }
 
 export default function Loader({ size = 'md' }: LoaderProps) {
+  const spinnerSize = size === 'sm' ? '1.5rem' : size === 'lg' ? '5rem' : '3rem'
+
   return (
     <div
+      role="status"
+      aria-live="polite"
       className="spinner"
       style={{
-        width: size === 'sm' ? '1.5rem' : size === 'lg' ? '5rem' : '3rem',
-        height: size === 'sm' ? '1.5rem' : size === 'lg' ? '5rem' : '3rem',
+        width: spinnerSize,
+        height: spinnerSize,
         border: `5px solid ${fr.colors.decisions.text.label.blueFrance.default}`,
-        borderTop: '4px solid transparent',
+        borderTop: '5px solid transparent',
         borderRadius: '50%',
         animation: 'spin 1s linear infinite',
         margin: 'auto',
