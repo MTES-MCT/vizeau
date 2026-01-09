@@ -31,6 +31,15 @@ export type LogEntryJson = {
   tags?: LogEntryTagJson[] | null
 }
 
+export type ParcelleJson = {
+  id: string
+  year: number
+  rpgId: string
+  exploitationId: string | null
+  surface: number | null
+  cultureCode: string | null
+}
+
 export type ExploitationJson = {
   id: string
   name: string
@@ -48,6 +57,7 @@ export type ExploitationJson = {
   contacts?: ContactJson[] | null
   tags?: ExploitationTagJson[] | null
   logEntries?: LogEntryJson[] | null
+  parcelles?: ParcelleJson[] | null
 }
 
 export type PaginatedJson<T> = {

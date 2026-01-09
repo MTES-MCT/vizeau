@@ -28,6 +28,10 @@ router
 
     router.get('accueil', [AccueilController, 'index'])
     router.get('visualisation', [VisualisationController, 'index'])
+    router
+      .post('visualisation/parcelles', [VisualisationController, 'assignParcellesToExploitation'])
+      .as('visualisation.assignParcellesToExploitation')
+
     router.get('exploitations', [ExploitationsController, 'index']).as('exploitations.index')
     router
       .get('exploitations/creation', [ExploitationsController, 'create'])
