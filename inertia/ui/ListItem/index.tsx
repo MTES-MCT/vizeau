@@ -7,13 +7,15 @@ import TagsList, { TagsListProps } from '../TagsList'
 import { ReactNode } from 'react'
 
 export type ListItemProps = {
-  title: string | ReactNode
-  subtitle?: string
-  href?: string
+  variant?: 'default' | 'compact'
   priority?: 'primary' | 'secondary'
-  tags?: TagsListProps['tags'] | null
-  metas?: MetasListProps['metas'] | null
-  actions?: MoreButtonProps['actions'] | null
+  title?: ReactNode
+  subtitle?: ReactNode
+  iconId?: string
+  tags?: TagsListProps['tags']
+  metas?: MetasListProps['metas']
+  actions?: MoreButtonProps['actions']
+  href?: string
 }
 
 export default function ListItem({
@@ -24,16 +26,54 @@ export default function ListItem({
   actions,
   href,
   priority = 'primary',
+  variant = 'default',
+  iconId,
 }: ListItemProps) {
+
+  if (variant === 'compact') {
+
+    return (
+      <div
+      className="flex-col gap-1 w-full"
+      style={{
+          backgroundColor:
+            priority === 'primary'
+              ? fr.colors.decisions.background.default.grey.default
+              : fr.colors.decisions.background.alt.blueFrance.default,
+        }}
+      >
+        <div className="items-center flex gap-2">
+          <div className="flex flex-1 items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1">
+              {iconId && (
+                <span
+                  className={`${iconId} fr-icon--md`}
+                  aria-hidden="true"
+                  style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+                ></span>
+              )}
+              <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+            </div>
+            {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+          </div>
+
+          {actions && actions.length > 0 && <MoreButton actions={actions} />}
+        </div>
+
+        {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
+      </div>
+    )
+  }
+
+  // Default variant
   const Wrapper = href ? Link : 'div'
   const wrapperProps = href ? { href } : {}
 
   return (
     <Wrapper {...wrapperProps}>
       <div
-        className="flex-1 fr-p-2w flex flex-col gap-3"
+        className="fr-card fr-card--shadow flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{
-          border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
           backgroundColor:
             priority === 'primary'
               ? fr.colors.decisions.background.default.grey.default
