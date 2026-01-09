@@ -43,7 +43,7 @@ export default function Layout({
                 },
                 {
                   linkProps: { href: '/exploitations' },
-                  text: 'Exploitations',
+                  text: 'Exploitations agricoles',
                   isActive: pathname.startsWith('/exploitations'),
                 },
                 {

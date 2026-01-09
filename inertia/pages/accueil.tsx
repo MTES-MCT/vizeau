@@ -38,7 +38,7 @@ export default function Accueil({
                 className="fr-m-1w"
                 linkProps={{ href: '/exploitations/creation' }}
               >
-                Ajouter une exploitation
+                Ajouter une exploitation agricole
               </Button>
             </div>
           </div>
@@ -90,11 +90,11 @@ export default function Accueil({
       >
         <div className="fr-container">
           <div className="flex justify-between">
-            <h3>Dernières exploitations créées</h3>
+            <h3>Dernières exploitations agricoles créées</h3>
             {latestExploitations.length > 0 && (
               <div>
                 <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
-                  Consulter les exploitations
+                  Consulter les exploitations agricoles
                 </Button>
               </div>
             )}
