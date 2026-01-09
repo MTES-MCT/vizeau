@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import AccueilController from '#controllers/accueil_controller'
 import ExploitationsList from '~/components/exploitations/exploitations-list'
-import CompactListItem from '~/ui/CompactListItem'
+import ListItem from '~/ui/ListItem'
 
 import Layout from '~/ui/layouts/layout'
 import Timeline from '~/ui/Timeline'
@@ -55,9 +55,10 @@ export default function Accueil({
           <Timeline
             items={latestLogEntries.map((log) => ({
               content: (
-                <CompactListItem
+                <ListItem
+                  variant='compact'
                   key={log.id}
-                  label={
+                  title={
                     log.notes
                       ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
                       : 'Note sans contenu'
