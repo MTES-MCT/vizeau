@@ -5,12 +5,36 @@ const meta = {
   component: ListItem,
   tags: ['autodocs'],
   argTypes: {
-    variant: { control: 'radio', options: ['default', 'compact'] },
-    title: { control: 'text' },
-    subtitle: { control: 'object' },
-    href: { control: 'text' },
-    priority: { control: 'radio', options: ['primary', 'secondary'] },
-    iconId: { control: 'text' },
+    variant: {
+      control: 'radio',
+      options: ['default', 'compact'],
+      description: 'Variante d\'affichage du composant. Default: carte complète avec ombre, Compact: version condensée sans ombre'
+    },
+    title: {
+      control: 'text',
+      description: 'Titre principal de l\'élément (peut être un ReactNode)'
+    },
+    subtitle: {
+      control: 'object',
+      description: 'Sous-titre affiché sous le titre (peut être un ReactNode, non affiché en mode compact)'
+    },
+    href: {
+      control: 'text',
+      description: 'URL de destination si l\'élément est cliquable (mode default uniquement)'
+    },
+    priority: {
+      control: 'radio',
+      options: ['primary', 'secondary'],
+      description: 'Priorité visuelle affectant la couleur de fond. Primary: gris, Secondary: bleu France'
+    },
+    iconId: {
+      control: 'text',
+      description: 'Classe d\'icône DSFR à afficher (utilisé en mode compact uniquement)'
+    },
+    hasBorder: {
+      control: 'boolean',
+      description: 'Affiche ou masque la bordure (mode compact uniquement)',
+    },
     tags: {
       control: 'object',
       description: `Liste des tags à afficher.\n{
@@ -27,7 +51,7 @@ const meta = {
     },
     actions: {
       control: 'object',
-      description: `Liste des actions à afficher.\n{
+      description: `Liste des actions à afficher dans le menu contextuel.\n{
     label: string;
     onClick: () => void;
     iconId?: string;
@@ -132,5 +156,17 @@ export const CompactAvecLongLabel = {
     tags: [{ label: 'Tag 1' }],
     metas: [{ content: 'Meta 1', iconId: 'fr-icon-calendar-line' }],
     actions: [],
+  } as ListItemProps,
+}
+
+export const CompactAvecBordure = {
+  args: {
+    variant: 'compact' as const,
+    title: 'Compact List Item avec bordure',
+    iconId: 'fr-icon-user-line',
+    hasBorder: true,
+    tags: [{ label: 'Tag 1' }],
+    metas: [{ content: 'Meta 1', iconId: 'fr-icon-calendar-line' }],
+    actions: [{ label: 'Action 1', onClick: () => alert('Action 1') }],
   } as ListItemProps,
 }

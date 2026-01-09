@@ -16,6 +16,7 @@ export type ListItemProps = {
   metas?: MetasListProps['metas']
   actions?: MoreButtonProps['actions']
   href?: string
+  hasBorder?: boolean
 }
 
 export default function ListItem({
@@ -28,12 +29,14 @@ export default function ListItem({
   priority = 'primary',
   variant = 'default',
   iconId,
+  hasBorder = false,
 }: ListItemProps) {
   if (variant === 'compact') {
     return (
       <div
-        className="flex-col gap-1 w-full"
+        className={`flex flex-col gap-1 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
         style={{
+          border: hasBorder ? `1px solid ${fr.colors.decisions.border.default.grey.default}` : 'none',
           backgroundColor:
             priority === 'primary'
               ? fr.colors.decisions.background.default.grey.default
@@ -70,7 +73,7 @@ export default function ListItem({
   return (
     <Wrapper {...wrapperProps}>
       <div
-        className="fr-card fr-card--shadow flex-1 fr-p-2w flex flex-col gap-3 w-full"
+        className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{
           backgroundColor:
             priority === 'primary'
