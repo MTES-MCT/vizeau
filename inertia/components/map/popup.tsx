@@ -10,7 +10,7 @@ export default function Popup({ exploitation }: { exploitation: { name: string }
         backgroundColor: fr.colors.decisions.background.default.grey.default,
       }}
     >
-      <Divider label="Exploitation" />
+      <Divider label="Exploitation agricole" />
       <div
         className="flex fr-mt-2w fr-p-1w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}

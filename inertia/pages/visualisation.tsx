@@ -148,7 +148,7 @@ export default function VisualisationPage({
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
       <MapLayout
-        pageName="Exploitations"
+        pageName="Exploitations agricoles"
         leftContent={
           <VisualisationLeftSideBar
             exploitations={filteredExploitations}

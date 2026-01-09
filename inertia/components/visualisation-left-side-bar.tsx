@@ -27,7 +27,9 @@ export default function VisualisationLeftSideBar({
         <div className="fr-p-1w">
           <Breadcrumb
             currentPageLabel={selectedExploitation?.name}
-            segments={[{ label: 'Liste des exploitations', linkProps: { href: '/visualisation' } }]}
+            segments={[
+              { label: 'Liste des exploitations agricoles', linkProps: { href: '/visualisation' } },
+            ]}
             style={{ marginBottom: fr.spacing('2v') }}
             className="fr-m-1w"
           />
@@ -52,7 +54,8 @@ export default function VisualisationLeftSideBar({
 
             <div className="flex flex-col gap-4">
               <VisualisationExploitationInfos exploitation={selectedExploitation} />
-              <AnalysesSection parcelles={[]} /> {/* Renvoie un tableau vide le temps de disposer de cette information */}
+              <AnalysesSection parcelles={[]} />{' '}
+              {/* Renvoie un tableau vide le temps de disposer de cette information */}
             </div>
           </div>
         </div>
