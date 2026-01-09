@@ -8,28 +8,31 @@ const meta = {
     variant: {
       control: 'radio',
       options: ['default', 'compact'],
-      description: 'Variante d\'affichage du composant. Default: carte complète avec ombre, Compact: version condensée sans ombre'
+      description:
+        "Variante d'affichage du composant. Default: carte complète avec ombre, Compact: version condensée sans ombre",
     },
     title: {
       control: 'text',
-      description: 'Titre principal de l\'élément (peut être un ReactNode)'
+      description: "Titre principal de l'élément (peut être un ReactNode)",
     },
     subtitle: {
       control: 'object',
-      description: 'Sous-titre affiché sous le titre (peut être un ReactNode, non affiché en mode compact)'
+      description:
+        'Sous-titre affiché sous le titre (peut être un ReactNode, non affiché en mode compact)',
     },
     href: {
       control: 'text',
-      description: 'URL de destination si l\'élément est cliquable (mode default uniquement)'
+      description: "URL de destination si l'élément est cliquable (mode default uniquement)",
     },
     priority: {
       control: 'radio',
       options: ['primary', 'secondary'],
-      description: 'Priorité visuelle affectant la couleur de fond. Primary: gris, Secondary: bleu France'
+      description:
+        'Priorité visuelle affectant la couleur de fond. Primary: gris, Secondary: bleu France',
     },
     iconId: {
       control: 'text',
-      description: 'Classe d\'icône DSFR à afficher (utilisé en mode compact uniquement)'
+      description: "Classe d'icône DSFR à afficher (utilisé en mode compact uniquement)",
     },
     hasBorder: {
       control: 'boolean',

@@ -36,7 +36,9 @@ export default function ListItem({
       <div
         className={`flex flex-col gap-1 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
         style={{
-          border: hasBorder ? `1px solid ${fr.colors.decisions.border.default.grey.default}` : 'none',
+          border: hasBorder
+            ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
+            : 'none',
           backgroundColor:
             priority === 'primary'
               ? fr.colors.decisions.background.default.grey.default
