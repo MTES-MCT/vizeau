@@ -29,13 +29,11 @@ export default function ListItem({
   variant = 'default',
   iconId,
 }: ListItemProps) {
-
   if (variant === 'compact') {
-
     return (
       <div
-      className="flex-col gap-1 w-full"
-      style={{
+        className="flex-col gap-1 w-full"
+        style={{
           backgroundColor:
             priority === 'primary'
               ? fr.colors.decisions.background.default.grey.default

@@ -13,21 +13,21 @@ const meta = {
     iconId: { control: 'text' },
     tags: {
       control: 'object',
-        description: `Liste des tags à afficher.\n{
+      description: `Liste des tags à afficher.\n{
     label: string;
     iconId?: string;
   }`,
     },
     metas: {
       control: 'object',
-        description: `Liste des métadonnées à afficher.\n{
+      description: `Liste des métadonnées à afficher.\n{
     content: string;
     iconId?: string;
   }`,
     },
     actions: {
       control: 'object',
-        description: `Liste des actions à afficher.\n{
+      description: `Liste des actions à afficher.\n{
     label: string;
     onClick: () => void;
     iconId?: string;
@@ -126,7 +126,8 @@ export const CompactSansTags = {
 export const CompactAvecLongLabel = {
   args: {
     variant: 'compact' as const,
-    title: 'This is a very long label to test how the compact variant handles overflow and text wrapping in its layout',
+    title:
+      'This is a very long label to test how the compact variant handles overflow and text wrapping in its layout',
     iconId: 'fr-icon-user-line',
     tags: [{ label: 'Tag 1' }],
     metas: [{ content: 'Meta 1', iconId: 'fr-icon-calendar-line' }],
