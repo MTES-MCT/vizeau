@@ -16,18 +16,18 @@ function stringToColor(str: string) {
   return `hsl(${hue}, 80%, 85%)`
 }
 
-export default function CustomTag({ label, iconId, size, color, iconPath }: CustomTagProps) {
+export default function CustomTag({ label, iconId, iconPath, size, color }: CustomTagProps) {
   const backgroundColor = color || stringToColor(label || '')
   const textColor = color ? (tinycolor(color).isLight() ? '#000000' : '#ffffff') : '#3a3a3a'
 
   return (
     <Badge
-      className={`height-fit w-fit flex gap-2 fr-mb-0 items-center`}
+      className={`height-fit w-fit flex gap-1 fr-mb-0 items-center`}
       style={{ backgroundColor, color: textColor }}
       small={size === 'sm'}
     >
       {iconId && <span className={`${iconId} fr-icon--sm flex items-center`}></span>}
-      {iconPath && <img src={iconPath} alt="" height={16} width={16} style={{padding: '1px'}}/>}
+      {iconPath && <img src={iconPath} alt="" height={16} width={16} style={{ padding: '2px' }} />}
       {label}
     </Badge>
   )

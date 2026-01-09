@@ -50,14 +50,6 @@ export const TailleMD = {
   },
 }
 
-export const TailleMDAvecIcônePersonnalisée = {
-  args: {
-    size: 'md',
-    iconId: undefined,
-    iconPath: '/cultures-pictos/light/groupe-1.png',
-  },
-}
-
 export const SansLibellé = {
   args: {
     label: undefined,
