@@ -8,10 +8,22 @@ const meta = {
     size: { control: 'radio', options: ['sm', 'md', 'lg'] },
   },
   args: {
-    // Définir les args par défaut si nécessaire
+    size: 'md',
   } as LoaderProps,
 }
 
 export default meta
 
 export const Défaut = {}
+
+export const Petit = {
+  args: {
+    size: 'sm',
+  },
+}
+
+export const Grand = {
+  args: {
+    size: 'lg',
+  },
+}
