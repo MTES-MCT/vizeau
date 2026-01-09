@@ -25,6 +25,13 @@ export default meta
 
 export const Défaut = {}
 
+export const AvecIcônePersonnalisée = {
+  args: {
+    iconId: undefined,
+    iconPath: '/cultures-pictos/light/groupe-1.png',
+  },
+}
+
 export const AvecCouleurPersonnalisée = {
   args: {
     color: '#FFD700',
@@ -40,6 +47,14 @@ export const SansIcône = {
 export const TailleMD = {
   args: {
     size: 'md',
+  },
+}
+
+export const TailleMDAvecIcônePersonnalisée = {
+  args: {
+    size: 'md',
+    iconId: undefined,
+    iconPath: '/cultures-pictos/light/groupe-1.png',
   },
 }
 
