@@ -8,7 +8,7 @@ import { ExploitationJson } from '../../../types/models'
 import Popup from '~/components/map/popup'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 
-import { getCulturesGroup } from '~/functions/cultures-group'
+import { renderPopupParcelle } from './popup-parcelle'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
@@ -76,8 +76,9 @@ export default function VisualisationMap({
   const markersRef = useRef<maplibre.Marker[]>([])
   // The popup is created once and will be hidden/shown on demand, with its contents updated.
   const parcellePopupRef = useRef<maplibre.Popup>(
-    new maplibre.Popup({ closeButton: false, offset: 10 })
+    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
+  const currentParcelleIdRef = useRef<string | null>(null)
   const currentStyleRef = useRef<string>('vector')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
 
@@ -92,19 +93,32 @@ export default function VisualisationMap({
       // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
       const codeGroup = props?.code_group ?? props?.CODE_GROUP
       const surfParc = props?.surf_parc ?? props?.SURF_PARC
+      const id = props?.id_parcel ?? props?.ID_PARCEL
 
-      const popupContent = `
-          <div style="padding: 0.3em 0.5em">
-            <strong>Culture :</strong> ${getCulturesGroup(codeGroup).label}<br>
-            <strong>Surface :</strong> ${surfParc}<br>
-          </div>
-      `
+      // Mise à jour la popup uniquement si la parcelle change
+      if (currentParcelleIdRef.current !== id) {
+        const exploitation = exploitations.find((exp) => exp.parcelles?.some((p) => p.rpgId === id))
 
-      parcellePopupRef.current.setLngLat(e.lngLat).setHTML(popupContent).addTo(mapRef.current)
+        const popupContent = renderPopupParcelle(
+          exploitation ?? {},
+          codeGroup,
+          surfParc,
+          millesime,
+          exploitation !== undefined,
+          editMode,
+          exploitation?.id === selectedExploitation?.id
+        )
+
+        parcellePopupRef.current
+          .setLngLat(e.lngLat)
+          .setDOMContent(popupContent)
+          .addTo(mapRef.current)
+        currentParcelleIdRef.current = id
+      } else {
+        parcellePopupRef.current.setLngLat(e.lngLat)
+      }
 
       if (props) {
-        const id = props.id_parcel || props.ID_PARCEL
-
         if (unavailableParcelleIds.includes(id)) {
           mapRef.current.getCanvas().style.cursor = 'not-allowed'
         } else {
@@ -122,6 +136,7 @@ export default function VisualisationMap({
 
     mapRef.current.getCanvas().style.cursor = ''
     parcellePopupRef.current.remove()
+    currentParcelleIdRef.current = null
 
     onParcelleMouseLeave?.()
   }, [onParcelleMouseLeave])
@@ -204,7 +219,7 @@ export default function VisualisationMap({
           closeButton: false,
           closeOnClick: false,
           offset: 25,
-          className: 'custom-exploitation-popup',
+          className: 'custom-popup',
         })
 
         const marker = new maplibre.Marker({
@@ -433,12 +448,12 @@ export default function VisualisationMap({
   return (
     <div className="flex flex-col h-full w-full relative border">
       <style>{`
-        .custom-exploitation-popup .maplibregl-popup-content {
+        .custom-popup .maplibregl-popup-content {
           background-color: ${fr.colors.decisions.background.default.grey.default};
           padding: 1rem;
           border-radius: 8px;
         }
-        .custom-exploitation-popup .maplibregl-popup-tip {
+        .custom-popup .maplibregl-popup-tip {
           border-top-color: ${fr.colors.decisions.background.default.grey.default};
         }
       `}</style>
