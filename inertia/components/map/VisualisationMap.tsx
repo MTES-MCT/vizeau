@@ -219,6 +219,7 @@ export default function VisualisationMap({
           closeButton: false,
           closeOnClick: false,
           offset: 25,
+          maxWidth: 'none',
           className: 'custom-popup',
         })
 
