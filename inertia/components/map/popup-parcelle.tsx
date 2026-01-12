@@ -5,7 +5,7 @@ import GroupCulture from '~/components/groupe-culture-tag'
 import Divider from '~/ui/Divider'
 
 interface PopupParcelleProps {
-  exploitation?: { name: string }
+  exploitation?: { name?: string }
   codeGroup: string
   millesime: string
   surfParc: string
@@ -43,7 +43,11 @@ function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
 
   return (
     <div className="text-sm fr-mt-1w">
-      <span className={`${config.icon} fr-mr-1w`} style={{ color: config.color }} />
+      <span
+        className={`${config.icon} fr-mr-1w`}
+        aria-hidden="true"
+        style={{ color: config.color }}
+      />
       {config.text}
     </div>
   )
@@ -98,7 +102,7 @@ export default function PopupParcelle({
 
       {showAvailableStatus && <StatusBadge isAvailable />}
 
-      {hasExploitation && (
+      {hasExploitation && exploitation?.name && (
         <>
           <Divider label="Exploitation" />
           {showAttributedStatus && <StatusBadge isAvailable={false} />}
@@ -110,7 +114,7 @@ export default function PopupParcelle({
 }
 
 export function renderPopupParcelle(
-  exploitation: { name: string } | undefined,
+  exploitation: PopupParcelleProps['exploitation'],
   codeGroup: string,
   surfParc: string,
   millesime: string,
