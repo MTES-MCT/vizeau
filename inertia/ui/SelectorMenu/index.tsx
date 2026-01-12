@@ -1,19 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr'
-import DropdownItem, { DropdownAction } from '../InputWithSelector/dropdown-item'
+import { groupBy } from 'lodash-es'
+import DropdownItem from '../InputWithSelector/dropdown-item'
+import { OptionType } from '../InputWithSelector'
 
 export type SelectorMenuProps<T extends string | number> = {
-  options: {
-    value: T
-    label: string
-    isSelected: boolean
-    actions?: DropdownAction<T>[]
-  }[]
-  onOptionChange: (updatedOption: {
-    value: T
-    label: string
-    isSelected: boolean
-    actions?: DropdownAction<T>[]
-  }) => void
+  options: OptionType<T>[]
+  onOptionChange: (updatedOption: OptionType<T>) => void
 }
 
 export default function SelectorMenu<T extends string | number>({
@@ -29,6 +21,10 @@ export default function SelectorMenu<T extends string | number>({
     onOptionChange(updated)
   }
 
+  // Grouper les options
+  const optionsByGroup = groupBy(options, (opt) => opt.group || '')
+  const groupNames = Object.keys(optionsByGroup)
+
   return (
     <div
       className="absolute shadow-lg z-[9999]"
@@ -41,9 +37,24 @@ export default function SelectorMenu<T extends string | number>({
         width: 'fit-content',
       }}
     >
-      {options.map((opt) => {
-        return <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
-      })}
+      {groupNames.map((groupName) => (
+        <div key={groupName}>
+          {groupName && (
+            <div
+              className="fr-px-2v fr-py-1v font-bold text-sm"
+              style={{
+                background: fr.colors.decisions.background.actionHigh.blueFrance.default,
+                color: fr.colors.decisions.background.default.grey.default,
+              }}
+            >
+              {groupName}
+            </div>
+          )}
+          {optionsByGroup[groupName].map((opt) => (
+            <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
