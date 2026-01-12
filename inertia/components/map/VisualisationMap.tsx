@@ -5,7 +5,7 @@ import Select from '@codegouvfr/react-dsfr/SelectNext'
 import maplibre, { type LngLatLike } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
-import Popup from '~/components/map/popup'
+import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 
 import { renderPopupParcelle } from './popup-parcelle'
@@ -219,6 +219,7 @@ export default function VisualisationMap({
           closeButton: false,
           closeOnClick: false,
           offset: 25,
+          maxWidth: 'none',
           className: 'custom-popup',
         })
 
@@ -238,7 +239,7 @@ export default function VisualisationMap({
 
           const popupNode = document.createElement('div')
           const root = createRoot(popupNode)
-          root.render(<Popup exploitation={exploitation} />)
+          root.render(<PopupExploitation exploitation={exploitation} />)
           popup
             .setLngLat(coords as LngLatLike)
             .setDOMContent(popupNode)

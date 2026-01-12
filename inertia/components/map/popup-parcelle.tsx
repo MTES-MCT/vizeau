@@ -3,6 +3,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 
 import GroupCulture from '~/components/groupe-culture-tag'
 import Divider from '~/ui/Divider'
+import LabelInfo from '~/ui/LabelInfo'
 
 interface PopupParcelleProps {
   exploitation?: { name?: string }
@@ -12,20 +13,6 @@ interface PopupParcelleProps {
   isAttributed?: boolean
   isEditMode?: boolean
   isOwnParcelle?: boolean
-}
-
-const iconColor = fr.colors.decisions.artwork.major.blueEcume.default
-
-function ParcelleInfo({ label, icon, value }: { label: string; icon: string; value: string }) {
-  return (
-    <span className="text-sm">
-      <strong>
-        <span className={`fr-icon fr-icon--sm ${icon} fr-mr-1w`} style={{ color: iconColor }} />
-        {label} :
-      </strong>{' '}
-      {value}
-    </span>
-  )
 }
 
 function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
@@ -91,23 +78,24 @@ export default function PopupParcelle({
     >
       <GroupCulture code_group={codeGroup} size="sm" />
 
-      <div className="flex flex-col gap-3 fr-p-1w">
-        <ParcelleInfo
+      <div className="flex flex-col gap-1 fr-mt-1w">
+        <LabelInfo
           label="Surface"
           icon="fr-icon-ruler-line"
-          value={`${parseFloat(surfParc).toFixed(2)} Ha`}
+          size="sm"
+          info={`${parseFloat(surfParc).toFixed(2)} Ha`}
         />
-        <ParcelleInfo label="Millésime" icon="fr-icon-calendar-line" value={millesime} />
+        <LabelInfo label="Millésime" icon="fr-icon-calendar-line" size="sm" info={millesime} />
       </div>
 
       {showAvailableStatus && <StatusBadge isAvailable />}
 
       {hasExploitation && exploitation?.name && (
-        <>
+        <div className="fr-mt-2w">
           <Divider label="Exploitation" />
           {showAttributedStatus && <StatusBadge isAvailable={false} />}
           <ExploitationInfo name={exploitation.name} />
-        </>
+        </div>
       )}
     </div>
   )
