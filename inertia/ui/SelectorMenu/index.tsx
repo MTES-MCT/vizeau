@@ -37,24 +37,28 @@ export default function SelectorMenu<T extends string | number>({
         width: '100%',
       }}
     >
-      {groupNames.map((groupName) => (
-        <div key={groupName}>
-          {groupName && (
-            <div
-              className="fr-px-2v fr-py-1v font-bold text-sm"
-              style={{
-                background: fr.colors.decisions.background.actionHigh.blueFrance.default,
-                color: fr.colors.decisions.background.default.grey.default,
-              }}
-            >
-              {groupName}
-            </div>
-          )}
-          {optionsByGroup[groupName].map((opt) => (
-            <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
-          ))}
-        </div>
-      ))}
+      {groupNames &&
+        groupNames.map((groupName) => (
+          <div key={groupName}>
+            {groupName && (
+              <div
+                className="fr-px-2v fr-py-1v font-bold text-sm"
+                style={{
+                  background: fr.colors.decisions.background.actionHigh.blueFrance.default,
+                  color: fr.colors.decisions.background.default.grey.default,
+                }}
+                role="group"
+                aria-labelledby={groupName}
+              >
+                {groupName}
+              </div>
+            )}
+
+            {optionsByGroup[groupName].map((opt) => (
+              <DropdownItem key={opt.value} item={opt} onToggle={handleToggle} />
+            ))}
+          </div>
+        ))}
     </div>
   )
 }
