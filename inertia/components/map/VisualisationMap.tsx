@@ -18,6 +18,7 @@ import { router, usePage } from '@inertiajs/react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import VisualisationController from '#controllers/visualisation_controller'
 import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
+import Loader from '~/ui/Loader'
 
 export type GeoPoint = {
   type: 'Point'
@@ -42,6 +43,8 @@ const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 export default function VisualisationMap({
   exploitations,
   selectedExploitation,
+  isMapLoading,
+  setIsMapLoading,
   onParcelleClick,
   onParcelleMouseLeave,
   onMarkerClick,
@@ -54,6 +57,8 @@ export default function VisualisationMap({
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
+  isMapLoading: boolean
+  setIsMapLoading: (isMapLoading: boolean) => void
   onParcelleClick?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
@@ -169,6 +174,13 @@ export default function VisualisationMap({
           map.addLayer(layer, beforeId)
         }
       })
+
+      setIsMapLoading(false)
+    })
+
+    // Ensures the map is not blocked in loading state after any loading event
+    map.on('idle', () => {
+      setIsMapLoading(false)
     })
 
     mapRef.current = map
@@ -395,18 +407,26 @@ export default function VisualisationMap({
         .map((parcelle) => parcelle.rpgId)
     }
 
-    setParcellesHighlight(mapRef.current, parcelleIds, true)
+    if (parcelleIds.length > 0) {
+      setParcellesHighlight(mapRef.current, parcelleIds, true)
+    }
 
     return () => {
-      setParcellesHighlight(mapRef.current, parcelleIds, false)
+      if (parcelleIds.length > 0) {
+        setParcellesHighlight(mapRef.current, parcelleIds, false)
+      }
     }
   }, [editMode, formParcelleIds, selectedExploitation, style, millesime])
 
   // Manage unavailable parcelles highlighting
   useEffect(() => {
-    setParcellesUnavailability(mapRef.current, unavailableParcelleIds, true)
+    if (unavailableParcelleIds.length > 0) {
+      setParcellesUnavailability(mapRef.current, unavailableParcelleIds, true)
+    }
     return () => {
-      setParcellesUnavailability(mapRef.current, unavailableParcelleIds, false)
+      if (unavailableParcelleIds.length > 0) {
+        setParcellesUnavailability(mapRef.current, unavailableParcelleIds, false)
+      }
     }
   }, [unavailableParcelleIds, style, millesime])
 
@@ -422,6 +442,16 @@ export default function VisualisationMap({
           border-top-color: ${fr.colors.decisions.background.default.grey.default};
         }
       `}</style>
+      {isMapLoading && (
+        <div
+          className="flex h-full w-full z-10 absolute items-center justify-center"
+          style={{
+            background: 'rgba(255,255,255,0.8)',
+          }}
+        >
+          <Loader size="lg" />
+        </div>
+      )}
       <div ref={mapContainerRef} className="flex h-full w-full" />
       <Select
         label=""
@@ -443,6 +473,10 @@ export default function VisualisationMap({
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {
+            // Reload the page with the new millesime
+            // This operation can take some time on slow connections, so we set the map in loading state
+            // It will be unset when the map 'idle' event is fired
+            setIsMapLoading(true)
             router.reload({
               only: ['queryString', 'filteredExploitations'],
               data: { millesime: e.target.value },
