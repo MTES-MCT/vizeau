@@ -71,7 +71,7 @@ export default function VisualisationMap({
   const markersRef = useRef<maplibre.Marker[]>([])
   // The popup is created once and will be hidden/shown on demand, with its contents updated.
   const parcellePopupRef = useRef<maplibre.Popup>(
-    new maplibre.Popup({ closeButton: false, offset: 10 })
+    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-exploitation-popup' })
   )
   const currentParcelleIdRef = useRef<string | null>(null)
   const currentStyleRef = useRef<string>('vector')
