@@ -239,9 +239,7 @@ export default function VisualisationPage({
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
             isMapLoading={isMapLoading}
-            onMapLoaded={() => {
-              setIsMapLoading(false)
-            }}
+            setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
             formParcelleIds={formParcelleIds}

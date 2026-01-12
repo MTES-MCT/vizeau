@@ -44,7 +44,7 @@ export default function VisualisationMap({
   exploitations,
   selectedExploitation,
   isMapLoading,
-  onMapLoaded,
+  setIsMapLoading,
   onParcelleClick,
   onParcelleMouseLeave,
   onMarkerClick,
@@ -58,7 +58,7 @@ export default function VisualisationMap({
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
   isMapLoading: boolean
-  onMapLoaded?: () => void
+  setIsMapLoading: (isMapLoading: boolean) => void
   onParcelleClick?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
@@ -175,7 +175,12 @@ export default function VisualisationMap({
         }
       })
 
-      onMapLoaded?.()
+      setIsMapLoading(false)
+    })
+
+    // Ensures the map is not blocked in loading state after any loading event
+    map.on('idle', () => {
+      setIsMapLoading(false)
     })
 
     mapRef.current = map
@@ -468,6 +473,10 @@ export default function VisualisationMap({
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {
+            // Reload the page with the new millesime
+            // This operation can take some time on slow connections, so we set the map in loading state
+            // It will be unset when the map 'idle' event is fired
+            setIsMapLoading(true)
             router.reload({
               only: ['queryString', 'filteredExploitations'],
               data: { millesime: e.target.value },
