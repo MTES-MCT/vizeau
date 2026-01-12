@@ -71,7 +71,7 @@ export default function VisualisationMap({
   const markersRef = useRef<maplibre.Marker[]>([])
   // The popup is created once and will be hidden/shown on demand, with its contents updated.
   const parcellePopupRef = useRef<maplibre.Popup>(
-    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-exploitation-popup' })
+    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
   const currentParcelleIdRef = useRef<string | null>(null)
   const currentStyleRef = useRef<string>('vector')
@@ -207,7 +207,7 @@ export default function VisualisationMap({
           closeButton: false,
           closeOnClick: false,
           offset: 25,
-          className: 'custom-exploitation-popup',
+          className: 'custom-popup',
         })
 
         const marker = new maplibre.Marker({
@@ -428,12 +428,12 @@ export default function VisualisationMap({
   return (
     <div className="flex flex-col h-full w-full relative border">
       <style>{`
-        .custom-exploitation-popup .maplibregl-popup-content {
+        .custom-popup .maplibregl-popup-content {
           background-color: ${fr.colors.decisions.background.default.grey.default};
           padding: 1rem;
           border-radius: 8px;
         }
-        .custom-exploitation-popup .maplibregl-popup-tip {
+        .custom-popup .maplibregl-popup-tip {
           border-top-color: ${fr.colors.decisions.background.default.grey.default};
         }
       `}</style>
