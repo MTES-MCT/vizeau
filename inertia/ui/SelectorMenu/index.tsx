@@ -34,7 +34,7 @@ export default function SelectorMenu<T extends string | number>({
         right: 0,
         background: fr.colors.decisions.background.default.grey.default,
         overflowY: 'auto',
-        width: 'fit-content',
+        width: '100%',
       }}
     >
       {groupNames.map((groupName) => (
