@@ -46,6 +46,14 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
+      - name: Verify package-lock.json is up to date
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          git diff --exit-code package-lock.json || {
+            echo "❌ package-lock.json and package.json are out of sync!"
+            echo "ℹ️ Run 'npm install' and commit the updated package-lock.json"
+            exit 1
+          }
 
   build:
     runs-on: ubuntu-latest
