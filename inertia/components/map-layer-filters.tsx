@@ -6,7 +6,6 @@ export default function MapLayerFilters() {
     <div className="flex flex-col gap-1">
       <Checkbox
         className="fr-mb-0"
-        disabled
         small
         options={[
           {
@@ -26,7 +25,6 @@ export default function MapLayerFilters() {
 
       <Checkbox
         className="fr-mb-0"
-        disabled
         small
         options={[
           {
@@ -45,7 +43,6 @@ export default function MapLayerFilters() {
       />
       <Checkbox
         className="fr-mb-0"
-        disabled
         small
         options={[
           {
@@ -64,7 +61,6 @@ export default function MapLayerFilters() {
 
       <Checkbox
         className="fr-mb-0"
-        disabled
         small
         options={[
           {
@@ -83,7 +79,6 @@ export default function MapLayerFilters() {
 
       <Checkbox
         small
-        disabled
         className="fr-mb-0"
         options={[
           {
