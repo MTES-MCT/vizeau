@@ -64,3 +64,21 @@ export const SansFermetureAutomatique = () => {
     </div>
   )
 }
+
+export const AvecUnSeulMessage = () => {
+  const notify = () => {
+    toast(
+      <Toast
+        alerts={[{ severity: 'info', message: "Ceci est une alerte d'information unique." }]}
+      />,
+      { containerId: 'un-seul-message' }
+    )
+  }
+
+  return (
+    <div>
+      <Button onClick={notify}>Afficher le Toaster</Button>
+      <Toaster containerId="un-seul-message" />
+    </div>
+  )
+}
