@@ -55,6 +55,10 @@ router
       .as('exploitations.destroy')
 
     router
+      .get('exploitations/:exploitationId/journal', [LogEntriesController, 'index'])
+      .as('log_entries.index')
+
+    router
       .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
       .as('log_entries.create')
     router

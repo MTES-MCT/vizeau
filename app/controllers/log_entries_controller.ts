@@ -11,6 +11,9 @@ import { LogEntryTagService } from '#services/log_entry_tag_service'
 import { createLogEntryTagValidator, deleteLogEntryTagValidator } from '#validators/log_entry_tag'
 import { errors } from '@adonisjs/auth'
 import { EventLoggerService } from '#services/event_logger_service'
+import Exploitation from '#models/exploitation'
+import router from '@adonisjs/core/services/router'
+import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -31,6 +34,43 @@ export default class LogEntriesController {
     public logEntryTagService: LogEntryTagService,
     public eventLogger: EventLoggerService
   ) {}
+
+  async index({ request, inertia }: HttpContext) {
+    const exploitationId = request.param('exploitationId')
+    const exploitation = await Exploitation.findOrFail(exploitationId)
+
+    return inertia.render('tache/creation', {
+      exploitation: exploitation,
+      filteredLogEntryTags: async () => {
+        const tags = await this.logEntryTagService.getTagsForExploitation(
+          exploitationId,
+          request.qs().tagSearch,
+          5
+        )
+
+        return LogEntryTagDto.fromArray(tags)
+      },
+      lastCreatedLogEntryTag: inertia.optional(async () => {
+        const tags = await this.logEntryTagService.getTagsForExploitation(exploitationId, undefined, 1)
+
+        return LogEntryTagDto.fromArray(tags)
+      }),
+      existingLogEntryTags: inertia.optional(async () => {
+        const tags = await this.logEntryTagService.getTagsForLogEntry(request.qs().logEntryId)
+
+        return LogEntryTagDto.fromArray(tags)
+      }),
+      createTagForExploitationUrl: router
+        .builder()
+        .params([exploitationId])
+        .make('log_entries.createTagForExploitation'),
+      deleteTagForExploitationUrl: router
+        .builder()
+        .params([exploitationId])
+        .make('log_entries.destroyTagForExploitation'),
+      createEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.create'),
+    })
+  }
 
   async create({ auth, request, response, session, logger }: HttpContext) {
     const user = auth.getUserOrFail()
