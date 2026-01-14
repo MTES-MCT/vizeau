@@ -10,7 +10,8 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: "Composant Toaster pour afficher des notifications temporaires à l'utilisateur. Le composant Toast reçoit automatiquement une fonction `closeToast` de react-toastify qui permet de fermer le toast programmatiquement. Utilisez cette fonction pour fermer le toast lorsque toutes les alertes sont fermées.\n\n**Important:** Dans l'application, un Toaster sans `containerId` est monté au niveau racine. Pour afficher des toasts dans ce conteneur par défaut, appelez `toast()` **sans** l'option `containerId`. Les exemples ci-dessous utilisent des `containerId` explicites pour isoler les toasts dans Storybook.",
+        component:
+          "Composant Toaster pour afficher des notifications temporaires à l'utilisateur. Le composant Toast reçoit automatiquement une fonction `closeToast` de react-toastify qui permet de fermer le toast programmatiquement. Utilisez cette fonction pour fermer le toast lorsque toutes les alertes sont fermées.\n\n**Important:** Dans l'application, un Toaster sans `containerId` est monté au niveau racine. Pour afficher des toasts dans ce conteneur par défaut, appelez `toast()` **sans** l'option `containerId`. Les exemples ci-dessous utilisent des `containerId` explicites pour isoler les toasts dans Storybook.",
       },
       story: {
         inline: false,
@@ -26,9 +27,7 @@ export const SansContainerId = () => {
   const notify = () => {
     toast(
       <Toast
-        alerts={[
-          { severity: 'success', message: 'Toast sans containerId pour le Toaster racine' },
-        ]}
+        alerts={[{ severity: 'success', message: 'Toast sans containerId pour le Toaster racine' }]}
       />
       // Pas de containerId ici - s'affichera dans le Toaster sans containerId
     )
@@ -45,7 +44,8 @@ export const SansContainerId = () => {
 SansContainerId.parameters = {
   docs: {
     description: {
-      story: "Exemple d'utilisation recommandée pour le Toaster racine de l'application. Appelez `toast()` sans l'option `containerId` pour afficher le toast dans le conteneur par défaut.",
+      story:
+        "Exemple d'utilisation recommandée pour le Toaster racine de l'application. Appelez `toast()` sans l'option `containerId` pour afficher le toast dans le conteneur par défaut.",
     },
   },
 }
@@ -75,7 +75,8 @@ export const Défaut = () => {
 Défaut.parameters = {
   docs: {
     description: {
-      story: "Exemple avec un `containerId` explicite. Utile pour gérer plusieurs conteneurs de toasts indépendants.",
+      story:
+        'Exemple avec un `containerId` explicite. Utile pour gérer plusieurs conteneurs de toasts indépendants.',
     },
   },
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import uniqBy from 'lodash-es/uniqBy'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
-import { ToastContainer, Slide} from 'react-toastify'
+import { ToastContainer, Slide } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export type ToastProps = {
