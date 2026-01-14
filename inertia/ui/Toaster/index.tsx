@@ -4,11 +4,11 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { ToastContainer, Slide, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-export type ToasterProps = {
+export type ToastProps = {
   alerts: { severity: 'info' | 'success' | 'error' | 'warning'; message: string }[]
 }
 
-export default function Toast({ alerts }: ToasterProps) {
+export default function Toast({ alerts }: ToastProps) {
   const uniqueAlert = uniqBy(alerts, 'message')
   const [updatedAlertsList, setUpdatedAlertsList] = useState(uniqueAlert)
 
