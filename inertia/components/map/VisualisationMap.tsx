@@ -7,6 +7,16 @@ import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
+import {
+  getCommunesSource,
+  getCommunesLayer,
+  getAacSource,
+  getAacLayer,
+  getPpeSource,
+  getPpeLayer,
+  getPprSource,
+  getPprLayer,
+} from './styles/zonage'
 
 import { renderPopupParcelle } from './popup-parcelle'
 
@@ -54,6 +64,11 @@ export default function VisualisationMap({
   unavailableParcelleIds = [],
   millesime,
   editMode = false,
+  showParcelles = true,
+  showAac = true,
+  showPpe = false,
+  showPpr = false,
+  showCommunes = false,
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
@@ -69,6 +84,11 @@ export default function VisualisationMap({
   unavailableParcelleIds?: string[]
   millesime: string
   editMode?: boolean
+  showParcelles?: boolean
+  showAac?: boolean
+  showPpe?: boolean
+  showPpr?: boolean
+  showCommunes?: boolean
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -181,14 +201,37 @@ export default function VisualisationMap({
         map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
       }
 
-      const parcellesLayers = getParcellesLayers()
-      parcellesLayers.forEach((layer) => {
-        if (!map.getLayer(layer.id)) {
-          const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+      if (!map.getSource('communes')) {
+        map.addSource('communes', getCommunesSource({ pmtilesUrl }))
+      }
 
-          map.addLayer(layer, beforeId)
-        }
-      })
+      if (!map.getSource('aac')) {
+        map.addSource('aac', getAacSource({ pmtilesUrl }))
+      }
+
+      if (!map.getSource('ppe')) {
+        map.addSource('ppe', getPpeSource({ pmtilesUrl }))
+      }
+
+      if (!map.getSource('ppr')) {
+        map.addSource('ppr', getPprSource({ pmtilesUrl }))
+      }
+
+      const addLayers = (layers: Array<{ id: string; [key: string]: any }>, beforeId?: string) => {
+        layers.forEach((layer) => {
+          if (!map.getLayer(layer.id)) {
+            map.addLayer(layer as maplibre.AddLayerObject, beforeId)
+          }
+        })
+      }
+
+      const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+
+      addLayers(getPprLayer(), beforeId)
+      addLayers(getPpeLayer(), beforeId)
+      addLayers(getAacLayer(), beforeId)
+      addLayers(getCommunesLayer(), beforeId)
+      addLayers(getParcellesLayers(), beforeId)
 
       setIsMapLoading(false)
     })
@@ -366,10 +409,58 @@ export default function VisualisationMap({
           map.addLayer(layer, beforeId)
         }
       })
+
+      const addSourceIfMissing = (sourceId: string, sourceConfig: any) => {
+        if (!map.getSource(sourceId)) {
+          map.addSource(sourceId, sourceConfig)
+        }
+      }
+
+      // Fonction helper pour ajouter des layers
+      const addLayersIfMissing = (layers: Array<{ id: string; [key: string]: any }>) => {
+        layers.forEach((layer) => {
+          if (!map.getLayer(layer.id)) {
+            map.addLayer(layer as maplibre.AddLayerObject)
+          }
+        })
+      }
+
+      // Fonction helper pour définir la visibilité des layers
+      const setLayerVisibility = (layerIds: string[], visible: boolean) => {
+        const visibility = visible ? 'visible' : 'none'
+        layerIds.forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setLayoutProperty(layerId, 'visibility', visibility)
+          }
+        })
+      }
+
+      addSourceIfMissing('communes', getCommunesSource({ pmtilesUrl }))
+      addSourceIfMissing('aac', getAacSource({ pmtilesUrl }))
+      addSourceIfMissing('ppe', getPpeSource({ pmtilesUrl }))
+      addSourceIfMissing('ppr', getPprSource({ pmtilesUrl }))
+
+      addLayersIfMissing(getPprLayer())
+      addLayersIfMissing(getPpeLayer())
+      addLayersIfMissing(getAacLayer())
+      addLayersIfMissing(getCommunesLayer())
+
+      // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
+      const layerVisibilityConfig = [
+        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
+        { layers: ['aac-fill', 'aac-outline'], visible: showAac },
+        { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
+        { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
+        { layers: ['communes-outline'], visible: showCommunes },
+      ]
+
+      layerVisibilityConfig.forEach(({ layers, visible }) => {
+        setLayerVisibility(layers, visible)
+      })
     })
 
     currentStyleRef.current = style
-  }, [style])
+  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
 
   // Mise à jour du millésime des parcelles
   useEffect(() => {
@@ -446,6 +537,31 @@ export default function VisualisationMap({
     }
   }, [unavailableParcelleIds, style, millesime])
 
+  // Gestion de la visibilité des layers selon les états des checkboxes
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    const map = mapRef.current
+
+    // Configuration des layers avec leurs états de visibilité
+    const layerVisibility = [
+      { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
+      { layers: ['aac-fill', 'aac-outline'], visible: showAac },
+      { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
+      { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
+      { layers: ['communes-outline'], visible: showCommunes },
+    ]
+
+    // Application de la visibilité pour chaque groupe de layers
+    layerVisibility.forEach(({ layers, visible }) => {
+      layers.forEach((layerId) => {
+        if (map.getLayer(layerId)) {
+          map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
+        }
+      })
+    })
+  }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
+
   return (
     <div className="flex flex-col h-full w-full relative border">
       <style>{`
@@ -453,6 +569,7 @@ export default function VisualisationMap({
           background-color: ${fr.colors.decisions.background.default.grey.default};
           padding: 1rem;
           border-radius: 8px;
+          opacity: 0.95;
         }
         .custom-popup .maplibregl-popup-tip {
           border-top-color: ${fr.colors.decisions.background.default.grey.default};

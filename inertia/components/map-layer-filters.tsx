@@ -1,7 +1,31 @@
+import { Dispatch, SetStateAction } from 'react'
+
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip'
 
-export default function MapLayerFilters() {
+export default function MapLayerFilters({
+  showParcelles = true,
+  showAac = true,
+  showPpe = false,
+  showPpr = false,
+  showCommunes = false,
+  setShowParcelles = () => {},
+  setShowAac = () => {},
+  setShowPpe = () => {},
+  setShowPpr = () => {},
+  setShowCommunes = () => {},
+}: {
+  showParcelles?: boolean
+  showAac?: boolean
+  showPpe?: boolean
+  showPpr?: boolean
+  showCommunes?: boolean
+  setShowParcelles?: Dispatch<SetStateAction<boolean>>
+  setShowAac?: Dispatch<SetStateAction<boolean>>
+  setShowPpe?: Dispatch<SetStateAction<boolean>>
+  setShowPpr?: Dispatch<SetStateAction<boolean>>
+  setShowCommunes?: Dispatch<SetStateAction<boolean>>
+}) {
   return (
     <div className="flex flex-col gap-1">
       <Checkbox
@@ -18,6 +42,8 @@ export default function MapLayerFilters() {
             nativeInputProps: {
               name: 'parcelles',
               value: 'parcelles',
+              checked: showParcelles,
+              onChange: () => setShowParcelles((prev) => !prev)
             },
           },
         ]}
@@ -37,6 +63,8 @@ export default function MapLayerFilters() {
             nativeInputProps: {
               name: 'aac',
               value: 'aac',
+              checked: showAac,
+              onChange: () => setShowAac((prev) => !prev)
             },
           },
         ]}
@@ -54,6 +82,8 @@ export default function MapLayerFilters() {
             nativeInputProps: {
               name: 'ppe',
               value: 'ppe',
+              checked: showPpe,
+              onChange: () => setShowPpe((prev) => !prev)
             },
           },
         ]}
@@ -72,6 +102,8 @@ export default function MapLayerFilters() {
             nativeInputProps: {
               name: 'ppr',
               value: 'ppr',
+              checked: showPpr,
+              onChange: () => setShowPpr((prev) => !prev)
             },
           },
         ]}
@@ -90,6 +122,8 @@ export default function MapLayerFilters() {
             nativeInputProps: {
               name: 'communes',
               value: 'communes',
+              checked: showCommunes,
+              onChange: () => setShowCommunes((prev) => !prev)
             },
           },
         ]}
