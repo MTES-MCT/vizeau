@@ -1,28 +1,29 @@
 import { useState } from 'react'
 import uniqBy from 'lodash-es/uniqBy'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
-import { ToastContainer, Slide, toast } from 'react-toastify'
+import { ToastContainer, Slide} from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export type ToastProps = {
   alerts: { severity: 'info' | 'success' | 'error' | 'warning'; message: string }[]
+  closeToast?: () => void
 }
 
-export default function Toast({ alerts }: ToastProps) {
+export default function Toast({ alerts, closeToast }: ToastProps) {
   const uniqueAlert = uniqBy(alerts, 'message')
   const [updatedAlertsList, setUpdatedAlertsList] = useState(uniqueAlert)
 
   const handleAlertClose = (message: string) => {
     const filteredAlerts = updatedAlertsList.filter((alert) => alert.message !== message)
     setUpdatedAlertsList(filteredAlerts)
-    if (filteredAlerts.length === 0) {
-      toast.dismiss()
+    if (filteredAlerts.length === 0 && closeToast) {
+      closeToast()
     }
   }
 
   return (
     <div className="fr-pt-2w w-full">
-      {uniqueAlert.map(({ severity, message }) => (
+      {updatedAlertsList.map(({ severity, message }) => (
         <Alert
           key={message}
           severity={severity}
