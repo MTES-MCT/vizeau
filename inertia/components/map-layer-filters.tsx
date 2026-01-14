@@ -9,11 +9,11 @@ export default function MapLayerFilters({
   showPpe = false,
   showPpr = false,
   showCommunes = false,
-  setShowParcelles = () => {},
-  setShowAac = () => {},
-  setShowPpe = () => {},
-  setShowPpr = () => {},
-  setShowCommunes = () => {},
+  setShowParcelles = (_update) => {},
+  setShowAac = (_update) => {},
+  setShowPpe = (_update) => {},
+  setShowPpr = (_update) => {},
+  setShowCommunes = (_update) => {},
 }: {
   showParcelles?: boolean
   showAac?: boolean

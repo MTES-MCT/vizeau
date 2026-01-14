@@ -8,11 +8,11 @@ export default function VisualisationRightSideBar({
   showPpe = false,
   showPpr = false,
   showCommunes = false,
-  setShowParcelles = () => {},
-  setShowAac = () => {},
-  setShowPpe = () => {},
-  setShowPpr = () => {},
-  setShowCommunes = () => {},
+  setShowParcelles = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowAac = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowPpe = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowPpr = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
 }) {
   return (
     <div className="flex flex-col gap-2 fr-p-1w">
