@@ -52,24 +52,28 @@ const AdditionnalInfos = ({
   }
 
   return (
-    <div className='flex flex-wrap items-center gap-4'>
+    <div className="flex flex-wrap items-center gap-4">
       {(iconId || message) && (
-        <div className='flex items-center gap-1' style={{ color: fr.colors.decisions.text.label.blueFrance.default }}>
-          {iconId && <span className={`${iconId} fr-icon--sm`} aria-hidden="true"/>}
+        <div
+          className="flex items-center gap-1"
+          style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+        >
+          {iconId && <span className={`${iconId} fr-icon--sm`} aria-hidden="true" />}
           {message && <span className="fr-text--sm fr-mb-0"> {message}</span>}
         </div>
       )}
 
       {alert && (
-        <div className='flex items-center gap-1'>
-        {alert.severity && (<span
-          className={`${severitiesIcons[alert.severity || 'infos'].iconId} fr-icon--sm`}
-          aria-hidden="true"
-          style={{ color: severitiesIcons[alert.severity || 'infos'].color }}
-        ></span>
-      )}
-        {alert?.text && <span className='fr-text--sm fr-mb-0'>{alert.text}</span>}
-              </div>
+        <div className="flex items-center gap-1">
+          {alert.severity && (
+            <span
+              className={`${severitiesIcons[alert.severity || 'infos'].iconId} fr-icon--sm`}
+              aria-hidden="true"
+              style={{ color: severitiesIcons[alert.severity || 'infos'].color }}
+            ></span>
+          )}
+          {alert?.text && <span className="fr-text--sm fr-mb-0">{alert.text}</span>}
+        </div>
       )}
     </div>
   )
@@ -91,7 +95,7 @@ export default function ListItem({
   if (variant === 'compact') {
     return (
       <div
-        className={`flex flex-col gap-1 gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
+        className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
         style={{
           border: hasBorder
             ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
@@ -102,7 +106,7 @@ export default function ListItem({
               : fr.colors.decisions.background.alt.blueFrance.default,
         }}
       >
-        <div className='flex flex-col gap-3'>
+        <div className="flex flex-col gap-3">
           {additionalInfos && (
             <AdditionnalInfos
               iconId={additionalInfos?.iconId}
@@ -111,27 +115,27 @@ export default function ListItem({
             />
           )}
           <div>
-          <div className="items-center flex gap-2">
-            <div className="flex flex-1 items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1">
-                {iconId && (
-                  <span
-                    className={`${iconId} fr-icon--md`}
-                    aria-hidden="true"
-                    style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
-                  ></span>
-                )}
-                <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+            <div className="items-center flex gap-2">
+              <div className="flex flex-1 items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1">
+                  {iconId && (
+                    <span
+                      className={`${iconId} fr-icon--md`}
+                      aria-hidden="true"
+                      style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+                    ></span>
+                  )}
+                  <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+                </div>
+                {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
               </div>
-              {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+
+              {actions && actions.length > 0 && <MoreButton actions={actions} />}
             </div>
 
-            {actions && actions.length > 0 && <MoreButton actions={actions} />}
+            {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
           </div>
-
-          {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
         </div>
-      </div>
       </div>
     )
   }

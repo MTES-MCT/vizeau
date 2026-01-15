@@ -39,7 +39,8 @@ const meta = {
     },
     href: {
       control: 'text',
-      description: "URL de destination si l'élément est cliquable (mode default uniquement). Si défini, l'élément devient un lien.",
+      description:
+        "URL de destination si l'élément est cliquable (mode default uniquement). Si défini, l'élément devient un lien.",
       table: {
         type: { summary: 'string' },
       },
@@ -55,7 +56,8 @@ const meta = {
     },
     iconId: {
       control: 'text',
-      description: "Classe d'icône DSFR à afficher (utilisé en mode compact uniquement). Ex: 'fr-icon-user-line'",
+      description:
+        "Classe d'icône DSFR à afficher (utilisé en mode compact uniquement). Ex: 'fr-icon-user-line'",
     },
     hasBorder: {
       control: 'boolean',
@@ -98,17 +100,6 @@ const meta = {
       { label: 'Action 1', onClick: () => alert('Action 1 clicked') },
       { label: 'Action 2', onClick: () => alert('Action 2 clicked') },
     ],
-  } as ListItemProps,
-}
-
-export default meta
-
-export const Défaut = {}
-
-export const AvecInfosAdditionnelles = {
-  args: {
-    title: 'Élément avec toutes les infos additionnelles',
-    subtitle: 'Icône, message et alerte combinés',
     additionalInfos: {
       iconId: 'fr-icon-time-line',
       message: 'Message',
@@ -117,6 +108,18 @@ export const AvecInfosAdditionnelles = {
         severity: 'warning',
       },
     },
+  } as ListItemProps,
+}
+
+export default meta
+
+export const Défaut = {}
+
+export const SansInfosAdditionnelles = {
+  args: {
+    title: 'Élément avec toutes les infos additionnelles',
+    subtitle: 'Icône, message et alerte combinés',
+    additionalInfos: {},
     tags: [{ label: 'En cours' }, { label: 'Important' }],
     metas: [
       { content: 'Meta 1', iconId: 'fr-icon-user-line' },
@@ -138,7 +141,12 @@ export const Secondaire = {
 export const AvecActionCritique = {
   args: {
     actions: [
-      { label: 'Supprimer', onClick: () => alert('Suppression !'), iconId: 'fr-icon-delete-line', isCritical: true },
+      {
+        label: 'Supprimer',
+        onClick: () => alert('Suppression !'),
+        iconId: 'fr-icon-delete-line',
+        isCritical: true,
+      },
       { label: 'Modifier', onClick: () => alert('Modification !'), iconId: 'fr-icon-edit-line' },
     ],
   },
@@ -207,8 +215,6 @@ export const CompactAvecBordure = {
   } as ListItemProps,
 }
 
-
-
 export const CompactSansMetas = {
   args: {
     variant: 'compact' as const,
@@ -230,5 +236,3 @@ export const CompactSansTags = {
     actions: [{ label: 'Action 1', onClick: () => alert('Action 1') }],
   } as ListItemProps,
 }
-
-
