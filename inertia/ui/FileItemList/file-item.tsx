@@ -34,7 +34,7 @@ export default function FileItem({
     >
       <Download
         label={name}
-        details={`${format?.toUpperCase() ?? ''} ${format && size ? '-' : ''} ${formattedSize ?? ''}`}
+        details={[format?.toUpperCase(), formattedSize].filter(Boolean).join(' - ')}
         linkProps={{ href }}
         className="w-full fr-mb-0"
       />
