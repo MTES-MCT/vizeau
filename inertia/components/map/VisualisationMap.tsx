@@ -447,11 +447,11 @@ export default function VisualisationMap({
 
       // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
       const layerVisibilityConfig = [
-        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
-        { layers: ['aac-fill', 'aac-outline'], visible: showAac },
-        { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
         { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
+        { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
+        { layers: ['aac-fill', 'aac-outline'], visible: showAac },
         { layers: ['communes-outline'], visible: showCommunes },
+        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
       ]
 
       layerVisibilityConfig.forEach(({ layers, visible }) => {
@@ -545,11 +545,11 @@ export default function VisualisationMap({
 
     // Configuration des layers avec leurs états de visibilité
     const layerVisibility = [
-      { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
-      { layers: ['aac-fill', 'aac-outline'], visible: showAac },
-      { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
       { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
+      { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
+      { layers: ['aac-fill', 'aac-outline'], visible: showAac },
       { layers: ['communes-outline'], visible: showCommunes },
+      { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
     ]
 
     // Application de la visibilité pour chaque groupe de layers
