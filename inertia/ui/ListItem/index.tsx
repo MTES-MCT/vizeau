@@ -6,6 +6,15 @@ import MoreButton, { MoreButtonProps } from '../MoreButton'
 import TagsList, { TagsListProps } from '../TagsList'
 import { ReactNode } from 'react'
 
+export type AdditionalInfosProps = {
+  iconId?: string
+  message?: string
+  alert?: {
+    text?: string
+    severity?: 'infos' | 'warning' | 'error' | 'success'
+  }
+}
+
 export type ListItemProps = {
   variant?: 'default' | 'compact'
   priority?: 'primary' | 'secondary'
@@ -15,8 +24,59 @@ export type ListItemProps = {
   tags?: TagsListProps['tags']
   metas?: MetasListProps['metas']
   actions?: MoreButtonProps['actions']
+  additionalInfos?: AdditionalInfosProps
   href?: string
   hasBorder?: boolean
+}
+
+const AdditionnalInfos = ({
+  iconId,
+  message,
+  alert,
+}: {
+  iconId?: string
+  message?: string
+  alert?: { text?: string; severity?: 'infos' | 'warning' | 'error' | 'success' }
+}) => {
+  const severitiesIcons = {
+    infos: { iconId: 'fr-icon-info-fill', color: fr.colors.decisions.text.default.info.default },
+    warning: {
+      iconId: 'fr-icon-warning-fill',
+      color: fr.colors.decisions.text.default.warning.default,
+    },
+    error: { iconId: 'fr-icon-error-fill', color: fr.colors.decisions.text.default.error.default },
+    success: {
+      iconId: 'fr-icon-check-fill',
+      color: fr.colors.decisions.text.default.success.default,
+    },
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      {(iconId || message) && (
+        <div
+          className="flex items-center gap-1"
+          style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+        >
+          {iconId && <span className={`${iconId} fr-icon--sm`} aria-hidden="true" />}
+          {message && <span className="fr-text--sm fr-mb-0"> {message}</span>}
+        </div>
+      )}
+
+      {alert && (
+        <div className="flex items-center gap-1">
+          {alert.severity && (
+            <span
+              className={`${severitiesIcons[alert.severity || 'infos'].iconId} fr-icon--sm`}
+              aria-hidden="true"
+              style={{ color: severitiesIcons[alert.severity || 'infos'].color }}
+            ></span>
+          )}
+          {alert?.text && <span className="fr-text--sm fr-mb-0">{alert.text}</span>}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ListItem({
@@ -29,12 +89,13 @@ export default function ListItem({
   priority = 'primary',
   variant = 'default',
   iconId,
+  additionalInfos,
   hasBorder = false,
 }: ListItemProps) {
   if (variant === 'compact') {
     return (
       <div
-        className={`flex flex-col gap-1 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
+        className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
         style={{
           border: hasBorder
             ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
@@ -45,25 +106,36 @@ export default function ListItem({
               : fr.colors.decisions.background.alt.blueFrance.default,
         }}
       >
-        <div className="items-center flex gap-2">
-          <div className="flex flex-1 items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1">
-              {iconId && (
-                <span
-                  className={`${iconId} fr-icon--md`}
-                  aria-hidden="true"
-                  style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
-                ></span>
-              )}
-              <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+        <div className="flex flex-col gap-3">
+          {additionalInfos && (
+            <AdditionnalInfos
+              iconId={additionalInfos?.iconId}
+              message={additionalInfos?.message}
+              alert={additionalInfos?.alert}
+            />
+          )}
+          <div>
+            <div className="items-center flex gap-2">
+              <div className="flex flex-1 items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1">
+                  {iconId && (
+                    <span
+                      className={`${iconId} fr-icon--md`}
+                      aria-hidden="true"
+                      style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+                    ></span>
+                  )}
+                  <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+                </div>
+                {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+              </div>
+
+              {actions && actions.length > 0 && <MoreButton actions={actions} />}
             </div>
-            {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+
+            {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
           </div>
-
-          {actions && actions.length > 0 && <MoreButton actions={actions} />}
         </div>
-
-        {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
       </div>
     )
   }
@@ -83,32 +155,41 @@ export default function ListItem({
               : fr.colors.decisions.background.alt.blueFrance.default,
         }}
       >
-        {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+        {additionalInfos && (
+          <AdditionnalInfos
+            iconId={additionalInfos?.iconId}
+            message={additionalInfos?.message}
+            alert={additionalInfos?.alert}
+          />
+        )}
+        <div>
+          {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
 
-        <div className="flex items-start">
-          <div className="flex flex-1 flex-col">
-            <h6 className="flex fr-m-0 fr-text--md">{title}</h6>
-            {subtitle && (
-              <span
-                className="fr-mb-0 fr-text--sm"
-                style={{ color: fr.colors.decisions.text.mention.grey.default }}
-              >
-                {subtitle}
-              </span>
-            )}
+          <div className="flex items-start">
+            <div className="flex flex-1 flex-col">
+              <h6 className="flex fr-m-0 fr-text--md">{title}</h6>
+              {subtitle && (
+                <span
+                  className="fr-mb-0 fr-text--sm"
+                  style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                >
+                  {subtitle}
+                </span>
+              )}
+            </div>
+
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+              }}
+            >
+              {actions && actions.length > 0 && <MoreButton actions={actions} />}
+            </div>
           </div>
 
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-            }}
-          >
-            {actions && actions.length > 0 && <MoreButton actions={actions} />}
-          </div>
+          {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
         </div>
-
-        {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
       </div>
     </Wrapper>
   )
