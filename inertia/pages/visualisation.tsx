@@ -36,6 +36,12 @@ export default function VisualisationPage({
   unavailableParcellesIds,
 }: InferPageProps<VisualisationController, 'index'>) {
   const [isMapLoading, setIsMapLoading] = useState(true)
+  const [showParcelles, setShowParcelles] = useState(true)
+  const [showAac, setShowAac] = useState(true)
+  const [showPpe, setShowPpe] = useState(false)
+  const [showPpr, setShowPpr] = useState(false)
+  const [showCommunes, setShowCommunes] = useState(false)
+
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
     undefined
@@ -246,9 +252,27 @@ export default function VisualisationPage({
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
             editMode={editMode}
+            showParcelles={showParcelles}
+            showAac={showAac}
+            showPpe={showPpe}
+            showPpr={showPpr}
+            showCommunes={showCommunes}
           />
         }
-        rightContent={<VisualisationRightSide />}
+        rightContent={
+          <VisualisationRightSide
+            showParcelles={showParcelles}
+            setShowParcelles={() => setShowParcelles((prev) => !prev)}
+            showAac={showAac}
+            setShowAac={() => setShowAac((prev) => !prev)}
+            showPpe={showPpe}
+            setShowPpe={() => setShowPpe((prev) => !prev)}
+            showPpr={showPpr}
+            setShowPpr={() => setShowPpr((prev) => !prev)}
+            showCommunes={showCommunes}
+            setShowCommunes={() => setShowCommunes((prev) => !prev)}
+          />
+        }
       />
     </Layout>
   )

@@ -2,7 +2,18 @@ import SmallSection from '~/ui/SmallSection'
 import CulturesLegend from './cultures-legend'
 import MapLayerFilters from './map-layer-filters'
 
-export default function VisualisationRightSideBar() {
+export default function VisualisationRightSideBar({
+  showParcelles = true,
+  showAac = true,
+  showPpe = false,
+  showPpr = false,
+  showCommunes = false,
+  setShowParcelles = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowAac = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowPpe = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowPpr = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
+}) {
   return (
     <div className="flex flex-col gap-2 fr-p-1w">
       <SmallSection
@@ -11,7 +22,18 @@ export default function VisualisationRightSideBar() {
         hasBorder
         priority="secondary"
       >
-        <MapLayerFilters />
+        <MapLayerFilters
+          showParcelles={showParcelles}
+          setShowParcelles={setShowParcelles}
+          showAac={showAac}
+          setShowAac={setShowAac}
+          showPpe={showPpe}
+          setShowPpe={setShowPpe}
+          showPpr={showPpr}
+          setShowPpr={setShowPpr}
+          showCommunes={showCommunes}
+          setShowCommunes={setShowCommunes}
+        />
       </SmallSection>
 
       <SmallSection

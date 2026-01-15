@@ -10,6 +10,10 @@
       "tileSize": 256,
       "attribution": "<a target='_blank' href='https://geoservices.ign.fr/planign'>© IGN</a>"
     },
+    "decoupage-administratif": {
+      "type": "vector",
+      "url": "https://openmaptiles.geo.data.gouv.fr/data/decoupage-administratif.json"
+    },
     "reunion-ocean-mask": {
       "type": "geojson",
       "data": {
