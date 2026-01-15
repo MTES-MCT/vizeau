@@ -50,6 +50,7 @@ export default function AlertDrawer({
 }: AlertDrawerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const config = SEVERITY_CONFIG[severity]
+  const contentId = `alert-drawer-content-${React.useId()}`
 
   return (
     <div
@@ -64,20 +65,26 @@ export default function AlertDrawer({
         style={{ width: '100%' }}
         size="large"
         className="custom-button"
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        aria-label={isOpen ? `Fermer le panneau d'alerte` : `Ouvrir le panneau d'alerte`}
       >
         <div
           className="flex gap-2 items-center justify-between"
           style={{ width: '100%', color: config.textColor }}
         >
           <div className="w-full flex items-center gap-2">
-            <span className={customIconId || config.icon} />
+            <span className={customIconId || config.icon} aria-hidden="true" />
             <p className="fr-mb-0 fr-text--lg font-bold">{title}</p>
           </div>
 
-          <span className={isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'} />
+          <span
+            className={isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+            aria-hidden="true"
+          />
         </div>
       </Button>
-      <div className={`fr-px-3w drawer-content-wrapper ${isOpen ? 'open' : ''}`}>
+      <div id={contentId} className={`fr-px-3w drawer-content-wrapper ${isOpen ? 'open' : ''}`}>
         <div className="drawer-content-inner">
           <div className={`fr-py-1w ${isOpen ? 'slide-bottom' : 'slide-top'}`}>{children}</div>
         </div>

@@ -5,7 +5,13 @@ const meta = {
   component: AlertDrawer,
   tags: ['autodocs'],
   argTypes: {
-    // Définir les argTypes si nécessaire
+    severity: {
+      control: { type: 'select' },
+      options: ['info', 'warning', 'error', 'success'],
+    },
+    title: { control: 'text' },
+    customIconId: { control: 'text' },
+    children: { control: 'text' },
   },
   args: {
     severity: 'info',
