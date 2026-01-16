@@ -94,6 +94,8 @@ export default function VisualisationMap({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibre.Map | null>(null)
   const markersRef = useRef<maplibre.Marker[]>([])
+  // Will be true when a marker is hovered to avoid showing parcelle popup at the same time
+  const [isMarkerHovered, setIsMarkerHovered] = useState(false)
   // The popup is created once and will be hidden/shown on demand, with its contents updated.
   const parcellePopupRef = useRef<maplibre.Popup>(
     new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
@@ -104,7 +106,8 @@ export default function VisualisationMap({
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
-      if (!mapRef.current) {
+      // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
+      if (!mapRef.current || isMarkerHovered) {
         return
       }
 
@@ -146,7 +149,7 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds]
+    [unavailableParcelleIds, isMarkerHovered]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -280,6 +283,8 @@ export default function VisualisationMap({
             return
           }
 
+          setIsMarkerHovered(true)
+
           const popupNode = document.createElement('div')
           const root = createRoot(popupNode)
           root.render(<PopupExploitation exploitation={exploitation} />)
@@ -307,6 +312,7 @@ export default function VisualisationMap({
         })
 
         markerElement.addEventListener('mouseleave', () => {
+          setIsMarkerHovered(false)
           popup.remove()
 
           // Unhighlight parcelles on marker leave if it's not the selected exploitation
