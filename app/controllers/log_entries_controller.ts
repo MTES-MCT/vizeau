@@ -43,7 +43,7 @@ export default class LogEntriesController {
     const exploitationId = request.param('exploitationId')
     const exploitation = await Exploitation.findOrFail(exploitationId)
 
-    return inertia.render('tache/creation', {
+    return inertia.render('journal/creation', {
       exploitation: exploitation,
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
