@@ -1,0 +1,88 @@
+import { useState } from 'react'
+import { InferPageProps } from '@adonisjs/inertia/types'
+import LogEntriesController from '#controllers/log_entries_controller'
+import { Head, useForm, router } from '@inertiajs/react'
+import { EntryLogForm } from '~/components/exploitation-id/EntryLogForm'
+import Layout from '~/ui/layouts/layout'
+import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
+import { fr } from '@codegouvfr/react-dsfr'
+import { Button } from '@codegouvfr/react-dsfr/Button'
+
+export default function TaskEditionPage({
+  logEntry,
+  editEntryLogUrl,
+  exploitation,
+}: InferPageProps<LogEntriesController, 'getForEdition'>) {
+  const [inputValue, setInputValue] = useState('')
+  const { data, setData, patch, resetAndClearErrors } = useForm<{
+    id: string
+    notes: string
+    tags: number[]
+  }>({
+    id: logEntry.id,
+    notes: logEntry.notes || '',
+    tags: logEntry.tags?.map((tag) => tag.id) || [],
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    patch(editEntryLogUrl, {
+      onSuccess: () => {
+        setInputValue('')
+        resetAndClearErrors()
+      },
+    })
+  }
+
+  return (
+    <Layout>
+      <Head title="Édition de l'entrée de journal" />
+      <div
+        style={{
+          backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
+        }}
+      >
+        <div className="fr-container">
+          <Breadcrumb
+            className="fr-my-1w fr-py-1w"
+            currentPageLabel="Édition de la tâche"
+            homeLinkProps={{ href: '/' }}
+            segments={[
+              {
+                label: exploitation.name,
+                linkProps: { href: `/exploitations/${exploitation.id}` },
+              },
+            ]}
+          />
+        </div>
+      </div>
+      <div className="fr-container fr-my-4w flex flex-col gap-10">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <EntryLogForm
+            data={data}
+            setData={setData}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            disabled={false}
+          />
+          <div className="flex w-full items-center justify-end gap-3">
+            <Button
+              type="button"
+              priority="secondary"
+              onClick={() => {
+                setInputValue('')
+                router.visit(`/exploitations/${exploitation.id}`)
+              }}
+            >
+              Retour
+            </Button>
+
+            <Button type="submit" disabled={data.tags.length === 0 && data.notes === ''}>
+              Valider
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Layout>
+  )
+}

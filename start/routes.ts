@@ -59,6 +59,13 @@ router
       .as('log_entries.index')
 
     router
+      .get('exploitations/:exploitationId/journal/:logEntryId', [
+        LogEntriesController,
+        'getForEdition',
+      ])
+      .as('log_entries.edition')
+
+    router
       .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
       .as('log_entries.create')
     router

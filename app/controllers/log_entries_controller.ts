@@ -12,8 +12,10 @@ import { createLogEntryTagValidator, deleteLogEntryTagValidator } from '#validat
 import { errors } from '@adonisjs/auth'
 import { EventLoggerService } from '#services/event_logger_service'
 import Exploitation from '#models/exploitation'
+import LogEntry from '#models/log_entry'
 import router from '@adonisjs/core/services/router'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
+import { ExploitationService } from '#services/exploitation_service'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -21,6 +23,7 @@ const EVENTS = {
   CREATE_CREATED: { name: 'log_entries_create', step: 'created' },
   UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
   UPDATE_UPDATED: { name: 'log_entries_update', step: 'updated' },
+  UPDATE_FORM: { name: 'log_entries_update', step: 'form_viewed' },
   DELETED: { name: 'log_entries_deleted' },
   TAG_CREATE_SUBMITTED: { name: 'log_entry_tags_create', step: 'submitted' },
   TAG_CREATE_CREATED: { name: 'log_entry_tags_create', step: 'created' },
@@ -32,7 +35,8 @@ export default class LogEntriesController {
   constructor(
     public logEntryService: LogEntryService,
     public logEntryTagService: LogEntryTagService,
-    public eventLogger: EventLoggerService
+    public eventLogger: EventLoggerService,
+    public exploitationService: ExploitationService
   ) {}
 
   async index({ request, inertia }: HttpContext) {
@@ -51,7 +55,11 @@ export default class LogEntriesController {
         return LogEntryTagDto.fromArray(tags)
       },
       lastCreatedLogEntryTag: inertia.optional(async () => {
-        const tags = await this.logEntryTagService.getTagsForExploitation(exploitationId, undefined, 1)
+        const tags = await this.logEntryTagService.getTagsForExploitation(
+          exploitationId,
+          undefined,
+          1
+        )
 
         return LogEntryTagDto.fromArray(tags)
       }),
@@ -69,6 +77,63 @@ export default class LogEntriesController {
         .params([exploitationId])
         .make('log_entries.destroyTagForExploitation'),
       createEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.create'),
+    })
+  }
+
+  async getForEdition({ params, request, inertia, auth }: HttpContext) {
+    const user = auth.getUserOrFail()
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.UPDATE_FORM,
+      context: { exploitationId: params.exploitationId, logEntryId: params.logEntryId },
+    })
+
+    const logEntry = await LogEntry.query()
+      .where('id', params.logEntryId)
+      .where('exploitationId', params.exploitationId)
+      .preload('tags')
+      .firstOrFail()
+
+    const exploitation = await this.exploitationService
+      .queryActiveExploitations()
+      .where('id', params.exploitationId)
+      .firstOrFail()
+
+    return inertia.render('journal/edition', {
+      exploitation: exploitation.serialize(),
+      logEntry: logEntry.serialize(),
+      filteredLogEntryTags: async () => {
+        const tags = await this.logEntryTagService.getTagsForExploitation(
+          params.exploitationId,
+          request.qs().tagSearch,
+          5
+        )
+
+        return LogEntryTagDto.fromArray(tags)
+      },
+      lastCreatedLogEntryTag: inertia.optional(async () => {
+        const tags = await this.logEntryTagService.getTagsForExploitation(
+          params.exploitationId,
+          undefined,
+          1
+        )
+
+        return LogEntryTagDto.fromArray(tags)
+      }),
+      existingLogEntryTags: inertia.optional(async () => {
+        const tags = await this.logEntryTagService.getTagsForLogEntry(request.qs().logEntryId)
+
+        return LogEntryTagDto.fromArray(tags)
+      }),
+      createTagForExploitationUrl: router
+        .builder()
+        .params([params.exploitationId])
+        .make('log_entries.createTagForExploitation'),
+      deleteTagForExploitationUrl: router
+        .builder()
+        .params([params.exploitationId])
+        .make('log_entries.destroyTagForExploitation'),
+      editEntryLogUrl: router.builder().params([params.exploitationId]).make('log_entries.edit'),
     })
   }
 
