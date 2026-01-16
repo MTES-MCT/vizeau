@@ -9,6 +9,7 @@ export type OptionType<T> = {
   value: T
   label: string
   isSelected: boolean
+  group?: string
   actions?: DropdownAction<T>[]
 }
 
