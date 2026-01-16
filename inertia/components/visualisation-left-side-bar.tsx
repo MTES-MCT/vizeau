@@ -15,13 +15,15 @@ export default function VisualisationLeftSideBar({
   selectedExploitation,
   setSelectedExploitationId,
   isMapLoading,
+  editMode,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
-  setSelectedExploitationId: (exploitationId: string) => void
+  setSelectedExploitationId: (exploitationId: string | undefined) => void
   isMapLoading: boolean
+  editMode: boolean
 }) {
   return (
     <div>
@@ -30,7 +32,24 @@ export default function VisualisationLeftSideBar({
           <Breadcrumb
             currentPageLabel={selectedExploitation?.name}
             segments={[
-              { label: 'Liste des exploitations agricoles', linkProps: { href: '/visualisation' } },
+              {
+                label: 'Liste des exploitations agricoles',
+                linkProps: {
+                  href: '#',
+                  onClick: () => {
+                    // Only allow going back to the list if not in edit mode
+                    if (!editMode) {
+                      setSelectedExploitationId(undefined)
+                    }
+                  },
+                  style: {
+                    cursor: !editMode ? 'pointer' : 'not-allowed',
+                    // href "#" transforms the link into a button with blue text, we override it to look like a normal link
+                    fontSize: 'inherit',
+                    color: 'inherit',
+                  },
+                },
+              },
             ]}
             style={{ marginBottom: fr.spacing('2v') }}
             className="fr-m-1w"
