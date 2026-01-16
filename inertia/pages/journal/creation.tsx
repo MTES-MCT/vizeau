@@ -8,6 +8,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import LogEntriesController from '#controllers/log_entries_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
+import { FlashMessages } from '~/components/flash-message'
 
 export type TaskCreationPageProps = {
   exploitation: {
@@ -19,6 +20,7 @@ export type TaskCreationPageProps = {
 export default function TaskCreationPage({
   exploitation,
   createEntryLogUrl,
+  flashMessages,
 }: InferPageProps<LogEntriesController, 'index'>) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<{
@@ -36,9 +38,6 @@ export default function TaskCreationPage({
       onSuccess: () => {
         setInputValue('')
         resetAndClearErrors()
-      },
-      onError: () => {
-        // À faire : Récupérer les erreurs de validation si nécessaire
       },
     })
   }
@@ -73,6 +72,7 @@ export default function TaskCreationPage({
         />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <FlashMessages flashMessages={flashMessages} />
           <EntryLogForm
             data={data}
             setData={setData}

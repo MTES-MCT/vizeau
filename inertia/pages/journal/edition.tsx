@@ -7,11 +7,13 @@ import Layout from '~/ui/layouts/layout'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
+import { FlashMessages } from '~/components/flash-message'
 
 export default function TaskEditionPage({
   logEntry,
   editEntryLogUrl,
   exploitation,
+  flashMessages,
 }: InferPageProps<LogEntriesController, 'getForEdition'>) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<{
@@ -21,7 +23,7 @@ export default function TaskEditionPage({
   }>({
     id: logEntry.id,
     notes: logEntry.notes || '',
-    tags: logEntry.tags?.map((tag) => tag.id) || [],
+    tags: logEntry.tags?.map((tag: { id: number }) => tag.id) || [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,6 +59,8 @@ export default function TaskEditionPage({
         </div>
       </div>
       <div className="fr-container fr-my-4w flex flex-col gap-10">
+        <FlashMessages flashMessages={flashMessages} />
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <EntryLogForm
             data={data}

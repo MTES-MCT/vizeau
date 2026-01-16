@@ -161,6 +161,8 @@ export default class LogEntriesController {
       })
 
       createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
+
+      return response.redirect().toRoute('exploitations.get', [payload.params.exploitationId])
     } catch (error) {
       logger.error('Error creating log entry:', error)
       createErrorFlashMessage(
@@ -169,7 +171,7 @@ export default class LogEntriesController {
       )
     }
 
-    return response.redirect().toRoute('exploitations.get', [payload.params.exploitationId])
+    return response.redirect().back()
   }
 
   async edit({ auth, request, response, session, logger }: HttpContext) {
@@ -193,6 +195,7 @@ export default class LogEntriesController {
       })
 
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
+      return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
       logger.error('Error updating log entry:', error)
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
@@ -205,7 +208,7 @@ export default class LogEntriesController {
       }
     }
 
-    return response.redirect().toRoute('exploitations.get', [params.exploitationId])
+    return response.redirect().back()
   }
 
   async destroy({ auth, request, response, session, logger }: HttpContext) {
