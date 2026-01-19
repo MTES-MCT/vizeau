@@ -165,6 +165,7 @@ export default function VisualisationPage({
             selectedExploitation={selectedExploitation}
             setSelectedExploitationId={setSelectedExploitationId}
             isMapLoading={isMapLoading}
+            editMode={editMode}
           />
         }
         headerAdditionalContent={
