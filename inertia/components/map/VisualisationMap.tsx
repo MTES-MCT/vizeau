@@ -69,6 +69,7 @@ export default function VisualisationMap({
   showPpe = false,
   showPpr = false,
   showCommunes = false,
+  showBioOnly = false,
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
@@ -89,6 +90,7 @@ export default function VisualisationMap({
   showPpe?: boolean
   showPpr?: boolean
   showCommunes?: boolean
+  showBioOnly?: boolean
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -110,10 +112,13 @@ export default function VisualisationMap({
 
       const props = e.features?.[0]?.properties
 
+      console.log(e.features?.[0]?.properties)
+
       // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
       const codeGroup = props?.code_group ?? props?.CODE_GROUP
       const surfParc = props?.surf_parc ?? props?.SURF_PARC
       const id = props?.id_parcel ?? props?.ID_PARCEL
+      const isBio = props?.bio
 
       // Mise à jour la popup uniquement si la parcelle change
       if (currentParcelleIdRef.current !== id) {
@@ -124,6 +129,7 @@ export default function VisualisationMap({
           codeGroup,
           surfParc,
           millesime,
+          isBio,
           exploitation !== undefined,
           editMode,
           exploitation?.id === selectedExploitation?.id
@@ -444,6 +450,7 @@ export default function VisualisationMap({
       addLayersIfMissing(getPpeLayer())
       addLayersIfMissing(getAacLayer())
       addLayersIfMissing(getCommunesLayer())
+      addLayersIfMissing(getParcellesLayers())
 
       // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
       const layerVisibilityConfig = [
@@ -489,6 +496,24 @@ export default function VisualisationMap({
       map.addLayer(layer, beforeId)
     })
   }, [millesime])
+
+  // Mise à jour du filtre bio sans recréer les layers (pour préserver le feature-state)
+  useEffect(() => {
+    if (!mapRef.current) {
+      return
+    }
+
+    const map = mapRef.current
+    const bioFilter = showBioOnly ? ['==', ['get', 'bio'], true] : null
+
+    if (map.getLayer('parcelles-fill')) {
+      map.setFilter('parcelles-fill', bioFilter)
+    }
+
+    if (map.getLayer('parcelles-outline')) {
+      map.setFilter('parcelles-outline', bioFilter)
+    }
+  }, [showBioOnly])
 
   // Zoom sur l'exploitation sélectionnée
   useEffect(() => {

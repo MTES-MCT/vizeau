@@ -86,7 +86,7 @@ export const getParcellesSource = ({
 }): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
-    url: `pmtiles://${pmtilesUrl}/${millesime}/parcelles_france.pmtiles`,
+    url: `pmtiles://${pmtilesUrl}/${millesime}/bioparcelles.pmtiles`,
     promoteId: millesimeToIdKey[millesime] || 'id_parcel',
   }
 }

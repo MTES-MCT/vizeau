@@ -41,6 +41,7 @@ export default function VisualisationPage({
   const [showPpe, setShowPpe] = useState(false)
   const [showPpr, setShowPpr] = useState(false)
   const [showCommunes, setShowCommunes] = useState(false)
+  const [showBioOnly, setShowBioOnly] = useState(false)
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -257,6 +258,7 @@ export default function VisualisationPage({
             showPpe={showPpe}
             showPpr={showPpr}
             showCommunes={showCommunes}
+            showBioOnly={showBioOnly}
           />
         }
         rightContent={
@@ -271,6 +273,8 @@ export default function VisualisationPage({
             setShowPpr={() => setShowPpr((prev) => !prev)}
             showCommunes={showCommunes}
             setShowCommunes={() => setShowCommunes((prev) => !prev)}
+            showBioOnly={showBioOnly}
+            setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
           />
         }
       />
