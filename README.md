@@ -88,6 +88,24 @@ Quelques notes sur les variables d’environnement :
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
 
+## Migration en production
+
+Si un déploiement nécessite des modifications du schéma de la base de données, vous devrez exécuter les migrations manuellement après le déploiement.
+À l'avenir, cela sera automatisé dans les pipelines CI/CD.
+
+Connectez-vous à votre serveur de production via les commandes suivantes :
+
+```bash
+# Remplacez vizeau-dev par le nom de votre application Scalingo, et la région si nécessaire
+scalingo -a vizeau-dev --region osc-fr1 run "NODE_ENV=production bash"
+# Une fois connecté, naviguez jusqu'au répertoire de l'application
+cd build
+node ace migration:run
+# Adonis vous demandera de confirmer l'exécution des migrations en production. Assurez-vous de les avoir testé sur un environnement de préproduction avant de continuer.
+# Si de nouvelles données doivent être seedées, exécutez également la commande suivante :
+node ace db:seed
+```
+
 ## Exécution de Storybook
 
 ```shell
