@@ -14,6 +14,7 @@ export default function TaskEditionPage({
   editEntryLogUrl,
   exploitation,
   flashMessages,
+  isCreator,
 }: InferPageProps<LogEntriesController, 'getForEdition'>) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<{
@@ -67,7 +68,7 @@ export default function TaskEditionPage({
             setData={setData}
             inputValue={inputValue}
             setInputValue={setInputValue}
-            disabled={false}
+            disabled={!isCreator}
           />
           <div className="flex w-full items-center justify-end gap-3">
             <Button
@@ -81,9 +82,11 @@ export default function TaskEditionPage({
               Retour
             </Button>
 
-            <Button type="submit" disabled={data.tags.length === 0 && data.notes === ''}>
-              Valider
-            </Button>
+            {isCreator && (
+              <Button type="submit" disabled={data.tags.length === 0 && data.notes === ''}>
+                Valider
+              </Button>
+            )}
           </div>
         </form>
       </div>

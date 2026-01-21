@@ -102,6 +102,7 @@ export default class LogEntriesController {
     return inertia.render('journal/edition', {
       exploitation: exploitation.serialize(),
       logEntry: logEntry.serialize(),
+      isCreator: logEntry.userId === user.id,
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
           params.exploitationId,
