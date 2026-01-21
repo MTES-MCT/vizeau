@@ -10,13 +10,6 @@ import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { FlashMessages } from '~/components/flash-message'
 
-export type TaskCreationPageProps = {
-  exploitation: {
-    id: number
-    name: string
-  }
-}
-
 export default function TaskCreationPage({
   exploitation,
   createEntryLogUrl,
