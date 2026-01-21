@@ -16,12 +16,12 @@ const meta = {
     options: {
       control: 'object',
       description:
-        'Liste des options avec leur état de sélection et leurs actions.\n\nModèle obligatoire :\n[\n  {\n    value: string | number,\n    label: string,\n    isSelected: boolean,\n    actions?: [\n      {\n        label: string,\n        iconId?: string,\n        isCritical?: bool,\n        onClick: (value: string | number) => void,\n      }\n    ]\n  }\n]',
+        'Liste des options avec leur état de sélection et leurs actions.\n\nModèle obligatoire :\n[\n  {\n    value: string | number,\n    label: string,\n    isSelected: boolean,\n    group?: string,\n    actions?: [\n      {\n        label: string,\n        iconId?: string,\n        isCritical?: bool,\n        onClick: (value: string | number) => void,\n      }\n    ]\n  }\n]',
       type: { name: 'array', required: true },
       table: {
         type: {
           summary:
-            '[{ value: string | number; label: string; isSelected: boolean; actions?: DropdownAction[] }]',
+            '[{ value: string | number; label: string; isSelected: boolean; group?: string; actions?: DropdownAction[] }]',
         },
         defaultValue: { summary: '[]' },
       },
@@ -29,12 +29,12 @@ const meta = {
     onOptionChange: {
       control: false,
       description:
-        "Callback appelé lors de la sélection/désélection d'une option.\n\nModèle obligatoire :\n(option: { value: string | number; label: string; isSelected: boolean; actions?: DropdownAction[] }) => void",
+        "Callback appelé lors de la sélection/désélection d'une option.\n\nModèle obligatoire :\n(option: { value: string | number; label: string; isSelected: boolean; group?: string; actions?: DropdownAction[] }) => void",
       type: { name: 'function', required: true },
       table: {
         type: {
           summary:
-            '(option: { value: string | number; label: string; isSelected: boolean; actions?: DropdownAction[] }) => void',
+            '(option: { value: string | number; label: string; isSelected: boolean; group?: string; actions?: DropdownAction[] }) => void',
         },
       },
     },
@@ -75,6 +75,44 @@ export const Défaut = () => {
     value: string
     label: string
     isSelected: boolean
+    group?: string
+    actions?: { value: string; label: string; onClick: (value: string) => void }[]
+  }) => {
+    setOptions((prev) =>
+      prev.map((opt) =>
+        opt.value === updatedOption.value ? { ...opt, isSelected: updatedOption.isSelected } : opt
+      )
+    )
+
+    console.log('Option mise à jour:', updatedOption)
+  }
+
+  return (
+    <div className="relative">
+      <SelectorMenu
+        options={options}
+        onOptionChange={(updatedOption) => {
+          console.log('Option mise à jour :', updatedOption)
+          handleOptionChange(updatedOption)
+        }}
+      />
+    </div>
+  )
+}
+
+export const AvecGroupes = () => {
+  const [options, setOptions] = useState([
+    { value: 'option1', label: 'Option 1', isSelected: true, group: 'Groupe A', actions: [] },
+    { value: 'option2', label: 'Option 2', isSelected: false, group: 'Groupe B', actions: [] },
+    { value: 'option3', label: 'Option 3', isSelected: true, group: 'Groupe A', actions: [] },
+    { value: 'option4', label: 'Option 4', isSelected: false, group: 'Groupe B', actions: [] },
+  ])
+
+  const handleOptionChange = (updatedOption: {
+    value: string
+    label: string
+    isSelected: boolean
+    group?: string
     actions?: { value: string; label: string; onClick: (value: string) => void }[]
   }) => {
     setOptions((prev) =>
