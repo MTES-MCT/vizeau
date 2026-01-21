@@ -147,6 +147,7 @@ export default function VisualisationLeftSideBar({
                 }
                 subtitle={exploitation?.commune || 'N/A'}
                 priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                tags={exploitation.tags?.map((tag) => ({ label: tag.name }))}
               />
             </div>
           ))}
