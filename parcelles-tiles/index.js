@@ -12,7 +12,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 const WORKDIR = process.env.WORKDIR
 const DATA_URL = process.env.DATA_URL
 
-const GEOJSON = path.join(WORKDIR, 'parcelles_france.geojsonseq')
+const GEOJSON = path.join(WORKDIR, 'parcelles_france')
 const OUT_PM = path.join(WORKDIR, 'parcelles_france.pmtiles')
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT
@@ -26,6 +26,7 @@ await fs.mkdir(WORKDIR, { recursive: true })
 
 // Téléchargement archive (mono ou multi-parties)
 console.log('💾 Téléchargement RPG...')
+console.log('ℹ URL :', DATA_URL)
 
 const url = new URL(DATA_URL)
 const fileName = path.basename(url.pathname)
@@ -162,13 +163,15 @@ console.log('🗺  Conversion en GeoJSONSeq...')
 await new Promise((resolve, reject) => {
   let stderrData = ''
   const p = spawn('ogr2ogr', [
-    '-f',
+    '-of',
     'GeoJSONSeq',
     '-t_srs',
     'EPSG:4326',
     GEOJSON,
     GPKG,
     'RPG_Parcelles',
+    '-lco',
+    'RFC7946=YES',
   ])
 
   p.stderr.on('data', (chunk) => {
@@ -214,7 +217,8 @@ await new Promise((resolve, reject) => {
       resolve()
     } else {
       const message =
-        `La génération tippecanoe a échoué avec le code : ${c}` + (stderrData ? `; erreur : ${stderrData}` : '')
+        `La génération tippecanoe a échoué avec le code : ${c}` +
+        (stderrData ? `; erreur : ${stderrData}` : '')
       reject(new Error(message))
     }
   })
