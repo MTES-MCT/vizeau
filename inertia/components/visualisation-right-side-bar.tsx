@@ -15,6 +15,7 @@ export default function VisualisationRightSideBar({
   setShowPpr = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowBioOnly = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  canSwitchToBioOnly = true
 }) {
   return (
     <div className="flex flex-col gap-2 fr-p-1w">
@@ -37,6 +38,7 @@ export default function VisualisationRightSideBar({
           setShowCommunes={setShowCommunes}
           showBioOnly={showBioOnly}
           setShowBioOnly={setShowBioOnly}
+          canSwitchToBioOnly={canSwitchToBioOnly}
         />
       </SmallSection>
 

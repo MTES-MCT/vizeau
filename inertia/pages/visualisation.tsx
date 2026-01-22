@@ -199,6 +199,7 @@ export default function VisualisationPage({
                 </>
               ) : (
                 <Button
+                  disabled={showBioOnly}
                   onClick={() => {
                     setData(
                       'parcelles',
@@ -275,6 +276,7 @@ export default function VisualisationPage({
             setShowCommunes={() => setShowCommunes((prev) => !prev)}
             showBioOnly={showBioOnly}
             setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
+            canSwitchToBioOnly={!editMode &&  millesime === '2024'}
           />
         }
       />

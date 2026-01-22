@@ -16,6 +16,7 @@ export default function MapLayerFilters({
   setShowPpr = (_update) => {},
   setShowCommunes = (_update) => {},
   setShowBioOnly = (_update) => {},
+  canSwitchToBioOnly = true
 }: {
   showParcelles?: boolean
   showAac?: boolean
@@ -29,6 +30,7 @@ export default function MapLayerFilters({
   setShowPpr?: Dispatch<SetStateAction<boolean>>
   setShowCommunes?: Dispatch<SetStateAction<boolean>>
   setShowBioOnly?: Dispatch<SetStateAction<boolean>>
+  canSwitchToBioOnly?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -141,14 +143,14 @@ export default function MapLayerFilters({
             label: (
               <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
                 Parcelles bio uniquement
-                <Tooltip kind="hover" title="Afficher uniquement les parcelles en agriculture biologique" />
+                <Tooltip kind="hover" title="Disponible pour millésime 2024 uniquement" />
               </span>
             ),
             nativeInputProps: {
               name: 'bioOnly',
               value: 'bioOnly',
               checked: showBioOnly,
-              disabled: !showParcelles,
+              disabled: !showParcelles || !canSwitchToBioOnly,
               onChange: () => setShowBioOnly((prev) => !prev)
             },
           },

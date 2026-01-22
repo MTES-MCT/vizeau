@@ -112,16 +112,20 @@ export default function VisualisationMap({
 
       const props = e.features?.[0]?.properties
 
-      console.log(e.features?.[0]?.properties)
-
       // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
       const codeGroup = props?.code_group ?? props?.CODE_GROUP
       const surfParc = props?.surf_parc ?? props?.SURF_PARC
       const id = props?.id_parcel ?? props?.ID_PARCEL
-      const isBio = props?.bio
 
       // Mise à jour la popup uniquement si la parcelle change
       if (currentParcelleIdRef.current !== id) {
+        // Vérifier si une parcelle bio existe à la position du curseur
+        const bioFeatures = mapRef.current.queryRenderedFeatures(e.point, {
+          layers: ['parcellesbio-fill'],
+        })
+
+        const isBio = bioFeatures.length > 0
+
         const exploitation = exploitations.find((exp) => exp.parcelles?.some((p) => p.rpgId === id))
 
         const popupContent = renderPopupParcelle(
@@ -139,6 +143,7 @@ export default function VisualisationMap({
           .setLngLat(e.lngLat)
           .setDOMContent(popupContent)
           .addTo(mapRef.current)
+
         currentParcelleIdRef.current = id
       } else {
         parcellePopupRef.current.setLngLat(e.lngLat)
@@ -152,7 +157,7 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds]
+    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -365,25 +370,29 @@ export default function VisualisationMap({
 
   // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
   useEffect(() => {
-    mapRef.current?.on('click', 'parcelles-fill', handleParcelleClick)
-    return () => {
-      mapRef.current?.off('click', 'parcelles-fill', handleParcelleClick)
-    }
-  }, [handleParcelleClick])
+    const layers = showBioOnly ? ['parcellesbio-fill'] : ['parcelles-fill']
+    const events = [
+      { event: 'click', handler: handleParcelleClick },
+      { event: 'mousemove', handler: handleParcelleMouseMove },
+      { event: 'mouseleave', handler: handleParcelleMouseLeave },
+    ]
 
-  useEffect(() => {
-    mapRef.current?.on('mousemove', 'parcelles-fill', handleParcelleMouseMove)
-    return () => {
-      mapRef.current?.off('mousemove', 'parcelles-fill', handleParcelleMouseMove)
-    }
-  }, [handleParcelleMouseMove])
+    // Attacher tous les événements
+    events.forEach(({ event, handler }) => {
+      layers.forEach((layer) => {
+        mapRef.current?.on(event as any, layer, handler)
+      })
+    })
 
-  useEffect(() => {
-    mapRef.current?.on('mouseleave', 'parcelles-fill', handleParcelleMouseLeave)
+    // Détacher tous les événements
     return () => {
-      mapRef.current?.off('mouseleave', 'parcelles-fill', handleParcelleMouseLeave)
+      events.forEach(({ event, handler }) => {
+        layers.forEach((layer) => {
+          mapRef.current?.off(event as any, layer, handler)
+        })
+      })
     }
-  }, [handleParcelleMouseLeave])
+  }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
 
   // Mise à jour du style de la carte
   useEffect(() => {
@@ -469,6 +478,51 @@ export default function VisualisationMap({
     currentStyleRef.current = style
   }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
 
+  useEffect(() => {
+    if (!mapRef.current) {
+      return
+    }
+
+    const map = mapRef.current
+
+    if (showBioOnly) {
+      // Mode bio uniquement : rendre les parcelles bio opaques
+      if (map.getLayer('parcelles-fill')) {
+        map.setLayoutProperty('parcelles-fill', 'visibility', 'none')
+      }
+      if (map.getLayer('parcelles-outline')) {
+        map.setLayoutProperty('parcelles-outline', 'visibility', 'none')
+      }
+      if (map.getLayer('parcellesbio-fill')) {
+        map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
+          'case',
+          ['boolean', ['feature-state', 'unavailable'], false],
+          0.3,
+          ['boolean', ['feature-state', 'highlighted'], false],
+          0.7,
+          0.5,
+        ])
+      }
+      if (map.getLayer('parcellesbio-outline')) {
+        map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
+      }
+    } else {
+      // Mode normal : parcelles visibles, bio transparent pour détection uniquement
+      if (map.getLayer('parcelles-fill')) {
+        map.setLayoutProperty('parcelles-fill', 'visibility', showParcelles ? 'visible' : 'none')
+      }
+      if (map.getLayer('parcelles-outline')) {
+        map.setLayoutProperty('parcelles-outline', 'visibility', showParcelles ? 'visible' : 'none')
+      }
+      if (map.getLayer('parcellesbio-fill')) {
+        map.setPaintProperty('parcellesbio-fill', 'fill-opacity', 0)
+      }
+      if (map.getLayer('parcellesbio-outline')) {
+        map.setPaintProperty('parcellesbio-outline', 'line-opacity', 0)
+      }
+    }
+  }, [showBioOnly, showParcelles])
+
   // Mise à jour du millésime des parcelles
   useEffect(() => {
     if (!mapRef.current || mapRef.current.getSource('parcelles') === undefined) {
@@ -487,6 +541,14 @@ export default function VisualisationMap({
       map.removeLayer('parcelles-outline')
     }
 
+    if (map.getLayer('parcellesbio-fill')) {
+      map.removeLayer('parcellesbio-fill')
+    }
+
+    if (map.getLayer('parcellesbio-outline')) {
+      map.removeLayer('parcellesbio-outline')
+    }
+
     map.removeSource('parcelles')
     map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
 
@@ -495,25 +557,30 @@ export default function VisualisationMap({
       const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
       map.addLayer(layer, beforeId)
     })
+
+    // Attendre que la source soit chargée pour réappliquer le highlight
+    const onSourceData = (e: any) => {
+      if (e.sourceId === 'parcelles' && e.isSourceLoaded) {
+        map.off('sourcedata', onSourceData)
+
+        // Réappliquer le highlight des parcelles sélectionnées
+        let parcelleIds: string[] = []
+        if (editMode) {
+          parcelleIds = formParcelleIds
+        } else if (selectedExploitation?.parcelles) {
+          parcelleIds = selectedExploitation.parcelles
+            .filter((parcelle) => parcelle.year.toString() === millesime)
+            .map((parcelle) => parcelle.rpgId)
+        }
+
+        if (parcelleIds.length > 0) {
+          setParcellesHighlight(mapRef.current, parcelleIds, true)
+        }
+      }
+    }
+
+    map.on('sourcedata', onSourceData)
   }, [millesime])
-
-  // Mise à jour du filtre bio sans recréer les layers (pour préserver le feature-state)
-  useEffect(() => {
-    if (!mapRef.current) {
-      return
-    }
-
-    const map = mapRef.current
-    const bioFilter = showBioOnly ? ['==', ['get', 'bio'], true] : null
-
-    if (map.getLayer('parcelles-fill')) {
-      map.setFilter('parcelles-fill', bioFilter)
-    }
-
-    if (map.getLayer('parcelles-outline')) {
-      map.setFilter('parcelles-outline', bioFilter)
-    }
-  }, [showBioOnly])
 
   // Zoom sur l'exploitation sélectionnée
   useEffect(() => {

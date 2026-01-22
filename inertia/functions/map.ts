@@ -7,9 +7,11 @@ export function setParcellesHighlight(
 ) {
   requestAnimationFrame(() => {
     if (
-      !map?.getSource('parcelles') ||
-      !map?.getLayer('parcelles-fill') ||
-      !map?.getLayer('parcelles-outline')
+      !map ||
+      !map.isStyleLoaded() ||
+      !map.getSource('parcelles') ||
+      !map.getLayer('parcelles-fill') ||
+      !map.getLayer('parcelles-outline')
     ) {
       console.warn('Cannot highlight parcelles: source or layers not ready yet.')
       return
@@ -31,9 +33,11 @@ export function setParcellesUnavailability(
 ) {
   requestAnimationFrame(() => {
     if (
-      !map?.getSource('parcelles') ||
-      !map?.getLayer('parcelles-fill') ||
-      !map?.getLayer('parcelles-outline')
+      !map ||
+      !map.isStyleLoaded() ||
+      !map.getSource('parcelles') ||
+      !map.getLayer('parcelles-fill') ||
+      !map.getLayer('parcelles-outline')
     ) {
       console.warn('Cannot set parcelles unavailable: source or layers not ready yet.')
       return
