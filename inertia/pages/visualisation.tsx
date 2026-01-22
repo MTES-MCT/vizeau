@@ -276,7 +276,7 @@ export default function VisualisationPage({
             setShowCommunes={() => setShowCommunes((prev) => !prev)}
             showBioOnly={showBioOnly}
             setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
-            canSwitchToBioOnly={!editMode &&  millesime === '2024'}
+            canSwitchToBioOnly={!editMode && millesime === '2024'}
           />
         }
       />

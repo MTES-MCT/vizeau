@@ -96,6 +96,8 @@ export default function VisualisationMap({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibre.Map | null>(null)
   const markersRef = useRef<maplibre.Marker[]>([])
+  // Will be true when a marker is hovered to avoid showing parcelle popup at the same time
+  const [isMarkerHovered, setIsMarkerHovered] = useState(false)
   // The popup is created once and will be hidden/shown on demand, with its contents updated.
   const parcellePopupRef = useRef<maplibre.Popup>(
     new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
@@ -106,7 +108,7 @@ export default function VisualisationMap({
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
-      if (!mapRef.current) {
+      if (!mapRef.current || isMarkerHovered) {
         return
       }
 
@@ -157,7 +159,7 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime]
+    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime, isMarkerHovered]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -291,6 +293,8 @@ export default function VisualisationMap({
             return
           }
 
+          setIsMarkerHovered(true)
+
           const popupNode = document.createElement('div')
           const root = createRoot(popupNode)
           root.render(<PopupExploitation exploitation={exploitation} />)
@@ -318,6 +322,7 @@ export default function VisualisationMap({
         })
 
         markerElement.addEventListener('mouseleave', () => {
+          setIsMarkerHovered(false)
           popup.remove()
 
           // Unhighlight parcelles on marker leave if it's not the selected exploitation
@@ -485,6 +490,10 @@ export default function VisualisationMap({
 
     const map = mapRef.current
 
+    if (!map.isStyleLoaded()) {
+      return
+    }
+
     if (showBioOnly) {
       // Mode bio uniquement : rendre les parcelles bio opaques
       if (map.getLayer('parcelles-fill')) {
@@ -580,6 +589,10 @@ export default function VisualisationMap({
     }
 
     map.on('sourcedata', onSourceData)
+
+    return () => {
+      map.off('sourcedata', onSourceData)
+    }
   }, [millesime])
 
   // Zoom sur l'exploitation sélectionnée
