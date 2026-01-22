@@ -125,7 +125,7 @@ export default function Accueil({
             <EmptyPlaceholder
               size="lg"
               priority="secondary"
-              label="Aucune exploitation agricoles enregistrée"
+              label="Aucune exploitation agricole enregistrée"
               illustrationSrc="/placeholder-illustrations/exploitations.png"
               buttonLabel="Ajouter une première exploitation agricole"
               buttonIcon="fr-icon-arrow-right-line"
