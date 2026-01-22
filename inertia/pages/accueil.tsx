@@ -128,6 +128,7 @@ export default function Accueil({
               label="Aucune exploitation agricole enregistrée"
               illustrationSrc="/placeholder-illustrations/exploitations.png"
               buttonLabel="Ajouter une première exploitation agricole"
+              actionAriaLabel="Ajouter une première exploitation agricole"
               buttonIcon="fr-icon-arrow-right-line"
             />
           )}
