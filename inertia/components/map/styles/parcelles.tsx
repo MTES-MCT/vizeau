@@ -69,6 +69,37 @@ export const getParcellesLayers = (): LayerSpecification[] => {
         'line-opacity': 0.8,
       },
     },
+    {
+      'id': 'parcellesbio-fill',
+      'type': 'fill',
+      'source': 'parcelles',
+      'source-layer': 'parcellesbio',
+      'minzoom': 12,
+      'paint': {
+        'fill-color': colorMatch as any,
+        'fill-opacity': 0, // Transparent par défaut pour la détection uniquement
+      },
+    },
+    {
+      'id': 'parcellesbio-outline',
+      'type': 'line',
+      'source': 'parcelles',
+      'source-layer': 'parcellesbio',
+      'minzoom': 12,
+      'paint': {
+        'line-color': '#000000',
+        'line-width': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          15,
+          1,
+          18,
+          3,
+        ],
+        'line-opacity': 0, // Transparent par défaut
+      },
+    },
   ]
 }
 
