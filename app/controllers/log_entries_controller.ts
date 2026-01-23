@@ -13,6 +13,7 @@ import { errors } from '@adonisjs/auth'
 import { EventLoggerService } from '#services/event_logger_service'
 import Exploitation from '#models/exploitation'
 import LogEntry from '#models/log_entry'
+import User from '#models/user'
 import router from '@adonisjs/core/services/router'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
@@ -80,8 +81,10 @@ export default class LogEntriesController {
     })
   }
 
-  async get({ params, inertia, auth }: HttpContext) {
+  async get({ request, params, inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
+    const exploitationId = request.param('exploitationId')
+    const exploitation = await Exploitation.findOrFail(exploitationId)
 
     const logEntry = await LogEntry.query()
       .where('id', params.logEntryId)
@@ -89,9 +92,13 @@ export default class LogEntriesController {
       .preload('tags')
       .firstOrFail()
 
+    const logEntryAuthor = await User.find(logEntry.userId)
+
     return inertia.render('journal/id', {
       logEntry: logEntry.serialize(),
       isCreator: logEntry.userId === user.id,
+      exploitation: exploitation.serialize(),
+      user: logEntryAuthor?.serialize()
     })
   }
 
