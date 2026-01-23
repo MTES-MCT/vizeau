@@ -49,7 +49,7 @@ export default function MapLayerFilters({
               name: 'parcelles',
               value: 'parcelles',
               checked: showParcelles,
-              onChange: () => setShowParcelles((prev) => !prev)
+              onChange: () => setShowParcelles((prev) => !prev),
             },
           },
         ]}
@@ -63,14 +63,14 @@ export default function MapLayerFilters({
             label: (
               <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
                 AAC
-                <Tooltip kind="hover" title="Aire d’Alimentation de Captage" />
+                <Tooltip kind="hover" title="Aire d'alimentation de captage" />
               </span>
             ),
             nativeInputProps: {
               name: 'aac',
               value: 'aac',
               checked: showAac,
-              onChange: () => setShowAac((prev) => !prev)
+              onChange: () => setShowAac((prev) => !prev),
             },
           },
         ]}
@@ -82,14 +82,14 @@ export default function MapLayerFilters({
           {
             label: (
               <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
-                PPE <Tooltip kind="hover" title="Périmètre de Protection des Eaux" />
+                PPE <Tooltip kind="hover" title="Périmètre de protection éloignée" />
               </span>
             ),
             nativeInputProps: {
               name: 'ppe',
               value: 'ppe',
               checked: showPpe,
-              onChange: () => setShowPpe((prev) => !prev)
+              onChange: () => setShowPpe((prev) => !prev),
             },
           },
         ]}
@@ -102,14 +102,14 @@ export default function MapLayerFilters({
           {
             label: (
               <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
-                PPR <Tooltip kind="hover" title="Plan de Prévention des Risques" />
+                PPR <Tooltip kind="hover" title="Périmètre de protection rapprochée" />
               </span>
             ),
             nativeInputProps: {
               name: 'ppr',
               value: 'ppr',
               checked: showPpr,
-              onChange: () => setShowPpr((prev) => !prev)
+              onChange: () => setShowPpr((prev) => !prev),
             },
           },
         ]}
@@ -129,7 +129,7 @@ export default function MapLayerFilters({
               name: 'communes',
               value: 'communes',
               checked: showCommunes,
-              onChange: () => setShowCommunes((prev) => !prev)
+              onChange: () => setShowCommunes((prev) => !prev),
             },
           },
         ]}

@@ -20,12 +20,12 @@ const meta = {
     options: {
       control: 'object',
       description:
-        'Liste des options avec leur état de sélection et leurs actions.\n\nModèle obligatoire :\n[\n  {\n    value: string,\n    label: string,\n    isSelected: boolean,\n    actions?: [\n      {\n        label: string,\n        iconId?: string,\n        isCritical?: bool,\n        onClick: (value: string) => void,\n      }\n    ]\n  }\n]',
+        'Liste des options avec leur état de sélection et leurs actions.\n\nModèle obligatoire :\n[\n  {\n    value: string,\n    label: string,\n    isSelected: boolean,\n    group?: string,\n    actions?: [\n      {\n        label: string,\n        iconId?: string,\n        isCritical?: bool,\n        onClick: (value: string) => void,\n      }\n    ]\n  }\n]',
       type: { name: 'array', required: true },
       table: {
         type: {
           summary:
-            '[{ value: string; label: string; isSelected: boolean; actions?: DropdownAction[] }]',
+            '[{ value: string; label: string; isSelected: boolean; group?: string; actions?: DropdownAction[] }]',
         },
         defaultValue: { summary: '[]' },
       },
@@ -79,6 +79,7 @@ export const Défaut = () => {
       value: 'option1',
       label: 'Option 1',
       isSelected: false,
+      group: 'Groupe A',
       actions: [
         {
           value: 'option1',
@@ -105,6 +106,7 @@ export const Défaut = () => {
       value: 'option2',
       label: 'Option 2',
       isSelected: false,
+      group: 'Groupe A',
       actions: [
         {
           value: 'option2',
@@ -131,6 +133,7 @@ export const Défaut = () => {
       value: 'option3',
       label: 'Option 3',
       isSelected: false,
+      group: 'Groupe B',
       actions: [
         {
           value: 'option3',

@@ -9,11 +9,15 @@ import ListItem from '~/ui/ListItem'
 import Layout from '~/ui/layouts/layout'
 import Timeline from '~/ui/Timeline'
 import { ExploitationJson } from '../../types/models'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export default function Accueil({
   latestExploitations,
   latestLogEntries,
 }: InferPageProps<AccueilController, 'index'>) {
+  const hasLogEntries = latestLogEntries?.length > 0
+  const hasExploitations = latestExploitations?.length > 0
+
   return (
     <Layout>
       <Head title="Accueil" />
@@ -49,50 +53,64 @@ export default function Accueil({
       </div>
       <div>
         <div className="fr-container fr-my-8w">
-          <div>
-            <h3>Dernières notes de terrain ajoutées</h3>
-          </div>
-          <Timeline
-            items={latestLogEntries.map((log) => ({
-              content: (
-                <ListItem
-                  variant='compact'
-                  key={log.id}
-                  title={
-                    log.notes
-                      ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
-                      : 'Note sans contenu'
-                  }
-                  tags={
-                    log.tags && log.tags.length > 0
-                      ? log.tags.map((tag: { name: string }) => ({ label: tag.name }))
-                      : []
-                  }
-                  metas={[
-                    {
-                      content: new Date(log.createdAt).toLocaleDateString(),
-                      iconId: 'fr-icon-calendar-event-line',
-                    },
-                    {
-                      content: log.exploitation.name || 'Exploitation inconnue',
-                      iconId: 'fr-icon-map-pin-user-line',
-                    },
-                  ]}
-                  actions={[]}
-                />
-              ),
-            }))}
-          />
+          <h3 className={`fr-mb-10v text-${hasLogEntries ? 'left' : 'center'}`}>
+            Dernières notes de terrain ajoutées
+          </h3>
+
+          {hasLogEntries ? (
+            <Timeline
+              items={latestLogEntries.map((log) => ({
+                content: (
+                  <ListItem
+                    variant="compact"
+                    key={log.id}
+                    title={
+                      log.notes
+                        ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
+                        : 'Note sans contenu'
+                    }
+                    tags={
+                      log.tags && log.tags.length > 0
+                        ? log.tags.map((tag: { name: string }) => ({ label: tag.name }))
+                        : []
+                    }
+                    metas={[
+                      {
+                        content: new Date(log.createdAt).toLocaleDateString(),
+                        iconId: 'fr-icon-calendar-event-line',
+                      },
+                      {
+                        content: log.exploitation.name || 'Exploitation inconnue',
+                        iconId: 'fr-icon-map-pin-user-line',
+                      },
+                    ]}
+                    actions={[]}
+                  />
+                ),
+              }))}
+            />
+          ) : (
+            <EmptyPlaceholder
+              size="lg"
+              priority="secondary"
+              label="Aucune tâche ou planification de tâches actuellement"
+              hint="Pour créer votre première tâche, rendez-vous sur l’exploitation concernée"
+              illustrationSrc="/placeholder-illustrations/journal-colored.png"
+            />
+          )}
         </div>
       </div>
+
       <div
         className="fr-py-10w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
       >
         <div className="fr-container">
           <div className="flex justify-between">
-            <h3>Dernières exploitations agricoles créées</h3>
-            {latestExploitations.length > 0 && (
+            <h3 className={`w-full fr-mb-10v text-${hasExploitations ? 'left' : 'center'}`}>
+              Dernières exploitations agricoles créées
+            </h3>
+            {hasExploitations && (
               <div>
                 <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
                   Consulter les exploitations agricoles
@@ -100,9 +118,20 @@ export default function Accueil({
               </div>
             )}
           </div>
-          <div className="fr-my-4w">
+
+          {hasExploitations ? (
             <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
-          </div>
+          ) : (
+            <EmptyPlaceholder
+              size="lg"
+              priority="secondary"
+              label="Aucune exploitation agricole enregistrée"
+              illustrationSrc="/placeholder-illustrations/exploitations.png"
+              buttonLabel="Ajouter une première exploitation agricole"
+              actionAriaLabel="Ajouter une première exploitation agricole"
+              buttonIcon="fr-icon-arrow-right-line"
+            />
+          )}
         </div>
       </div>
     </Layout>

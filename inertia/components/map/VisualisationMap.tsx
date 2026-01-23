@@ -108,6 +108,8 @@ export default function VisualisationMap({
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
+
+      // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
       if (!mapRef.current || isMarkerHovered) {
         return
       }
