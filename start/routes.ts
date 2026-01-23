@@ -61,6 +61,13 @@ router
     router
       .get('exploitations/:exploitationId/journal/:logEntryId', [
         LogEntriesController,
+        'get',
+      ])
+      .as('log_entries.get')
+
+    router
+      .get('exploitations/:exploitationId/journal/:logEntryId/edition', [
+        LogEntriesController,
         'getForEdition',
       ])
       .as('log_entries.edition')

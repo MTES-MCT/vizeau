@@ -80,6 +80,21 @@ export default class LogEntriesController {
     })
   }
 
+  async get({ params, inertia, auth }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    const logEntry = await LogEntry.query()
+      .where('id', params.logEntryId)
+      .where('exploitationId', params.exploitationId)
+      .preload('tags')
+      .firstOrFail()
+
+    return inertia.render('journal/id', {
+      logEntry: logEntry.serialize(),
+      isCreator: logEntry.userId === user.id,
+    })
+  }
+
   async getForEdition({ params, request, inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({
