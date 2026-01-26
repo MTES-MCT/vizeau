@@ -10,7 +10,7 @@ export default function LogEntryNoteCard({ notes }: LogEntryNoteCardProps) {
     <SectionCard title="Note" size={'small'} icon="fr-icon-draft-line" background="secondary">
       {notes || (
         <EmptyPlaceholder
-          illustrativeIcon='fr-icon-draft-line'
+          illustrativeIcon="fr-icon-draft-line"
           label="Aucune note ajoutée pour cette entrée de journal."
         />
       )}
