@@ -108,7 +108,6 @@ export default function VisualisationMap({
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
-
       // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
       if (!mapRef.current || isMarkerHovered) {
         return
@@ -161,7 +160,14 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime, isMarkerHovered]
+    [
+      unavailableParcelleIds,
+      exploitations,
+      selectedExploitation,
+      editMode,
+      millesime,
+      isMarkerHovered,
+    ]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -239,6 +245,14 @@ export default function VisualisationMap({
           }
         })
       }
+
+      map.addControl(
+        new maplibre.ScaleControl({
+          maxWidth: 100,
+          unit: 'metric',
+        }),
+        'bottom-left'
+      )
 
       const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
 
