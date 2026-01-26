@@ -98,7 +98,11 @@ export default class LogEntriesController {
       logEntry: logEntry.serialize(),
       isCreator: logEntry.userId === user.id,
       exploitation: exploitation.serialize(),
-      user: logEntryAuthor?.serialize()
+      user: logEntryAuthor?.serialize(),
+      deleteEntryLogUrl: router
+        .builder()
+        .params([exploitationId, params.logEntryId])
+        .make('log_entries.destroy'),
     })
   }
 
