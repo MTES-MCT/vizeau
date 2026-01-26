@@ -6,6 +6,7 @@ import maplibre, { type LngLatLike } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
   getCommunesSource,
@@ -70,6 +71,7 @@ export default function VisualisationMap({
   showPpr = false,
   showCommunes = false,
   showBioOnly = false,
+  visibleCultures = [],
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
@@ -91,6 +93,7 @@ export default function VisualisationMap({
   showPpr?: boolean
   showCommunes?: boolean
   showBioOnly?: boolean
+  visibleCultures?: string[]
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -105,10 +108,55 @@ export default function VisualisationMap({
   const currentParcelleIdRef = useRef<string | null>(null)
   const currentStyleRef = useRef<string>('vector')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
+  const previousVisibleCulturesRef = useRef<string[]>([])
+
+  // Synchroniser la ref avec les props
+  useEffect(() => {
+    previousVisibleCulturesRef.current = visibleCultures
+  }, [visibleCultures])
+
+  // Fonction pour filtrer les parcelles par code culture
+  const updateCultureFilter = useCallback(
+    (cultureCodes: string[]) => {
+      if (!mapRef.current) return
+
+      const map = mapRef.current
+
+      if (cultureCodes.length === 0) {
+        // Masquer tout avec un filtre qui ne match jamais
+        const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
+        ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setFilter(layerId, hideFilter)
+          }
+        })
+        return
+      }
+
+      // Convertir les codes en nombres
+      const codesAsNumbers = cultureCodes.map((code) => parseInt(code, 10))
+
+      // Créer le filtre selon le millésime
+      let filter: maplibre.FilterSpecification
+      if (millesime === '2024') {
+        // Millésime 2024 : 'code_group'
+        filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
+      } else {
+        // Millésime 2023 : 'CODE_GROUP'
+        filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
+      }
+
+      ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+        if (map.getLayer(layerId)) {
+          map.setFilter(layerId, filter)
+        }
+      })
+    },
+    [millesime]
+  )
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
-
       // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
       if (!mapRef.current || isMarkerHovered) {
         return
@@ -161,7 +209,14 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime, isMarkerHovered]
+    [
+      unavailableParcelleIds,
+      exploitations,
+      selectedExploitation,
+      editMode,
+      millesime,
+      isMarkerHovered,
+    ]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -247,6 +302,23 @@ export default function VisualisationMap({
       addLayers(getAacLayer(), beforeId)
       addLayers(getCommunesLayer(), beforeId)
       addLayers(getParcellesLayers(), beforeId)
+
+      // Appliquer le filtre initial quand la carte est prête (toutes les cultures visibles par défaut)
+      map.once('idle', () => {
+        const allCultureCodes = Object.keys(GROUPES_CULTURAUX)
+        const codesAsNumbers = allCultureCodes.map((code) => parseInt(code, 10))
+        let filter: maplibre.FilterSpecification
+        if (millesime === '2024') {
+          filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
+        } else {
+          filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
+        }
+        ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setFilter(layerId, filter)
+          }
+        })
+      })
 
       setIsMapLoading(false)
     })
@@ -417,8 +489,6 @@ export default function VisualisationMap({
       map.setCenter(center)
       map.setZoom(zoom)
 
-      // Remettre le marker après le changement de style
-
       // Rajouter les couches parcelles après le chargement de style
       if (!map.getSource('parcelles')) {
         map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
@@ -480,10 +550,37 @@ export default function VisualisationMap({
       layerVisibilityConfig.forEach(({ layers, visible }) => {
         setLayerVisibility(layers, visible)
       })
+
+      // Réappliquer le filtre de culture après changement de style
+      map.once('idle', () => {
+        // Utiliser une ref pour éviter les dépendances
+        const currentCultures = previousVisibleCulturesRef.current
+        if (currentCultures.length === 0) {
+          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
+          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setFilter(layerId, hideFilter)
+            }
+          })
+        } else {
+          const codesAsNumbers = currentCultures.map((code) => parseInt(code, 10))
+          let filter: maplibre.FilterSpecification
+          if (millesime === '2024') {
+            filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
+          } else {
+            filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
+          }
+          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setFilter(layerId, filter)
+            }
+          })
+        }
+      })
     })
 
     currentStyleRef.current = style
-  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
+  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, millesime])
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -569,23 +666,33 @@ export default function VisualisationMap({
       map.addLayer(layer, beforeId)
     })
 
-    // Attendre que la source soit chargée pour réappliquer le highlight
+    // Attendre que la source soit chargée pour réappliquer le filtre
     const onSourceData = (e: any) => {
       if (e.sourceId === 'parcelles' && e.isSourceLoaded) {
         map.off('sourcedata', onSourceData)
 
-        // Réappliquer le highlight des parcelles sélectionnées
-        let parcelleIds: string[] = []
-        if (editMode) {
-          parcelleIds = formParcelleIds
-        } else if (selectedExploitation?.parcelles) {
-          parcelleIds = selectedExploitation.parcelles
-            .filter((parcelle) => parcelle.year.toString() === millesime)
-            .map((parcelle) => parcelle.rpgId)
-        }
-
-        if (parcelleIds.length > 0) {
-          setParcellesHighlight(mapRef.current, parcelleIds, true)
+        // Réappliquer le filtre de culture après changement de millésime
+        const currentCultures = previousVisibleCulturesRef.current
+        if (currentCultures.length === 0) {
+          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
+          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setFilter(layerId, hideFilter)
+            }
+          })
+        } else {
+          const codesAsNumbers = currentCultures.map((code) => parseInt(code, 10))
+          let filter: maplibre.FilterSpecification
+          if (millesime === '2024') {
+            filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
+          } else {
+            filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
+          }
+          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setFilter(layerId, filter)
+            }
+          })
         }
       }
     }
@@ -669,6 +776,18 @@ export default function VisualisationMap({
     })
   }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
 
+  // Mise à jour du filtre quand visibleCultures change
+  useEffect(() => {
+    if (!mapRef.current || !mapRef.current.isStyleLoaded()) return
+
+    const map = mapRef.current
+
+    // Vérifier que les layers existent avant d'appliquer le filtre
+    if (map.getLayer('parcelles-fill') && map.getLayer('parcelles-outline')) {
+      updateCultureFilter(visibleCultures)
+    }
+  }, [visibleCultures, updateCultureFilter])
+
   return (
     <div className="flex flex-col h-full w-full relative border">
       <style>{`
@@ -693,9 +812,11 @@ export default function VisualisationMap({
         </div>
       )}
       <div ref={mapContainerRef} className="flex h-full w-full" />
+
+      {/* Sélecteur de fond de carte */}
       <Select
         label=""
-        style={{ position: 'absolute' }}
+        style={{ position: 'absolute', top: '10px', left: '10px' }}
         nativeSelectProps={{
           defaultValue: 'vector',
           onChange: (e) => setStyle(e.target.value),
@@ -706,16 +827,15 @@ export default function VisualisationMap({
           { value: 'plan-ign', label: 'Plan IGN' },
         ]}
       />
+
+      {/* Sélecteur de millésime */}
       <Select
         label=""
-        style={{ position: 'absolute', right: 0 }}
+        style={{ position: 'absolute', top: '10px', right: '10px' }}
         disabled={editMode}
         nativeSelectProps={{
           defaultValue: millesime,
           onChange: (e) => {
-            // Reload the page with the new millesime
-            // This operation can take some time on slow connections, so we set the map in loading state
-            // It will be unset when the map 'idle' event is fired
             setIsMapLoading(true)
             router.reload({
               only: ['queryString', 'filteredExploitations'],
