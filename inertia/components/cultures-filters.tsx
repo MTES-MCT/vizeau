@@ -35,7 +35,6 @@ export default function CulturesFilters({
           return (
             <div
               key={culture.code_group}
-              onClick={() => onToggleCulture(String(culture.code_group))}
               style={{ opacity: isVisible ? 1 : 0.5 }}
             >
               <Checkbox

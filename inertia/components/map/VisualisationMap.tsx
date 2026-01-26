@@ -125,7 +125,7 @@ export default function VisualisationMap({
       if (cultureCodes.length === 0) {
         // Masquer tout avec un filtre qui ne match jamais
         const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
-        ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+        ;['parcelles-fill', 'parcelles-outline', 'parcellesbio-fill', 'parcellesbio-outline'].forEach((layerId) => {
           if (map.getLayer(layerId)) {
             map.setFilter(layerId, hideFilter)
           }
@@ -146,7 +146,7 @@ export default function VisualisationMap({
         filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
       }
 
-      ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
+      ;['parcelles-fill', 'parcelles-outline', 'parcellesbio-fill', 'parcellesbio-outline'].forEach((layerId) => {
         if (map.getLayer(layerId)) {
           map.setFilter(layerId, filter)
         }
@@ -306,18 +306,7 @@ export default function VisualisationMap({
       // Appliquer le filtre initial quand la carte est prête (toutes les cultures visibles par défaut)
       map.once('idle', () => {
         const allCultureCodes = Object.keys(GROUPES_CULTURAUX)
-        const codesAsNumbers = allCultureCodes.map((code) => parseInt(code, 10))
-        let filter: maplibre.FilterSpecification
-        if (millesime === '2024') {
-          filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
-        } else {
-          filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
-        }
-        ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
-          if (map.getLayer(layerId)) {
-            map.setFilter(layerId, filter)
-          }
-        })
+        updateCultureFilter(allCultureCodes)
       })
 
       setIsMapLoading(false)
@@ -555,32 +544,12 @@ export default function VisualisationMap({
       map.once('idle', () => {
         // Utiliser une ref pour éviter les dépendances
         const currentCultures = previousVisibleCulturesRef.current
-        if (currentCultures.length === 0) {
-          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
-          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setFilter(layerId, hideFilter)
-            }
-          })
-        } else {
-          const codesAsNumbers = currentCultures.map((code) => parseInt(code, 10))
-          let filter: maplibre.FilterSpecification
-          if (millesime === '2024') {
-            filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
-          } else {
-            filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
-          }
-          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setFilter(layerId, filter)
-            }
-          })
-        }
+        updateCultureFilter(currentCultures)
       })
     })
 
     currentStyleRef.current = style
-  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, millesime])
+  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -673,27 +642,7 @@ export default function VisualisationMap({
 
         // Réappliquer le filtre de culture après changement de millésime
         const currentCultures = previousVisibleCulturesRef.current
-        if (currentCultures.length === 0) {
-          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
-          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setFilter(layerId, hideFilter)
-            }
-          })
-        } else {
-          const codesAsNumbers = currentCultures.map((code) => parseInt(code, 10))
-          let filter: maplibre.FilterSpecification
-          if (millesime === '2024') {
-            filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
-          } else {
-            filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
-          }
-          ;['parcelles-fill', 'parcelles-outline'].forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setFilter(layerId, filter)
-            }
-          })
-        }
+        updateCultureFilter(currentCultures)
       }
     }
 
