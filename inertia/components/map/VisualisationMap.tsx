@@ -549,7 +549,7 @@ export default function VisualisationMap({
     })
 
     currentStyleRef.current = style
-  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
+  }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, updateCultureFilter])
 
   useEffect(() => {
     if (!mapRef.current) {
