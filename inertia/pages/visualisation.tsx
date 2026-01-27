@@ -1,9 +1,10 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
 import VisualisationMap from '~/components/map/VisualisationMap'
 import Layout from '~/ui/layouts/layout'
 import MapLayout from '~/ui/layouts/MapLayout'
+import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 import VisualisationController from '#controllers/visualisation_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
@@ -42,6 +43,7 @@ export default function VisualisationPage({
   const [showPpr, setShowPpr] = useState(false)
   const [showCommunes, setShowCommunes] = useState(false)
   const [showBioOnly, setShowBioOnly] = useState(false)
+  const mapRef = useRef<VisualisationMapRef>(null)
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -167,6 +169,7 @@ export default function VisualisationPage({
             setSelectedExploitationId={setSelectedExploitationId}
             isMapLoading={isMapLoading}
             editMode={editMode}
+            mapRef={mapRef}
           />
         }
         headerAdditionalContent={
@@ -261,6 +264,7 @@ export default function VisualisationPage({
             showPpr={showPpr}
             showCommunes={showCommunes}
             showBioOnly={showBioOnly}
+            ref={mapRef}
           />
         }
         rightContent={
