@@ -1,5 +1,6 @@
 import uniqBy from 'lodash-es/uniqBy'
 import CustomTag from '../CustomTag'
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 
 export type TagsListProps = {
   tags: {
@@ -20,7 +21,16 @@ export default function TagsList({ tags, size = 'md', limit }: TagsListProps) {
         </li>
       ))}
       {limit && tags.length > limit && (
-        <li className="fr-mb-0 font-thin italic">+{tags.length - limit}</li>
+        <li className="fr-mb-0 font-thin italic cursor-default">
+          <Tooltip
+            title={`${tags
+              .slice(limit, tags.length)
+              .map((tag) => tag.label)
+              .join(' - ')}`}
+          >
+            +{tags.length - limit}
+          </Tooltip>
+        </li>
       )}
     </ul>
   )
