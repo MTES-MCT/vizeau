@@ -1,4 +1,5 @@
 import { ChangeEvent, RefObject } from 'react'
+import { Link } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import ListItem from '~/ui/ListItem'
 import { ExploitationJson } from '../../types/models'
@@ -63,14 +64,14 @@ export default function VisualisationLeftSideBar({
           >
             <div className="fr-mb-2w">
               <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1em' }}>
-                <a href={`/exploitations/${selectedExploitation.id}`}>
+                <Link href={`/exploitations/${selectedExploitation.id}`}>
                   {selectedExploitation?.name}
-                </a>
+                </Link>
               </div>
               <div>
                 <Button
                   priority="secondary"
-                  size='small'
+                  size="small"
                   iconId="fr-icon-crosshair-2-line"
                   onClick={() => {
                     if (selectedExploitation) {
