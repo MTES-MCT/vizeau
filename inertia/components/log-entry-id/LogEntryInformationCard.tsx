@@ -3,7 +3,7 @@ import LabelInfo from '~/ui/LabelInfo'
 import SectionCard from '~/ui/SectionCard'
 
 export type LogEntryInformationCardProps = {
-  userName: string
+  userName?: string
   createdAt: string
 }
 
