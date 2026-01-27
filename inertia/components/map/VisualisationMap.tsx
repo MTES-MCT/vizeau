@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
@@ -50,27 +50,11 @@ maplibre.addProtocol('pmtiles', protocol.tile)
 
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
-export default function VisualisationMap({
-  exploitations,
-  selectedExploitation,
-  isMapLoading,
-  setIsMapLoading,
-  onParcelleClick,
-  onParcelleMouseLeave,
-  onMarkerClick,
-  onMarkerMouseEnter,
-  onMarkerMouseLeave,
-  formParcelleIds = [],
-  unavailableParcelleIds = [],
-  millesime,
-  editMode = false,
-  showParcelles = true,
-  showAac = true,
-  showPpe = false,
-  showPpr = false,
-  showCommunes = false,
-  showBioOnly = false,
-}: {
+export interface VisualisationMapRef {
+  centerOnExploitation: (exploitation: ExploitationJson) => void
+}
+
+const VisualisationMap = forwardRef<VisualisationMapRef, {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
   isMapLoading: boolean
@@ -91,7 +75,27 @@ export default function VisualisationMap({
   showPpr?: boolean
   showCommunes?: boolean
   showBioOnly?: boolean
-}) {
+}>(({
+  exploitations,
+  selectedExploitation,
+  isMapLoading,
+  setIsMapLoading,
+  onParcelleClick,
+  onParcelleMouseLeave,
+  onMarkerClick,
+  onMarkerMouseEnter,
+  onMarkerMouseLeave,
+  formParcelleIds = [],
+  unavailableParcelleIds = [],
+  millesime,
+  editMode = false,
+  showParcelles = true,
+  showAac = true,
+  showPpe = false,
+  showPpr = false,
+  showCommunes = false,
+  showBioOnly = false,
+}, ref) => {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibre.Map | null>(null)
@@ -106,9 +110,22 @@ export default function VisualisationMap({
   const currentStyleRef = useRef<string>('vector')
   const [style, setStyle] = useState<string>(currentStyleRef.current)
 
+  useImperativeHandle(ref, () => ({
+    centerOnExploitation: (exploitation: ExploitationJson) => {
+      const map = mapRef.current
+      if (map && exploitation.location) {
+        const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
+        map.flyTo({
+          center: coords,
+          zoom: 12,
+          essential: true,
+        })
+      }
+    },
+  }))
+
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
-
       // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
       if (!mapRef.current || isMarkerHovered) {
         return
@@ -161,7 +178,14 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime, isMarkerHovered]
+    [
+      unavailableParcelleIds,
+      exploitations,
+      selectedExploitation,
+      editMode,
+      millesime,
+      isMarkerHovered,
+    ]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -730,4 +754,6 @@ export default function VisualisationMap({
       />
     </div>
   )
-}
+})
+
+export default VisualisationMap
