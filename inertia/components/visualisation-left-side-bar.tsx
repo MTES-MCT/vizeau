@@ -112,6 +112,7 @@ export default function VisualisationLeftSideBar({
               onClick={() => {
                 if (!isMapLoading) {
                   setSelectedExploitationId(exploitation.id)
+                  mapRef.current?.centerOnExploitation(exploitation)
                 }
               }}
               style={{ cursor: !isMapLoading ? 'pointer' : 'progress' }}

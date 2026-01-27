@@ -122,6 +122,7 @@ export default function VisualisationPage({
     (exploitation: ExploitationJson) => {
       if (!editMode) {
         setSelectedExploitationId(exploitation.id)
+        mapRef.current?.centerOnExploitation(exploitation)
       }
     },
     [editMode]
