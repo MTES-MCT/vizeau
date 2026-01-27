@@ -21,7 +21,7 @@ export default function SingleTask({
   exploitation,
   user,
   deleteEntryLogUrl,
-}: InferPageProps<LogEntriesController, 'get'> & { exploitationId: number }) {
+}: InferPageProps<LogEntriesController, 'get'>) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
     isOpenedByDefault: false,
