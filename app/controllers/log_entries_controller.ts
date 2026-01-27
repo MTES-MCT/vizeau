@@ -20,6 +20,7 @@ import { ExploitationService } from '#services/exploitation_service'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
+  PAGE_VIEW: { name: 'log_entry_page_viewed', step: 'viewed' },
   CREATE_SUBMITTED: { name: 'log_entries_create', step: 'submitted' },
   CREATE_CREATED: { name: 'log_entries_create', step: 'created' },
   UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
@@ -84,6 +85,13 @@ export default class LogEntriesController {
   async get({ request, params, inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
     const exploitationId = request.param('exploitationId')
+
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.PAGE_VIEW,
+      context: { exploitationId: exploitationId, logEntryId: params.logEntryId },
+    })
+
     const exploitation = await Exploitation.findOrFail(exploitationId)
 
     const logEntry = await LogEntry.query()
