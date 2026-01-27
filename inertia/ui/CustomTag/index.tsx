@@ -22,7 +22,7 @@ export default function CustomTag({ label, iconId, iconPath, size, color }: Cust
 
   return (
     <Badge
-      className={`height-fit w-fit flex gap-1 fr-mb-0 items-center`}
+      className={`height-fit w-fit flex gap-1 fr-m-0 items-center`}
       style={{ backgroundColor, color: textColor }}
       small={size === 'sm'}
     >
