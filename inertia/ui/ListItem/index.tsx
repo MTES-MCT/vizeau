@@ -100,7 +100,7 @@ export default function ListItem({
     return (
       <Wrapper {...wrapperProps}>
         <div
-          className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''} no-underline`}
+          className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
           style={{
             border: hasBorder
               ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
