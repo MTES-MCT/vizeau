@@ -10,6 +10,7 @@ interface PopupParcelleProps {
   codeGroup: string
   millesime: string
   surfParc: string
+  isBio?: boolean
   isAttributed?: boolean
   isEditMode?: boolean
   isOwnParcelle?: boolean
@@ -61,6 +62,7 @@ export default function PopupParcelle({
   codeGroup,
   surfParc,
   millesime,
+  isBio,
   isAttributed = false,
   isEditMode = false,
   isOwnParcelle = false,
@@ -86,6 +88,21 @@ export default function PopupParcelle({
           info={`${parseFloat(surfParc).toFixed(2)} Ha`}
         />
         <LabelInfo label="Millésime" icon="fr-icon-calendar-line" size="sm" info={millesime} />
+
+        {isBio && (
+          <div className="fr-mt-1w">
+            <b
+              style={{
+                backgroundColor: 'green',
+                color: 'white',
+                padding: '.5em',
+                borderRadius: '25px',
+              }}
+            >
+              BIO
+            </b>
+          </div>
+        )}
       </div>
 
       {showAvailableStatus && <StatusBadge isAvailable />}
@@ -106,6 +123,7 @@ export function renderPopupParcelle(
   codeGroup: string,
   surfParc: string,
   millesime: string,
+  isBio?: boolean,
   isAttributed?: boolean,
   isEditMode?: boolean,
   isOwnParcelle?: boolean
@@ -118,6 +136,7 @@ export function renderPopupParcelle(
       codeGroup={codeGroup}
       surfParc={surfParc}
       millesime={millesime}
+      isBio={isBio}
       isAttributed={isAttributed}
       isEditMode={isEditMode}
       isOwnParcelle={isOwnParcelle}

@@ -69,6 +69,7 @@ export default function VisualisationMap({
   showPpe = false,
   showPpr = false,
   showCommunes = false,
+  showBioOnly = false,
 }: {
   exploitations: ExploitationJson[]
   selectedExploitation?: ExploitationJson
@@ -89,6 +90,7 @@ export default function VisualisationMap({
   showPpe?: boolean
   showPpr?: boolean
   showCommunes?: boolean
+  showBioOnly?: boolean
 }) {
   const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -106,6 +108,7 @@ export default function VisualisationMap({
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
+
       // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
       if (!mapRef.current || isMarkerHovered) {
         return
@@ -120,6 +123,13 @@ export default function VisualisationMap({
 
       // Mise à jour la popup uniquement si la parcelle change
       if (currentParcelleIdRef.current !== id) {
+        // Vérifier si une parcelle bio existe à la position du curseur
+        const bioFeatures = mapRef.current.queryRenderedFeatures(e.point, {
+          layers: ['parcellesbio-fill'],
+        })
+
+        const isBio = bioFeatures.length > 0
+
         const exploitation = exploitations.find((exp) => exp.parcelles?.some((p) => p.rpgId === id))
 
         const popupContent = renderPopupParcelle(
@@ -127,6 +137,7 @@ export default function VisualisationMap({
           codeGroup,
           surfParc,
           millesime,
+          isBio,
           exploitation !== undefined,
           editMode,
           exploitation?.id === selectedExploitation?.id
@@ -136,6 +147,7 @@ export default function VisualisationMap({
           .setLngLat(e.lngLat)
           .setDOMContent(popupContent)
           .addTo(mapRef.current)
+
         currentParcelleIdRef.current = id
       } else {
         parcellePopupRef.current.setLngLat(e.lngLat)
@@ -149,7 +161,7 @@ export default function VisualisationMap({
         }
       }
     },
-    [unavailableParcelleIds, isMarkerHovered]
+    [unavailableParcelleIds, exploitations, selectedExploitation, editMode, millesime, isMarkerHovered]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -365,25 +377,29 @@ export default function VisualisationMap({
 
   // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
   useEffect(() => {
-    mapRef.current?.on('click', 'parcelles-fill', handleParcelleClick)
-    return () => {
-      mapRef.current?.off('click', 'parcelles-fill', handleParcelleClick)
-    }
-  }, [handleParcelleClick])
+    const layers = showBioOnly ? ['parcellesbio-fill'] : ['parcelles-fill']
+    const events = [
+      { event: 'click', handler: handleParcelleClick },
+      { event: 'mousemove', handler: handleParcelleMouseMove },
+      { event: 'mouseleave', handler: handleParcelleMouseLeave },
+    ]
 
-  useEffect(() => {
-    mapRef.current?.on('mousemove', 'parcelles-fill', handleParcelleMouseMove)
-    return () => {
-      mapRef.current?.off('mousemove', 'parcelles-fill', handleParcelleMouseMove)
-    }
-  }, [handleParcelleMouseMove])
+    // Attacher tous les événements
+    events.forEach(({ event, handler }) => {
+      layers.forEach((layer) => {
+        mapRef.current?.on(event as any, layer, handler)
+      })
+    })
 
-  useEffect(() => {
-    mapRef.current?.on('mouseleave', 'parcelles-fill', handleParcelleMouseLeave)
+    // Détacher tous les événements
     return () => {
-      mapRef.current?.off('mouseleave', 'parcelles-fill', handleParcelleMouseLeave)
+      events.forEach(({ event, handler }) => {
+        layers.forEach((layer) => {
+          mapRef.current?.off(event as any, layer, handler)
+        })
+      })
     }
-  }, [handleParcelleMouseLeave])
+  }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
 
   // Mise à jour du style de la carte
   useEffect(() => {
@@ -450,6 +466,7 @@ export default function VisualisationMap({
       addLayersIfMissing(getPpeLayer())
       addLayersIfMissing(getAacLayer())
       addLayersIfMissing(getCommunesLayer())
+      addLayersIfMissing(getParcellesLayers())
 
       // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
       const layerVisibilityConfig = [
@@ -467,6 +484,55 @@ export default function VisualisationMap({
 
     currentStyleRef.current = style
   }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
+
+  useEffect(() => {
+    if (!mapRef.current) {
+      return
+    }
+
+    const map = mapRef.current
+
+    if (!map.isStyleLoaded()) {
+      return
+    }
+
+    if (showBioOnly) {
+      // Mode bio uniquement : rendre les parcelles bio opaques
+      if (map.getLayer('parcelles-fill')) {
+        map.setLayoutProperty('parcelles-fill', 'visibility', 'none')
+      }
+      if (map.getLayer('parcelles-outline')) {
+        map.setLayoutProperty('parcelles-outline', 'visibility', 'none')
+      }
+      if (map.getLayer('parcellesbio-fill')) {
+        map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
+          'case',
+          ['boolean', ['feature-state', 'unavailable'], false],
+          0.3,
+          ['boolean', ['feature-state', 'highlighted'], false],
+          0.7,
+          0.5,
+        ])
+      }
+      if (map.getLayer('parcellesbio-outline')) {
+        map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
+      }
+    } else {
+      // Mode normal : parcelles visibles, bio transparent pour détection uniquement
+      if (map.getLayer('parcelles-fill')) {
+        map.setLayoutProperty('parcelles-fill', 'visibility', showParcelles ? 'visible' : 'none')
+      }
+      if (map.getLayer('parcelles-outline')) {
+        map.setLayoutProperty('parcelles-outline', 'visibility', showParcelles ? 'visible' : 'none')
+      }
+      if (map.getLayer('parcellesbio-fill')) {
+        map.setPaintProperty('parcellesbio-fill', 'fill-opacity', 0)
+      }
+      if (map.getLayer('parcellesbio-outline')) {
+        map.setPaintProperty('parcellesbio-outline', 'line-opacity', 0)
+      }
+    }
+  }, [showBioOnly, showParcelles])
 
   // Mise à jour du millésime des parcelles
   useEffect(() => {
@@ -486,6 +552,14 @@ export default function VisualisationMap({
       map.removeLayer('parcelles-outline')
     }
 
+    if (map.getLayer('parcellesbio-fill')) {
+      map.removeLayer('parcellesbio-fill')
+    }
+
+    if (map.getLayer('parcellesbio-outline')) {
+      map.removeLayer('parcellesbio-outline')
+    }
+
     map.removeSource('parcelles')
     map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
 
@@ -494,6 +568,33 @@ export default function VisualisationMap({
       const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
       map.addLayer(layer, beforeId)
     })
+
+    // Attendre que la source soit chargée pour réappliquer le highlight
+    const onSourceData = (e: any) => {
+      if (e.sourceId === 'parcelles' && e.isSourceLoaded) {
+        map.off('sourcedata', onSourceData)
+
+        // Réappliquer le highlight des parcelles sélectionnées
+        let parcelleIds: string[] = []
+        if (editMode) {
+          parcelleIds = formParcelleIds
+        } else if (selectedExploitation?.parcelles) {
+          parcelleIds = selectedExploitation.parcelles
+            .filter((parcelle) => parcelle.year.toString() === millesime)
+            .map((parcelle) => parcelle.rpgId)
+        }
+
+        if (parcelleIds.length > 0) {
+          setParcellesHighlight(mapRef.current, parcelleIds, true)
+        }
+      }
+    }
+
+    map.on('sourcedata', onSourceData)
+
+    return () => {
+      map.off('sourcedata', onSourceData)
+    }
   }, [millesime])
 
   // Zoom sur l'exploitation sélectionnée

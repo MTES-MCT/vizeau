@@ -132,7 +132,7 @@ export default function ListItem({
                     )}
                     <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
                   </div>
-                  {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+                  {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
                 </div>
 
                 <div
@@ -172,7 +172,7 @@ export default function ListItem({
           />
         )}
         <div>
-          {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
+          {tags && tags.length > 0 && <TagsList tags={tags} size="sm" limit={5} />}
 
           <div className="flex items-start">
             <div className="flex flex-1 flex-col">
