@@ -621,19 +621,6 @@ const VisualisationMap = forwardRef<VisualisationMapRef, {
     }
   }, [millesime])
 
-  // Zoom sur l'exploitation sélectionnée
-  useEffect(() => {
-    const map = mapRef.current
-    if (map && selectedExploitation?.location) {
-      const coords: LngLatLike = [selectedExploitation.location.x, selectedExploitation.location.y]
-      map.flyTo({
-        center: coords,
-        zoom: 12,
-        essential: true,
-      })
-    }
-  }, [selectedExploitation])
-
   useEffect(() => {
     // Détermine les parcelles à highlight selon le mode
     let parcelleIds: string[] = []
