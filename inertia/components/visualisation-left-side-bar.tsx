@@ -99,11 +99,11 @@ export default function VisualisationLeftSideBar({
           <div className="flex">
             <SearchBar
               className="flex flex-1 fr-mb-2w"
-              renderInput={({ className, id, placeholder, type }) => (
+              renderInput={({ className, id, type }) => (
                 <input
                   className={className}
                   id={id}
-                  placeholder={placeholder}
+                  placeholder="Rechercher une exploitation agricole"
                   type={type}
                   onChange={handleSearch}
                   defaultValue={queryString?.recherche || ''}
