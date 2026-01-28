@@ -1,6 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { DateTime } from 'luxon'
+import Env from '#start/env'
 
 /*
  * Seeder to create MVP data in production environment.
@@ -84,6 +85,8 @@ export default class extends BaseSeeder {
   static environment = ['production']
 
   async run() {
-    await ExploitationFactory.with('contacts', 1).merge(data).createMany(data.length)
+    await ExploitationFactory.with('contacts', 1)
+      .merge({ ...data, userId: Env.get('ADMIN_EMAIL') })
+      .createMany(data.length)
   }
 }

@@ -9,6 +9,7 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import VisualisationExploitationInfos from './visualisation-exploitation-infos'
 import AnalysesSection from './analyses-section'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
+import Alert from '@codegouvfr/react-dsfr/Alert'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -58,6 +59,14 @@ export default function VisualisationLeftSideBar({
             style={{ marginBottom: fr.spacing('2v') }}
             className="fr-m-1w"
           />
+          {selectedExploitation.isDemo && (
+            <Alert
+              severity="warning"
+              title="Exploitation de test"
+              description="Cette exploitation a été créée par l'administrateur du système à des fins de démonstration. Les parcelles associées ici seront visibles des autres testeurs."
+              className="fr-mb-4w"
+            />
+          )}
           <div
             className="fr-p-1w fr-m-1w"
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
