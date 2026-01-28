@@ -106,32 +106,37 @@ export default function Accueil({
         style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
       >
         <div className="fr-container">
-          <div className="flex justify-between">
-            <h3 className={`w-full fr-mb-10v text-${hasExploitations ? 'left' : 'center'}`}>
+          <div className="flex justify-between flex-wrap">
+            <h3 className={`flex justify-${hasExploitations ? 'left' : 'center'}`}>
               Dernières exploitations agricoles créées
             </h3>
             {hasExploitations && (
               <div>
-                <Button iconId="fr-icon-arrow-right-line" linkProps={{ href: '/exploitations' }}>
+                <Button
+                  iconId="fr-icon-arrow-right-line"
+                  linkProps={{ href: '/exploitations' }}
+                  className="w-fit whitespace-nowrap"
+                >
                   Consulter les exploitations agricoles
                 </Button>
               </div>
             )}
           </div>
-
-          {hasExploitations ? (
-            <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
-          ) : (
-            <EmptyPlaceholder
-              size="lg"
-              priority="secondary"
-              label="Aucune exploitation agricole enregistrée"
-              illustrationSrc="/placeholder-illustrations/exploitations.png"
-              buttonLabel="Ajouter une première exploitation agricole"
-              actionAriaLabel="Ajouter une première exploitation agricole"
-              buttonIcon="fr-icon-arrow-right-line"
-            />
-          )}
+          <div className="fr-mt-6w">
+            {hasExploitations ? (
+              <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
+            ) : (
+              <EmptyPlaceholder
+                size="lg"
+                priority="secondary"
+                label="Aucune exploitation agricole enregistrée"
+                illustrationSrc="/placeholder-illustrations/exploitations.png"
+                buttonLabel="Ajouter une première exploitation agricole"
+                actionAriaLabel="Ajouter une première exploitation agricole"
+                buttonIcon="fr-icon-arrow-right-line"
+              />
+            )}
+          </div>
         </div>
       </div>
     </Layout>
