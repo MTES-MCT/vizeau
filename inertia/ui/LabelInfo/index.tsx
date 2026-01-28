@@ -29,14 +29,14 @@ export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoP
       </div>
 
       {info && (
-        <p
+        <div
           className={`fr-text--${size} fr-ml-1w fr-mb-0 flex-1 break-words`}
           style={{
             color: fr.colors.decisions.text.mention.grey.default,
           }}
         >
           {info}
-        </p>
+        </div>
       )}
     </div>
   )
