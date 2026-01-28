@@ -32,7 +32,7 @@ export default function AnalysesSection({ parcelles }: AnalysesSectionProps) {
   }, [parcelles])
 
   return (
-    <SmallSection title="Analyses" iconId="fr-icon-line-chart-line" priority="secondary" hasBorder >
+    <SmallSection title="Analyses" iconId="fr-icon-line-chart-line" priority="secondary" hasBorder>
       {parcelles.length > 0 ? (
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-3">
