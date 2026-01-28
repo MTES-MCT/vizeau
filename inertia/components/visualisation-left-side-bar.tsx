@@ -59,9 +59,9 @@ export default function VisualisationLeftSideBar({
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
           >
             <div className="flex justify-between items-center fr-mb-3w">
-              <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
+              <h4 className="fr-m-0 font-bold fr-text--lead">
                 {selectedExploitation?.name}
-              </div>
+              </h4>
               <div>
                 <Button
                   linkProps={{ href: `/exploitations/${selectedExploitation.id}` }}
