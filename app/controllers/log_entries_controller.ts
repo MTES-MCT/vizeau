@@ -13,12 +13,14 @@ import { errors } from '@adonisjs/auth'
 import { EventLoggerService } from '#services/event_logger_service'
 import Exploitation from '#models/exploitation'
 import LogEntry from '#models/log_entry'
+import User from '#models/user'
 import router from '@adonisjs/core/services/router'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
+  PAGE_VIEW: { name: 'log_entry_page_viewed', step: 'viewed' },
   CREATE_SUBMITTED: { name: 'log_entries_create', step: 'submitted' },
   CREATE_CREATED: { name: 'log_entries_create', step: 'created' },
   UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
@@ -77,6 +79,38 @@ export default class LogEntriesController {
         .params([exploitationId])
         .make('log_entries.destroyTagForExploitation'),
       createEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.create'),
+    })
+  }
+
+  async get({ request, params, inertia, auth }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const exploitationId = request.param('exploitationId')
+
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.PAGE_VIEW,
+      context: { exploitationId: exploitationId, logEntryId: params.logEntryId },
+    })
+
+    const exploitation = await Exploitation.findOrFail(exploitationId)
+
+    const logEntry = await LogEntry.query()
+      .where('id', params.logEntryId)
+      .where('exploitationId', params.exploitationId)
+      .preload('tags')
+      .firstOrFail()
+
+    const logEntryAuthor = await User.find(logEntry.userId)
+
+    return inertia.render('journal/id', {
+      logEntry: logEntry.serialize(),
+      isCreator: logEntry.userId === user.id,
+      exploitation: exploitation.serialize(),
+      user: logEntryAuthor?.serialize(),
+      deleteEntryLogUrl: router
+        .builder()
+        .params([exploitationId, params.logEntryId])
+        .make('log_entries.destroy'),
     })
   }
 
