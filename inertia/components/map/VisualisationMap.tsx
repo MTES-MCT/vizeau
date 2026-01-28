@@ -8,7 +8,6 @@ import { ExploitationJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
-  getCommunesSource,
   getCommunesLayer,
   getAacSource,
   getAacLayer,
@@ -307,10 +306,6 @@ const VisualisationMap = forwardRef<
           map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
         }
 
-        if (!map.getSource('communes')) {
-          map.addSource('communes', getCommunesSource({ pmtilesUrl }))
-        }
-
         if (!map.getSource('aac')) {
           map.addSource('aac', getAacSource({ pmtilesUrl }))
         }
@@ -565,7 +560,6 @@ const VisualisationMap = forwardRef<
           })
         }
 
-        addSourceIfMissing('communes', getCommunesSource({ pmtilesUrl }))
         addSourceIfMissing('aac', getAacSource({ pmtilesUrl }))
         addSourceIfMissing('ppe', getPpeSource({ pmtilesUrl }))
         addSourceIfMissing('ppr', getPprSource({ pmtilesUrl }))

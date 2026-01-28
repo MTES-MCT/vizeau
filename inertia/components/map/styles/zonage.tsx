@@ -113,13 +113,6 @@ export const getPprLayer = () => {
   ]
 }
 
-export const getCommunesSource = ({ pmtilesUrl }: { pmtilesUrl: string }): maplibregl.VectorSourceSpecification => {
-  return {
-    type: 'vector',
-    url: `pmtiles://${pmtilesUrl}/communes.pmtiles`,
-  }
-}
-
 export const getAacSource = ({ pmtilesUrl }: { pmtilesUrl: string }): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
