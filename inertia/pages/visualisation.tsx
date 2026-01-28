@@ -1,7 +1,7 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
-import VisualisationMap from '~/components/map/VisualisationMap'
+import VisualisationMap, { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Layout from '~/ui/layouts/layout'
 import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
@@ -43,6 +43,7 @@ export default function VisualisationPage({
   const [showPpr, setShowPpr] = useState(false)
   const [showCommunes, setShowCommunes] = useState(false)
   const [showBioOnly, setShowBioOnly] = useState(false)
+  const mapRef = useRef<VisualisationMapRef>(null)
   const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
 
   // Selected exploitation in the sidebar
@@ -122,6 +123,7 @@ export default function VisualisationPage({
     (exploitation: ExploitationJson) => {
       if (!editMode) {
         setSelectedExploitationId(exploitation.id)
+        mapRef.current?.centerOnExploitation(exploitation)
       }
     },
     [editMode]
@@ -182,6 +184,7 @@ export default function VisualisationPage({
             setSelectedExploitationId={setSelectedExploitationId}
             isMapLoading={isMapLoading}
             editMode={editMode}
+            mapRef={mapRef}
           />
         }
         headerAdditionalContent={
@@ -276,6 +279,7 @@ export default function VisualisationPage({
             showPpr={showPpr}
             showCommunes={showCommunes}
             showBioOnly={showBioOnly}
+            ref={mapRef}
             visibleCultures={visibleCultures}
           />
         }
