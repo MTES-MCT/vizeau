@@ -1,4 +1,5 @@
-import { ChangeEvent } from 'react'
+import { ChangeEvent, RefObject } from 'react'
+import { Link } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import ListItem from '~/ui/ListItem'
 import { ExploitationJson } from '../../types/models'
@@ -7,6 +8,7 @@ import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import Button from '@codegouvfr/react-dsfr/Button'
 import VisualisationExploitationInfos from './visualisation-exploitation-infos'
 import AnalysesSection from './analyses-section'
+import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -16,6 +18,7 @@ export default function VisualisationLeftSideBar({
   setSelectedExploitationId,
   isMapLoading,
   editMode,
+  mapRef,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
@@ -24,6 +27,7 @@ export default function VisualisationLeftSideBar({
   setSelectedExploitationId: (exploitationId: string | undefined) => void
   isMapLoading: boolean
   editMode: boolean
+  mapRef: RefObject<VisualisationMapRef>
 }) {
   return (
     <div>
@@ -58,17 +62,24 @@ export default function VisualisationLeftSideBar({
             className="fr-p-1w fr-m-1w"
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
           >
-            <div className="flex justify-between items-center fr-mb-3w">
-              <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
-                {selectedExploitation?.name}
+            <div className="fr-mb-2w">
+              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1em' }}>
+                <Link href={`/exploitations/${selectedExploitation.id}`}>
+                  {selectedExploitation?.name}
+                </Link>
               </div>
               <div>
                 <Button
-                  linkProps={{ href: `/exploitations/${selectedExploitation.id}` }}
                   priority="secondary"
-                  iconId="fr-icon-arrow-right-line"
+                  size="small"
+                  iconId="fr-icon-crosshair-2-line"
+                  onClick={() => {
+                    if (selectedExploitation) {
+                      mapRef.current?.centerOnExploitation(selectedExploitation)
+                    }
+                  }}
                 >
-                  Voir
+                  Centrer sur l'exploitation
                 </Button>
               </div>
             </div>
@@ -102,6 +113,7 @@ export default function VisualisationLeftSideBar({
               onClick={() => {
                 if (!isMapLoading) {
                   setSelectedExploitationId(exploitation.id)
+                  mapRef.current?.centerOnExploitation(exploitation)
                 }
               }}
               style={{ cursor: !isMapLoading ? 'pointer' : 'progress' }}
