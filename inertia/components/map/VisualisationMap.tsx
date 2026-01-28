@@ -345,12 +345,6 @@ const VisualisationMap = forwardRef<
         addLayers(getCommunesLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
 
-        // Appliquer le filtre initial quand la carte est prête (toutes les cultures visibles par défaut)
-        map.once('idle', () => {
-          const allCultureCodes = Object.keys(GROUPES_CULTURAUX)
-          updateCultureFilter(allCultureCodes)
-        })
-
         setIsMapLoading(false)
       })
 
