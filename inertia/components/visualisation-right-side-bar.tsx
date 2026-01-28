@@ -1,5 +1,5 @@
 import SmallSection from '~/ui/SmallSection'
-import CulturesLegend from './cultures-legend'
+import CulturesFilters from './cultures-filters'
 import MapLayerFilters from './map-layer-filters'
 
 export default function VisualisationRightSideBar({
@@ -15,7 +15,27 @@ export default function VisualisationRightSideBar({
   setShowPpr = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowBioOnly = (_update: boolean | ((prev: boolean) => boolean)) => {},
-  canSwitchToBioOnly = true
+  canSwitchToBioOnly = true,
+  visibleCultures,
+  onToggleCulture,
+  onToggleAllCultures,
+}: {
+  showParcelles?: boolean
+  showAac?: boolean
+  showPpe?: boolean
+  showPpr?: boolean
+  showCommunes?: boolean
+  showBioOnly?: boolean
+  setShowParcelles?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowAac?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowPpe?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowPpr?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowCommunes?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowBioOnly?: (update: boolean | ((prev: boolean) => boolean)) => void
+  canSwitchToBioOnly?: boolean
+  visibleCultures?: string[]
+  onToggleCulture?: (code: string) => void
+  onToggleAllCultures?: () => void
 }) {
   return (
     <div className="flex flex-col gap-2 fr-p-1w">
@@ -48,7 +68,13 @@ export default function VisualisationRightSideBar({
         priority="secondary"
         hasBorder
       >
-        <CulturesLegend />
+        {visibleCultures && onToggleCulture && onToggleAllCultures && (
+          <CulturesFilters
+            visibleCultures={visibleCultures}
+            onToggleCulture={onToggleCulture}
+            onToggleAllCultures={onToggleAllCultures}
+          />
+        )}
       </SmallSection>
     </div>
   )
