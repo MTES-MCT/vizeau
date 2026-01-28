@@ -62,12 +62,15 @@ export default function VisualisationLeftSideBar({
             className="fr-p-1w fr-m-1w"
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
           >
-            <div className="fr-mb-2w">
-              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1em' }}>
-                <Link href={`/exploitations/${selectedExploitation.id}`}>
-                  {selectedExploitation?.name}
-                </Link>
-              </div>
+            <div className="flex justify-between items-center fr-mb-3w">
+              <Link
+                href={`/exploitations/${selectedExploitation.id}`}
+                as="h4"
+                className="fr-m-0 font-bold fr-text--lead underline cursor-pointer"
+              >
+                {selectedExploitation?.name}
+              </Link>
+
               <div>
                 <Button
                   priority="secondary"

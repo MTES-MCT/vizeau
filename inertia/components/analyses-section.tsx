@@ -7,9 +7,9 @@ import DataVisualization from '@codegouvfr/react-dsfr/picto/DataVisualization'
 
 import Doughnut from '~/ui/Charts/Doughnut'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
-import SectionCard from '~/ui/SectionCard'
 import Divider from '~/ui/Divider'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import SmallSection from '~/ui/SmallSection'
 
 export type AnalysesSectionProps = {
   parcelles: {
@@ -32,7 +32,7 @@ export default function AnalysesSection({ parcelles }: AnalysesSectionProps) {
   }, [parcelles])
 
   return (
-    <SectionCard title="Analyses" icon="fr-icon-line-chart-line" size="small">
+    <SmallSection title="Analyses" iconId="fr-icon-line-chart-line" priority="secondary" hasBorder>
       {parcelles.length > 0 ? (
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-3">
@@ -70,6 +70,6 @@ export default function AnalysesSection({ parcelles }: AnalysesSectionProps) {
       ) : (
         <EmptyPlaceholder pictogram={DataVisualization} label="Données indisponibles" />
       )}
-    </SectionCard>
+    </SmallSection>
   )
 }
