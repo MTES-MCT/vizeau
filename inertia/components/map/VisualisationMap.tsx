@@ -77,6 +77,7 @@ const VisualisationMap = forwardRef<
     showPpr?: boolean
     showCommunes?: boolean
     showBioOnly?: boolean
+    visibleCultures?: string[]
   }
 >(
   (
@@ -100,6 +101,7 @@ const VisualisationMap = forwardRef<
       showPpr = false,
       showCommunes = false,
       showBioOnly = false,
+      visibleCultures = [],
     },
     ref
   ) => {
@@ -116,6 +118,62 @@ const VisualisationMap = forwardRef<
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
     const [style, setStyle] = useState<string>(currentStyleRef.current)
+    const previousVisibleCulturesRef = useRef<string[]>([])
+
+    // Synchroniser la ref avec les props
+    useEffect(() => {
+      previousVisibleCulturesRef.current = visibleCultures
+    }, [visibleCultures])
+
+    // Fonction pour filtrer les parcelles par code culture
+    const updateCultureFilter = useCallback(
+      (cultureCodes: string[]) => {
+        if (!mapRef.current) return
+
+        const map = mapRef.current
+
+        if (cultureCodes.length === 0) {
+          // Masquer tout avec un filtre qui ne match jamais
+          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
+          ;[
+            'parcelles-fill',
+            'parcelles-outline',
+            'parcellesbio-fill',
+            'parcellesbio-outline',
+          ].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setFilter(layerId, hideFilter)
+            }
+          })
+          return
+        }
+
+        // Convertir les codes en nombres
+        const codesAsNumbers = cultureCodes.map((code) => parseInt(code, 10))
+
+        // Créer le filtre selon le millésime
+        let filter: maplibre.FilterSpecification
+        if (millesime === '2024') {
+          // Millésime 2024 : 'code_group'
+          filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
+        } else {
+          // Millésime 2023 : 'CODE_GROUP'
+          filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
+        }
+
+        ;[
+          'parcelles-fill',
+          'parcelles-outline',
+          'parcellesbio-fill',
+          'parcellesbio-outline',
+        ].forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setFilter(layerId, filter)
+          }
+        })
+      },
+      [millesime]
+    )
 
     useImperativeHandle(ref, () => ({
       centerOnExploitation: (exploitation: ExploitationJson) => {
@@ -276,6 +334,14 @@ const VisualisationMap = forwardRef<
           })
         }
 
+        map.addControl(
+          new maplibre.ScaleControl({
+            maxWidth: 100,
+            unit: 'metric',
+          }),
+          'bottom-left'
+        )
+
         const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
 
         addLayers(getPprLayer(), beforeId)
@@ -283,6 +349,12 @@ const VisualisationMap = forwardRef<
         addLayers(getAacLayer(), beforeId)
         addLayers(getCommunesLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
+
+        // Appliquer le filtre initial quand la carte est prête (toutes les cultures visibles par défaut)
+        map.once('idle', () => {
+          const allCultureCodes = Object.keys(GROUPES_CULTURAUX)
+          updateCultureFilter(allCultureCodes)
+        })
 
         setIsMapLoading(false)
       })
@@ -516,10 +588,16 @@ const VisualisationMap = forwardRef<
         layerVisibilityConfig.forEach(({ layers, visible }) => {
           setLayerVisibility(layers, visible)
         })
+
+        // Réappliquer le filtre de culture après changement de style
+        map.once('idle', () => {
+          const currentCultures = previousVisibleCulturesRef.current
+          updateCultureFilter(currentCultures)
+        })
       })
 
       currentStyleRef.current = style
-    }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes])
+    }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, updateCultureFilter])
 
     useEffect(() => {
       if (!mapRef.current) {
@@ -614,6 +692,10 @@ const VisualisationMap = forwardRef<
         if (e.sourceId === 'parcelles' && e.isSourceLoaded) {
           map.off('sourcedata', onSourceData)
 
+          // Réappliquer le filtre de culture après changement de millésime
+          const currentCultures = previousVisibleCulturesRef.current
+          updateCultureFilter(currentCultures)
+
           // Réappliquer le highlight des parcelles sélectionnées
           let parcelleIds: string[] = []
           if (editMode) {
@@ -695,6 +777,18 @@ const VisualisationMap = forwardRef<
         })
       })
     }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
+
+    // Mise à jour du filtre quand visibleCultures change
+    useEffect(() => {
+      if (!mapRef.current || !mapRef.current.isStyleLoaded()) return
+
+      const map = mapRef.current
+
+      // Vérifier que les layers existent avant d'appliquer le filtre
+      if (map.getLayer('parcelles-fill') && map.getLayer('parcelles-outline')) {
+        updateCultureFilter(visibleCultures)
+      }
+    }, [visibleCultures, updateCultureFilter])
 
     return (
       <div className="flex flex-col h-full w-full relative border">

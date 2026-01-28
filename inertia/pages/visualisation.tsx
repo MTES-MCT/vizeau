@@ -11,6 +11,7 @@ import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { ExploitationJson } from '../../types/models'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -43,6 +44,7 @@ export default function VisualisationPage({
   const [showCommunes, setShowCommunes] = useState(false)
   const [showBioOnly, setShowBioOnly] = useState(false)
   const mapRef = useRef<VisualisationMapRef>(null)
+  const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -126,6 +128,19 @@ export default function VisualisationPage({
     },
     [editMode]
   )
+
+  // Fonction pour toggle une culture
+  const toggleCulture = useCallback((code: string) => {
+    setVisibleCultures((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    )
+  }, [])
+
+  // Fonction pour toggle toutes les cultures
+  const toggleAllCultures = useCallback(() => {
+    const allCodes = Object.keys(GROUPES_CULTURAUX)
+    setVisibleCultures((prev) => (prev.length === allCodes.length ? [] : allCodes))
+  }, [])
 
   // When edit mode changes, we need to refresh the unavailable parcelles from the server.
   useEffect(() => {
@@ -265,6 +280,7 @@ export default function VisualisationPage({
             showCommunes={showCommunes}
             showBioOnly={showBioOnly}
             ref={mapRef}
+            visibleCultures={visibleCultures}
           />
         }
         rightContent={
@@ -282,6 +298,9 @@ export default function VisualisationPage({
             showBioOnly={showBioOnly}
             setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
             canSwitchToBioOnly={!editMode && millesime === '2024'}
+            visibleCultures={visibleCultures}
+            onToggleCulture={toggleCulture}
+            onToggleAllCultures={toggleAllCultures}
           />
         }
       />

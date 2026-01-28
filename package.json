@@ -84,7 +84,7 @@
     "@vinejs/vine": "^3.0.1",
     "chart.js": "^4.5.1",
     "edge.js": "^6.2.1",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.17.23",
     "luxon": "^3.7.2",
     "maplibre-gl": "5.11.0",
     "pg": "^8.16.3",
