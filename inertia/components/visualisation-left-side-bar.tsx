@@ -62,7 +62,7 @@ export default function VisualisationLeftSideBar({
             className="fr-p-1w fr-m-1w"
             style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 fr-mb-1w">
+            <div className="flex flex-col gap-4 fr-mb-1v">
               <Link
                 href={`/exploitations/${selectedExploitation.id}`}
                 as="h4"
@@ -73,9 +73,8 @@ export default function VisualisationLeftSideBar({
               <Button
                 priority="secondary"
                 size="small"
-                aria-label="Centrer sur l'exploitation"
                 iconId="fr-icon-crosshair-2-line"
-                className="flex justify-center fr-mt-2w"
+                className="flex justify-center"
                 onClick={() => {
                   if (selectedExploitation) {
                     mapRef.current?.centerOnExploitation(selectedExploitation)
