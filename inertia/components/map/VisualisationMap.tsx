@@ -816,7 +816,7 @@ const VisualisationMap = forwardRef<
         <div ref={mapContainerRef} className="flex h-full w-full" />
         <Select
           label=""
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', top: '10px', left: '10px' }}
           nativeSelectProps={{
             defaultValue: 'vector',
             onChange: (e) => setStyle(e.target.value),
@@ -829,7 +829,7 @@ const VisualisationMap = forwardRef<
         />
         <Select
           label=""
-          style={{ position: 'absolute', right: 0 }}
+          style={{ position: 'absolute', top: '10px', right: '10px' }}
           disabled={editMode}
           nativeSelectProps={{
             defaultValue: millesime,
