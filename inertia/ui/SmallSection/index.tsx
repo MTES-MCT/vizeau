@@ -34,9 +34,9 @@ export default function SmallSection({
           : undefined,
       }}
     >
-      <div className="flex items-center justify-between">
-        <h6 className="fr-text--sm bold fr-mb-0 flex items-center gap-1">
-          {iconId && <i className={`${iconId} fr-icon--sm`} aria-hidden="true" />} {title}
+      <div className="flex items-center justify-between fr-mb-3w">
+        <h6 className="fr-text--md bold fr-mb-0 flex items-end gap-1">
+          {iconId && <i className={`${iconId} fr-icon--md`} aria-hidden="true" />} {title}
         </h6>
 
         {handleAction && actionIcon && (
