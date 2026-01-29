@@ -52,7 +52,7 @@ export default function SingleTask({
             }}
             segments={[
               {
-                label: 'Exploitations',
+                label: 'Exploitations agricoles',
                 linkProps: {
                   href: '/exploitations',
                 },
@@ -75,7 +75,7 @@ export default function SingleTask({
                   href: `/exploitations/${exploitation.id}/journal/${logEntry.id}/edition`,
                 }}
               >
-                Éditer
+                Éditer la tâche
               </Button>
             </div>
           )}
