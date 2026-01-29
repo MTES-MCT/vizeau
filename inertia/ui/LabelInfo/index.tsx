@@ -8,6 +8,8 @@ export type LabelInfoProps = {
   size?: 'sm' | 'md'
 }
 export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoProps) {
+  const isStringInfo = typeof info === 'string'
+
   return (
     <div className="flex">
       <div className="flex items-start">
@@ -30,7 +32,7 @@ export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoP
 
       {info && (
         <div
-          className={`fr-text--${size} fr-ml-1w fr-mb-0 flex-1 break-words`}
+          className={`${isStringInfo ? `fr-text--${size} break-words` : ''} fr-ml-1w fr-mb-0 flex-1`}
           style={{
             color: fr.colors.decisions.text.mention.grey.default,
           }}
