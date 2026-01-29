@@ -58,6 +58,7 @@ export type ExploitationJson = {
   tags?: ExploitationTagJson[] | null
   logEntries?: LogEntryJson[] | null
   parcelles?: ParcelleJson[] | null
+  isDemo: boolean
 }
 
 export type PaginatedJson<T> = {

@@ -4,14 +4,14 @@ import { fr } from '@codegouvfr/react-dsfr'
 import GroupCulture from '~/components/groupe-culture-tag'
 import Divider from '~/ui/Divider'
 import LabelInfo from '~/ui/LabelInfo'
+import { ReactNode } from 'react'
 
 interface PopupParcelleProps {
-  exploitation?: { name?: string }
   codeGroup: string
   millesime: string
   surfParc: string
+  isParcelleUnavailable: boolean
   isBio?: boolean
-  isAttributed?: boolean
   isEditMode?: boolean
   isOwnParcelle?: boolean
 }
@@ -58,18 +58,22 @@ function ExploitationInfo({ name }: { name: string }) {
 }
 
 export default function PopupParcelle({
-  exploitation,
   codeGroup,
   surfParc,
   millesime,
   isBio,
-  isAttributed = false,
+  isParcelleUnavailable = false,
   isEditMode = false,
   isOwnParcelle = false,
 }: PopupParcelleProps) {
-  const showAvailableStatus = isEditMode && !isAttributed
-  const showAttributedStatus = isEditMode && isAttributed && !isOwnParcelle
-  const hasExploitation = exploitation?.name
+  const ownershipInfo: ReactNode[] = []
+
+  if (isOwnParcelle) {
+    ownershipInfo.push(<ExploitationInfo name={'Cette exploitation possède cette parcelle'} />)
+  }
+  if (isEditMode && !isOwnParcelle) {
+    ownershipInfo.push(<StatusBadge isAvailable={!isParcelleUnavailable} />)
+  }
 
   return (
     <div
@@ -105,13 +109,10 @@ export default function PopupParcelle({
         )}
       </div>
 
-      {showAvailableStatus && <StatusBadge isAvailable />}
-
-      {hasExploitation && exploitation?.name && (
+      {ownershipInfo.length > 0 && (
         <div className="fr-mt-2w">
           <Divider label="Exploitation" />
-          {showAttributedStatus && <StatusBadge isAvailable={false} />}
-          <ExploitationInfo name={exploitation.name} />
+          {...ownershipInfo}
         </div>
       )}
     </div>
@@ -119,12 +120,11 @@ export default function PopupParcelle({
 }
 
 export function renderPopupParcelle(
-  exploitation: PopupParcelleProps['exploitation'],
   codeGroup: string,
   surfParc: string,
   millesime: string,
+  isParcelleUnavailable: boolean,
   isBio?: boolean,
-  isAttributed?: boolean,
   isEditMode?: boolean,
   isOwnParcelle?: boolean
 ): HTMLDivElement {
@@ -132,14 +132,13 @@ export function renderPopupParcelle(
   const root = createRoot(container)
   root.render(
     <PopupParcelle
-      exploitation={exploitation}
       codeGroup={codeGroup}
       surfParc={surfParc}
       millesime={millesime}
       isBio={isBio}
-      isAttributed={isAttributed}
       isEditMode={isEditMode}
       isOwnParcelle={isOwnParcelle}
+      isParcelleUnavailable={isParcelleUnavailable}
     />
   )
   return container

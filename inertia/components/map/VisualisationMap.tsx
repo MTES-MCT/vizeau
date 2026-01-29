@@ -201,6 +201,7 @@ const VisualisationMap = forwardRef<
         const codeGroup = props?.code_group ?? props?.CODE_GROUP
         const surfParc = props?.surf_parc ?? props?.SURF_PARC
         const id = props?.id_parcel ?? props?.ID_PARCEL
+        const isUnavailable = unavailableParcelleIds.includes(id)
 
         // Mise à jour la popup uniquement si la parcelle change
         if (currentParcelleIdRef.current !== id) {
@@ -216,12 +217,11 @@ const VisualisationMap = forwardRef<
           )
 
           const popupContent = renderPopupParcelle(
-            exploitation ?? {},
             codeGroup,
             surfParc,
             millesime,
+            isUnavailable,
             isBio,
-            exploitation !== undefined,
             editMode,
             exploitation?.id === selectedExploitation?.id
           )
@@ -237,7 +237,7 @@ const VisualisationMap = forwardRef<
         }
 
         if (props) {
-          if (unavailableParcelleIds.includes(id)) {
+          if (isUnavailable) {
             mapRef.current.getCanvas().style.cursor = 'not-allowed'
           } else {
             mapRef.current.getCanvas().style.cursor = ''

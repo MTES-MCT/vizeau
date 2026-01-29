@@ -39,7 +39,7 @@ export default class VisualisationController {
     return inertia.render('visualisation', {
       filteredExploitations: async () => {
         const results = await this.exploitationService
-          .getAllActiveExploitationsByNameOrContactName(request.input('recherche'))
+          .getAllActiveExploitationsByNameOrContactName(request.input('recherche'), user.id)
           .preload('parcelles', (parcelleQuery) => {
             parcelleQuery.where('year', request.qs().millesime)
           })

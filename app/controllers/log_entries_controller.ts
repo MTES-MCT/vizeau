@@ -129,7 +129,7 @@ export default class LogEntriesController {
       .firstOrFail()
 
     const exploitation = await this.exploitationService
-      .queryActiveExploitations()
+      .queryActiveExploitations(user.id)
       .where('id', params.exploitationId)
       .firstOrFail()
 

@@ -21,7 +21,7 @@ export default class AccueilController {
 
     this.eventLogger.logEvent({ userId: user.id, ...EVENTS.PAGE_VIEW })
 
-    const latestExploitations = await this.exploitationService.queryLatestExploitations()
+    const latestExploitations = await this.exploitationService.queryLatestExploitations(user.id)
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
 
     return inertia.render('accueil', {
