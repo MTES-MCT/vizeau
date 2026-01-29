@@ -16,6 +16,7 @@ import {
   getPprSource,
   getPprLayer,
 } from './styles/zonage'
+import './styles/map.css'
 
 import { renderPopupParcelle } from './popup-parcelle'
 
@@ -801,7 +802,10 @@ const VisualisationMap = forwardRef<
             <Loader size="lg" />
           </div>
         )}
-        <div ref={mapContainerRef} className="flex h-full w-full" />
+        <div
+          ref={mapContainerRef}
+          className={`flex h-full w-full ${editMode ? 'map-editing' : ''}`}
+        />
         <Select
           label=""
           style={{ position: 'absolute', top: '10px', left: '10px' }}
