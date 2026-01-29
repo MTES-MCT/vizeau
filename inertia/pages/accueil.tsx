@@ -107,7 +107,7 @@ export default function Accueil({
       >
         <div className="fr-container">
           <div className="flex justify-between flex-wrap">
-            <h3 className={`flex justify-${hasExploitations ? 'left' : 'center'}`}>
+            <h3 className={`flex ${hasExploitations ? 'justify-start' : 'justify-center w-full'}`}>
               Dernières exploitations agricoles créées
             </h3>
             {hasExploitations && (
