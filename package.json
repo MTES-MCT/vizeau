@@ -6,8 +6,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "cd build && node bin/server.js",
-    "build": "node ace build && cd build && npm ci --omit='dev'",
+    "build": "node ace build",
     "dev": "npx react-dsfr update-icons && node ace serve --hmr",
+    "scalingo-postbuild": "./scalingo-postbuild.sh",
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
