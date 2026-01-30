@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
 import { EventLoggerService } from '#services/event_logger_service'
+import router from '@adonisjs/core/services/router'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -27,6 +28,7 @@ export default class AccueilController {
     return inertia.render('accueil', {
       latestExploitations,
       latestLogEntries,
+      createExploitationUrl: router.builder().make('exploitations.create'),
     })
   }
 }
