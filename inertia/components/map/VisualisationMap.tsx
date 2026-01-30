@@ -840,7 +840,7 @@ const VisualisationMap = forwardRef<
               }}
             >
               <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-              Carte en cours d'édition
+              Attribuez des parcelles à cette exploitation
             </div>
           )}
 
