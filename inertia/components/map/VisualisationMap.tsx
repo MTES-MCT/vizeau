@@ -16,6 +16,7 @@ import {
   getPprSource,
   getPprLayer,
 } from './styles/zonage'
+import './styles/map.css'
 
 import { renderPopupParcelle } from './popup-parcelle'
 
@@ -801,42 +802,71 @@ const VisualisationMap = forwardRef<
             <Loader size="lg" />
           </div>
         )}
-        <div ref={mapContainerRef} className="flex h-full w-full" />
-        <Select
-          label=""
-          style={{ position: 'absolute', top: '10px', left: '10px' }}
-          nativeSelectProps={{
-            defaultValue: 'vector',
-            onChange: (e) => setStyle(e.target.value),
-          }}
-          options={[
-            { value: 'vector', label: 'Carte vectorielle' },
-            { value: 'orthophoto', label: 'Photographie aérienne' },
-            { value: 'plan-ign', label: 'Plan IGN' },
-          ]}
+        <div
+          ref={mapContainerRef}
+          className={`flex justify-between h-full w-full ${editMode ? 'map-editing' : ''}`}
         />
-        <Select
-          label=""
-          style={{ position: 'absolute', top: '10px', right: '10px' }}
-          disabled={editMode}
-          nativeSelectProps={{
-            defaultValue: millesime,
-            onChange: (e) => {
-              // Reload the page with the new millesime
-              // This operation can take some time on slow connections, so we set the map in loading state
-              // It will be unset when the map 'idle' event is fired
-              setIsMapLoading(true)
-              router.reload({
-                only: ['queryString', 'filteredExploitations'],
-                data: { millesime: e.target.value },
-              })
-            },
+        <div
+          className="w-full flex justify-between gap-2 fr-px-2v fr-pt-2v"
+          style={{
+            position: 'absolute',
+            right: '0px',
+            left: '0px',
+            zIndex: 1,
           }}
-          options={[
-            { value: '2024', label: '2024' },
-            { value: '2023', label: '2023' },
-          ]}
-        />
+        >
+          <Select
+            className="w-fit"
+            label=""
+            nativeSelectProps={{
+              defaultValue: 'vector',
+              onChange: (e) => setStyle(e.target.value),
+            }}
+            options={[
+              { value: 'vector', label: 'Carte vectorielle' },
+              { value: 'orthophoto', label: 'Photographie aérienne' },
+              { value: 'plan-ign', label: 'Plan IGN' },
+            ]}
+          />
+
+          {editMode && (
+            <div
+              className="fr-text--md flex items-center justify-center fr-p-2v shadow-md"
+              style={{
+                backgroundColor: fr.colors.decisions.background.contrast.info.default,
+                color: fr.colors.decisions.text.default.info.default,
+                fontWeight: '700',
+                minWidth: '30%',
+              }}
+            >
+              <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
+              Attribuez des parcelles à cette exploitation
+            </div>
+          )}
+
+          <Select
+            className="w-fit"
+            label=""
+            disabled={editMode}
+            nativeSelectProps={{
+              defaultValue: millesime,
+              onChange: (e) => {
+                // Reload the page with the new millesime
+                // This operation can take some time on slow connections, so we set the map in loading state
+                // It will be unset when the map 'idle' event is fired
+                setIsMapLoading(true)
+                router.reload({
+                  only: ['queryString', 'filteredExploitations'],
+                  data: { millesime: e.target.value },
+                })
+              },
+            }}
+            options={[
+              { value: '2024', label: '2024' },
+              { value: '2023', label: '2023' },
+            ]}
+          />
+        </div>
       </div>
     )
   }
