@@ -3,6 +3,7 @@ import { errors } from '@adonisjs/auth'
 
 export class LogEntryService {
   async createLogEntry(logData: {
+    title?: string | null
     notes?: string | null
     userId: string
     exploitationId: string
@@ -42,7 +43,7 @@ export class LogEntryService {
     id: string,
     userId: string,
     exploitationId: string,
-    logData: { notes?: string | null; tags?: number[] }
+    logData: { title?: string | null; notes?: string | null; tags?: number[] }
   ) {
     const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
 
@@ -50,10 +51,9 @@ export class LogEntryService {
       throw errors.E_UNAUTHORIZED_ACCESS
     }
 
-    if (logData.notes !== undefined) {
-      logEntry.notes = logData.notes
-      await logEntry.save()
-    }
+    logEntry.merge(logData)
+    await logEntry.save()
+
     if (logData.tags !== undefined) {
       await logEntry.related('tags').sync(logData.tags)
     }

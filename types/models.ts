@@ -23,6 +23,7 @@ export type LogEntryTagJson = {
 
 export type LogEntryJson = {
   id: string
+  title: string | null
   notes: string | null
   userId: string
   exploitationId: string
