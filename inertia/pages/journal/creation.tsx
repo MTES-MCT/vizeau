@@ -1,7 +1,7 @@
 import Layout from '~/ui/layouts/layout'
 import { useState, FormEvent } from 'react'
 import { Head, useForm, router } from '@inertiajs/react'
-import { EntryLogForm } from '~/components/exploitation-id/EntryLogForm'
+import { LogEntryForm } from '~/components/exploitation-id/LogEntryForm'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { fr } from '@codegouvfr/react-dsfr'
@@ -10,16 +10,21 @@ import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { FlashMessages } from '~/components/flash-message'
 
+export type LogEntryFormData = {
+  id?: string
+  title: string
+  notes: string
+  tags: number[]
+}
+
 export default function TaskCreationPage({
   exploitation,
   createEntryLogUrl,
   flashMessages,
 }: InferPageProps<LogEntriesController, 'index'>) {
   const [inputValue, setInputValue] = useState('')
-  const { data, setData, post, resetAndClearErrors } = useForm<{
-    notes: string
-    tags: number[]
-  }>({
+  const { data, setData, post, resetAndClearErrors } = useForm<LogEntryFormData>({
+    title: '',
     notes: '',
     tags: [],
   })
@@ -61,12 +66,12 @@ export default function TaskCreationPage({
         <Alert
           small
           severity="info"
-          description="La création d'une tâche est possible lorsqu'au moins une note ou un tag est ajouté."
+          description="Veuillez remplir au moins un de ces champs pour créer la tâche."
         />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <FlashMessages flashMessages={flashMessages} />
-          <EntryLogForm
+          <LogEntryForm
             data={data}
             setData={setData}
             inputValue={inputValue}
@@ -85,7 +90,10 @@ export default function TaskCreationPage({
               Retour
             </Button>
 
-            <Button type="submit" disabled={data.tags.length === 0 && data.notes === ''}>
+            <Button
+              type="submit"
+              disabled={data.tags.length === 0 && data.notes === '' && data.title === ''}
+            >
               Valider
             </Button>
           </div>

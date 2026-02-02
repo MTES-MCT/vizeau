@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import LogEntriesController from '#controllers/log_entries_controller'
 import { Head, useForm, router } from '@inertiajs/react'
-import { EntryLogForm } from '~/components/exploitation-id/EntryLogForm'
+import { LogEntryForm } from '~/components/exploitation-id/LogEntryForm'
 import Layout from '~/ui/layouts/layout'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { FlashMessages } from '~/components/flash-message'
+import { LogEntryFormData } from '~/pages/journal/creation'
 
 export default function TaskEditionPage({
   logEntry,
@@ -17,12 +18,9 @@ export default function TaskEditionPage({
   isCreator,
 }: InferPageProps<LogEntriesController, 'getForEdition'>) {
   const [inputValue, setInputValue] = useState('')
-  const { data, setData, patch, resetAndClearErrors } = useForm<{
-    id: string
-    notes: string
-    tags: number[]
-  }>({
+  const { data, setData, patch, resetAndClearErrors } = useForm<LogEntryFormData>({
     id: logEntry.id,
+    title: logEntry.title || '',
     notes: logEntry.notes || '',
     tags: logEntry.tags?.map((tag: { id: number }) => tag.id) || [],
   })
@@ -63,7 +61,7 @@ export default function TaskEditionPage({
         <FlashMessages flashMessages={flashMessages} />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <EntryLogForm
+          <LogEntryForm
             data={data}
             setData={setData}
             inputValue={inputValue}
@@ -83,7 +81,10 @@ export default function TaskEditionPage({
             </Button>
 
             {isCreator && (
-              <Button type="submit" disabled={data.tags.length === 0 && data.notes === ''}>
+              <Button
+                type="submit"
+                disabled={data.tags.length === 0 && data.notes === '' && data.title === ''}
+              >
                 Valider
               </Button>
             )}

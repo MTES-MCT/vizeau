@@ -23,6 +23,9 @@ export default class LogEntry extends BaseModel {
   }
 
   @column()
+  declare title: string | null
+
+  @column()
   declare notes: string | null
 
   @column()

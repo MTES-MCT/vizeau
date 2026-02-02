@@ -17,6 +17,8 @@ import User from '#models/user'
 import router from '@adonisjs/core/services/router'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
+import { LogEntryDto } from '../dto/log_entry_dto.js'
+import { ExploitationDto } from '../dto/exploitation_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -103,9 +105,9 @@ export default class LogEntriesController {
     const logEntryAuthor = await User.find(logEntry.userId)
 
     return inertia.render('journal/id', {
-      logEntry: logEntry.serialize(),
+      logEntry: LogEntryDto.fromModel(logEntry),
       isCreator: logEntry.userId === user.id,
-      exploitation: exploitation.serialize(),
+      exploitation: ExploitationDto.fromModel(exploitation),
       user: logEntryAuthor?.serialize(),
       deleteEntryLogUrl: router
         .builder()
@@ -186,6 +188,7 @@ export default class LogEntriesController {
       await this.logEntryService.createLogEntry({
         userId: user.id,
         exploitationId: payload.params.exploitationId,
+        title: payload.title,
         notes: payload.notes,
         tags: payload.tags,
       })
@@ -220,6 +223,7 @@ export default class LogEntriesController {
 
     try {
       await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, {
+        title: payload.title,
         notes: payload.notes,
         tags: payload.tags,
       })

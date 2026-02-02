@@ -9,6 +9,7 @@ export class LogEntryDto {
       id: logEntry.id,
       userId: logEntry.userId,
       exploitationId: logEntry.exploitationId,
+      title: logEntry.title,
       notes: logEntry.notes,
       createdAt: logEntry.createdAt.toISO() as string,
       updatedAt: logEntry.updatedAt.toISO() as string,
