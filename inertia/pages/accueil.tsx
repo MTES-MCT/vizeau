@@ -65,6 +65,7 @@ export default function Accueil({
                   <ListItem
                     variant="compact"
                     key={log.id}
+                    href={`/exploitations/${log.exploitation.id}/journal/${log.id}`}
                     title={log.title || log.notes || new Date(log.createdAt).toLocaleDateString()}
                     tags={
                       log.tags && log.tags.length > 0
