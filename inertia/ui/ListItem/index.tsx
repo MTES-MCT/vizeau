@@ -100,7 +100,7 @@ export default function ListItem({
     return (
       <Wrapper {...wrapperProps}>
         <div
-          className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
+          className={`flex flex-col gap-3 ${hasBorder ? 'fr-p-1w' : ''}`}
           style={{
             border: hasBorder
               ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
@@ -109,9 +109,11 @@ export default function ListItem({
               priority === 'primary'
                 ? fr.colors.decisions.background.default.grey.default
                 : fr.colors.decisions.background.alt.blueFrance.default,
+            maxWidth: '100%',
+            width: '100%',
           }}
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" style={{ maxWidth: '100%' }}>
             {additionalInfos && (
               <AdditionnalInfos
                 iconId={additionalInfos?.iconId}
@@ -119,30 +121,72 @@ export default function ListItem({
                 alert={additionalInfos?.alert}
               />
             )}
-            <div>
-              <div className="items-center flex gap-2">
-                <div className="flex flex-1 items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1">
+            <div style={{ minWidth: 0, maxWidth: '100%' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) auto',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      minWidth: 0,
+                      overflow: 'hidden',
+                    }}
+                  >
                     {iconId && (
                       <span
                         className={`${iconId} fr-icon--md`}
                         aria-hidden="true"
-                        style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+                        style={{
+                          color: fr.colors.decisions.text.label.blueFrance.default,
+                          flexShrink: 0,
+                        }}
                       ></span>
                     )}
-                    <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+                    <div
+                      className="fr-m-0 fr-text--md font-bold"
+                      style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {title}
+                    </div>
                   </div>
-                  {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
+
+                  {tags && tags.length > 0 && (
+                    <div style={{ flexShrink: 0 }}>
+                      <TagsList tags={tags} limit={5} size="sm" />
+                    </div>
+                  )}
                 </div>
 
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                  }}
-                >
-                  {actions && actions.length > 0 && <MoreButton actions={actions} />}
-                </div>
+                {actions && actions.length > 0 && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                    }}
+                  >
+                    <MoreButton actions={actions} />
+                  </div>
+                )}
               </div>
 
               {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
@@ -174,9 +218,19 @@ export default function ListItem({
         <div>
           {tags && tags.length > 0 && <TagsList tags={tags} size="sm" limit={5} />}
 
-          <div className="flex items-start">
-            <div className="flex flex-1 flex-col">
-              <h6 className="flex fr-m-0 fr-text--md">{title}</h6>
+          <div className="flex items-start gap-2">
+            <div className="flex flex-1 flex-col min-w-0">
+              <h6
+                className="fr-m-0 fr-text--md"
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0,
+                }}
+              >
+                {title}
+              </h6>
               {subtitle && (
                 <span
                   className="fr-mb-0 fr-text--sm"

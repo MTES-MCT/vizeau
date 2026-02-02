@@ -65,11 +65,7 @@ export default function Accueil({
                   <ListItem
                     variant="compact"
                     key={log.id}
-                    title={
-                      log.notes
-                        ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
-                        : 'Note sans contenu'
-                    }
+                    title={log.title || log.notes || new Date(log.createdAt).toLocaleDateString()}
                     tags={
                       log.tags && log.tags.length > 0
                         ? log.tags.map((tag: { name: string }) => ({ label: tag.name }))

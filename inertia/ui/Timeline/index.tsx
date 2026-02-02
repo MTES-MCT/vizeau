@@ -125,7 +125,9 @@ export default function Timeline(props: TimelineProps) {
                 <span>{getButtonLabel()}</span>
               </Button>
             ) : (
-              <div className="fr-mb-5v w-full">{item.content}</div>
+              <div className="fr-mb-5v" style={{ width: '100%', minWidth: 0, maxWidth: '100%' }}>
+                {item.content}
+              </div>
             )}
           </div>
         )
