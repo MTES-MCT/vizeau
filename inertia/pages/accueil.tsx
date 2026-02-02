@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import AccueilController from '#controllers/accueil_controller'
 import ExploitationsList from '~/components/exploitations/exploitations-list'
@@ -14,6 +14,7 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 export default function Accueil({
   latestExploitations,
   latestLogEntries,
+  createExploitationUrl,
 }: InferPageProps<AccueilController, 'index'>) {
   const hasLogEntries = latestLogEntries?.length > 0
   const hasExploitations = latestExploitations?.length > 0
@@ -40,7 +41,7 @@ export default function Accueil({
               <Button
                 iconId="fr-icon-map-pin-user-line"
                 className="fr-m-1w"
-                linkProps={{ href: '/exploitations/creation' }}
+                linkProps={{ href: createExploitationUrl }}
               >
                 Ajouter une exploitation agricole
               </Button>
@@ -134,6 +135,9 @@ export default function Accueil({
                 buttonLabel="Ajouter une première exploitation agricole"
                 actionAriaLabel="Ajouter une première exploitation agricole"
                 buttonIcon="fr-icon-arrow-right-line"
+                handleClick={() => {
+                  router.visit(createExploitationUrl)
+                }}
               />
             )}
           </div>

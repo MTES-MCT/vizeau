@@ -806,17 +806,9 @@ const VisualisationMap = forwardRef<
           ref={mapContainerRef}
           className={`flex justify-between h-full w-full ${editMode ? 'map-editing' : ''}`}
         />
-        <div
-          className="w-full flex justify-between gap-2 fr-px-2v fr-pt-2v"
-          style={{
-            position: 'absolute',
-            right: '0px',
-            left: '0px',
-            zIndex: 1,
-          }}
-        >
+        <div className="w-full flex justify-between gap-2 fr-px-2v fr-pt-2v absolute right-0 left-0 z-10 pointer-events-none">
           <Select
-            className="w-fit"
+            className="w-fit pointer-events-auto"
             label=""
             nativeSelectProps={{
               defaultValue: 'vector',
@@ -845,7 +837,7 @@ const VisualisationMap = forwardRef<
           )}
 
           <Select
-            className="w-fit"
+            className="w-fit pointer-events-auto"
             label=""
             disabled={editMode}
             nativeSelectProps={{
