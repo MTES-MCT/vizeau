@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import LogEntriesController from '#controllers/log_entries_controller'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
@@ -12,7 +13,6 @@ import LogEntryNoteCard from '~/components/log-entry-id/LogEntryNoteCard'
 import DeleteAlert from '~/ui/DeleteAlert'
 import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
-import { getLogEntryTitle } from '~/functions/log_entries'
 
 export default function SingleTask({
   logEntry,
@@ -26,7 +26,15 @@ export default function SingleTask({
     isOpenedByDefault: false,
   })
 
-  const logEntryTitle = getLogEntryTitle(logEntry)
+  const logEntryTitle = useMemo(() => {
+    if (logEntry.title) {
+      return logEntry.title
+    }
+    if (logEntry.notes) {
+      return logEntry.notes
+    }
+    return new Date(logEntry.createdAt).toLocaleDateString()
+  }, [logEntry])
 
   return (
     <Layout>
