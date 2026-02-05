@@ -10,6 +10,7 @@ export type ContactJson = {
 export type ExploitationTagJson = {
   id: number
   name: string
+  group: string
 }
 
 export type LogEntryTagJson = {
