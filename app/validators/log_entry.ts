@@ -1,4 +1,5 @@
 import vine from '@vinejs/vine'
+import { DateTime } from 'luxon'
 
 const logEntryFormFieldsValidator = {
   title: vine.string().maxLength(255).nullable().optional().requiredIfMissing(['notes', 'tags']),
@@ -7,6 +8,12 @@ const logEntryFormFieldsValidator = {
     .array(vine.number().positive().withoutDecimals())
     .optional()
     .requiredIfMissing(['title', 'notes']),
+  date: vine
+    .date()
+    .nullable()
+    .optional()
+    .transform((value) => (value ? DateTime.fromJSDate(value) : value)),
+  documents: vine.array(vine.file()).optional(),
   params: vine.object({
     exploitationId: vine.string().uuid(),
   }),
@@ -23,6 +30,15 @@ export const updateLogEntryValidator = vine.compile(
   vine.object({
     ...logEntryFormFieldsValidator,
     id: vine.string().uuid(),
+  })
+)
+
+export const completeLogEntryValidator = vine.compile(
+  vine.object({
+    id: vine.string().uuid(),
+    params: vine.object({
+      exploitationId: vine.string().uuid(),
+    }),
   })
 )
 

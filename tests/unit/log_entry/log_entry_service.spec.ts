@@ -47,12 +47,14 @@ test.group('LogEntryService', (group) => {
 
     // Create multiple log entries
     for (let i = 0; i < 3; i++) {
-      await logEntryService.createLogEntry({
-        notes: `Log entry ${i + 1}`,
-        userId: user.id,
-        exploitationId: exploitation.id,
-        tags: tags.slice(0, 2).map((tag) => tag.id),
-      })
+      await logEntryService.createLogEntry(
+        {
+          notes: `Log entry ${i + 1}`,
+          userId: user.id,
+          exploitationId: exploitation.id,
+        },
+        tags.slice(0, 2).map((tag) => tag.id)
+      )
     }
     const paginatedLogs = await logEntryService.getLogForExploitation(exploitation.id)
     const paginatedLogsJson = paginatedLogs.toJSON()
@@ -71,12 +73,14 @@ test.group('LogEntryService', (group) => {
     }).createMany(5)
     const logEntryService = new LogEntryService()
 
-    const logEntry = await logEntryService.createLogEntry({
-      notes: 'Original log entry',
-      userId: user.id,
-      exploitationId: exploitation.id,
-      tags: tags.slice(0, 2).map((tag) => tag.id),
-    })
+    const logEntry = await logEntryService.createLogEntry(
+      {
+        notes: 'Original log entry',
+        userId: user.id,
+        exploitationId: exploitation.id,
+      },
+      tags.slice(0, 2).map((tag) => tag.id)
+    )
 
     const updatedNotes = 'Updated log entry'
     const updatedLogEntry = await logEntryService.updateLogEntry(
@@ -100,21 +104,22 @@ test.group('LogEntryService', (group) => {
     }).createMany(5)
     const logEntryService = new LogEntryService()
 
-    const logEntry = await logEntryService.createLogEntry({
-      notes: 'Original log entry',
-      userId: user.id,
-      exploitationId: exploitation.id,
-      tags: tags.slice(0, 2).map((tag) => tag.id),
-    })
+    const logEntry = await logEntryService.createLogEntry(
+      {
+        notes: 'Original log entry',
+        userId: user.id,
+        exploitationId: exploitation.id,
+      },
+      tags.slice(0, 2).map((tag) => tag.id)
+    )
 
     const newTagIds = tags.slice(2, 4).map((tag) => tag.id)
     const updatedLogEntry = await logEntryService.updateLogEntry(
       logEntry.id,
       user.id,
       exploitation.id,
-      {
-        tags: newTagIds,
-      }
+      {},
+      newTagIds
     )
     await updatedLogEntry.load('tags')
 

@@ -1,10 +1,18 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import {
+  BaseModel,
+  beforeCreate,
+  belongsTo,
+  column,
+  hasMany,
+  manyToMany,
+} from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import User from '#models/user'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Exploitation from '#models/exploitation'
 import LogEntryTag from '#models/log_entry_tag'
+import LogEntryDocument from '#models/log_entry_document'
 
 export const LogEntryTagsRelationTable = 'log_entry_tag_relations'
 
@@ -45,6 +53,15 @@ export default class LogEntry extends BaseModel {
     pivotTimestamps: true,
   })
   declare tags: ManyToMany<typeof LogEntryTag>
+
+  @column.date()
+  declare date: DateTime | null
+
+  @column()
+  declare isCompleted: boolean
+
+  @hasMany(() => LogEntryDocument)
+  declare documents: HasMany<typeof LogEntryDocument>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

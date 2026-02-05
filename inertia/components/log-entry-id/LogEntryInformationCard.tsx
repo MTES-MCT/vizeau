@@ -1,16 +1,30 @@
 import { formatDateFr } from '~/functions/date'
 import LabelInfo from '~/ui/LabelInfo'
 import SectionCard from '~/ui/SectionCard'
+import { fr } from '@codegouvfr/react-dsfr'
+import { getLogEntryDateDiffObject } from '~/functions/log_entries'
+import { LogEntryJson } from '../../../types/models'
+import { Button } from '@codegouvfr/react-dsfr/Button'
+import { router } from '@inertiajs/react'
+import { Alert } from '@codegouvfr/react-dsfr/Alert'
+import { createModal } from '@codegouvfr/react-dsfr/Modal'
 
 export type LogEntryInformationCardProps = {
   userName?: string
-  createdAt: string
+  logEntry: LogEntryJson
+  completeEntryLogUrl: string
 }
 
 export default function LogEntryInformationCard({
   userName,
-  createdAt,
+  logEntry,
+  completeEntryLogUrl,
 }: LogEntryInformationCardProps) {
+  const completeEntryLogModal = createModal({
+    id: 'complete-entry-log-modal',
+    isOpenedByDefault: false,
+  })
+
   return (
     <SectionCard title="Informations générales" size={'small'} icon="fr-icon-info-line">
       <div className="flex flex-col gap-4">
@@ -22,9 +36,68 @@ export default function LogEntryInformationCard({
         <LabelInfo
           icon="fr-icon-calendar-line"
           label="Date de création"
-          info={formatDateFr(createdAt)}
+          info={formatDateFr(logEntry.createdAt)}
         />
       </div>
+      {logEntry.date && (
+        <div className="flex flex-col fr-mt-6w">
+          <div className="items-start">
+            <span
+              className={`fr-icon-time-line fr-mr-1v flex-shrink-0`}
+              style={{ color: fr.colors.decisions.text.default.warning.default }}
+              aria-hidden="true"
+            />
+            <div className="flex-1 min-w-0">
+              <p className={`fr-mb-0`}>
+                <span
+                  style={{ color: fr.colors.decisions.text.default.warning.default }}
+                >{`Tâche planifiée pour le ${formatDateFr(logEntry.date)}`}</span>
+                <br />
+                <span
+                  className={'fr-text--sm'}
+                  style={{
+                    color: fr.colors.decisions.text.mention.grey.default,
+                  }}
+                >
+                  {getLogEntryDateDiffObject(logEntry)?.text}
+                </span>
+              </p>
+            </div>
+          </div>
+          {logEntry.date && !logEntry.isCompleted && (
+            <Button
+              title="Marquer comme effectuée"
+              iconId="fr-icon-check-line"
+              nativeButtonProps={{
+                onClick: completeEntryLogModal.open,
+              }}
+              className="fr-mt-2w"
+            >
+              Marquer comme effectuée
+            </Button>
+          )}
+
+          <completeEntryLogModal.Component
+            title=""
+            size="large"
+            buttons={[
+              { children: 'Annuler', doClosesModal: true },
+              {
+                children: 'Marquer comme effectuée',
+                onClick: () => {
+                  router.post(completeEntryLogUrl, { id: logEntry.id })
+                },
+              },
+            ]}
+          >
+            <Alert
+              severity="warning"
+              title="Complétion d'une tâche planifiée"
+              description="Vous êtes sur le point de marquer cette tâche comme effectuée, voulez-vous continuer ?"
+            />
+          </completeEntryLogModal.Component>
+        </div>
+      )}
     </SectionCard>
   )
 }
