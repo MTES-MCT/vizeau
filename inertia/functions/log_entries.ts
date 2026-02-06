@@ -37,9 +37,19 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
   const diffInDays = date.diff(now, 'days').days
 
   if (diffInDays >= 0 && diffInDays <= 7) {
+    let text = ''
+
+    if (diffInDays === 0) {
+      text = "Aujourd'hui"
+    } else if (diffInDays === 1) {
+      text = 'Demain'
+    } else {
+      text = `Dans ${Math.ceil(diffInDays)} jours`
+    }
+
     return {
       severity: 'warning',
-      text: diffInDays <= 1 ? 'Demain' : `Dans ${Math.ceil(diffInDays)} jours`,
+      text,
     }
   }
 
