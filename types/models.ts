@@ -31,6 +31,8 @@ export type LogEntryJson = {
   createdAt: string
   updatedAt: string
   tags?: LogEntryTagJson[] | null
+  date: string | null
+  isCompleted: boolean
 }
 
 export type ParcelleJson = {

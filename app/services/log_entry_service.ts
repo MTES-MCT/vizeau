@@ -1,18 +1,13 @@
 import LogEntry from '#models/log_entry'
 import { errors } from '@adonisjs/auth'
+import { ModelAttributes } from '@adonisjs/lucid/types/model'
 
 export class LogEntryService {
-  async createLogEntry(logData: {
-    title?: string | null
-    notes?: string | null
-    userId: string
-    exploitationId: string
-    tags?: number[]
-  }) {
+  async createLogEntry(logData: Partial<ModelAttributes<LogEntry>>, tagsIds?: number[]) {
     const logEntry = await LogEntry.create(logData)
 
-    if (logData.tags && logData.tags.length > 0) {
-      await logEntry.related('tags').attach(logData.tags)
+    if (tagsIds && tagsIds.length > 0) {
+      await logEntry.related('tags').attach(tagsIds)
     }
 
     return logEntry
@@ -43,7 +38,8 @@ export class LogEntryService {
     id: string,
     userId: string,
     exploitationId: string,
-    logData: { title?: string | null; notes?: string | null; tags?: number[] }
+    logData: Partial<ModelAttributes<LogEntry>>,
+    tagsIds?: number[]
   ) {
     const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
 
@@ -51,11 +47,15 @@ export class LogEntryService {
       throw errors.E_UNAUTHORIZED_ACCESS
     }
 
+    if (logData.isCompleted === true && logEntry.date === null) {
+      throw new Error('Une note de journal doit avoir une date pour être marquée comme effectuée.')
+    }
+
     logEntry.merge(logData)
     await logEntry.save()
 
-    if (logData.tags !== undefined) {
-      await logEntry.related('tags').sync(logData.tags)
+    if (tagsIds !== undefined) {
+      await logEntry.related('tags').sync(tagsIds)
     }
     return logEntry
   }

@@ -4,6 +4,7 @@ import { LogEntryService } from '#services/log_entry_service'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { LogEntryTagFactory } from '#database/factories/log_entry_tag_factory'
+import { DateTime } from 'luxon'
 
 test.group('LogEntryService', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -21,9 +22,9 @@ test.group('LogEntryService', (group) => {
       notes: 'This is a test log entry',
       userId: user.id,
       exploitationId: exploitation.id,
-      tags: tags.slice(1, 3).map((tag) => tag.id),
     }
-    const logEntry = await logEntryService.createLogEntry(logData)
+    const tagsIds = tags.slice(1, 3).map((tag) => tag.id)
+    const logEntry = await logEntryService.createLogEntry(logData, tagsIds)
     await logEntry.load('tags')
 
     assert.exists(logEntry.id)
@@ -32,7 +33,7 @@ test.group('LogEntryService', (group) => {
     assert.equal(logEntry.exploitationId, logData.exploitationId)
     assert.deepEqual(
       logEntry.tags.map((tag) => tag.id),
-      logData.tags
+      tagsIds
     )
   })
 
@@ -47,12 +48,14 @@ test.group('LogEntryService', (group) => {
 
     // Create multiple log entries
     for (let i = 0; i < 3; i++) {
-      await logEntryService.createLogEntry({
-        notes: `Log entry ${i + 1}`,
-        userId: user.id,
-        exploitationId: exploitation.id,
-        tags: tags.slice(0, 2).map((tag) => tag.id),
-      })
+      await logEntryService.createLogEntry(
+        {
+          notes: `Log entry ${i + 1}`,
+          userId: user.id,
+          exploitationId: exploitation.id,
+        },
+        tags.slice(0, 2).map((tag) => tag.id)
+      )
     }
     const paginatedLogs = await logEntryService.getLogForExploitation(exploitation.id)
     const paginatedLogsJson = paginatedLogs.toJSON()
@@ -71,12 +74,14 @@ test.group('LogEntryService', (group) => {
     }).createMany(5)
     const logEntryService = new LogEntryService()
 
-    const logEntry = await logEntryService.createLogEntry({
-      notes: 'Original log entry',
-      userId: user.id,
-      exploitationId: exploitation.id,
-      tags: tags.slice(0, 2).map((tag) => tag.id),
-    })
+    const logEntry = await logEntryService.createLogEntry(
+      {
+        notes: 'Original log entry',
+        userId: user.id,
+        exploitationId: exploitation.id,
+      },
+      tags.slice(0, 2).map((tag) => tag.id)
+    )
 
     const updatedNotes = 'Updated log entry'
     const updatedLogEntry = await logEntryService.updateLogEntry(
@@ -91,6 +96,52 @@ test.group('LogEntryService', (group) => {
     assert.equal(updatedLogEntry.notes, updatedNotes)
   })
 
+  test('I can mark a log entry as completed', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const exploitation = await ExploitationFactory.create()
+    const logEntryService = new LogEntryService()
+
+    const logEntry = await logEntryService.createLogEntry({
+      notes: 'Log entry to be completed',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now(), // A log entry must have a date to be marked as completed
+    })
+
+    const completedLogEntry = await logEntryService.updateLogEntry(
+      logEntry.id,
+      user.id,
+      exploitation.id,
+      { isCompleted: true }
+    )
+
+    assert.equal(completedLogEntry.isCompleted, true)
+  })
+
+  test('I cannot mark a log entry as completed if it does not have a date', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const exploitation = await ExploitationFactory.create()
+    const logEntryService = new LogEntryService()
+
+    const logEntry = await logEntryService.createLogEntry({
+      notes: 'Log entry to be completed',
+      userId: user.id,
+      exploitationId: exploitation.id,
+    })
+
+    try {
+      await logEntryService.updateLogEntry(logEntry.id, user.id, exploitation.id, {
+        isCompleted: true,
+      })
+      assert.fail('Should have thrown an error')
+    } catch (error) {
+      assert.equal(
+        error.message,
+        'Une note de journal doit avoir une date pour être marquée comme effectuée.'
+      )
+    }
+  })
+
   test('I can update a log entry tags', async ({ assert }) => {
     const user = await UserFactory.create()
     const exploitation = await ExploitationFactory.create()
@@ -100,21 +151,22 @@ test.group('LogEntryService', (group) => {
     }).createMany(5)
     const logEntryService = new LogEntryService()
 
-    const logEntry = await logEntryService.createLogEntry({
-      notes: 'Original log entry',
-      userId: user.id,
-      exploitationId: exploitation.id,
-      tags: tags.slice(0, 2).map((tag) => tag.id),
-    })
+    const logEntry = await logEntryService.createLogEntry(
+      {
+        notes: 'Original log entry',
+        userId: user.id,
+        exploitationId: exploitation.id,
+      },
+      tags.slice(0, 2).map((tag) => tag.id)
+    )
 
     const newTagIds = tags.slice(2, 4).map((tag) => tag.id)
     const updatedLogEntry = await logEntryService.updateLogEntry(
       logEntry.id,
       user.id,
       exploitation.id,
-      {
-        tags: newTagIds,
-      }
+      {},
+      newTagIds
     )
     await updatedLogEntry.load('tags')
 

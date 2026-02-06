@@ -23,6 +23,7 @@ export default function TaskEditionPage({
     title: logEntry.title || '',
     notes: logEntry.notes || '',
     tags: logEntry.tags?.map((tag: { id: number }) => tag.id) || [],
+    date: logEntry.date || '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {

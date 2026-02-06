@@ -59,10 +59,7 @@ router
       .as('log_entries.index')
 
     router
-      .get('exploitations/:exploitationId/journal/:logEntryId', [
-        LogEntriesController,
-        'get',
-      ])
+      .get('exploitations/:exploitationId/journal/:logEntryId', [LogEntriesController, 'get'])
       .as('log_entries.get')
 
     router
@@ -75,6 +72,9 @@ router
     router
       .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
       .as('log_entries.create')
+    router
+      .post('exploitations/:exploitationId/journal/complete', [LogEntriesController, 'complete'])
+      .as('log_entries.complete')
     router
       .patch('exploitations/:exploitationId/journal', [LogEntriesController, 'edit'])
       .as('log_entries.edit')
