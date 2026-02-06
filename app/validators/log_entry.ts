@@ -13,7 +13,6 @@ const logEntryFormFieldsValidator = {
     .nullable()
     .optional()
     .transform((value) => (value ? DateTime.fromJSDate(value) : value)),
-  documents: vine.array(vine.file()).optional(),
   params: vine.object({
     exploitationId: vine.string().uuid(),
   }),

@@ -31,23 +31,24 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
     }
   }
 
-  const date = DateTime.fromISO(logEntry.date)
-  const now = DateTime.now()
+  const date = DateTime.fromISO(logEntry.date, { zone: 'utc' }).startOf('day')
+  const now = DateTime.now().setZone('utc').startOf('day')
 
-  if (date >= now && date <= now.plus({ days: 7 })) {
-    const diffInDays = Math.ceil(date.diffNow('days').days)
+  const diffInDays = date.diff(now, 'days').days
+
+  if (diffInDays >= 0 && diffInDays <= 7) {
     return {
       severity: 'warning',
-      text: diffInDays === 1 ? 'Demain' : `Dans ${diffInDays} jours`,
+      text: diffInDays <= 1 ? 'Demain' : `Dans ${Math.ceil(diffInDays)} jours`,
     }
   }
 
-  if (date < now && !logEntry.isCompleted) {
+  if (diffInDays < 0 && !logEntry.isCompleted) {
     // It's a past date so we need to inverse the diff to get positive days
-    const diffInDays = Math.ceil(-date.diffNow('days').days)
+    const displayableDiffInDays = Math.abs(Math.ceil(diffInDays))
     return {
       severity: 'error',
-      text: `Retard de ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`,
+      text: `Retard de ${displayableDiffInDays} jour${displayableDiffInDays > 1 ? 's' : ''}`,
     }
   }
 

@@ -47,6 +47,10 @@ export class LogEntryService {
       throw errors.E_UNAUTHORIZED_ACCESS
     }
 
+    if (logData.isCompleted === true && logEntry.date === null) {
+      throw new Error('Une note de journal doit avoir une date pour être marquée comme effectuée.')
+    }
+
     logEntry.merge(logData)
     await logEntry.save()
 

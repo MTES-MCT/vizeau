@@ -24,7 +24,6 @@ export default function TaskEditionPage({
     notes: logEntry.notes || '',
     tags: logEntry.tags?.map((tag: { id: number }) => tag.id) || [],
     date: logEntry.date || '',
-    documents: logEntry.documents || [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
