@@ -63,14 +63,18 @@ export default function MapLayout({
                   height: headerHeight,
                 }}
               >
-                <h6
-                  className="fr-text--lgfont-medium fr-m-0 w-full fr-pr-2v"
-                  style={{
-                    borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-                  }}
-                >
-                  {pageName}
-                </h6>
+                <h6 className="fr-text--lgfont-medium fr-m-0 w-full fr-pr-2v">{pageName}</h6>
+                {leftSidebarOpen && (
+                  <Button
+                    iconId="fr-icon-arrow-left-s-line"
+                    priority="tertiary no outline"
+                    onClick={() => setLeftSidebarOpen(false)}
+                    title="Fermer le panneau gauche"
+                    style={{
+                      borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                    }}
+                  />
+                )}
               </div>
               <div
                 className="flex-1 overflow-auto"
@@ -100,17 +104,7 @@ export default function MapLayout({
                   onClick={() => setLeftSidebarOpen(true)}
                   title="Ouvrir le panneau gauche"
                 />
-                <h6 className="fr-text--lg font-medium fr-m-0 w-fit">{pageName}</h6>
               </>
-            )}
-
-            {leftSidebarOpen && (
-              <Button
-                iconId="fr-icon-arrow-left-s-line"
-                priority="tertiary no outline"
-                onClick={() => setLeftSidebarOpen(false)}
-                title="Fermer le panneau gauche"
-              />
             )}
           </div>
 
