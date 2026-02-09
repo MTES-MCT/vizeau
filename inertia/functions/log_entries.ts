@@ -2,8 +2,23 @@ import { LogEntryJson } from '../../types/models'
 import { truncateStr } from '~/functions/string'
 import { AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'
+import { fr } from '@codegouvfr/react-dsfr'
 
 const MAX_TITLE_LENGTH = 90
+
+export const severityColorMap: Record<
+  NonNullable<NonNullable<AdditionalInfosProps['alert']>['severity']>,
+  string
+> = {
+  // Infos: Marianne blue color, upcoming tasks or tasks without date
+  infos: fr.colors.decisions.text.title.blueFrance.default,
+  // Warning: orange color, upcoming tasks within a week or tasks that are due today
+  warning: fr.colors.decisions.text.default.warning.default,
+  // Error: red color, late tasks
+  error: fr.colors.decisions.text.default.error.default,
+  // Success: neutral color, completed tasks
+  success: fr.colors.decisions.text.default.info.default,
+}
 
 export function getLogEntryTitle(logEntry: LogEntryJson, titleLength = MAX_TITLE_LENGTH): string {
   if (logEntry.title) {
@@ -24,9 +39,10 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
     return {}
   }
 
+  // Task is completed
   if (logEntry.isCompleted) {
     return {
-      severity: 'infos',
+      severity: 'success',
       text: 'Tâche effectuée',
     }
   }
@@ -36,8 +52,19 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
 
   const diffInDays = date.diff(now, 'days').days
 
+  // Task is late
+  if (diffInDays < 0) {
+    // It's a past date so we need to inverse the diff to get positive days
+    const displayableDiffInDays = Math.abs(Math.ceil(diffInDays))
+    return {
+      severity: 'error',
+      text: `Retard de ${displayableDiffInDays} jour${displayableDiffInDays > 1 ? 's' : ''}`,
+    }
+  }
+
+  // Task is upcoming within a week
   if (diffInDays >= 0 && diffInDays <= 7) {
-    let text = ''
+    let text: string
 
     if (diffInDays === 0) {
       text = "Aujourd'hui"
@@ -53,16 +80,11 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
     }
   }
 
-  if (diffInDays < 0 && !logEntry.isCompleted) {
-    // It's a past date so we need to inverse the diff to get positive days
-    const displayableDiffInDays = Math.abs(Math.ceil(diffInDays))
-    return {
-      severity: 'error',
-      text: `Retard de ${displayableDiffInDays} jour${displayableDiffInDays > 1 ? 's' : ''}`,
-    }
+  // Task is upcoming but not within a week
+  return {
+    severity: 'infos',
+    text: `Dans ${Math.ceil(diffInDays)} jours`,
   }
-
-  return {}
 }
 
 export function getLogEntryAdditionalInfos(logEntry: LogEntryJson): AdditionalInfosProps {

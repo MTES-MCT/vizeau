@@ -209,7 +209,7 @@ export default class LogEntriesController {
 
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error('Error creating log entry:', error)
+      logger.error(error, 'Error creating log entry:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la création de l'entrée de journal."
@@ -239,7 +239,7 @@ export default class LogEntriesController {
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error('Error updating log entry:', error)
+      logger.error(error, 'Error updating log entry:')
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
         createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
       } else {
@@ -292,7 +292,7 @@ export default class LogEntriesController {
       await this.logEntryService.deleteLogEntry(id, user.id, params.exploitationId)
       createSuccessFlashMessage(session, "L'entrée de journal a été supprimée avec succès.")
     } catch (error) {
-      logger.error('Error deleting log entry:', error)
+      logger.error(error, 'Error deleting log entry:')
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
         createErrorFlashMessage(session, 'Vous ne pouvez supprimer que vos entrées de journal.')
       } else {
@@ -327,7 +327,7 @@ export default class LogEntriesController {
         ...EVENTS.TAG_CREATE_CREATED,
       })
     } catch (error) {
-      logger.error('Error creating tag for exploitation:', error)
+      logger.error(error, 'Error creating tag for exploitation:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la création de l'étiquette."
@@ -347,7 +347,7 @@ export default class LogEntriesController {
     try {
       await this.logEntryTagService.deleteTag(payload.tagId, payload.params.exploitationId, user.id)
     } catch (error) {
-      logger.error('Error deleting tag:', error)
+      logger.error(error, 'Error deleting tag:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la suppression de l'étiquette."
