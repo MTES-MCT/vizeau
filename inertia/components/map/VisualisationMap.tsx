@@ -804,7 +804,7 @@ const VisualisationMap = forwardRef<
         )}
         <div
           ref={mapContainerRef}
-          className={`flex justify-between h-full w-full ${editMode ? 'map-editing' : ''}`}
+          className={`flex justify-between h-full w-full ${editMode ? 'editing-glow' : ''}`}
         />
         <div className="w-full flex justify-between gap-2 fr-px-2v fr-pt-2v absolute right-0 left-0 z-10 pointer-events-none">
           <Select
