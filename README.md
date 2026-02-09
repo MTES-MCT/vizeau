@@ -90,6 +90,10 @@ Quelques notes sur les variables d’environnement :
   Les valeurs par défaut correspondent à la configuration Docker, **changez leurs valeurs en production**.
 - `ADMIN_*` : Identifiants de l’administrateur initial. **Changez ces valeurs en production**.
 - `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
+- `PMTILES_URL` : URL de base de la source des tuiles vectorielles. Probablement un bucket S3.
+- `DRIVE_DISK` : Le disque de stockage à utiliser pour les fichiers téléchargés. En production, il doit être défini sur `spaces`.
+- `SPACES_*` : Paramètres de connexion à l’espace de stockage (hôte, port, clé d’accès, clé secrète, nom du bucket). **Changez ces valeurs en production**.
+- `SPACES_ENDPOINT` : URL de l’endpoint de l’espace de stockage, sans le nom du bucket. La valeur d'exemple est déjà configurée pour Scaleway.
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
 

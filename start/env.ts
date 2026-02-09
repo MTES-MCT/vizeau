@@ -54,4 +54,16 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // If set, the string will be parsed as JSON and the content will be injected as users
   USERS_TO_SEED: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the drive package
+  |----------------------------------------------------------
+  */
+  DRIVE_DISK: Env.schema.enum(['spaces'] as const),
+  SPACES_KEY: Env.schema.string(),
+  SPACES_SECRET: Env.schema.string(),
+  SPACES_REGION: Env.schema.string(),
+  SPACES_BUCKET: Env.schema.string(),
+  SPACES_ENDPOINT: Env.schema.string(),
 })

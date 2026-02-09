@@ -20,6 +20,8 @@ import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryDto } from '../dto/log_entry_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
+import { LogEntryDocumentService } from '#services/log_entry_document_service'
+import LogEntryDocument from '#models/log_entry_document'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -41,6 +43,7 @@ export default class LogEntriesController {
   constructor(
     public logEntryService: LogEntryService,
     public logEntryTagService: LogEntryTagService,
+    public logEntryDocumentService: LogEntryDocumentService,
     public eventLogger: EventLoggerService,
     public exploitationService: ExploitationService
   ) {}
@@ -188,10 +191,14 @@ export default class LogEntriesController {
       context: { payload: request.all() },
     })
 
-    const { params, tags, ...payload } = await request.validateUsing(createLogEntryValidator)
+    let hasLogEntryCreationSucceeded = false
 
     try {
-      await this.logEntryService.createLogEntry(
+      const { params, tags, documents, ...payload } =
+        await request.validateUsing(createLogEntryValidator)
+
+      // Log entry creation
+      const logEntry = await this.logEntryService.createLogEntry(
         {
           userId: user.id,
           exploitationId: params.exploitationId,
@@ -200,20 +207,46 @@ export default class LogEntriesController {
         tags
       )
 
+      hasLogEntryCreationSucceeded = true
+
       this.eventLogger.logEvent({
         userId: user.id,
         ...EVENTS.CREATE_CREATED,
       })
 
+      // Documents upload and creation
+      for (const document of documents || []) {
+        const fileName = document.clientName || document.fileName || 'document'
+        const key = LogEntryDocumentService.getKey(fileName)
+        // Upload to S3
+        await document.moveToDisk(key)
+
+        // Save in DB
+        await LogEntryDocument.create({
+          name: fileName,
+          logEntryId: logEntry.id,
+          sizeInBytes: document.size,
+          s3Key: key,
+        })
+      }
+
       createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
 
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error(error, 'Error creating log entry:')
-      createErrorFlashMessage(
-        session,
-        "Une erreur est survenue lors de la création de l'entrée de journal."
-      )
+      if (!hasLogEntryCreationSucceeded) {
+        logger.error(error, 'Error creating log entry:')
+        createErrorFlashMessage(
+          session,
+          "Une erreur est survenue lors de la création de l'entrée de journal."
+        )
+      } else {
+        logger.error(error, 'Error uploading documents for log entry:')
+        createErrorFlashMessage(
+          session,
+          "L'entrée de journal a été créée mais une erreur est survenue lors de l'import des documents."
+        )
+      }
     }
 
     return response.redirect().back()
