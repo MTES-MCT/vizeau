@@ -13,6 +13,7 @@ import DeleteAlert from '~/ui/DeleteAlert'
 import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
+import TruncatedText from '~/ui/TruncatedText'
 
 export default function SingleTask({
   logEntry,
@@ -35,30 +36,32 @@ export default function SingleTask({
         className="fr-p-2w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
       >
-        <div className="fr-container flex justify-between items-center">
-          <Breadcrumb
-            currentPageLabel={logEntryTitle}
-            homeLinkProps={{
-              href: '/accueil',
-            }}
-            segments={[
-              {
-                label: 'Exploitations agricoles',
-                linkProps: {
-                  href: '/exploitations',
+        <div className="fr-container flex justify-between items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <Breadcrumb
+              className="w-fill fr-my-0"
+              currentPageLabel={<TruncatedText maxStringLength={50}>{logEntryTitle}</TruncatedText>}
+              homeLinkProps={{
+                href: '/accueil',
+              }}
+              segments={[
+                {
+                  label: 'Exploitations agricoles',
+                  linkProps: {
+                    href: '/exploitations',
+                  },
                 },
-              },
-              {
-                label: exploitation.name,
-                linkProps: {
-                  href: `/exploitations/${exploitation.id}`,
+                {
+                  label: exploitation.name,
+                  linkProps: {
+                    href: `/exploitations/${exploitation.id}`,
+                  },
                 },
-              },
-            ]}
-            className={'fr-my-0'}
-          />
+              ]}
+            />
+          </div>
           {isCreator && (
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               <Button
                 iconId="fr-icon-edit-line"
                 priority={'secondary'}
@@ -106,7 +109,9 @@ export default function SingleTask({
             </deleteEntryLogModal.Component>
           </aside>
           <div>
-            <h4 className="fr-h4 fr-mb-2w">{logEntryTitle}</h4>
+            <TruncatedText maxLines={2} className="fr-h4 fr-mb-2w">
+              {logEntryTitle}
+            </TruncatedText>
             <LogEntryNoteCard notes={logEntry.notes} />
           </div>
         </section>

@@ -26,7 +26,7 @@ export default function TruncatedText({
 
     if ((isTruncated || tooltipTitle) && !hideTooltip) {
       return (
-        <Tooltip title={tooltipTitle || textContent}>
+        <Tooltip title={textContent}>
           <span className={className}>{truncatedContent}</span>
         </Tooltip>
       )

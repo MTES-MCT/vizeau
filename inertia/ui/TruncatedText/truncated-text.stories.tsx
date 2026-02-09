@@ -4,6 +4,13 @@ const meta = {
   title: 'UI/TruncatedText',
   component: TruncatedText,
   tags: ['autodocs'],
+  decorators: [
+    (Story: any) => (
+      <div style={{ width: '300px', height: '100px' }}>
+        <Story />
+      </div>
+    ),
+  ],
   argTypes: {
     children: {
       control: 'text',
@@ -45,7 +52,7 @@ const meta = {
     },
   },
   args: {
-    children: 'Ceci est un texte court',
+    children: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     maxLines: 1,
     className: 'fr-text--md',
     tooltipTitle: undefined,
@@ -55,38 +62,7 @@ const meta = {
 
 export default meta
 
-export const Défaut = {}
-
-export const TroncatureParLigne = {
-  args: {
-    children:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    maxLines: 2,
-  },
-  decorators: [
-    (Story: any) => (
-      <div style={{ width: '300px' }}>
-        <Story />
-      </div>
-    ),
-  ],
-}
-
-export const TroncatureParLigneAvecTooltip = {
-  args: {
-    children:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    maxLines: 2,
-    tooltipTitle: "Voici le texte complet qui s'affiche dans la tooltip",
-  },
-  decorators: [
-    (Story: any) => (
-      <div style={{ width: '300px' }}>
-        <Story />
-      </div>
-    ),
-  ],
-}
+export const TroncatureParLigne = {}
 
 export const TroncatureParCaractère = {
   args: {
@@ -96,19 +72,11 @@ export const TroncatureParCaractère = {
   },
 }
 
-export const TroncatureParCaractèreAvecTooltipPersonnalisé = {
+export const TroncatureSansTooltip = {
   args: {
     children:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    maxStringLength: 50,
-    tooltipTitle:
-      'Texte personnalisé : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  },
-}
-
-export const TexteNonTronquéSansTooltip = {
-  args: {
-    children: 'Texte court qui ne sera pas tronqué',
-    maxStringLength: 100,
+    maxStringLength: 30,
+    hideTooltip: true,
   },
 }

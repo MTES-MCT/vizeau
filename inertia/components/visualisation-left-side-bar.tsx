@@ -10,6 +10,7 @@ import VisualisationExploitationInfos from './visualisation-exploitation-infos'
 import AnalysesSection from './analyses-section'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import TruncatedText from '~/ui/TruncatedText'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -35,7 +36,9 @@ export default function VisualisationLeftSideBar({
       {selectedExploitation ? (
         <div className="fr-p-1w">
           <Breadcrumb
-            currentPageLabel={selectedExploitation?.name}
+            currentPageLabel={
+              <TruncatedText maxStringLength={50}>{selectedExploitation?.name}</TruncatedText>
+            }
             segments={[
               {
                 label: 'Liste des exploitations agricoles',
@@ -131,20 +134,8 @@ export default function VisualisationLeftSideBar({
               key={exploitation.id}
             >
               <ListItem
-                title={
-                  <div>
-                    <span
-                      className={
-                        exploitation?.siret
-                          ? 'fr-icon-building-line fr-pr-1w'
-                          : 'fr-icon-user-line fr-pr-1w'
-                      }
-                      style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
-                      aria-hidden="true"
-                    />
-                    {exploitation.name}
-                  </div>
-                }
+                iconId={exploitation?.siret ? 'fr-icon-building-line' : 'fr-icon-user-line'}
+                title={exploitation.name}
                 subtitle={exploitation?.commune || 'N/A'}
                 priority={index % 2 === 0 ? 'primary' : 'secondary'}
                 tags={exploitation.tags?.map((tag) => ({ label: tag.name }))}
