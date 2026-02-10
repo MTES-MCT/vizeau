@@ -26,7 +26,7 @@ export default function TruncatedText({
     const truncatedContent = truncateStr(textContent, maxStringLength)
     const isTruncated = truncatedContent !== textContent
 
-    if (isTruncated || (tooltipTitle && !hideTooltip)) {
+    if ((isTruncated || tooltipTitle) && !hideTooltip) {
       return (
         <Tooltip title={textContent}>
           <span className={className}>{truncatedContent}</span>
