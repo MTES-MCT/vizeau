@@ -236,3 +236,18 @@ export const CompactSansTags = {
     actions: [{ label: 'Action 1', onClick: () => alert('Action 1') }],
   } as ListItemProps,
 }
+
+export const infosAdditionnellesAvecSucces = {
+  args: {
+    iconId: 'fr-icon-user-line',
+    title: 'List Item',
+    additionalInfos: {
+      iconId: 'fr-icon-time-line',
+      message: 'Message',
+      alert: {
+        text: 'Bravo !',
+        severity: 'success',
+      },
+    },
+  } as ListItemProps,
+}
