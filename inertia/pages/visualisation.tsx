@@ -12,6 +12,7 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { ExploitationJson } from '../../types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import Select from '@codegouvfr/react-dsfr/SelectNext'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -45,6 +46,7 @@ export default function VisualisationPage({
   const [showBioOnly, setShowBioOnly] = useState(false)
   const mapRef = useRef<VisualisationMapRef>(null)
   const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
+  const [style, setStyle] = useState<string>('vector')
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -188,52 +190,93 @@ export default function VisualisationPage({
           />
         }
         headerAdditionalContent={
-          <div className="flex flex-1 items-center justify-end gap-4">
-            {selectedExploitationId &&
-              (editMode ? (
-                <>
+          <div className="flex flex-1 items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-fit">
+              <Select
+                className="w-fit pointer-events-auto fr-mb-0"
+                label=""
+                nativeSelectProps={{
+                  defaultValue: 'vector',
+                  onChange: (e) => setStyle(e.target.value),
+                }}
+                options={[
+                  { value: 'vector', label: 'Carte vectorielle' },
+                  { value: 'orthophoto', label: 'Photographie aérienne' },
+                  { value: 'plan-ign', label: 'Plan IGN' },
+                ]}
+              />
+              <Select
+                className="w-fit pointer-events-auto fr-mb-0"
+                style={{ width: 'fit-content' }}
+                label=""
+                disabled={editMode}
+                nativeSelectProps={{
+                  defaultValue: millesime,
+                  onChange: (e) => {
+                    // Reload the page with the new millesime
+                    // This operation can take some time on slow connections, so we set the map in loading state
+                    // It will be unset when the map 'idle' event is fired
+                    setIsMapLoading(true)
+                    router.reload({
+                      only: ['queryString', 'filteredExploitations'],
+                      data: { millesime: e.target.value },
+                    })
+                  },
+                }}
+                options={[
+                  { value: '2024', label: '2024' },
+                  { value: '2023', label: '2023' },
+                ]}
+              />
+            </div>
+            {selectedExploitationId && (
+              <div className="w-fit flex items-center gap-2">
+                {editMode ? (
+                  <>
+                    <Button
+                      priority="secondary"
+                      onClick={() => {
+                        // Only display a confirmation modal if there are unsaved changes
+                        if (isDirty) {
+                          cancelEditModeModal.open()
+                          return
+                        } else {
+                          reset()
+                          setEditMode(false)
+                        }
+                      }}
+                    >
+                      Retour
+                    </Button>
+                    <Button
+                      disabled={processing}
+                      onClick={() => {
+                        sendFormAndResetState()
+                      }}
+                    >
+                      Appliquer
+                    </Button>
+                  </>
+                ) : (
                   <Button
-                    priority="secondary"
+                    disabled={showBioOnly}
                     onClick={() => {
-                      // Only display a confirmation modal if there are unsaved changes
-                      if (isDirty) {
-                        cancelEditModeModal.open()
-                        return
-                      } else {
-                        reset()
-                        setEditMode(false)
-                      }
+                      setData(
+                        'parcelles',
+                        selectedExploitation?.parcelles?.filter(
+                          (p) => p.year.toString() === millesime
+                        ) || []
+                      )
+                      // We set the new data as default so the form is not dirty at the beginning of edit mode
+                      setDefaults()
+                      setEditMode(true)
                     }}
                   >
-                    Retour
+                    Gérer les parcelles
                   </Button>
-                  <Button
-                    disabled={processing}
-                    onClick={() => {
-                      sendFormAndResetState()
-                    }}
-                  >
-                    Appliquer
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  disabled={showBioOnly}
-                  onClick={() => {
-                    setData(
-                      'parcelles',
-                      selectedExploitation?.parcelles?.filter(
-                        (p) => p.year.toString() === millesime
-                      ) || []
-                    )
-                    // We set the new data as default so the form is not dirty at the beginning of edit mode
-                    setDefaults()
-                    setEditMode(true)
-                  }}
-                >
-                  Gérer les parcelles
-                </Button>
-              ))}
+                )}
+              </div>
+            )}
             <cancelEditModeModal.Component
               title="Modifications non enregistrées"
               iconId="fr-icon-arrow-right-line"
@@ -281,6 +324,7 @@ export default function VisualisationPage({
             showBioOnly={showBioOnly}
             ref={mapRef}
             visibleCultures={visibleCultures}
+            style={style}
           />
         }
         rightContent={
