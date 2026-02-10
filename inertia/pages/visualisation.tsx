@@ -194,7 +194,6 @@ export default function VisualisationPage({
             <div className="flex items-center gap-4 w-fit">
               <Select
                 className="w-fit pointer-events-auto fr-mb-0"
-                style={{ width: 'fit-content' }}
                 label=""
                 nativeSelectProps={{
                   defaultValue: 'vector',
@@ -207,7 +206,7 @@ export default function VisualisationPage({
                 ]}
               />
               <Select
-                className="w-fit pointer-events-auto"
+                className="w-fit pointer-events-auto fr-mb-0"
                 style={{ width: 'fit-content' }}
                 label=""
                 disabled={editMode}

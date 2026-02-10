@@ -63,18 +63,16 @@ export default function MapLayout({
                   height: headerHeight,
                 }}
               >
-                <h6 className="fr-text--lgfont-medium fr-m-0 w-full fr-pr-2v">{pageName}</h6>
-                {leftSidebarOpen && (
-                  <Button
-                    iconId="fr-icon-arrow-left-s-line"
-                    priority="tertiary no outline"
-                    onClick={() => setLeftSidebarOpen(false)}
-                    title="Fermer le panneau gauche"
-                    style={{
-                      borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-                    }}
-                  />
-                )}
+                <h6 className="fr-text--lg font-medium fr-m-0 w-full fr-pr-2v">{pageName}</h6>
+                <Button
+                  iconId="fr-icon-arrow-left-s-line"
+                  priority="tertiary no outline"
+                  onClick={() => setLeftSidebarOpen(false)}
+                  title="Fermer le panneau gauche"
+                  style={{
+                    borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                  }}
+                />
               </div>
               <div
                 className="flex-1 overflow-auto"
