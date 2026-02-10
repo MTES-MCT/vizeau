@@ -59,10 +59,7 @@ router
       .as('log_entries.index')
 
     router
-      .get('exploitations/:exploitationId/journal/:logEntryId', [
-        LogEntriesController,
-        'get',
-      ])
+      .get('exploitations/:exploitationId/journal/:logEntryId', [LogEntriesController, 'get'])
       .as('log_entries.get')
 
     router

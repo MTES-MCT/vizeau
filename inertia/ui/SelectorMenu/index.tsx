@@ -36,7 +36,7 @@ export default function SelectorMenu<T extends string | number>({
         overflowY: 'auto',
         width: 'fit-content',
         maxHeight: '190px',
-        overflowX: 'hidden'
+        overflowX: 'hidden',
       }}
     >
       {groupNames &&

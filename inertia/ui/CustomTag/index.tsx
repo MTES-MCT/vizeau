@@ -27,7 +27,16 @@ export default function CustomTag({ label, iconId, iconPath, size, color }: Cust
       small={size === 'sm'}
     >
       {iconId && <span className={`${iconId} fr-icon--sm flex items-center`}></span>}
-      {iconPath && <img src={iconPath} alt="" aria-hidden="true" height={16} width={16} style={{ padding: '2px' }} />}
+      {iconPath && (
+        <img
+          src={iconPath}
+          alt=""
+          aria-hidden="true"
+          height={16}
+          width={16}
+          style={{ padding: '2px' }}
+        />
+      )}
       {label}
     </Badge>
   )
