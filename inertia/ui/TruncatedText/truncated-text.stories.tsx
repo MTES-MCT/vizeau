@@ -43,11 +43,12 @@ const meta = {
         type: { summary: 'string' },
       },
     },
-    className: {
-      control: 'text',
-      description: 'Classes CSS additionnelles.',
+    hideTooltip: {
+      control: 'boolean',
+      description:
+        "Masquer l'info-bulle même si le texte est tronqué ou si tooltipTitle est fourni.",
       table: {
-        type: { summary: 'string' },
+        type: { summary: 'boolean' },
       },
     },
   },

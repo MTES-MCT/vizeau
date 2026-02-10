@@ -8,6 +8,7 @@ export type TruncatedTextProps = {
   maxStringLength?: number
   className?: string
   tooltipTitle?: string
+  hideTooltip?: boolean
 }
 
 export default function TruncatedText({
@@ -16,6 +17,7 @@ export default function TruncatedText({
   maxStringLength,
   className,
   tooltipTitle,
+  hideTooltip = false,
 }: TruncatedTextProps) {
   // Troncature par nombre de caractères : affiche la tooltip si le texte est tronqué
   const textContent = typeof children === 'string' ? children : String(children)
@@ -24,7 +26,7 @@ export default function TruncatedText({
     const truncatedContent = truncateStr(textContent, maxStringLength)
     const isTruncated = truncatedContent !== textContent
 
-    if ((isTruncated || tooltipTitle) && !hideTooltip) {
+    if (isTruncated || (tooltipTitle && !hideTooltip)) {
       return (
         <Tooltip title={textContent}>
           <span className={className}>{truncatedContent}</span>
@@ -36,18 +38,18 @@ export default function TruncatedText({
 
   // Troncature par lignes : affiche la tooltip seulement si tooltipTitle est fourni
   const style: React.CSSProperties = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
     display: '-webkit-box',
     WebkitLineClamp: maxLines,
     WebkitBoxOrient: 'vertical',
-    wordBreak: 'break-word',
   }
 
-  if (tooltipTitle || textContent.length > 90) {
+  if ((tooltipTitle || textContent.length > 90) && !hideTooltip) {
     return (
       <Tooltip title={tooltipTitle || textContent}>
-        <div style={style} className={className}>
+        <div
+          style={style}
+          className={`overflow-hidden text-ellipsis break-words ${className || ''}`}
+        >
           {textContent}
         </div>
       </Tooltip>
@@ -55,7 +57,7 @@ export default function TruncatedText({
   }
 
   return (
-    <div style={style} className={className}>
+    <div style={style} className={`overflow-hidden text-ellipsis break-words ${className || ''}`}>
       {textContent}
     </div>
   )

@@ -37,7 +37,9 @@ export default function VisualisationLeftSideBar({
         <div className="fr-p-1w">
           <Breadcrumb
             currentPageLabel={
-              <TruncatedText maxStringLength={50}>{selectedExploitation?.name}</TruncatedText>
+              <TruncatedText maxStringLength={50} hideTooltip>
+                {selectedExploitation?.name}
+              </TruncatedText>
             }
             segments={[
               {
