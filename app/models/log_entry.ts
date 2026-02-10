@@ -46,6 +46,12 @@ export default class LogEntry extends BaseModel {
   })
   declare tags: ManyToMany<typeof LogEntryTag>
 
+  @column.date()
+  declare date: DateTime | null
+
+  @column()
+  declare isCompleted: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
