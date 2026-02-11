@@ -43,14 +43,24 @@ export default function SectionCard({
           {size === 'small' ? (
             <div className="flex gap-1 fr-mb-0">
               {icon && <span className={`${icon} fr-icon-md`} aria-hidden="true"></span>}
-              <TruncatedText maxLines={1} className="fr-mb-0" hideTooltip={hideLongTitleTooltip} as="h6">
+              <TruncatedText
+                maxLines={1}
+                className="fr-mb-0"
+                hideTooltip={hideLongTitleTooltip}
+                as="h6"
+              >
                 {title}
               </TruncatedText>
             </div>
           ) : (
             <div className="flex gap-1 fr-mb-0">
               {icon && <span className={`${icon}`} aria-hidden="true"></span>}
-              <TruncatedText maxLines={2} className="fr-mb-0" hideTooltip={hideLongTitleTooltip} as="h4">
+              <TruncatedText
+                maxLines={2}
+                className="fr-mb-0"
+                hideTooltip={hideLongTitleTooltip}
+                as="h4"
+              >
                 {title}
               </TruncatedText>
             </div>

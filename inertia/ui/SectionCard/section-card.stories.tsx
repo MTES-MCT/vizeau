@@ -35,7 +35,7 @@ const meta = {
       action: 'clicked',
       description: 'Callback déclenché lors du clic sur le bouton d’action.',
     },
-      hideLongTitleTooltip: {
+    hideLongTitleTooltip: {
       control: 'boolean',
       description:
         "Masquer l'info-bulle du titre même si le texte est long. Par défaut, une info-bulle s’affiche lorsque le titre dépasse 2 lignes ou 90 caractères (en fonction de ce qui est atteint en premier).",
