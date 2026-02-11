@@ -16,7 +16,6 @@ import {
   getPprSource,
   getPprLayer,
 } from './styles/zonage'
-import './styles/map.css'
 
 import { renderPopupParcelle } from './popup-parcelle'
 

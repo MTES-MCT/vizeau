@@ -2,7 +2,7 @@ import './spinner-animation.css'
 import { fr } from '@codegouvfr/react-dsfr'
 
 export type LoaderProps = {
-  type?: string
+  type?: "spinner" | "dots"
   size?: 'sm' | 'md' | 'lg'
 }
 
@@ -30,7 +30,7 @@ export default function Loader({ type = 'spinner', size = 'md' }: LoaderProps) {
   }
 
   return (
-    <span className="dot-anim w-fit">
+    <span className="dot-anim w-fit" role="status">
       <span
         className="dot"
         style={{

@@ -2,19 +2,20 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
+import { ExploitationJson } from '../../types/models'
 
 export type ParcellesManagerProps = {
   editMode: boolean
-  selectedExploitation?: any
-  setData: any
-  setDefaults: () => void
-  setEditMode: (value: boolean) => void
+  selectedExploitation?: ExploitationJson | undefined
+  setData: (...args: unknown[]) => void
+  setDefaults: (...args: unknown[]) => void
+  setEditMode: (...args: unknown[]) => void
   showBioOnly: boolean
   millesime: string
   isDirty: boolean
   processing: boolean
-  reset: () => void
-  sendFormAndResetState: any
+  reset: (...args: unknown[]) => void
+  sendFormAndResetState: (...args: unknown[]) => void
 }
 
 export default function ParcellesManager({
