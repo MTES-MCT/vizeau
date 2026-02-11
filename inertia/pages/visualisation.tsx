@@ -8,8 +8,6 @@ import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 import VisualisationController from '#controllers/visualisation_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
-import Button from '@codegouvfr/react-dsfr/Button'
-import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { ExploitationJson } from '../../types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
@@ -21,11 +19,6 @@ const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
     replace: true,
   })
 }, 300)
-
-const cancelEditModeModal = createModal({
-  id: 'cancel-edit-mode-modal',
-  isOpenedByDefault: false,
-})
 
 export type ParcelleFormData = {
   parcelles: { rpgId: string; surface: number | null; cultureCode: string | null }[]
@@ -187,6 +180,15 @@ export default function VisualisationPage({
             isMapLoading={isMapLoading}
             editMode={editMode}
             mapRef={mapRef}
+            isDirty={isDirty}
+            processing={processing}
+            reset={reset}
+            sendFormAndResetState={sendFormAndResetState}
+            setData={setData}
+            setDefaults={setDefaults}
+            setEditMode={setEditMode}
+            showBioOnly={showBioOnly}
+            millesime={millesime}
           />
         }
         headerAdditionalContent={
@@ -229,79 +231,6 @@ export default function VisualisationPage({
                 ]}
               />
             </div>
-            {selectedExploitationId && (
-              <div className="w-fit flex items-center gap-2">
-                {editMode ? (
-                  <>
-                    <Button
-                      priority="secondary"
-                      onClick={() => {
-                        // Only display a confirmation modal if there are unsaved changes
-                        if (isDirty) {
-                          cancelEditModeModal.open()
-                          return
-                        } else {
-                          reset()
-                          setEditMode(false)
-                        }
-                      }}
-                    >
-                      Retour
-                    </Button>
-                    <Button
-                      disabled={processing}
-                      onClick={() => {
-                        sendFormAndResetState()
-                      }}
-                    >
-                      Appliquer
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    disabled={showBioOnly}
-                    onClick={() => {
-                      setData(
-                        'parcelles',
-                        selectedExploitation?.parcelles?.filter(
-                          (p) => p.year.toString() === millesime
-                        ) || []
-                      )
-                      // We set the new data as default so the form is not dirty at the beginning of edit mode
-                      setDefaults()
-                      setEditMode(true)
-                    }}
-                  >
-                    Gérer les parcelles
-                  </Button>
-                )}
-              </div>
-            )}
-            <cancelEditModeModal.Component
-              title="Modifications non enregistrées"
-              iconId="fr-icon-arrow-right-line"
-              buttons={[
-                {
-                  children: 'Annuler',
-                  doClosesModal: true,
-                  onClick: () => {
-                    reset()
-                    setEditMode(false)
-                  },
-                },
-                {
-                  children: 'Appliquer les modifications',
-                  disabled: processing,
-                  onClick: () => {
-                    sendFormAndResetState()
-                  },
-                },
-              ]}
-            >
-              Vous avez apporté des modifications à votre sélection.
-              <br />
-              Souhaitez-vous appliquer ces modifications ou les annuler ?
-            </cancelEditModeModal.Component>
           </div>
         }
         map={

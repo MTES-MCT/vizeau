@@ -10,6 +10,7 @@ import VisualisationExploitationInfos from './visualisation-exploitation-infos'
 import AnalysesSection from './analyses-section'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import ParcellesManager from './parcelles-manager'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -20,6 +21,15 @@ export default function VisualisationLeftSideBar({
   isMapLoading,
   editMode,
   mapRef,
+  setData,
+  setDefaults,
+  setEditMode,
+  showBioOnly,
+  millesime,
+  isDirty,
+  processing,
+  reset,
+  sendFormAndResetState,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
@@ -29,6 +39,15 @@ export default function VisualisationLeftSideBar({
   isMapLoading: boolean
   editMode: boolean
   mapRef: RefObject<VisualisationMapRef>
+  setData: any
+  setDefaults: any
+  setEditMode: any
+  showBioOnly: boolean
+  millesime: string
+  isDirty: boolean
+  processing: boolean
+  reset: any
+  sendFormAndResetState: any
 }) {
   return (
     <div>
@@ -79,20 +98,36 @@ export default function VisualisationLeftSideBar({
               >
                 {selectedExploitation?.name}
               </Link>
-              <Button
-                priority="secondary"
-                size="small"
-                iconId="fr-icon-crosshair-2-line"
-                className="flex justify-center"
-                onClick={() => {
-                  if (selectedExploitation) {
-                    mapRef.current?.centerOnExploitation(selectedExploitation)
-                  }
-                }}
-                style={{ whiteSpace: 'nowrap', width: '100%' }}
-              >
-                Centrer sur l'exploitation
-              </Button>
+              <div className="flex flex-col gap-2 fr-mb-3v">
+                <Button
+                  priority="secondary"
+                  size="small"
+                  iconId="fr-icon-crosshair-2-line"
+                  className="flex justify-center"
+                  onClick={() => {
+                    if (selectedExploitation) {
+                      mapRef.current?.centerOnExploitation(selectedExploitation)
+                    }
+                  }}
+                  style={{ whiteSpace: 'nowrap', width: '100%' }}
+                >
+                  Centrer sur l'exploitation
+                </Button>
+
+                <ParcellesManager
+                  editMode={editMode}
+                  setData={setData}
+                  selectedExploitation={selectedExploitation}
+                  setDefaults={setDefaults}
+                  setEditMode={setEditMode}
+                  showBioOnly={showBioOnly}
+                  millesime={millesime}
+                  isDirty={isDirty}
+                  processing={processing}
+                  reset={reset}
+                  sendFormAndResetState={sendFormAndResetState}
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-4">

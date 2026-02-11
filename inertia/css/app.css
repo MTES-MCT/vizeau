@@ -11,3 +11,24 @@ body {
   height: 100%;
   width: 100%;
 }
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(29, 124, 219, 1),
+      0 0 3px rgba(29, 124, 219, 0.4),
+      0 0 5px rgba(29, 124, 219, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(29, 124, 219, 0.6),
+      0 0 5px rgba(29, 124, 219, 0.8),
+      0 0 15px rgba(29, 124, 219, 0.4),
+      0 0 20px rgba(29, 124, 219, 0.2);
+  }
+}
+
+.editing-glow {
+  animation: glow 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

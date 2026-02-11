@@ -6,6 +6,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     size: { control: 'radio', options: ['sm', 'md', 'lg'] },
+    type: { control: 'radio', options: ['spinner', 'dots'] },
   },
   args: {
     size: 'md',
@@ -14,16 +15,35 @@ const meta = {
 
 export default meta
 
-export const Défaut = {}
+export const DéfautSpinner = {}
+export const DéfautDots = {
+  args: {
+    type: 'dots',
+  },
+}
 
-export const Petit = {
+export const PetitSpinner = {
   args: {
     size: 'sm',
   },
 }
 
-export const Grand = {
+export const PetitDots = {
+  args: {
+    size: 'sm',
+    type: 'dots',
+  },
+}
+
+export const GrandSpinner = {
   args: {
     size: 'lg',
+  },
+}
+
+export const GrandDots = {
+  args: {
+    size: 'lg',
+    type: 'dots',
   },
 }
