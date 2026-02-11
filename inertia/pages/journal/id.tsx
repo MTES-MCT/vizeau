@@ -14,6 +14,7 @@ import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
+import SectionCard from '~/ui/SectionCard'
 
 export default function SingleTask({
   logEntry,
@@ -21,6 +22,7 @@ export default function SingleTask({
   exploitation,
   user,
   deleteEntryLogUrl,
+  completeEntryLogUrl,
 }: InferPageProps<LogEntriesController, 'get'>) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
@@ -82,7 +84,11 @@ export default function SingleTask({
       <div className="fr-container fr-mt-4w fr-mb-4w">
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
-            <LogEntryInformationCard userName={user?.fullName} createdAt={logEntry.createdAt} />
+            <LogEntryInformationCard
+              userName={user?.fullName}
+              logEntry={logEntry}
+              completeEntryLogUrl={completeEntryLogUrl}
+            />
             <LogEntryTagsCard tags={logEntry.tags} />
             <DeleteAlert
               title="Supprimer la tâche"
@@ -112,12 +118,13 @@ export default function SingleTask({
               />
             </deleteEntryLogModal.Component>
           </aside>
-          <div>
+          {/* <div>
             <TruncatedText maxLines={2} hideTooltip className="fr-h4 fr-mb-2w" as="h4">
               {logEntryTitle}
-            </TruncatedText>
+            </TruncatedText> */}
+          <SectionCard title={logEntryTitle}>
             <LogEntryNoteCard notes={logEntry.notes} />
-          </div>
+          </SectionCard>
         </section>
       </div>
     </Layout>

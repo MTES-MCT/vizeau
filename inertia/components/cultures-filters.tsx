@@ -33,10 +33,7 @@ export default function CulturesFilters({
         {culturesItems.map((culture) => {
           const isVisible = visibleCultures.includes(String(culture.code_group))
           return (
-            <div
-              key={culture.code_group}
-              style={{ opacity: isVisible ? 1 : 0.5 }}
-            >
+            <div key={culture.code_group} style={{ opacity: isVisible ? 1 : 0.5 }}>
               <Checkbox
                 className="fr-m-0"
                 small

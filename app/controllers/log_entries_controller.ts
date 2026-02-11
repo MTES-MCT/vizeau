@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import {
+  completeLogEntryValidator,
   createLogEntryValidator,
   destroyLogEntryValidator,
   updateLogEntryValidator,
@@ -28,6 +29,7 @@ const EVENTS = {
   UPDATE_SUBMITTED: { name: 'log_entries_update', step: 'submitted' },
   UPDATE_UPDATED: { name: 'log_entries_update', step: 'updated' },
   UPDATE_FORM: { name: 'log_entries_update', step: 'form_viewed' },
+  COMPLETE: { name: 'log_entries_update', step: 'completed' },
   DELETED: { name: 'log_entries_deleted' },
   TAG_CREATE_SUBMITTED: { name: 'log_entry_tags_create', step: 'submitted' },
   TAG_CREATE_CREATED: { name: 'log_entry_tags_create', step: 'created' },
@@ -94,7 +96,10 @@ export default class LogEntriesController {
       context: { exploitationId: exploitationId, logEntryId: params.logEntryId },
     })
 
-    const exploitation = await Exploitation.findOrFail(exploitationId)
+    const exploitation = await Exploitation.query()
+      .where('id', exploitationId)
+      .preload('user')
+      .firstOrFail()
 
     const logEntry = await LogEntry.query()
       .where('id', params.logEntryId)
@@ -113,6 +118,7 @@ export default class LogEntriesController {
         .builder()
         .params([exploitationId, params.logEntryId])
         .make('log_entries.destroy'),
+      completeEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.complete'),
     })
   }
 
@@ -182,16 +188,17 @@ export default class LogEntriesController {
       context: { payload: request.all() },
     })
 
-    const payload = await request.validateUsing(createLogEntryValidator)
+    const { params, tags, ...payload } = await request.validateUsing(createLogEntryValidator)
 
     try {
-      await this.logEntryService.createLogEntry({
-        userId: user.id,
-        exploitationId: payload.params.exploitationId,
-        title: payload.title,
-        notes: payload.notes,
-        tags: payload.tags,
-      })
+      await this.logEntryService.createLogEntry(
+        {
+          userId: user.id,
+          exploitationId: params.exploitationId,
+          ...payload,
+        },
+        tags
+      )
 
       this.eventLogger.logEvent({
         userId: user.id,
@@ -200,9 +207,9 @@ export default class LogEntriesController {
 
       createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
 
-      return response.redirect().toRoute('exploitations.get', [payload.params.exploitationId])
+      return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error('Error creating log entry:', error)
+      logger.error(error, 'Error creating log entry:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la création de l'entrée de journal."
@@ -219,14 +226,10 @@ export default class LogEntriesController {
       ...EVENTS.UPDATE_SUBMITTED,
       context: { payload: request.all() },
     })
-    const { id, params, ...payload } = await request.validateUsing(updateLogEntryValidator)
+    const { id, params, tags, ...payload } = await request.validateUsing(updateLogEntryValidator)
 
     try {
-      await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, {
-        title: payload.title,
-        notes: payload.notes,
-        tags: payload.tags,
-      })
+      await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, payload, tags)
 
       this.eventLogger.logEvent({
         userId: user.id,
@@ -236,7 +239,7 @@ export default class LogEntriesController {
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error('Error updating log entry:', error)
+      logger.error(error, 'Error updating log entry:')
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
         createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
       } else {
@@ -247,6 +250,32 @@ export default class LogEntriesController {
       }
     }
 
+    return response.redirect().back()
+  }
+
+  async complete({ auth, request, response, session }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    const { id, params } = await request.validateUsing(completeLogEntryValidator)
+
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.COMPLETE,
+      context: { payload: request.all() },
+    })
+
+    try {
+      await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, {
+        isCompleted: true,
+      })
+
+      createSuccessFlashMessage(session, 'La tâche a été marquée comme terminée.')
+    } catch (error) {
+      createErrorFlashMessage(
+        session,
+        'Une erreur est survenue lors de la mise à jour de la tâche.'
+      )
+    }
     return response.redirect().back()
   }
 
@@ -263,7 +292,7 @@ export default class LogEntriesController {
       await this.logEntryService.deleteLogEntry(id, user.id, params.exploitationId)
       createSuccessFlashMessage(session, "L'entrée de journal a été supprimée avec succès.")
     } catch (error) {
-      logger.error('Error deleting log entry:', error)
+      logger.error(error, 'Error deleting log entry:')
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
         createErrorFlashMessage(session, 'Vous ne pouvez supprimer que vos entrées de journal.')
       } else {
@@ -298,7 +327,7 @@ export default class LogEntriesController {
         ...EVENTS.TAG_CREATE_CREATED,
       })
     } catch (error) {
-      logger.error('Error creating tag for exploitation:', error)
+      logger.error(error, 'Error creating tag for exploitation:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la création de l'étiquette."
@@ -318,7 +347,7 @@ export default class LogEntriesController {
     try {
       await this.logEntryTagService.deleteTag(payload.tagId, payload.params.exploitationId, user.id)
     } catch (error) {
-      logger.error('Error deleting tag:', error)
+      logger.error(error, 'Error deleting tag:')
       createErrorFlashMessage(
         session,
         "Une erreur est survenue lors de la suppression de l'étiquette."

@@ -88,15 +88,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'minzoom': 12,
       'paint': {
         'line-color': '#000000',
-        'line-width': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          15,
-          1,
-          18,
-          3,
-        ],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 15, 1, 18, 3],
         'line-opacity': 0, // Transparent par défaut
       },
     },
