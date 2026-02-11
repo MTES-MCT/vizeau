@@ -13,7 +13,7 @@ export default function Tabs({ tabsList, selectedTab, onTabChange }: TabsProps) 
         <Tab
           key={tab.value}
           label={tab.label}
-          disabled={tab.isDisabled}
+          isDisabled={tab.isDisabled}
           isActive={tab.value === selectedTab}
           onTabChange={() => onTabChange(tab.value)}
         />

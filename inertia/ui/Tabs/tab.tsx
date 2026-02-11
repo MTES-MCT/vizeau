@@ -3,18 +3,22 @@ import { fr } from '@codegouvfr/react-dsfr'
 export type TabProps = {
   label: string
   isActive?: boolean
-  disabled?: boolean
+  isDisabled?: boolean
   onTabChange: () => void
 }
 
-export default function Tab({ label, isActive, disabled, onTabChange }: TabProps) {
+export default function Tab({ label, isActive, isDisabled, onTabChange }: TabProps) {
   return (
     <button
       role="tab"
       aria-selected={isActive}
-      onClick={onTabChange}
-      disabled={disabled}
-      className={`w-fit cursor-pointer fr-p-2v`}
+      onClick={() => {
+        if (!isDisabled) {
+          onTabChange()
+        }
+      }}
+      disabled={isDisabled}
+      className={`w-fit cursor-pointer ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} fr-p-2v`}
       style={{
         fontWeight: isActive ? 'bold' : 'normal',
         borderBottomColor: isActive
@@ -24,7 +28,7 @@ export default function Tab({ label, isActive, disabled, onTabChange }: TabProps
         borderBottomStyle: 'solid',
         color: isActive
           ? fr.colors.decisions.text.label.blueFrance.default
-          : disabled
+          : isDisabled
             ? fr.colors.decisions.text.disabled.grey.default
             : fr.colors.decisions.text.default.grey.default,
       }}
