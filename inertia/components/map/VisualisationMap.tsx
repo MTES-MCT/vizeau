@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
-import Select from '@codegouvfr/react-dsfr/SelectNext'
 import maplibre, { type LngLatLike } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
@@ -16,7 +15,6 @@ import {
   getPprSource,
   getPprLayer,
 } from './styles/zonage'
-import './styles/map.css'
 
 import { renderPopupParcelle } from './popup-parcelle'
 
@@ -24,7 +22,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
-import { router, usePage } from '@inertiajs/react'
+import { usePage } from '@inertiajs/react'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import VisualisationController from '#controllers/visualisation_controller'
 import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
@@ -78,6 +76,7 @@ const VisualisationMap = forwardRef<
     showCommunes?: boolean
     showBioOnly?: boolean
     visibleCultures?: string[]
+    style?: string
   }
 >(
   (
@@ -102,6 +101,7 @@ const VisualisationMap = forwardRef<
       showCommunes = false,
       showBioOnly = false,
       visibleCultures = [],
+      style = 'vector',
     },
     ref
   ) => {
@@ -117,7 +117,6 @@ const VisualisationMap = forwardRef<
     )
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
-    const [style, setStyle] = useState<string>(currentStyleRef.current)
     const previousVisibleCulturesRef = useRef<string[]>([])
 
     // Synchroniser la ref avec les props
@@ -804,61 +803,22 @@ const VisualisationMap = forwardRef<
         )}
         <div
           ref={mapContainerRef}
-          className={`flex justify-between h-full w-full ${editMode ? 'map-editing' : ''}`}
+          className={`flex justify-between h-full w-full ${editMode ? 'editing-glow' : ''}`}
         />
-        <div className="w-full flex justify-between gap-2 fr-px-2v fr-pt-2v absolute right-0 left-0 z-10 pointer-events-none">
-          <Select
-            className="w-fit pointer-events-auto"
-            label=""
-            nativeSelectProps={{
-              defaultValue: 'vector',
-              onChange: (e) => setStyle(e.target.value),
+        {editMode && (
+          <div
+            className="absolute left-0 right-0 top-0 fr-text--md flex items-center justify-center fr-p-2v shadow-md"
+            style={{
+              backgroundColor: fr.colors.decisions.background.contrast.info.default,
+              color: fr.colors.decisions.text.default.info.default,
+              fontWeight: '700',
+              minWidth: '30%',
             }}
-            options={[
-              { value: 'vector', label: 'Carte vectorielle' },
-              { value: 'orthophoto', label: 'Photographie aérienne' },
-              { value: 'plan-ign', label: 'Plan IGN' },
-            ]}
-          />
-
-          {editMode && (
-            <div
-              className="fr-text--md flex items-center justify-center fr-p-2v shadow-md"
-              style={{
-                backgroundColor: fr.colors.decisions.background.contrast.info.default,
-                color: fr.colors.decisions.text.default.info.default,
-                fontWeight: '700',
-                minWidth: '30%',
-              }}
-            >
-              <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-              Attribuez des parcelles à cette exploitation
-            </div>
-          )}
-
-          <Select
-            className="w-fit pointer-events-auto"
-            label=""
-            disabled={editMode}
-            nativeSelectProps={{
-              defaultValue: millesime,
-              onChange: (e) => {
-                // Reload the page with the new millesime
-                // This operation can take some time on slow connections, so we set the map in loading state
-                // It will be unset when the map 'idle' event is fired
-                setIsMapLoading(true)
-                router.reload({
-                  only: ['queryString', 'filteredExploitations'],
-                  data: { millesime: e.target.value },
-                })
-              },
-            }}
-            options={[
-              { value: '2024', label: '2024' },
-              { value: '2023', label: '2023' },
-            ]}
-          />
-        </div>
+          >
+            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
+            Attribuez des parcelles à cette exploitation
+          </div>
+        )}
       </div>
     )
   }
