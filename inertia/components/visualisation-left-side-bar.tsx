@@ -142,13 +142,21 @@ export default function VisualisationLeftSideBar({
               <Tabs
                 tabsList={[
                   { value: 'general', label: 'Général' },
-                  { value: 'parcelles', label: 'Parcelles (à venir)', isDisabled: true },
+                  { value: 'parcelles', label: 'Parcelles' },
                 ]}
                 selectedTab={selectedTab}
                 onTabChange={(value) => setSelectedTab(value)}
               />
 
-              {selectedTab === 'general' && <VisualisationExploitationGeneral exploitation={selectedExploitation} />}
+              {selectedTab === 'general' && (
+                <VisualisationExploitationGeneral exploitation={selectedExploitation} />
+              )}
+              {selectedTab === 'parcelles' && (
+                <ParcellesSection
+                  parcelles={selectedExploitation.parcelles ?? []}
+                  exploitationId={selectedExploitation.id}
+                />
+              )}
             </div>
           </div>
         </div>
