@@ -46,7 +46,7 @@ const AdditionnalInfos = ({
     },
     error: { iconId: 'fr-icon-error-fill', color: fr.colors.decisions.text.default.error.default },
     success: {
-      iconId: 'fr-icon-check-fill',
+      iconId: 'fr-icon-checkbox-fill',
       color: fr.colors.decisions.text.default.success.default,
     },
   }

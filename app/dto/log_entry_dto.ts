@@ -14,6 +14,8 @@ export class LogEntryDto {
       createdAt: logEntry.createdAt.toISO() as string,
       updatedAt: logEntry.updatedAt.toISO() as string,
       tags: logEntry.tags.map((tag) => LogEntryTagDto.fromModel(tag)),
+      date: logEntry.date ? (logEntry.date.toISODate() as string) : null,
+      isCompleted: logEntry.isCompleted,
     }
   }
 

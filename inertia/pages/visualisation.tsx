@@ -10,6 +10,7 @@ import { InferPageProps } from '@adonisjs/inertia/types'
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 import { ExploitationJson } from '../../types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import Select from '@codegouvfr/react-dsfr/SelectNext'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -38,6 +39,7 @@ export default function VisualisationPage({
   const [showBioOnly, setShowBioOnly] = useState(false)
   const mapRef = useRef<VisualisationMapRef>(null)
   const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
+  const [style, setStyle] = useState<string>('vector')
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -189,6 +191,48 @@ export default function VisualisationPage({
             millesime={millesime}
           />
         }
+        headerAdditionalContent={
+          <div className="flex flex-1 items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-fit">
+              <Select
+                className="w-fit pointer-events-auto fr-mb-0"
+                label=""
+                nativeSelectProps={{
+                  defaultValue: 'vector',
+                  onChange: (e) => setStyle(e.target.value),
+                }}
+                options={[
+                  { value: 'vector', label: 'Carte vectorielle' },
+                  { value: 'orthophoto', label: 'Photographie aérienne' },
+                  { value: 'plan-ign', label: 'Plan IGN' },
+                ]}
+              />
+              <Select
+                className="w-fit pointer-events-auto fr-mb-0"
+                style={{ width: 'fit-content' }}
+                label=""
+                disabled={editMode}
+                nativeSelectProps={{
+                  defaultValue: millesime,
+                  onChange: (e) => {
+                    // Reload the page with the new millesime
+                    // This operation can take some time on slow connections, so we set the map in loading state
+                    // It will be unset when the map 'idle' event is fired
+                    setIsMapLoading(true)
+                    router.reload({
+                      only: ['queryString', 'filteredExploitations'],
+                      data: { millesime: e.target.value },
+                    })
+                  },
+                }}
+                options={[
+                  { value: '2024', label: '2024' },
+                  { value: '2023', label: '2023' },
+                ]}
+              />
+            </div>
+          </div>
+        }
         map={
           <VisualisationMap
             exploitations={filteredExploitations}
@@ -209,6 +253,7 @@ export default function VisualisationPage({
             showBioOnly={showBioOnly}
             ref={mapRef}
             visibleCultures={visibleCultures}
+            style={style}
           />
         }
         rightContent={

@@ -15,6 +15,7 @@ export type LogEntryFormData = {
   title: string
   notes: string
   tags: number[]
+  date: string
 }
 
 export default function TaskCreationPage({
@@ -27,6 +28,7 @@ export default function TaskCreationPage({
     title: '',
     notes: '',
     tags: [],
+    date: '',
   })
 
   const handleSubmit = (e: FormEvent) => {

@@ -16,7 +16,7 @@ export default function MapLayerFilters({
   setShowPpr = (_update) => {},
   setShowCommunes = (_update) => {},
   setShowBioOnly = (_update) => {},
-  canSwitchToBioOnly = true
+  canSwitchToBioOnly = true,
 }: {
   showParcelles?: boolean
   showAac?: boolean
@@ -151,7 +151,7 @@ export default function MapLayerFilters({
               value: 'bioOnly',
               checked: showBioOnly,
               disabled: !showParcelles || !canSwitchToBioOnly,
-              onChange: () => setShowBioOnly((prev) => !prev)
+              onChange: () => setShowBioOnly((prev) => !prev),
             },
           },
         ]}

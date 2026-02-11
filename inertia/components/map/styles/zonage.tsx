@@ -1,15 +1,15 @@
 export const getCommunesLayer = () => {
   return [
     {
-      id: 'communes-outline',
-      type: 'line',
-      source: 'decoupage-administratif',
+      'id': 'communes-outline',
+      'type': 'line',
+      'source': 'decoupage-administratif',
       'source-layer': 'communes',
-      minzoom: 10,
-      layout: {
+      'minzoom': 10,
+      'layout': {
         visibility: 'none',
       },
-      paint: {
+      'paint': {
         'line-color': 'gray',
         'line-width': 2,
         'line-opacity': 0.8,
@@ -21,23 +21,23 @@ export const getCommunesLayer = () => {
 export const getAacLayer = () => {
   return [
     {
-      id: 'aac-fill',
-      type: 'fill',
-      source: 'aac',
+      'id': 'aac-fill',
+      'type': 'fill',
+      'source': 'aac',
       'source-layer': 'aac',
-      minzoom: 12,
-      paint: {
+      'minzoom': 12,
+      'paint': {
         'fill-color': '#a6f2fa',
         'fill-opacity': 0.3,
       },
     },
     {
-      id: 'aac-outline',
-      type: 'line',
-      source: 'aac',
+      'id': 'aac-outline',
+      'type': 'line',
+      'source': 'aac',
       'source-layer': 'aac',
-      minzoom: 10,
-      paint: {
+      'minzoom': 10,
+      'paint': {
         'line-color': '#009099',
         'line-width': 2,
         'line-opacity': 1,
@@ -49,29 +49,29 @@ export const getAacLayer = () => {
 export const getPpeLayer = () => {
   return [
     {
-      id: 'ppe-fill',
-      type: 'fill',
-      source: 'ppe',
+      'id': 'ppe-fill',
+      'type': 'fill',
+      'source': 'ppe',
       'source-layer': 'ppe',
-      minzoom: 12,
-      layout: {
+      'minzoom': 12,
+      'layout': {
         visibility: 'none',
       },
-      paint: {
+      'paint': {
         'fill-color': 'blue',
         'fill-opacity': 0.3,
       },
     },
     {
-      id: 'ppe-outline',
-      type: 'line',
-      source: 'ppe',
+      'id': 'ppe-outline',
+      'type': 'line',
+      'source': 'ppe',
       'source-layer': 'ppe',
-      minzoom: 10,
-      layout: {
+      'minzoom': 10,
+      'layout': {
         visibility: 'none',
       },
-      paint: {
+      'paint': {
         'line-color': 'darkblue',
         'line-width': 2,
         'line-opacity': 1,
@@ -83,28 +83,29 @@ export const getPpeLayer = () => {
 export const getPprLayer = () => {
   return [
     {
-      id: 'ppr-fill',
-      type: 'fill',
-      source: 'ppr',
+      'id': 'ppr-fill',
+      'type': 'fill',
+      'source': 'ppr',
       'source-layer': 'ppr',
-      minzoom: 12,
-      layout: {
+      'minzoom': 12,
+      'layout': {
         visibility: 'none',
       },
-      paint: {
+      'paint': {
         'fill-color': 'orange',
         'fill-opacity': 0.3,
       },
     },
-    {      id: 'ppr-outline',
-      type: 'line',
-      source: 'ppr',
+    {
+      'id': 'ppr-outline',
+      'type': 'line',
+      'source': 'ppr',
       'source-layer': 'ppr',
-      minzoom: 10,
-      layout: {
+      'minzoom': 10,
+      'layout': {
         visibility: 'none',
       },
-      paint: {
+      'paint': {
         'line-color': 'darkorange',
         'line-width': 2,
         'line-opacity': 1,
@@ -113,21 +114,33 @@ export const getPprLayer = () => {
   ]
 }
 
-export const getAacSource = ({ pmtilesUrl }: { pmtilesUrl: string }): maplibregl.VectorSourceSpecification => {
+export const getAacSource = ({
+  pmtilesUrl,
+}: {
+  pmtilesUrl: string
+}): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
   }
 }
 
-export const getPpeSource = ({ pmtilesUrl }: { pmtilesUrl: string }): maplibregl.VectorSourceSpecification => {
+export const getPpeSource = ({
+  pmtilesUrl,
+}: {
+  pmtilesUrl: string
+}): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
   }
 }
 
-export const getPprSource = ({ pmtilesUrl }: { pmtilesUrl: string }): maplibregl.VectorSourceSpecification => {
+export const getPprSource = ({
+  pmtilesUrl,
+}: {
+  pmtilesUrl: string
+}): maplibregl.VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,

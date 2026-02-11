@@ -33,11 +33,12 @@ createInertiaApp({
   },
 
   setup({ el, App, props }) {
-    hydrateRoot(el, (
+    hydrateRoot(
+      el,
       <>
         <App {...props} />
         <Toaster />
       </>
-    ))
+    )
   },
 })
