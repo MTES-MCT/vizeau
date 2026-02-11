@@ -10,6 +10,7 @@ import VisualisationExploitationInfos from './visualisation-exploitation-infos'
 import AnalysesSection from './analyses-section'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import ParcellesSection from './parcelle/parcelles-section'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -97,8 +98,9 @@ export default function VisualisationLeftSideBar({
 
             <div className="flex flex-col gap-4">
               <VisualisationExploitationInfos exploitation={selectedExploitation} />
+                {/* Renvoie un tableau vide le temps de disposer de cette information */}
               <AnalysesSection parcelles={[]} />
-              {/* Renvoie un tableau vide le temps de disposer de cette information */}
+              <ParcellesSection parcelles={selectedExploitation.parcelles ?? []} />
             </div>
           </div>
         </div>
