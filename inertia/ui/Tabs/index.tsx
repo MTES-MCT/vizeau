@@ -1,7 +1,7 @@
 import Tab from './tab'
 
 export type TabsProps = {
-  tabsList: { label: string; value: string }[]
+  tabsList: { label: string; value: string; isDisabled?: boolean }[]
   selectedTab: string
   onTabChange: (value: string) => void
 }
@@ -13,6 +13,7 @@ export default function Tabs({ tabsList, selectedTab, onTabChange }: TabsProps) 
         <Tab
           key={tab.value}
           label={tab.label}
+          isDisabled={tab.isDisabled}
           isActive={tab.value === selectedTab}
           onTabChange={() => onTabChange(tab.value)}
         />

@@ -35,6 +35,7 @@ export const Défaut = () => {
         { label: 'Tab 1', value: 'tab1' },
         { label: 'Tab 2', value: 'tab2' },
         { label: 'Tab 3', value: 'tab3' },
+        { label: 'Tab 4 (disabled)', value: 'tab4', isDisabled: true },
       ]}
       selectedTab={selectedValue}
       onTabChange={(value) => setSelectedValue(value)}

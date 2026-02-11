@@ -1,4 +1,4 @@
-import { ChangeEvent, RefObject } from 'react'
+import { ChangeEvent, RefObject, useState } from 'react'
 import { Link } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import ListItem from '~/ui/ListItem'
@@ -6,12 +6,12 @@ import { ExploitationJson } from '../../types/models'
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import Button from '@codegouvfr/react-dsfr/Button'
-import VisualisationExploitationInfos from './visualisation-exploitation-infos'
-import AnalysesSection from './analyses-section'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import ParcellesSection from './parcelle/parcelles-section'
 import ParcellesManager from './parcelles-manager'
+import Tabs from '~/ui/Tabs'
+import VisualisationExploitationGeneral from './visualisation-exploitation-general'
 
 export default function VisualisationLeftSideBar({
   exploitations,
@@ -50,6 +50,8 @@ export default function VisualisationLeftSideBar({
   reset: any
   sendFormAndResetState: any
 }) {
+  const [selectedTab, setSelectedTab] = useState('general')
+
   return (
     <div>
       {selectedExploitation ? (
@@ -99,7 +101,12 @@ export default function VisualisationLeftSideBar({
               >
                 {selectedExploitation?.name}
               </Link>
-              <div className="flex flex-col gap-2 fr-mb-3v">
+              <div
+                className="flex flex-col gap-2 fr-mb-3v fr-pb-3v"
+                style={{
+                  borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                }}
+              >
                 <Button
                   priority="secondary"
                   size="small"
@@ -132,13 +139,16 @@ export default function VisualisationLeftSideBar({
             </div>
 
             <div className="flex flex-col gap-4">
-              <VisualisationExploitationInfos exploitation={selectedExploitation} />
-                {/* Renvoie un tableau vide le temps de disposer de cette information */}
-              <AnalysesSection parcelles={[]} />
-              <ParcellesSection
-                parcelles={selectedExploitation.parcelles ?? []}
-                exploitationId={selectedExploitation.id}
+              <Tabs
+                tabsList={[
+                  { value: 'general', label: 'Général' },
+                  { value: 'parcelles', label: 'Parcelles (à venir)', isDisabled: true },
+                ]}
+                selectedTab={selectedTab}
+                onTabChange={(value) => setSelectedTab(value)}
               />
+
+              {selectedTab === 'general' && <VisualisationExploitationGeneral exploitation={selectedExploitation} />}
             </div>
           </div>
         </div>
