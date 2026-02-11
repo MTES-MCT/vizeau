@@ -118,11 +118,7 @@ export default function SingleTask({
               />
             </deleteEntryLogModal.Component>
           </aside>
-          {/* <div>
-            <TruncatedText maxLines={2} hideTooltip className="fr-h4 fr-mb-2w" as="h4">
-              {logEntryTitle}
-            </TruncatedText> */}
-          <SectionCard title={logEntryTitle}>
+          <SectionCard title={logEntryTitle} hideLongTitleTooltip>
             <LogEntryNoteCard notes={logEntry.notes} />
           </SectionCard>
         </section>

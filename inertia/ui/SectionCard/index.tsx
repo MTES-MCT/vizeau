@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import { Button } from '@codegouvfr/react-dsfr/Button'
+import TruncatedText from '../TruncatedText'
 
 export type SectionCardProps = {
   title: string
@@ -9,6 +10,7 @@ export type SectionCardProps = {
   icon?: string
   size?: 'small' | 'medium'
   background?: 'primary' | 'secondary'
+  hideLongTitleTooltip?: boolean
   actionIcon?: string
   actionLabel?: string
   handleAction?: () => void
@@ -23,6 +25,7 @@ export default function SectionCard({
   actionIcon,
   handleAction,
   actionLabel,
+  hideLongTitleTooltip = false,
 }: SectionCardProps) {
   return (
     <section
@@ -38,15 +41,19 @@ export default function SectionCard({
       <div className="flex items-center">
         <div className="flex-1 min-w-0">
           {size === 'small' ? (
-            <h6 className="fr-mb-0">
-              {icon && <span className={`${icon} fr-mr-1w fr-icon-md`} aria-hidden="true"></span>}
-              {title}
-            </h6>
+            <div className="flex gap-1 fr-mb-0">
+              {icon && <span className={`${icon} fr-icon-md`} aria-hidden="true"></span>}
+              <TruncatedText maxLines={1} className="fr-mb-0" hideTooltip={hideLongTitleTooltip} as="h6">
+                {title}
+              </TruncatedText>
+            </div>
           ) : (
-            <h4 className="fr-mb-0">
-              {icon && <span className={`${icon} fr-mr-1w`} aria-hidden="true"></span>}
-              {title}
-            </h4>
+            <div className="flex gap-1 fr-mb-0">
+              {icon && <span className={`${icon}`} aria-hidden="true"></span>}
+              <TruncatedText maxLines={2} className="fr-mb-0" hideTooltip={hideLongTitleTooltip} as="h4">
+                {title}
+              </TruncatedText>
+            </div>
           )}
         </div>
         {handleAction &&
