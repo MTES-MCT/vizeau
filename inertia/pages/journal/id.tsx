@@ -39,7 +39,7 @@ export default function SingleTask({
         <div className="fr-container flex justify-between items-center gap-4">
           <div className="min-w-0 flex-1">
             <Breadcrumb
-              className="w-fill fr-my-0"
+              className="w-full fr-my-0"
               currentPageLabel={
                 <TruncatedText maxStringLength={50} hideTooltip>
                   {logEntryTitle}
@@ -113,7 +113,7 @@ export default function SingleTask({
             </deleteEntryLogModal.Component>
           </aside>
           <div>
-            <TruncatedText maxLines={2} hideTooltip className="fr-h4 fr-mb-2w">
+            <TruncatedText maxLines={2} hideTooltip className="fr-h4 fr-mb-2w" as="h4">
               {logEntryTitle}
             </TruncatedText>
             <LogEntryNoteCard notes={logEntry.notes} />

@@ -21,7 +21,8 @@ const meta = {
     },
     maxLines: {
       control: 'number',
-      description: 'Nombre maximum de lignes à afficher avant troncature (CSS).',
+      description:
+        'Nombre maximum de lignes à afficher avant troncature (CSS). La tooltip s’affiche si tooltipTitle est fourni ou si le texte dépasse 90 caractères.',
       table: {
         type: { summary: 'number' },
         defaultValue: { summary: 1 },
@@ -38,7 +39,7 @@ const meta = {
     tooltipTitle: {
       control: 'text',
       description:
-        "Texte personnalisé pour l'info-bulle. Pour maxStringLength, si non fourni, affiche le texte complet. Pour maxLines, affiche la tooltip uniquement si fourni.",
+        "Texte personnalisé pour l'info-bulle. Pour maxStringLength, si non fourni, affiche le texte complet. Pour maxLines, personnalise le contenu de la tooltip lorsque le texte est tronqué (une tooltip peut aussi être affichée automatiquement au-delà d’un certain seuil de longueur).",
       table: {
         type: { summary: 'string' },
       },
@@ -53,7 +54,8 @@ const meta = {
     },
   },
   args: {
-    children: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    children:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     maxLines: 1,
     className: 'fr-text--md',
     tooltipTitle: undefined,

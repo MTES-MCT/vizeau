@@ -1,14 +1,14 @@
 import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip'
-import { ReactNode } from 'react'
 import { truncateStr } from '~/functions/string'
 
 export type TruncatedTextProps = {
-  children: ReactNode
+  children: string | number
   maxLines?: number
   maxStringLength?: number
   className?: string
   tooltipTitle?: string
   hideTooltip?: boolean
+  as?: React.ElementType
 }
 
 export default function TruncatedText({
@@ -18,9 +18,13 @@ export default function TruncatedText({
   className,
   tooltipTitle,
   hideTooltip = false,
+  as,
 }: TruncatedTextProps) {
-  // Troncature par nombre de caractères : affiche la tooltip si le texte est tronqué
-  const textContent = typeof children === 'string' ? children : String(children)
+  // children est string | number, on convertit number en string
+  const textContent = typeof children === 'number' ? String(children) : children
+
+  // Détermine l'élément à utiliser selon le contexte
+  const Component = as || (maxStringLength ? 'span' : 'div')
 
   if (maxStringLength) {
     const truncatedContent = truncateStr(textContent, maxStringLength)
@@ -28,15 +32,15 @@ export default function TruncatedText({
 
     if ((isTruncated || tooltipTitle) && !hideTooltip) {
       return (
-        <Tooltip title={textContent}>
-          <span className={className}>{truncatedContent}</span>
+        <Tooltip title={tooltipTitle || textContent}>
+          <Component className={className}>{truncatedContent}</Component>
         </Tooltip>
       )
     }
-    return <span className={className}>{truncatedContent}</span>
+    return <Component className={className}>{truncatedContent}</Component>
   }
 
-  // Troncature par lignes : affiche la tooltip seulement si tooltipTitle est fourni
+  // Troncature par lignes : affiche la tooltip si tooltipTitle est fourni ou si le texte dépasse 90 caractères
   const style: React.CSSProperties = {
     display: '-webkit-box',
     WebkitLineClamp: maxLines,
@@ -46,19 +50,22 @@ export default function TruncatedText({
   if ((tooltipTitle || textContent.length > 90) && !hideTooltip) {
     return (
       <Tooltip title={tooltipTitle || textContent}>
-        <div
+        <Component
           style={style}
           className={`overflow-hidden text-ellipsis break-words ${className || ''}`}
         >
           {textContent}
-        </div>
+        </Component>
       </Tooltip>
     )
   }
 
   return (
-    <div style={style} className={`overflow-hidden text-ellipsis break-words ${className || ''}`}>
+    <Component
+      style={style}
+      className={`overflow-hidden text-ellipsis break-words ${className || ''}`}
+    >
       {textContent}
-    </div>
+    </Component>
   )
 }
