@@ -12,7 +12,6 @@ import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import ParcellesManager from './parcelles-manager'
 
-
 export default function VisualisationLeftSideBar({
   exploitations,
   queryString,
@@ -30,7 +29,7 @@ export default function VisualisationLeftSideBar({
   isDirty,
   processing,
   reset,
-  sendFormAndResetState
+  sendFormAndResetState,
 }: {
   exploitations: ExploitationJson[]
   queryString?: { recherche?: string }
@@ -50,8 +49,6 @@ export default function VisualisationLeftSideBar({
   reset: any
   sendFormAndResetState: any
 }) {
-
-
   return (
     <div>
       {selectedExploitation ? (

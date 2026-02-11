@@ -2,7 +2,7 @@ import './spinner-animation.css'
 import { fr } from '@codegouvfr/react-dsfr'
 
 export type LoaderProps = {
-  type?: "spinner" | "dots"
+  type?: 'spinner' | 'dots'
   size?: 'sm' | 'md' | 'lg'
 }
 

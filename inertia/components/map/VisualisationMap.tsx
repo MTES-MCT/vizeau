@@ -805,21 +805,21 @@ const VisualisationMap = forwardRef<
           ref={mapContainerRef}
           className={`flex justify-between h-full w-full ${editMode ? 'editing-glow' : ''}`}
         />
-          {editMode && (
-            <div
-              className="absolute left-0 right-0 top-0 fr-text--md flex items-center justify-center fr-p-2v shadow-md"
-              style={{
-                backgroundColor: fr.colors.decisions.background.contrast.info.default,
-                color: fr.colors.decisions.text.default.info.default,
-                fontWeight: '700',
-                minWidth: '30%',
-              }}
-            >
-              <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-              Attribuez des parcelles à cette exploitation
-            </div>
-          )}
-        </div>
+        {editMode && (
+          <div
+            className="absolute left-0 right-0 top-0 fr-text--md flex items-center justify-center fr-p-2v shadow-md"
+            style={{
+              backgroundColor: fr.colors.decisions.background.contrast.info.default,
+              color: fr.colors.decisions.text.default.info.default,
+              fontWeight: '700',
+              minWidth: '30%',
+            }}
+          >
+            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
+            Attribuez des parcelles à cette exploitation
+          </div>
+        )}
+      </div>
     )
   }
 )
