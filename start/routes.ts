@@ -55,6 +55,13 @@ router
       .as('exploitations.destroy')
 
     router
+      .post('exploitations/:exploitationId/parcelles/:rpgId/detach', [
+        ExploitationsController,
+        'detachParcelle',
+      ])
+      .as('exploitations.detachParcelle')
+
+    router
       .get('exploitations/:exploitationId/journal', [LogEntriesController, 'index'])
       .as('log_entries.index')
 

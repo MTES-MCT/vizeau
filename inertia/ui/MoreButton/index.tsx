@@ -123,10 +123,11 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                 {actions
                   .filter((action) => !action.isHidden)
                   .map((action, index) => (
+                    <li key={`action-${index}`} className="w-fit list-none" role="none">
                     <button
                       key={`label-${index}`}
                       disabled={action.isDisabled}
-                      className="fr-p-1v list-none w-full flex items-center gap-2 cursor-pointer"
+                      className="fr-p-1v list-none w-fit flex items-center gap-2 cursor-pointer whitespace-nowrap"
                       style={{
                         color: `${action.isCritical ? fr.colors.decisions.text.default.error.default : ''}`,
                       }}
@@ -147,8 +148,9 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                       tabIndex={0}
                     >
                       {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
-                      {action.label}
+                      <span className='w-fit'>{action.label}</span>
                     </button>
+                    </li>
                   ))}
               </ul>
             </div>,

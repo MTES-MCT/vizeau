@@ -5,13 +5,14 @@ import { ParcelleJson } from '../../../types/models'
 
 export type ParcellesSectionProps = {
   parcelles: ParcelleJson[]
+  exploitationId: string
 }
 
-export default function ParcellesSection({ parcelles }: ParcellesSectionProps) {
+export default function ParcellesSection({ parcelles, exploitationId }: ParcellesSectionProps) {
   return (
     <SmallSection title="Parcelles" iconId="fr-icon-collage-line" priority="secondary" hasBorder>
       {parcelles?.length > 0 ? (
-        <ExploitationParcellesList parcelles={parcelles} />
+        <ExploitationParcellesList parcelles={parcelles}  exploitationId={exploitationId} />
       ) : (
         <EmptyPlaceholder
           label="Aucune parcelle associée pour le moment"

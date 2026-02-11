@@ -88,4 +88,17 @@ export class ParcelleService {
 
     return parcelles.map((parcelle) => parcelle.rpgId)
   }
+
+  async detachParcelleFromExploitation(rpgId: string, year: number) {
+    const parcelle = await this.queryParcelleByRpgId(rpgId, year).first()
+
+    if (!parcelle) {
+      throw new Error(`La parcelle ${rpgId} n'existe pas pour l'année ${year}.`)
+    }
+
+    parcelle.exploitationId = null
+    await parcelle.save()
+
+    return parcelle
+  }
 }

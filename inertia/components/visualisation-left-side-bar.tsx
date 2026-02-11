@@ -100,7 +100,10 @@ export default function VisualisationLeftSideBar({
               <VisualisationExploitationInfos exploitation={selectedExploitation} />
                 {/* Renvoie un tableau vide le temps de disposer de cette information */}
               <AnalysesSection parcelles={[]} />
-              <ParcellesSection parcelles={selectedExploitation.parcelles ?? []} />
+              <ParcellesSection
+                parcelles={selectedExploitation.parcelles ?? []}
+                exploitationId={selectedExploitation.id}
+              />
             </div>
           </div>
         </div>
