@@ -6,9 +6,21 @@ const meta = {
   component: Tabs,
   tags: ['autodocs'],
   argTypes: {
-    onTabChange: { action: 'tab changed' },
-    tabsList: { control: 'array' },
-    selectedTab: { control: 'text' },
+    onTabChange: {
+      action: 'tab changed',
+      description:
+        'Fonction appelée lors du changement d’onglet, reçoit la valeur de l’onglet sélectionné.',
+    },
+    tabsList: {
+      control: 'object',
+      description:
+        'Liste des onglets à afficher, chaque onglet doit avoir une étiquette (label) et une valeur (value).',
+    },
+    selectedTab: {
+      control: 'text',
+      description:
+        'Valeur de l’onglet actuellement sélectionné, doit correspondre à la valeur d’un des onglets de tabsList.',
+    },
   },
 }
 

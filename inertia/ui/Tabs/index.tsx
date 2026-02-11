@@ -8,7 +8,7 @@ export type TabsProps = {
 
 export default function Tabs({ tabsList, selectedTab, onTabChange }: TabsProps) {
   return (
-    <div className="flex w-fill">
+    <div role="tablist" className="flex w-full">
       {tabsList.map((tab) => (
         <Tab
           key={tab.value}

@@ -8,20 +8,24 @@ export type TabProps = {
 
 export default function Tab({ label, isActive, onTabChange }: TabProps) {
   return (
-    <div
+    <button
+      role="tab"
+      aria-selected={isActive}
       onClick={onTabChange}
-      className={`w-fit cursor-pointer fr-p-2v ${isActive ? 'border-b-2 border-blue-500 font-bold' : 'text-gray-500'}`}
+      className={`w-fit cursor-pointer fr-p-2v`}
       style={{
+        fontWeight: isActive ? 'bold' : 'normal',
         borderBottomColor: isActive
           ? fr.colors.decisions.border.active.blueFrance.default
           : 'transparent',
         borderBottomWidth: '4px',
+        borderBottomStyle: 'solid',
         color: isActive
           ? fr.colors.decisions.text.label.blueFrance.default
           : fr.colors.decisions.text.default.grey.default,
       }}
     >
       {label}
-    </div>
+    </button>
   )
 }
