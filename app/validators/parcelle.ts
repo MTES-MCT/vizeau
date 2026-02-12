@@ -13,3 +13,13 @@ export const assignParcellesToExploitationValidator = vine.compile(
     ),
   })
 )
+
+export const detachParcelleValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      exploitationId: vine.string().uuid(),
+      rpgId: vine.string().maxLength(10),
+    }),
+    year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
+  })
+)

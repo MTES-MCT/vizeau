@@ -55,7 +55,7 @@ router
       .as('exploitations.destroy')
 
     router
-      .post('exploitations/:exploitationId/parcelles/:rpgId/detach', [
+      .delete('exploitations/:exploitationId/parcelles/:rpgId/detach', [
         ExploitationsController,
         'detachParcelle',
       ])
