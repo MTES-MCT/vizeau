@@ -35,6 +35,11 @@ export default class LogEntryDocument extends BaseModel {
   static async beforeDeleteHook(logEntryDocument: LogEntryDocument) {
     // Delete the file from S3 before deleting the DB record
     const service = new LogEntryDocumentService()
-    await service.deleteDocument(logEntryDocument.s3Key)
+    try {
+      await service.deleteDocument(logEntryDocument.s3Key)
+    } catch (error) {
+      // Log the error but don't prevent the deletion of the DB record
+      console.error(`Failed to delete document from S3 with key ${logEntryDocument.s3Key}:`, error)
+    }
   }
 }

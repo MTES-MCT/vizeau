@@ -190,12 +190,11 @@ export default class LogEntriesController {
       context: { payload: request.all() },
     })
 
+    const { params, tags, documents, ...payload } =
+      await request.validateUsing(createLogEntryValidator)
+
     let hasLogEntryCreationSucceeded = false
-
     try {
-      const { params, tags, documents, ...payload } =
-        await request.validateUsing(createLogEntryValidator)
-
       // Log entry creation
       const logEntry = await this.logEntryService.createLogEntry(
         {
@@ -234,6 +233,7 @@ export default class LogEntriesController {
           session,
           "L'entrée de journal a été créée mais une erreur est survenue lors de l'import des documents."
         )
+        return response.redirect().toRoute('exploitations.get', [params.exploitationId])
       }
     }
 

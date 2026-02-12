@@ -21,7 +21,7 @@ test.group('LogEntryDocumentService', () => {
     const service = new LogEntryDocumentService()
     const key = await service.uploadDocument(contents, name, mime)
 
-    fakeDisk.assertExists(`${LogEntryDocumentService.prefix}${key}`)
+    fakeDisk.assertExists(LogEntryDocumentService.getS3Path(key))
 
     const url = await service.getDocumentUrl(key)
 
@@ -42,7 +42,7 @@ test.group('LogEntryDocumentService', () => {
 
     await service.deleteDocument(key)
 
-    fakeDisk.assertMissing(`${LogEntryDocumentService.prefix}${key}`)
+    fakeDisk.assertMissing(LogEntryDocumentService.getS3Path(key))
   })
 
   test('I can create a document record', async ({ cleanup, assert }) => {

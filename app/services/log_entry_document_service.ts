@@ -16,7 +16,7 @@ export class LogEntryDocumentService {
   static prefix = 'log-entries-documents/'
 
   /*
-   * Generate a unique key for the document using a timestamp and a sanitized filename
+   * Generate a unique key for the document.
    * The key will be used as the filename in the S3 bucket. Store it in the DB to retrieve the document later.
    */
   static getKey(filename: string | undefined): string {
@@ -95,14 +95,26 @@ export class LogEntryDocumentService {
   public async createDocument(logEntryId: string, document: MultipartFileLike) {
     const fileName = document.clientName || document.fileName || 'document'
     const key = LogEntryDocumentService.getKey(fileName)
+    const s3Path = LogEntryDocumentService.getS3Path(key)
     // Upload to S3
-    await document.moveToDisk(LogEntryDocumentService.getS3Path(key))
+    await document.moveToDisk(s3Path)
 
-    return await LogEntryDocument.create({
-      logEntryId: logEntryId,
-      name: fileName,
-      sizeInBytes: document.size,
-      s3Key: key,
-    })
+    try {
+      return await LogEntryDocument.create({
+        logEntryId: logEntryId,
+        name: fileName,
+        sizeInBytes: document.size,
+        s3Key: key,
+      })
+    } catch (error) {
+      // If DB creation fails, attempt to delete the uploaded file to avoid orphaned objects
+      try {
+        const disk = drive.use()
+        await disk.delete(s3Path)
+      } catch {
+        // Ignore cleanup errors to preserve the original DB error
+      }
+      throw error
+    }
   }
 }
