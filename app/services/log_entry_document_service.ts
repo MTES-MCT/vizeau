@@ -1,5 +1,13 @@
+import { cuid } from '@adonisjs/core/helpers'
 import drive from '@adonisjs/drive/services/main'
-import { randomUUID } from 'node:crypto'
+import LogEntryDocument from '#models/log_entry_document'
+
+interface MultipartFileLike {
+  clientName?: string
+  fileName?: string
+  size: number
+  moveToDisk: (path: string) => Promise<void>
+}
 
 const ALLOWED_CONTENT_TYPES = new Set(['application/pdf'])
 
@@ -13,7 +21,7 @@ export class LogEntryDocumentService {
    */
   static getKey(filename: string | undefined): string {
     if (!filename) {
-      return `${randomUUID()}-document`
+      return `${cuid()}-document`
     }
 
     const lastDotIndex = filename.lastIndexOf('.')
@@ -33,9 +41,14 @@ export class LogEntryDocumentService {
       .slice(0, 10)
 
     const finalName = safeName || 'document'
-    return safeExtension
-      ? `${randomUUID()}-${finalName}.${safeExtension}`
-      : `${randomUUID()}-${finalName}`
+    return safeExtension ? `${cuid()}-${finalName}.${safeExtension}` : `${cuid()}-${finalName}`
+  }
+
+  /*
+   * Get the full S3 path for a given key, by adding the prefix.
+   */
+  static getS3Path(key: string): string {
+    return `${LogEntryDocumentService.prefix}${key}`
   }
 
   /*
@@ -54,7 +67,7 @@ export class LogEntryDocumentService {
 
     const disk = drive.use()
     const key = LogEntryDocumentService.getKey(filename)
-    await disk.put(`${LogEntryDocumentService.prefix}${key}`, file, {
+    await disk.put(LogEntryDocumentService.getS3Path(key), file, {
       contentType,
     })
     return key
@@ -65,7 +78,7 @@ export class LogEntryDocumentService {
    */
   public async deleteDocument(fileKey: string): Promise<void> {
     const disk = drive.use()
-    await disk.delete(`${LogEntryDocumentService.prefix}${fileKey}`)
+    await disk.delete(LogEntryDocumentService.getS3Path(fileKey))
   }
 
   /*
@@ -73,6 +86,23 @@ export class LogEntryDocumentService {
    */
   public async getDocumentUrl(fileKey: string): Promise<string> {
     const disk = drive.use()
-    return disk.getSignedUrl(`${LogEntryDocumentService.prefix}${fileKey}`)
+    return disk.getSignedUrl(LogEntryDocumentService.getS3Path(fileKey))
+  }
+
+  /*
+   * Create a new LogEntryDocument record in the database with the given information.
+   */
+  public async createDocument(logEntryId: string, document: MultipartFileLike) {
+    const fileName = document.clientName || document.fileName || 'document'
+    const key = LogEntryDocumentService.getKey(fileName)
+    // Upload to S3
+    await document.moveToDisk(LogEntryDocumentService.getS3Path(key))
+
+    return await LogEntryDocument.create({
+      logEntryId: logEntryId,
+      name: fileName,
+      sizeInBytes: document.size,
+      s3Key: key,
+    })
   }
 }

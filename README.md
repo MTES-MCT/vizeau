@@ -92,8 +92,11 @@ Quelques notes sur les variables d’environnement :
 - `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
 - `PMTILES_URL` : URL de base de la source des tuiles vectorielles. Probablement un bucket S3.
 - `DRIVE_DISK` : Le disque de stockage à utiliser pour les fichiers téléchargés. En production, il doit être défini sur `spaces`.
-- `SPACES_*` : Paramètres de connexion à l’espace de stockage (hôte, port, clé d’accès, clé secrète, nom du bucket). **Changez ces valeurs en production**.
-- `SPACES_ENDPOINT` : URL de l’endpoint de l’espace de stockage, sans le nom du bucket. La valeur d'exemple est déjà configurée pour Scaleway.
+- `SPACES_KEY` : Le nom de votre clef d'accès à votre bucket S3.
+- `SPACES_SECRET` : La valeur de votre clef d'accès à votre bucket S3.
+- `SPACES_REGION` : La région de votre bucket S3. Pré-configuré pour l'hébergeur Scaleway à Paris.
+- `SPACES_BUCKET` : Le nom de votre bucket.
+- `SPACES_ENDPOINT` : L'URL de l’endpoint de l’espace de stockage, sans le nom du bucket. Pré-configuré pour l'hébergeur Scaleway.
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
 
