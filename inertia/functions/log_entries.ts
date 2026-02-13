@@ -1,10 +1,8 @@
 import { LogEntryJson } from '../../types/models'
-import { truncateStr } from '~/functions/string'
+
 import { AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'
 import { fr } from '@codegouvfr/react-dsfr'
-
-const MAX_TITLE_LENGTH = 90
 
 export const severityColorMap: Record<
   NonNullable<NonNullable<AdditionalInfosProps['alert']>['severity']>,
@@ -20,12 +18,12 @@ export const severityColorMap: Record<
   success: fr.colors.decisions.text.default.info.default,
 }
 
-export function getLogEntryTitle(logEntry: LogEntryJson, titleLength = MAX_TITLE_LENGTH): string {
+export function getLogEntryTitle(logEntry: LogEntryJson): string {
   if (logEntry.title) {
-    return truncateStr(logEntry.title, titleLength)
+    return logEntry.title
   }
   if (logEntry.notes) {
-    return truncateStr(logEntry.notes, titleLength)
+    return logEntry.notes
   }
   if (logEntry.date) {
     return new Date(logEntry.date).toLocaleDateString()

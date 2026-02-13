@@ -13,6 +13,7 @@ import DeleteAlert from '~/ui/DeleteAlert'
 import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
+import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
 
 export default function SingleTask({
@@ -37,30 +38,36 @@ export default function SingleTask({
         className="fr-p-2w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
       >
-        <div className="fr-container flex justify-between items-center">
-          <Breadcrumb
-            currentPageLabel={logEntryTitle}
-            homeLinkProps={{
-              href: '/accueil',
-            }}
-            segments={[
-              {
-                label: 'Exploitations agricoles',
-                linkProps: {
-                  href: '/exploitations',
+        <div className="fr-container flex justify-between items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <Breadcrumb
+              className="w-full fr-my-0"
+              currentPageLabel={
+                <TruncatedText maxStringLength={50} hideTooltip>
+                  {logEntryTitle}
+                </TruncatedText>
+              }
+              homeLinkProps={{
+                href: '/accueil',
+              }}
+              segments={[
+                {
+                  label: 'Exploitations agricoles',
+                  linkProps: {
+                    href: '/exploitations',
+                  },
                 },
-              },
-              {
-                label: exploitation.name,
-                linkProps: {
-                  href: `/exploitations/${exploitation.id}`,
+                {
+                  label: exploitation.name,
+                  linkProps: {
+                    href: `/exploitations/${exploitation.id}`,
+                  },
                 },
-              },
-            ]}
-            className={'fr-my-0'}
-          />
+              ]}
+            />
+          </div>
           {isCreator && (
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               <Button
                 iconId="fr-icon-edit-line"
                 priority={'secondary'}
@@ -111,7 +118,7 @@ export default function SingleTask({
               />
             </deleteEntryLogModal.Component>
           </aside>
-          <SectionCard title={logEntryTitle}>
+          <SectionCard title={logEntryTitle} hideLongTitleTooltip>
             <LogEntryNoteCard notes={logEntry.notes} />
           </SectionCard>
         </section>

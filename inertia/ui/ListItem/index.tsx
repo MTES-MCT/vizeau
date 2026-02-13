@@ -4,6 +4,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import MetasList, { MetasListProps } from '../MetasList'
 import MoreButton, { MoreButtonProps } from '../MoreButton'
 import TagsList, { TagsListProps } from '../TagsList'
+import TruncatedText from '../TruncatedText'
 import { ReactNode } from 'react'
 
 export type AdditionalInfosProps = {
@@ -130,7 +131,9 @@ export default function ListItem({
                         style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
                       ></span>
                     )}
-                    <div className="flex-1 fr-m-0 fr-text--md font-bold">{title}</div>
+                    <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                      {title}
+                    </TruncatedText>
                   </div>
                   {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
                 </div>
@@ -176,7 +179,18 @@ export default function ListItem({
 
           <div className="flex items-start">
             <div className="flex flex-1 flex-col">
-              <h6 className="flex fr-m-0 fr-text--md">{title}</h6>
+              <div className="flex items-center gap-1">
+                {iconId && (
+                  <span
+                    className={`${iconId} fr-icon--md`}
+                    aria-hidden="true"
+                    style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
+                  ></span>
+                )}
+                <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                  {title}
+                </TruncatedText>
+              </div>
               {subtitle && (
                 <span
                   className="fr-mb-0 fr-text--sm"
