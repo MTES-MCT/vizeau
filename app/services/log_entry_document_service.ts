@@ -1,6 +1,7 @@
 import { cuid } from '@adonisjs/core/helpers'
 import drive from '@adonisjs/drive/services/main'
 import LogEntryDocument from '#models/log_entry_document'
+import path from 'node:path'
 
 interface MultipartFileLike {
   clientName?: string
@@ -24,13 +25,12 @@ export class LogEntryDocumentService {
       return `${cuid()}-document`
     }
 
-    const lastDotIndex = filename.lastIndexOf('.')
+    const base = path.basename(filename)
+    const lastDotIndex = base.lastIndexOf('.')
     const extension = lastDotIndex > 0 ? filename.slice(lastDotIndex + 1) : ''
-    const basename = lastDotIndex > 0 ? filename.slice(0, lastDotIndex) : filename
+    const basename = lastDotIndex > 0 ? filename.slice(0, lastDotIndex) : base
 
     const safeName = basename
-      // Delete any path segments to prevent directory traversal
-      .replace(/\.\./g, '')
       .replace(/[^a-zA-Z0-9_-]/g, '_')
       // Limit the length of the filename to prevent excessively long keys
       .slice(0, 100)
