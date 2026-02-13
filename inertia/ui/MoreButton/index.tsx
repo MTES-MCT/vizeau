@@ -123,32 +123,34 @@ export default function MoreButton({ actions }: MoreButtonProps) {
                 {actions
                   .filter((action) => !action.isHidden)
                   .map((action, index) => (
-                    <button
-                      key={`label-${index}`}
-                      disabled={action.isDisabled}
-                      className="fr-p-1v list-none w-full flex items-center gap-2 cursor-pointer"
-                      style={{
-                        color: `${action.isCritical ? fr.colors.decisions.text.default.error.default : ''}`,
-                      }}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        action.onClick()
-                        setMenuOpen(false)
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
+                    <li key={`action-${index}`} className="w-fit list-none" role="none">
+                      <button
+                        key={`label-${index}`}
+                        disabled={action.isDisabled}
+                        className="fr-p-1v list-none w-fit flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                        style={{
+                          color: `${action.isCritical ? fr.colors.decisions.text.default.error.default : ''}`,
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation()
                           action.onClick()
                           setMenuOpen(false)
-                        }
-                      }}
-                      type="button"
-                      role="menuitem"
-                      tabIndex={0}
-                    >
-                      {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
-                      {action.label}
-                    </button>
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            action.onClick()
+                            setMenuOpen(false)
+                          }
+                        }}
+                        type="button"
+                        role="menuitem"
+                        tabIndex={0}
+                      >
+                        {action.iconId && <span className={`${action.iconId} fr-icon--sm`} />}
+                        <span className="w-fit">{action.label}</span>
+                      </button>
+                    </li>
                   ))}
               </ul>
             </div>,
