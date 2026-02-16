@@ -45,6 +45,7 @@ export default function VisualisationPage({
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
     undefined
   )
+  const [selectedExploitationTab, setSelectedExploitationTab] = useState('general')
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
   const millesime = queryString?.millesime as string
@@ -59,6 +60,13 @@ export default function VisualisationPage({
     () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
     [selectedExploitationId, filteredExploitations, millesime]
   )
+
+  // Calculate selected parcelle from query params
+  const selectedParcelle = useMemo(() => {
+    const parcelleIdFromQuery = queryString?.parcelleId as string | undefined
+    if (!parcelleIdFromQuery || !selectedExploitation?.parcelles) return undefined
+    return selectedExploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
+  }, [queryString?.parcelleId, selectedExploitation])
 
   const formParcelleIds = useMemo(
     () => data.parcelles.map((parcelle) => parcelle.rpgId),
@@ -165,6 +173,35 @@ export default function VisualisationPage({
     }
   }, [editMode, millesime, selectedExploitationId])
 
+  // Handle initial selection from query params (e.g., when coming from a parcelle link)
+  useEffect(() => {
+    const exploitationIdFromQuery = queryString?.exploitationId as string | undefined
+    const parcelleIdFromQuery = queryString?.parcelleId as string | undefined
+
+    if (exploitationIdFromQuery && filteredExploitations.length > 0) {
+      const exploitation = filteredExploitations.find((exp) => exp.id === exploitationIdFromQuery)
+
+      if (exploitation && selectedExploitationId !== exploitationIdFromQuery) {
+        setSelectedExploitationId(exploitationIdFromQuery)
+
+        // If a parcelleId is provided, switch to parcelles tab
+        if (parcelleIdFromQuery) {
+          setSelectedExploitationTab('parcelles')
+        }
+
+        // Wait a bit to ensure the map is ready before centering
+        setTimeout(() => {
+          mapRef.current?.centerOnExploitation(exploitation)
+        }, 500)
+      }
+    }
+  }, [
+    queryString?.exploitationId,
+    queryString?.parcelleId,
+    filteredExploitations,
+    selectedExploitationId,
+  ])
+
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
@@ -177,6 +214,9 @@ export default function VisualisationPage({
             queryString={queryString}
             selectedExploitation={selectedExploitation}
             setSelectedExploitationId={setSelectedExploitationId}
+            selectedParcelle={selectedParcelle}
+            selectedExploitationTab={selectedExploitationTab}
+            setSelectedExploitationTab={setSelectedExploitationTab}
             isMapLoading={isMapLoading}
             editMode={editMode}
             mapRef={mapRef}
