@@ -8,6 +8,7 @@ import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import Button from '@codegouvfr/react-dsfr/Button'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import ParcellesSection from './parcelle/parcelles-section'
 import ParcellesManager from './parcelles-manager'
 import Tabs from '~/ui/Tabs'
 import VisualisationExploitationGeneral from './visualisation-exploitation-general'
@@ -141,7 +142,7 @@ export default function VisualisationLeftSideBar({
               <Tabs
                 tabsList={[
                   { value: 'general', label: 'Général' },
-                  { value: 'parcelles', label: 'Parcelles (à venir)', isDisabled: true },
+                  { value: 'parcelles', label: 'Parcelles' },
                 ]}
                 selectedTab={selectedTab}
                 onTabChange={(value) => setSelectedTab(value)}
@@ -149,6 +150,12 @@ export default function VisualisationLeftSideBar({
 
               {selectedTab === 'general' && (
                 <VisualisationExploitationGeneral exploitation={selectedExploitation} />
+              )}
+              {selectedTab === 'parcelles' && (
+                <ParcellesSection
+                  parcelles={selectedExploitation.parcelles ?? []}
+                  exploitationId={selectedExploitation.id}
+                />
               )}
             </div>
           </div>
