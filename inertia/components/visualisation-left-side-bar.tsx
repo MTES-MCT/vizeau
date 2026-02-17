@@ -54,7 +54,6 @@ export default function VisualisationLeftSideBar({
           parcelle={selectedParcelle}
           exploitation={selectedExploitation}
           editMode={editMode}
-          setSelectedExploitationTab={setSelectedExploitationTab}
         />
       ) : (
         <ExploitationLeftSidebar

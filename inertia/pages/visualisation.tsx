@@ -46,7 +46,7 @@ export default function VisualisationPage({
     queryString?.exploitationId as string | undefined
   )
   const [selectedExploitationTab, setSelectedExploitationTab] = useState(
-    queryString?.parcelleId ? 'parcelles' : 'general'
+    (queryString?.tab as string) || 'general'
   )
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
@@ -219,11 +219,12 @@ export default function VisualisationPage({
       if (exploitation) {
         setSelectedExploitationId(exploitationIdFromQuery)
 
-        // Update selected tab if parcelle is in URL
+        // Update selected tab from URL parameters
         if (parcelleIdFromQuery) {
           setSelectedExploitationTab('parcelles')
         } else {
-          setSelectedExploitationTab('general')
+          const tabFromQuery = queryString?.tab as string | undefined
+          setSelectedExploitationTab(tabFromQuery || 'general')
         }
 
         // Center on exploitation when URL changes

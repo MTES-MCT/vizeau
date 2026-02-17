@@ -11,14 +11,9 @@ export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
   exploitation: any
   editMode: boolean
-  setSelectedExploitationTab: (tab: string) => void
 }
 
-export default function ParcelleLeftSidebar({
-  parcelle,
-  exploitation,
-  setSelectedExploitationTab,
-}: ParcelleLeftSidebarProps) {
+export default function ParcelleLeftSidebar({ parcelle, exploitation }: ParcelleLeftSidebarProps) {
   const cultureLabel = cultures.find((culture) => culture.code === parcelle.cultureCode)?.label
 
   return (
@@ -46,10 +41,9 @@ export default function ParcelleLeftSidebar({
               href: '#',
               onClick: () => {
                 router.visit(
-                  `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}`,
+                  `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}&tab=parcelles`,
                   {
                     preserveScroll: true,
-                    onSuccess: () => setSelectedExploitationTab('parcelles'),
                   }
                 )
               },
