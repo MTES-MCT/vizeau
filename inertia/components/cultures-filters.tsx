@@ -1,5 +1,5 @@
 import { values } from 'lodash-es'
-import { GROUPES_CULTURAUX, getContrastedPicto } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
 import Button from '@codegouvfr/react-dsfr/Button'
 
@@ -44,11 +44,6 @@ export default function CulturesFilters({
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: culture.color }}
-                        />
-                        <img
-                          src={getContrastedPicto(culture)}
-                          alt={culture.label}
-                          className="w-4 h-4 flex-shrink-0"
                         />
                         <span className="text-sm">{culture.label}</span>
                       </div>

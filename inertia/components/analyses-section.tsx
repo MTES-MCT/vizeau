@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { getContrastedPicto, getCulturesGroup } from '~/functions/cultures-group'
+import { getCulturesGroup } from '~/functions/cultures-group'
 import { fr } from '@codegouvfr/react-dsfr'
 import { orderBy } from 'lodash-es'
 
@@ -46,7 +46,6 @@ export default function AnalysesSection({ parcelles }: AnalysesSectionProps) {
                   <LabeledProgressBar
                     key={parcelle.id_parcel}
                     label={cultureGroup.label}
-                    src={getContrastedPicto(cultureGroup)}
                     progressBarValues={{
                       value: parcelle.surf_parc,
                       total: totalParcellesSurface,
