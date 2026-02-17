@@ -6,7 +6,7 @@ import { formatBytes } from '~/functions/size'
 
 export type FileItemProps = {
   name: string
-  href: string
+  href?: string
   size?: number | string
   format?: string
   deletable?: boolean

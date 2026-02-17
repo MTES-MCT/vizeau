@@ -3,12 +3,12 @@ import FileItem from './file-item'
 export type FileItemsListProps = {
   files: Array<{
     name: string
-    href: string
+    href?: string
     size?: number | string
     format?: string
     deletable?: boolean
   }>
-  onDelete?: (file: { name: string; href: string }, index: number) => void
+  onDelete?: (file: { name: string; href?: string }, index: number) => void
 }
 
 export default function FileItemsList({ files, onDelete }: FileItemsListProps) {
