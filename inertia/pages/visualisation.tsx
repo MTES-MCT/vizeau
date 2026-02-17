@@ -119,9 +119,27 @@ export default function VisualisationPage({
           }
           return { parcelles: updatedParcelles }
         })
+      } else {
+        // In view mode, find the exploitation that owns this parcelle and navigate to it
+        const owningExploitation = filteredExploitations.find((exp) =>
+          exp.parcelles?.some((p) => p.rpgId === newId)
+        )
+
+        if (owningExploitation) {
+          // Navigate to the exploitation with the parcelle selected
+          router.visit(
+            `/visualisation?exploitationId=${owningExploitation.id}&parcelleId=${newId}&millesime=${millesime}`,
+            {
+              preserveState: true,
+              preserveScroll: true,
+              only: ['queryString'],
+            }
+          )
+          setSelectedExploitationTab('parcelles')
+        }
       }
     },
-    [editMode, selectedExploitationId, setData]
+    [editMode, selectedExploitationId, setData, filteredExploitations, millesime]
   )
 
   const handleMarkerClick = useCallback(
