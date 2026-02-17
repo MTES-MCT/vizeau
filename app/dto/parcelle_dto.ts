@@ -10,6 +10,7 @@ export class ParcelleDto {
       rpgId: parcelle.rpgId,
       surface: parcelle.surface,
       cultureCode: parcelle.cultureCode,
+      centroid: parcelle.centroid,
     }
   }
 }

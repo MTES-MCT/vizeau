@@ -37,6 +37,20 @@ export default class Parcelle extends BaseModel {
   @column()
   declare cultureCode: string | null
 
+  /*
+    Stored as "POINT(lng,lat)" in database
+   */
+  @column({
+    prepare: (value: { x: number; y: number } | null | undefined) => {
+      if (value === null || value === undefined) {
+        return null
+      }
+
+      return `(${value.x},${value.y})`
+    },
+  })
+  declare centroid: { x: number; y: number } | null
+
   @hasOne(() => Culture, { localKey: 'culture_code', foreignKey: 'code' })
   declare culture: HasOne<typeof Culture>
 

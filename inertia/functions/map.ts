@@ -69,3 +69,19 @@ export function setParcellesUnavailability(
 
   trySetUnavailability()
 }
+
+export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
+  if (geometry.type === 'Polygon') {
+    const coords = geometry.coordinates[0]
+    const n = coords.length
+    let x = 0
+    let y = 0
+    coords.forEach(([lng, lat]) => {
+      x += lng
+      y += lat
+    })
+    x /= n
+    y /= n
+    return { x, y }
+  }
+}
