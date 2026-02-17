@@ -54,6 +54,7 @@ export default function VisualisationLeftSideBar({
           parcelle={selectedParcelle}
           exploitation={selectedExploitation}
           editMode={editMode}
+          mapRef={mapRef}
         />
       ) : (
         <ExploitationLeftSidebar

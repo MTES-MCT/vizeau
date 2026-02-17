@@ -50,6 +50,7 @@ const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
 export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
+  centerOnParcelle: (parcelle: ParcelleJson) => void
 }
 
 const VisualisationMap = forwardRef<
@@ -184,6 +185,17 @@ const VisualisationMap = forwardRef<
           map.flyTo({
             center: coords,
             zoom: 12,
+            essential: true,
+          })
+        }
+      },
+      centerOnParcelle: (parcelle: ParcelleJson) => {
+        const map = mapRef.current
+        if (map && parcelle.centroid) {
+          const coords: LngLatLike = [parcelle.centroid.x, parcelle.centroid.y]
+          map.flyTo({
+            center: coords,
+            zoom: 15,
             essential: true,
           })
         }
