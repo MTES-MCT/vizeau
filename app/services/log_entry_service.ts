@@ -1,6 +1,7 @@
 import LogEntry from '#models/log_entry'
 import { errors } from '@adonisjs/auth'
 import { ModelAttributes } from '@adonisjs/lucid/types/model'
+import LogEntryDocument from '#models/log_entry_document'
 
 export class LogEntryService {
   async createLogEntry(logData: Partial<ModelAttributes<LogEntry>>, tagsIds?: number[]) {
@@ -31,6 +32,17 @@ export class LogEntryService {
       })
       .orderBy('createdAt', 'desc')
       .limit(limit)
+  }
+
+  async findDocument(documentId: number, userId: string) {
+    return LogEntryDocument.query()
+      .where('id', documentId)
+      .andWhereHas('logEntry', (logEntryQuery) => {
+        logEntryQuery.whereHas('exploitation', (exploitationQuery) => {
+          exploitationQuery.where('userId', userId)
+        })
+      })
+      .first()
   }
 
   // We require the exploitationId to ensure the log entry belongs to the correct exploitation

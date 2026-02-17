@@ -22,6 +22,15 @@ export type LogEntryTagJson = {
   updatedAt: string
 }
 
+export type LogEntryDocumentJson = {
+  id: number
+  name: string
+  logEntryId: string
+  s3Key: string
+  sizeInBytes: number
+  href: string
+}
+
 export type LogEntryJson = {
   id: string
   title: string | null
@@ -33,6 +42,7 @@ export type LogEntryJson = {
   tags?: LogEntryTagJson[] | null
   date: string | null
   isCompleted: boolean
+  documents?: LogEntryDocumentJson[] | null
 }
 
 export type ParcelleJson = {
