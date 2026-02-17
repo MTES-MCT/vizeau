@@ -11,8 +11,7 @@ export const assignParcellesToExploitationValidator = vine.compile(
         cultureCode: vine.string().maxLength(3).optional(),
         centroid: vine
           .object({ x: vine.number().min(-180).max(180), y: vine.number().min(-90).max(90) })
-          .optional()
-          .nullable(),
+          .optional(),
       })
     ),
   })
