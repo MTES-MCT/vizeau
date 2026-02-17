@@ -48,7 +48,6 @@ export default function ParcelleLeftSidebar({
                 router.visit(
                   `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}`,
                   {
-                    preserveState: true,
                     preserveScroll: true,
                     onSuccess: () => setSelectedExploitationTab('parcelles'),
                   }

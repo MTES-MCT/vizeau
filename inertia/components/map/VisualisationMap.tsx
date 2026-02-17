@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { ExploitationJson } from '../../../types/models'
+import { ExploitationJson, ParcelleJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
@@ -57,6 +57,7 @@ const VisualisationMap = forwardRef<
   {
     exploitations: ExploitationJson[]
     selectedExploitation?: ExploitationJson
+    selectedParcelle?: ParcelleJson
     isMapLoading: boolean
     setIsMapLoading: (isMapLoading: boolean) => void
     onParcelleClick?: (parcelleProperties: { [name: string]: any }) => void
@@ -83,6 +84,7 @@ const VisualisationMap = forwardRef<
     {
       exploitations,
       selectedExploitation,
+      selectedParcelle,
       isMapLoading,
       setIsMapLoading,
       onParcelleClick,
@@ -688,7 +690,11 @@ const VisualisationMap = forwardRef<
           let parcelleIds: string[] = []
           if (editMode) {
             parcelleIds = formParcelleIds
+          } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
+            // Si une parcelle spécifique est sélectionnée et que son année correspond au millésime, ne highlighter que celle-ci
+            parcelleIds = [selectedParcelle.rpgId]
           } else if (selectedExploitation?.parcelles) {
+            // Sinon, highlighter toutes les parcelles de l'exploitation
             parcelleIds = selectedExploitation.parcelles
               .filter((parcelle) => parcelle.year.toString() === millesime)
               .map((parcelle) => parcelle.rpgId)
@@ -712,6 +718,8 @@ const VisualisationMap = forwardRef<
       let parcelleIds: string[] = []
       if (editMode) {
         parcelleIds = formParcelleIds
+      } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
+        parcelleIds = [selectedParcelle.rpgId]
       } else if (selectedExploitation?.parcelles) {
         parcelleIds = selectedExploitation.parcelles
           .filter((parcelle) => parcelle.year.toString() === millesime)
@@ -727,7 +735,7 @@ const VisualisationMap = forwardRef<
           setParcellesHighlight(mapRef.current, parcelleIds, false)
         }
       }
-    }, [editMode, formParcelleIds, selectedExploitation, style, millesime])
+    }, [editMode, formParcelleIds, selectedExploitation, selectedParcelle, style, millesime])
 
     // Manage unavailable parcelles highlighting
     useEffect(() => {

@@ -43,9 +43,11 @@ export default function VisualisationPage({
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
-    undefined
+    queryString?.exploitationId as string | undefined
   )
-  const [selectedExploitationTab, setSelectedExploitationTab] = useState('general')
+  const [selectedExploitationTab, setSelectedExploitationTab] = useState(
+    queryString?.parcelleId ? 'parcelles' : 'general'
+  )
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
   const millesime = queryString?.millesime as string
@@ -174,33 +176,48 @@ export default function VisualisationPage({
   }, [editMode, millesime, selectedExploitationId])
 
   // Handle initial selection from query params (e.g., when coming from a parcelle link)
+  // This effect only runs when the URL query params change, not when local state changes
+  const prevQueryExploitationIdRef = useRef<string | undefined>(undefined)
+  const prevQueryParcelleIdRef = useRef<string | undefined>(undefined)
+
   useEffect(() => {
     const exploitationIdFromQuery = queryString?.exploitationId as string | undefined
     const parcelleIdFromQuery = queryString?.parcelleId as string | undefined
 
+    // Only process if query params actually changed (not on every state update)
+    const queryExploitationChanged = prevQueryExploitationIdRef.current !== exploitationIdFromQuery
+    const queryParcelleChanged = prevQueryParcelleIdRef.current !== parcelleIdFromQuery
+
+    prevQueryExploitationIdRef.current = exploitationIdFromQuery
+    prevQueryParcelleIdRef.current = parcelleIdFromQuery
+
+    if (!queryExploitationChanged && !queryParcelleChanged) {
+      return
+    }
+
     if (exploitationIdFromQuery && filteredExploitations.length > 0) {
       const exploitation = filteredExploitations.find((exp) => exp.id === exploitationIdFromQuery)
 
-      if (exploitation && selectedExploitationId !== exploitationIdFromQuery) {
+      if (exploitation) {
         setSelectedExploitationId(exploitationIdFromQuery)
 
-        // If a parcelleId is provided, switch to parcelles tab
+        // Update selected tab if parcelle is in URL
         if (parcelleIdFromQuery) {
           setSelectedExploitationTab('parcelles')
+        } else {
+          setSelectedExploitationTab('general')
         }
 
-        // Wait a bit to ensure the map is ready before centering
+        // Center on exploitation when URL changes
         setTimeout(() => {
           mapRef.current?.centerOnExploitation(exploitation)
         }, 500)
       }
+    } else if (!exploitationIdFromQuery) {
+      // If no exploitation in URL, clear selection
+      setSelectedExploitationId(undefined)
     }
-  }, [
-    queryString?.exploitationId,
-    queryString?.parcelleId,
-    filteredExploitations,
-    selectedExploitationId,
-  ])
+  }, [queryString?.exploitationId, queryString?.parcelleId, filteredExploitations])
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>
@@ -277,6 +294,7 @@ export default function VisualisationPage({
           <VisualisationMap
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
+            selectedParcelle={selectedParcelle}
             isMapLoading={isMapLoading}
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}
