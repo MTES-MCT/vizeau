@@ -236,9 +236,18 @@ export default function VisualisationPage({
           setSelectedExploitationTab(tabFromQuery || 'general')
         }
 
-        // Center on exploitation when URL changes
+        // Center on exploitation or parcelle when URL changes
         setTimeout(() => {
-          mapRef.current?.centerOnExploitation(exploitation)
+          if (parcelleIdFromQuery && exploitation.parcelles) {
+            const parcelle = exploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
+            if (parcelle) {
+              mapRef.current?.centerOnParcelle(parcelle)
+            } else {
+              mapRef.current?.centerOnExploitation(exploitation)
+            }
+          } else {
+            mapRef.current?.centerOnExploitation(exploitation)
+          }
         }, 500)
       }
     } else if (!exploitationIdFromQuery) {
