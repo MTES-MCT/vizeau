@@ -27,7 +27,7 @@ export default function FileItem({
 
   return (
     <div
-      className="flex fr-gap-2w items-start fr-pb-1w"
+      className="flex fr-gap-2w items-start fr-px-1w fr-pb-1w"
       style={{
         borderBottom: `${isLast ? 'none' : `1px solid ${fr.colors.decisions.border.default.grey.default}`}`,
       }}
