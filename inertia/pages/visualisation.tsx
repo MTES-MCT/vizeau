@@ -226,8 +226,8 @@ export default function VisualisationPage({
                   },
                 }}
                 options={[
-                  { value: '2024', label: '2024' },
-                  { value: '2023', label: '2023' },
+                  { value: '2024', label: 'RPG 2024' },
+                  { value: '2023', label: 'RPG 2023' },
                 ]}
               />
             </div>
