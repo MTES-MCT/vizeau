@@ -9,6 +9,10 @@ export const assignParcellesToExploitationValidator = vine.compile(
         rpgId: vine.string().maxLength(10),
         surface: vine.number().min(0).optional(),
         cultureCode: vine.string().maxLength(3).optional(),
+        centroid: vine
+          .object({ x: vine.number().min(-180).max(180), y: vine.number().min(-90).max(90) })
+          .optional()
+          .nullable(),
       })
     ),
   })
