@@ -60,6 +60,26 @@ export default meta
 
 export const Défaut = {}
 
+export const SansLien = {
+  args: {
+    files: [
+      {
+        name: 'Fichier A',
+        size: 204800,
+        href: undefined,
+        format: 'pdf',
+        deletable: true,
+      },
+      {
+        name: 'Fichier B',
+        size: 512000,
+        href: undefined,
+        format: 'pdf',
+      },
+    ],
+  },
+}
+
 export const SansTaille = {
   args: {
     files: [
