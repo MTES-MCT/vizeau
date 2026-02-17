@@ -15,7 +15,8 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
-import FileItemsList from '~/ui/FileItemList'
+import { LogEntryDocumentList } from '~/components/log-entry-id/LogEntryDocumentList'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export default function SingleTask({
   logEntry,
@@ -24,6 +25,7 @@ export default function SingleTask({
   user,
   deleteEntryLogUrl,
   completeEntryLogUrl,
+  deleteDocumentUrl,
 }: InferPageProps<LogEntriesController, 'get'>) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
@@ -128,17 +130,16 @@ export default function SingleTask({
                 icon="fr-icon-attachment-line"
                 title="Documents"
               >
-                {logEntry.documents && logEntry.documents.length > 0 && (
-                  <div className="bg-white">
-                    <FileItemsList
-                      files={logEntry.documents.map((document) => ({
-                        name: document.name,
-                        href: document.href,
-                        size: document.sizeInBytes,
-                        format: 'PDF',
-                      }))}
-                    />
-                  </div>
+                {logEntry.documents && logEntry.documents.length > 0 ? (
+                  <LogEntryDocumentList
+                    documents={logEntry.documents}
+                    deleteDocumentUrl={deleteDocumentUrl}
+                  />
+                ) : (
+                  <EmptyPlaceholder
+                    illustrativeIcon="fr-icon-attachment-line"
+                    label="Aucun document associé à cette tâche."
+                  />
                 )}
               </SectionCard>
             </div>

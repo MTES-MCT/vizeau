@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import {
   completeLogEntryValidator,
   createLogEntryValidator,
+  destroyDocumentValidator,
   destroyLogEntryValidator,
   downloadDocumentValidator,
   updateLogEntryValidator,
@@ -124,6 +125,7 @@ export default class LogEntriesController {
         .params([exploitationId, params.logEntryId])
         .make('log_entries.destroy'),
       completeEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.complete'),
+      deleteDocumentUrl: router.makeUrl('log_entries.destroyDocument'),
     })
   }
 
@@ -184,6 +186,7 @@ export default class LogEntriesController {
         .params([params.exploitationId])
         .make('log_entries.destroyTagForExploitation'),
       editEntryLogUrl: router.builder().params([params.exploitationId]).make('log_entries.edit'),
+      deleteDocumentUrl: router.makeUrl('log_entries.destroyDocument'),
     })
   }
 
@@ -428,6 +431,33 @@ export default class LogEntriesController {
       createErrorFlashMessage(
         session,
         'Une erreur est survenue lors du téléchargement du document.'
+      )
+      return response.redirect().back()
+    }
+  }
+
+  async destroyDocument({ auth, request, response, logger, session }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    const { documentId } = await request.validateUsing(destroyDocumentValidator)
+
+    try {
+      const document = await this.logEntryService.findDocument(documentId, user.id)
+
+      if (!document) {
+        logger.error(`Document with ID ${documentId} not found for user ${user.id}`)
+        createErrorFlashMessage(session, 'Impossible de trouver le document.')
+        return response.redirect().back()
+      }
+      await document.delete()
+
+      createSuccessFlashMessage(session, 'Le document a été supprimé avec succès.')
+      return response.redirect().back()
+    } catch (error) {
+      logger.error(error, 'Error deleting document:')
+      createErrorFlashMessage(
+        session,
+        'Une erreur est survenue lors de la suppression du document.'
       )
       return response.redirect().back()
     }
