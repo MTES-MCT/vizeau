@@ -29,18 +29,25 @@ export function FlashMessage({
 export function FlashMessages({
   flashMessages,
 }: {
-  flashMessages: Record<FlashMessageType, FlashMessageValue>
+  flashMessages: Record<FlashMessageType, FlashMessageValue | null>
 }) {
   return (
     <>
-      {Object.entries(flashMessages).map(([type, fm], i) => (
-        <FlashMessage
-          type={type}
-          message={fm.message}
-          description={fm.description}
-          key={`fm-${i}`}
-        />
-      ))}
+      {Object.entries(flashMessages).map(([type, fm], i) => {
+        // Log an error if the flash message is null or undefined, but continue rendering the other messages
+        if (!fm) {
+          console.error(`Flash message of type "${type}" is null or undefined.`)
+          return null
+        }
+        return (
+          <FlashMessage
+            type={type}
+            message={fm?.message || ''}
+            description={fm?.description || ''}
+            key={`fm-${i}`}
+          />
+        )
+      })}
     </>
   )
 }
