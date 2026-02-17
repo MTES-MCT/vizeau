@@ -11,6 +11,8 @@ import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 import { ExploitationJson } from '../../types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
+import { MapGeoJSONFeature } from 'maplibre-gl'
+import { getCentroid } from '~/functions/map'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -21,7 +23,12 @@ const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
 }, 300)
 
 export type ParcelleFormData = {
-  parcelles: { rpgId: string; surface: number | null; cultureCode: string | null }[]
+  parcelles: {
+    rpgId: string
+    surface: number | null
+    cultureCode: string | null
+    centroid: { x: number; y: number } | undefined
+  }[]
 }
 
 export default function VisualisationPage({
@@ -86,9 +93,10 @@ export default function VisualisationPage({
   /*
    * Map events handlers. We need stable references for these callbacks to avoid detaching and reattaching event listeners on each render.
    */
-  const handleParcelleClick: (parcelleProperties: { [p: string]: any }) => void = useCallback(
-    (parcelleProperties) => {
-      const newId = parcelleProperties['id_parcel'] || parcelleProperties['ID_PARCEL']
+  const handleParcelleClick: (parcelleFeature: MapGeoJSONFeature) => void = useCallback(
+    (parcelleFeature) => {
+      const properties = parcelleFeature.properties || {}
+      const newId = properties['id_parcel'] || properties['ID_PARCEL']
 
       // In edit mode, we can select multiple parcelles to attach them to the exploitation
       if (editMode && selectedExploitationId) {
@@ -102,8 +110,9 @@ export default function VisualisationPage({
               ...previousData.parcelles,
               {
                 rpgId: newId,
-                surface: parcelleProperties['surf_parc'] || parcelleProperties['SURF_PARC'],
-                cultureCode: parcelleProperties['code_cultu'] || parcelleProperties['CODE_CULTU'],
+                surface: properties['surf_parc'] || properties['SURF_PARC'],
+                cultureCode: properties['code_cultu'] || properties['CODE_CULTU'],
+                centroid: getCentroid(parcelleFeature.geometry),
               },
             ]
           }

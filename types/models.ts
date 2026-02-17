@@ -42,6 +42,7 @@ export type ParcelleJson = {
   exploitationId: string | null
   surface: number | null
   cultureCode: string | null
+  centroid: { x: number; y: number } | null
 }
 
 export type ExploitationJson = {

@@ -22,6 +22,7 @@ export class ParcelleService {
       surface?: number | undefined
       cultureCode?: string | undefined
       rpgId: string
+      centroid?: { x: number; y: number } | undefined
     }[]
   ) {
     // Use a transaction to ensure data integrity between dissociation and association
@@ -49,6 +50,7 @@ export class ParcelleService {
                 rpgId: parcelle.rpgId,
                 surface: parcelle.surface,
                 cultureCode: parcelle.cultureCode,
+                centroid: parcelle.centroid,
               },
               trx
             )
