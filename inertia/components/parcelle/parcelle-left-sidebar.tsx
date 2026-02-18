@@ -13,7 +13,6 @@ import Button from '@codegouvfr/react-dsfr/Button'
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
   exploitation: any
-  editMode: boolean
   mapRef: RefObject<VisualisationMapRef>
 }
 
