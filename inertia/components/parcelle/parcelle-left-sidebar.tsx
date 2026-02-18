@@ -9,6 +9,7 @@ import LabelInfo from '~/ui/LabelInfo'
 import cultures from '../../../database/data/cultures.json'
 import CustomTag from '~/ui/CustomTag'
 import Button from '@codegouvfr/react-dsfr/Button'
+import Alert from '@codegouvfr/react-dsfr/Alert'
 
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
@@ -72,7 +73,7 @@ export default function ParcelleLeftSidebar({
         {parcelle.rpgId && <h4 className="fr-h3">{`Parcelle RPG ${parcelle.rpgId}`}</h4>}
 
         <div
-          className="fr-mb-3v fr-pb-3v"
+          className="flex flex-col gap-3 fr-mb-3v fr-pb-3v"
           style={{
             borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
           }}
@@ -84,9 +85,18 @@ export default function ParcelleLeftSidebar({
             className="flex justify-center"
             onClick={() => mapRef.current?.centerOnParcelle(parcelle)}
             style={{ whiteSpace: 'nowrap', width: '100%' }}
+            disabled={!parcelle.centroid}
           >
             Centrer sur la parcelle
           </Button>
+
+          {!parcelle.centroid && (
+            <Alert
+              small
+              severity="info"
+              description="La parcelle n'a pas de coordonnées définies. Impossible de centrer la carte sur cette parcelle."
+            />
+          )}
         </div>
 
         <SmallSection
