@@ -61,10 +61,13 @@ export default function MapLayerFilters({
         options={[
           {
             label: (
-              <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
-                AAC
-                <Tooltip kind="hover" title="Aire d'alimentation de captage" />
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full flex-shrink-0 bg-[#a6f2fa]" />
+                <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
+                  AAC
+                  <Tooltip kind="hover" title="Aire d'alimentation de captage" />
+                </span>
+              </div>
             ),
             nativeInputProps: {
               name: 'aac',
@@ -81,9 +84,12 @@ export default function MapLayerFilters({
         options={[
           {
             label: (
-              <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
-                PPE <Tooltip kind="hover" title="Périmètre de protection éloignée" />
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full flex-shrink-0 bg-blue-500" />
+                <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
+                  PPE <Tooltip kind="hover" title="Périmètre de protection éloignée" />
+                </span>
+              </div>
             ),
             nativeInputProps: {
               name: 'ppe',
@@ -101,9 +107,12 @@ export default function MapLayerFilters({
         options={[
           {
             label: (
-              <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
-                PPR <Tooltip kind="hover" title="Périmètre de protection rapprochée" />
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-500" />
+                <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
+                  PPR <Tooltip kind="hover" title="Périmètre de protection rapprochée" />
+                </span>
+              </div>
             ),
             nativeInputProps: {
               name: 'ppr',
