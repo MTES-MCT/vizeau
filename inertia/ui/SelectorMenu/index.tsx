@@ -11,6 +11,7 @@ const MENU_PLACEHOLDER = 'Aucune option disponible'
 export type SelectorMenuProps<T extends string | number> = {
   options?: OptionType<T>[]
   placeholder?: string
+  isMenuFullWidth?: boolean
   additionnalActions?: React.ReactNode
   onOptionChange: (updatedOption: OptionType<T>) => void
 }
@@ -64,6 +65,7 @@ function OptionGroup<T extends string | number>({
 export default function SelectorMenu<T extends string | number>({
   placeholder,
   options,
+  isMenuFullWidth = false,
   onOptionChange,
   additionnalActions,
 }: SelectorMenuProps<T>) {
@@ -92,7 +94,7 @@ export default function SelectorMenu<T extends string | number>({
         zIndex: MENU_Z_INDEX,
         background: fr.colors.decisions.background.default.grey.default,
         maxHeight: MENU_MAX_HEIGHT,
-        width: 'fit-content',
+        width: isMenuFullWidth ? '100%' : 'fit-content',
         overflowY: 'auto',
         overflowX: 'hidden',
       }}

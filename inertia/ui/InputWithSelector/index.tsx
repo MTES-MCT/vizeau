@@ -95,6 +95,7 @@ export default function InputWithSelector<T extends string | number>({
           onOptionChange={onOptionChange}
           placeholder={emptyMenuPlaceholder}
           additionnalActions={additionnalActions}
+          isMenuFullWidth
         />
       )}
     </div>
