@@ -80,7 +80,6 @@ export default function InputWithSelector<T extends string | number>({
         iconId={
           typeof icon === 'string' ? (icon as Parameters<typeof Input>[0]['iconId']) : undefined
         }
-        aria-multiselectable="true"
         nativeInputProps={{
           'value': inputValue,
           'onChange': handleInputValueChange,
@@ -88,6 +87,7 @@ export default function InputWithSelector<T extends string | number>({
           'onClick': openDropdown,
           'aria-expanded': dropdownOpen,
           'aria-haspopup': 'listbox',
+          'aria-multiselectable': 'true'
         }}
         {...props}
       />

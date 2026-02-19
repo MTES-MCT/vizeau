@@ -28,7 +28,9 @@ function GroupHeader({ groupName }: GroupHeaderProps) {
         background: fr.colors.decisions.background.actionHigh.blueFrance.default,
         color: fr.colors.decisions.background.default.grey.default,
       }}
-      aria-label={groupName}
+      id={`group-${groupName}`}
+      role="heading"
+      aria-level={2}
     >
       {groupName}
     </div>
