@@ -8,7 +8,6 @@ export class LogEntryDocumentDto {
       id: document.id,
       name: document.name,
       logEntryId: document.logEntryId,
-      s3Key: document.s3Key,
       sizeInBytes: document.sizeInBytes,
       href: router.builder().params([document.id]).make('log_entries.downloadDocument'),
     }

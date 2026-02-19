@@ -184,7 +184,6 @@ export default class LogEntriesController {
         .params([params.exploitationId])
         .make('log_entries.destroyTagForExploitation'),
       editEntryLogUrl: router.builder().params([params.exploitationId]).make('log_entries.edit'),
-      deleteDocumentUrl: router.builder(),
     })
   }
 
@@ -256,8 +255,11 @@ export default class LogEntriesController {
     const { id, params, tags, documents, ...payload } =
       await request.validateUsing(updateLogEntryValidator)
 
+    let hasLogEntryUpdateSucceeded = false
     try {
       await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, payload, tags)
+
+      hasLogEntryUpdateSucceeded = true
 
       this.eventLogger.logEvent({
         userId: user.id,
@@ -272,14 +274,23 @@ export default class LogEntriesController {
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error(error, 'Error updating log entry:')
-      if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
-        createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
+      if (!hasLogEntryUpdateSucceeded) {
+        logger.error(error, 'Error updating log entry:')
+        if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
+          createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
+        } else {
+          createErrorFlashMessage(
+            session,
+            "Une erreur est survenue lors de la mise à jour de l'entrée de journal."
+          )
+        }
       } else {
+        logger.error(error, 'Error uploading documents for log entry:')
         createErrorFlashMessage(
           session,
-          "Une erreur est survenue lors de la mise à jour de l'entrée de journal."
+          "L'entrée de journal a été mise à jour mais une erreur est survenue lors de l'import des documents."
         )
+        return response.redirect().toRoute('exploitations.get', [params.exploitationId])
       }
     }
 
