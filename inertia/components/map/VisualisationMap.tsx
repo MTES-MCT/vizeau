@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
-import maplibre, { type LngLatLike } from 'maplibre-gl'
+import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { ExploitationJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
@@ -59,7 +59,7 @@ const VisualisationMap = forwardRef<
     selectedExploitation?: ExploitationJson
     isMapLoading: boolean
     setIsMapLoading: (isMapLoading: boolean) => void
-    onParcelleClick?: (parcelleProperties: { [name: string]: any }) => void
+    onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
     onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
     onParcelleMouseLeave?: () => void
     onMarkerClick?: (exploitation: ExploitationJson) => void
@@ -276,7 +276,7 @@ const VisualisationMap = forwardRef<
         const id = feature?.properties?.['id_parcel'] || feature?.properties?.['ID_PARCEL']
 
         if (feature?.properties && !unavailableParcelleIds.includes(id)) {
-          onParcelleClick(feature.properties)
+          onParcelleClick(feature)
         }
       },
       [onParcelleClick, unavailableParcelleIds]

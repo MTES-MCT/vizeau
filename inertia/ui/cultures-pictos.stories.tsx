@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { values } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import { getContrastedPicto, GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
 import Input from '@codegouvfr/react-dsfr/Input'
 export default {
@@ -56,13 +56,7 @@ export const CulturesPictos = () => {
               <div
                 className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
                 style={{ backgroundColor: culture.color }}
-              >
-                <img
-                  src={getContrastedPicto(culture, culture.color)}
-                  alt={culture.label}
-                  className="h-full w-full object-contain"
-                />
-              </div>
+              ></div>
             </div>
             <div className="text-start fr-mb-2">
               <div>

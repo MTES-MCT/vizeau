@@ -22,6 +22,7 @@ export class ParcelleService {
       surface?: number | undefined
       cultureCode?: string | undefined
       rpgId: string
+      centroid?: { x: number; y: number } | undefined
     }[]
   ) {
     // Use a transaction to ensure data integrity between dissociation and association
@@ -49,6 +50,7 @@ export class ParcelleService {
                 rpgId: parcelle.rpgId,
                 surface: parcelle.surface,
                 cultureCode: parcelle.cultureCode,
+                centroid: parcelle.centroid,
               },
               trx
             )
@@ -87,5 +89,22 @@ export class ParcelleService {
       .select('rpgId')
 
     return parcelles.map((parcelle) => parcelle.rpgId)
+  }
+
+  async detachParcelleFromExploitation(exploitationId: string, rpgId: string, year: number) {
+    const parcelle = await this.queryParcelleByRpgId(rpgId, year).first()
+
+    if (!parcelle) {
+      throw new Error(`La parcelle ${rpgId} n'existe pas pour l'année ${year}.`)
+    }
+
+    if (parcelle.exploitationId !== exploitationId) {
+      throw new Error(`La parcelle ${rpgId} n'est pas associée à l'exploitation demandée.`)
+    }
+
+    parcelle.exploitationId = null
+    await parcelle.save()
+
+    return parcelle
   }
 }
