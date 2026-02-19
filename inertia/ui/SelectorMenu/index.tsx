@@ -12,7 +12,7 @@ export type SelectorMenuProps<T extends string | number> = {
   options?: OptionType<T>[]
   placeholder?: string
   isMenuFullWidth?: boolean
-  additionnalActions?: React.ReactNode
+  additionalActions?: React.ReactNode
   onOptionChange: (updatedOption: OptionType<T>) => void
 }
 
@@ -28,7 +28,6 @@ function GroupHeader({ groupName }: GroupHeaderProps) {
         background: fr.colors.decisions.background.actionHigh.blueFrance.default,
         color: fr.colors.decisions.background.default.grey.default,
       }}
-      role="group"
       aria-label={groupName}
     >
       {groupName}
@@ -48,7 +47,7 @@ function OptionGroup<T extends string | number>({
   onToggle,
 }: OptionGroupProps<T>) {
   return (
-    <div key={groupName}>
+    <div key={groupName} role="group" aria-labelledby={`group-${groupName}`}>
       {groupName && <GroupHeader groupName={groupName} />}
       {options.map((option, index) => (
         <DropdownItem
@@ -67,7 +66,7 @@ export default function SelectorMenu<T extends string | number>({
   options,
   isMenuFullWidth = false,
   onOptionChange,
-  additionnalActions,
+  additionalActions,
 }: SelectorMenuProps<T>) {
   const handleToggle = (value: T) => {
     const optionToUpdate = options?.find((opt) => opt.value === value)
@@ -80,7 +79,7 @@ export default function SelectorMenu<T extends string | number>({
     onOptionChange(updatedOption)
   }
 
-  const optionsByGroup = groupBy(options, (opt) => opt.group || '')
+  const optionsByGroup = groupBy(options ?? [], (opt) => opt.group || '')
   const groupNames = Object.keys(optionsByGroup)
   const hasOptions = options && options.length > 0
 
@@ -98,7 +97,7 @@ export default function SelectorMenu<T extends string | number>({
         overflowY: 'auto',
         overflowX: 'hidden',
       }}
-      role="listbox"
+      role={hasOptions ? 'listbox' : 'presentation'}
     >
       {hasOptions ? (
         groupNames.map((groupName) => (
@@ -118,7 +117,7 @@ export default function SelectorMenu<T extends string | number>({
         </div>
       )}
 
-      {additionnalActions && <div className="w-full">{additionnalActions}</div>}
+      {additionalActions && <div className="w-full">{additionalActions}</div>}
     </div>
   )
 }

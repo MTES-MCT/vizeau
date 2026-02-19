@@ -20,8 +20,8 @@ export type InputWithSelectorProps<T> = {
   label: string
   hint?: string
   emptyMenuPlaceholder?: string
-  additionnalActions?: React.ReactNode
-  icon?: string | any
+  additionalActions?: React.ReactNode
+  icon?: string | React.ReactNode
 }
 
 export default function InputWithSelector<T extends string | number>({
@@ -32,7 +32,7 @@ export default function InputWithSelector<T extends string | number>({
   handleInputChange,
   onOptionChange,
   emptyMenuPlaceholder,
-  additionnalActions,
+  additionalActions,
   ...props
 }: InputWithSelectorProps<T>) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -77,7 +77,10 @@ export default function InputWithSelector<T extends string | number>({
       <Input
         className="fr-m-0"
         hintText={hint}
-        iconId={icon}
+        iconId={
+          typeof icon === 'string' ? (icon as Parameters<typeof Input>[0]['iconId']) : undefined
+        }
+        aria-multiselectable="true"
         nativeInputProps={{
           'value': inputValue,
           'onChange': handleInputValueChange,
@@ -94,7 +97,7 @@ export default function InputWithSelector<T extends string | number>({
           options={options}
           onOptionChange={onOptionChange}
           placeholder={emptyMenuPlaceholder}
-          additionnalActions={additionnalActions}
+          additionalActions={additionalActions}
           isMenuFullWidth
         />
       )}
