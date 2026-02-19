@@ -9,7 +9,6 @@ export default function VisualisationLeftSideBar({
   queryString,
   handleSearch,
   selectedExploitation,
-  setSelectedExploitationId,
   selectedParcelle,
   selectedExploitationTab,
   setSelectedExploitationTab,
@@ -30,7 +29,6 @@ export default function VisualisationLeftSideBar({
   queryString?: { recherche?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
-  setSelectedExploitationId: (exploitationId: string | undefined) => void
   selectedParcelle: ParcelleJson | undefined
   selectedExploitationTab: string
   setSelectedExploitationTab: (tab: string) => void
@@ -49,11 +47,10 @@ export default function VisualisationLeftSideBar({
 }) {
   return (
     <div>
-      {selectedParcelle ? (
+      {selectedParcelle && selectedExploitation ? (
         <ParcelleLeftSidebar
           parcelle={selectedParcelle}
           exploitation={selectedExploitation}
-          editMode={editMode}
           mapRef={mapRef}
         />
       ) : (
@@ -61,7 +58,6 @@ export default function VisualisationLeftSideBar({
           exploitations={exploitations}
           queryString={queryString}
           selectedExploitation={selectedExploitation}
-          setSelectedExploitationId={setSelectedExploitationId}
           isMapLoading={isMapLoading}
           handleSearch={handleSearch}
           selectedExploitationTab={selectedExploitationTab}

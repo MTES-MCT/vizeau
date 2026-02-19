@@ -2,7 +2,7 @@ import { RefObject } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { router } from '@inertiajs/react'
-import { ParcelleJson } from '../../../types/models'
+import { ExploitationJson, ParcelleJson } from '../../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
@@ -13,7 +13,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
-  exploitation: any
+  exploitation: ExploitationJson
   mapRef: RefObject<VisualisationMapRef>
 }
 
@@ -34,7 +34,7 @@ export default function ParcelleLeftSidebar({
             linkProps: {
               href: '#',
               onClick: () => {
-                router.visit('/visualisation')
+                router.visit(`/visualisation?millesime=${parcelle.year}`)
               },
               style: {
                 cursor: 'pointer',

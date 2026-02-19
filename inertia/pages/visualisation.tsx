@@ -67,7 +67,7 @@ export default function VisualisationPage({
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
     () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
-    [selectedExploitationId, filteredExploitations, millesime]
+    [selectedExploitationId, filteredExploitations]
   )
 
   // Calculate selected parcelle from query params
@@ -237,24 +237,27 @@ export default function VisualisationPage({
         }
 
         // Center on exploitation or parcelle when URL changes
-        setTimeout(() => {
-          if (parcelleIdFromQuery && exploitation.parcelles) {
-            const parcelle = exploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
-            if (parcelle) {
-              mapRef.current?.centerOnParcelle(parcelle)
-            } else {
-              mapRef.current?.centerOnExploitation(exploitation)
-            }
+        if (parcelleIdFromQuery && exploitation.parcelles) {
+          const parcelle = exploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
+          if (parcelle) {
+            mapRef.current?.centerOnParcelle(parcelle)
           } else {
             mapRef.current?.centerOnExploitation(exploitation)
           }
-        }, 500)
+        } else {
+          mapRef.current?.centerOnExploitation(exploitation)
+        }
       }
     } else if (!exploitationIdFromQuery) {
       // If no exploitation in URL, clear selection
       setSelectedExploitationId(undefined)
     }
-  }, [queryString?.exploitationId, queryString?.parcelleId, filteredExploitations])
+  }, [
+    queryString?.exploitationId,
+    queryString?.parcelleId,
+    queryString?.tab,
+    filteredExploitations,
+  ])
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>
@@ -267,7 +270,6 @@ export default function VisualisationPage({
             handleSearch={handleSearch}
             queryString={queryString}
             selectedExploitation={selectedExploitation}
-            setSelectedExploitationId={setSelectedExploitationId}
             selectedParcelle={selectedParcelle}
             selectedExploitationTab={selectedExploitationTab}
             setSelectedExploitationTab={setSelectedExploitationTab}
@@ -315,7 +317,7 @@ export default function VisualisationPage({
                     setIsMapLoading(true)
                     router.reload({
                       only: ['queryString', 'filteredExploitations'],
-                      data: { millesime: e.target.value },
+                      data: { exploitationId: selectedExploitation?.id, millesime: e.target.value },
                     })
                   },
                 }}
