@@ -58,3 +58,9 @@ export const downloadDocumentValidator = vine.compile(
     }),
   })
 )
+
+export const destroyDocumentValidator = vine.compile(
+  vine.object({
+    documentId: vine.number().positive().withoutDecimals(),
+  })
+)

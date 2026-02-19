@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import {
   completeLogEntryValidator,
   createLogEntryValidator,
+  destroyDocumentValidator,
   destroyLogEntryValidator,
   downloadDocumentValidator,
   updateLogEntryValidator,
@@ -438,7 +439,7 @@ export default class LogEntriesController {
   async destroyDocument({ auth, request, response, logger, session }: HttpContext) {
     const user = auth.getUserOrFail()
 
-    const { documentId } = request.body()
+    const { documentId } = await request.validateUsing(destroyDocumentValidator)
 
     try {
       const document = await this.logEntryService.findDocument(documentId, user.id)
@@ -448,9 +449,6 @@ export default class LogEntriesController {
         createErrorFlashMessage(session, 'Impossible de trouver le document.')
         return response.redirect().back()
       }
-
-      await this.logEntryDocumentService.deleteDocument(documentId)
-
       await document.delete()
 
       createSuccessFlashMessage(session, 'Le document a été supprimé avec succès.')
