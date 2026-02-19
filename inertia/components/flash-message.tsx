@@ -36,7 +36,6 @@ export function FlashMessages({
       {Object.entries(flashMessages).map(([type, fm], i) => {
         // Log an error if the flash message is null or undefined, but continue rendering the other messages
         if (!fm) {
-          console.error(`Flash message of type "${type}" is null or undefined.`)
           return null
         }
         return (

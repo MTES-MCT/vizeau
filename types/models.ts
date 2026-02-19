@@ -26,7 +26,6 @@ export type LogEntryDocumentJson = {
   id: number
   name: string
   logEntryId: string
-  s3Key: string
   sizeInBytes: number
   href: string
 }
