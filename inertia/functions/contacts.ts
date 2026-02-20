@@ -2,7 +2,7 @@ import { ContactJson } from '../../types/models.js'
 
 export function displayContactName(contact?: ContactJson) {
   if (!contact) {
-    return 'N/A'
+    return 'Non renseigné'
   }
 
   if (contact.firstName && contact.lastName) {
@@ -15,5 +15,13 @@ export function displayContactName(contact?: ContactJson) {
     return contact.lastName
   }
 
-  return 'N/A'
+  return 'Non renseigné'
+}
+
+export function getMainContact(contacts?: ContactJson[]) {
+  if (contacts && contacts.length > 0) {
+    return contacts[0]
+  }
+
+  return undefined
 }
