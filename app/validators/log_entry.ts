@@ -50,3 +50,11 @@ export const destroyLogEntryValidator = vine.compile(
     }),
   })
 )
+
+export const downloadDocumentValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      documentId: vine.number().positive().withoutDecimals(),
+    }),
+  })
+)

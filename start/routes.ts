@@ -101,5 +101,9 @@ router
         'destroyTagForExploitation',
       ])
       .as('log_entries.destroyTagForExploitation')
+
+    router
+      .get('journal-document/:documentId', [LogEntriesController, 'downloadDocument'])
+      .as('log_entries.downloadDocument')
   })
   .use(middleware.auth())
