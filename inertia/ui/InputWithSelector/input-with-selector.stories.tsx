@@ -39,9 +39,19 @@ const meta = {
         defaultValue: { summary: "''" },
       },
     },
-    hintText: {
+    hint: {
       control: 'text',
       description: "Texte d'aide sous le champ.\n\nModèle obligatoire :\nstring",
+      type: { name: 'string', required: false },
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: "''" },
+      },
+    },
+    icon: {
+      control: 'text',
+      description:
+        "Icône à afficher dans l'input (optionnel).\n\nModèle :\nstring (ex: 'fr-icon-search-line')",
       type: { name: 'string', required: false },
       table: {
         type: { summary: 'string' },
@@ -64,6 +74,16 @@ const meta = {
       type: { name: 'function', required: true },
       table: {
         type: { summary: '(option: OptionType) => void' },
+      },
+    },
+    emptyMenuPlaceholder: {
+      control: 'text',
+      description:
+        "Texte affiché dans le menu déroulant lorsqu'il n'y a aucune option à afficher.\n\nModèle facultatif :\nstring",
+      type: { name: 'string', required: false },
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: "''" },
       },
     },
   },
@@ -173,7 +193,7 @@ export const Défaut = () => {
         handleInputChange={setInputValue}
         onOptionChange={handleOptionChange}
         label="Sélectionnez des options"
-        hintText="Cliquez pour ouvrir et cocher les options"
+        hint="Cliquez pour ouvrir et cocher les options"
       />
 
       <div
@@ -222,7 +242,70 @@ export const SansOptions = () => {
       handleInputChange={setInputValue}
       onOptionChange={() => {}}
       label="Sélectionnez des options"
-      hintText="Aucune option disponible"
+    />
+  )
+}
+
+export const SansTexteDAide = () => {
+  const [inputValue, setInputValue] = useState('')
+
+  const [options, setOptions] = useState<OptionType<string>[]>([
+    {
+      value: 'option1',
+      label: 'Option 1',
+      isSelected: false,
+    },
+    {
+      value: 'option2',
+      label: 'Option 2',
+      isSelected: false,
+    },
+  ])
+
+  return (
+    <InputWithSelector
+      inputValue={inputValue}
+      options={options}
+      handleInputChange={setInputValue}
+      onOptionChange={(updatedOption) => {
+        setOptions((prev) =>
+          prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
+        )
+      }}
+      label="Sélectionnez des options"
+    />
+  )
+}
+
+export const AvecIcone = () => {
+  const [inputValue, setInputValue] = useState('')
+
+  const [options, setOptions] = useState<OptionType<string>[]>([
+    {
+      value: 'option1',
+      label: 'Option 1',
+      isSelected: false,
+    },
+    {
+      value: 'option2',
+      label: 'Option 2',
+      isSelected: false,
+    },
+  ])
+
+  return (
+    <InputWithSelector
+      inputValue={inputValue}
+      options={options}
+      icon="fr-icon-search-line"
+      handleInputChange={setInputValue}
+      onOptionChange={(updatedOption) => {
+        setOptions((prev) =>
+          prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
+        )
+      }}
+      label="Sélectionnez des options"
+      hint="Cliquez pour ouvrir et cocher les options"
     />
   )
 }
