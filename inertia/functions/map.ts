@@ -5,34 +5,30 @@ export function setParcellesHighlight(
   parcelleIds: string[],
   highlighted: boolean = true
 ) {
-  const tryHighlight = (retries = 0) => {
-    requestAnimationFrame(() => {
-      if (
-        !map ||
-        !map.isStyleLoaded() ||
-        !map.getSource('parcelles') ||
-        !map.getLayer('parcelles-fill') ||
-        !map.getLayer('parcelles-outline')
-      ) {
-        if (retries < 50) {
-          // Retry up to 50 times (about 1 second)
-          setTimeout(() => tryHighlight(retries + 1), 20)
-        } else {
-          console.warn('Cannot highlight parcelles: map not ready after retries.')
-        }
-        return
-      }
+  if (!map) return
 
-      for (const id of parcelleIds) {
-        map.setFeatureState(
-          { source: 'parcelles', sourceLayer: 'parcelles', id: id },
-          { highlighted }
-        )
-      }
-    })
+  const highlight = () => {
+    if (
+      !map.getSource('parcelles') ||
+      !map.getLayer('parcelles-fill') ||
+      !map.getLayer('parcelles-outline')
+    ) {
+      console.warn('Cannot highlight parcelles: map source/layers not ready.')
+      return
+    }
+    for (const id of parcelleIds) {
+      map.setFeatureState(
+        { source: 'parcelles', sourceLayer: 'parcelles', id: id },
+        { highlighted }
+      )
+    }
   }
 
-  tryHighlight()
+  if (map.isStyleLoaded()) {
+    highlight()
+  } else {
+    map.once('load', highlight)
+  }
 }
 
 export function setParcellesUnavailability(
@@ -40,34 +36,30 @@ export function setParcellesUnavailability(
   parcelleIds: string[],
   unavailable: boolean = true
 ) {
-  const trySetUnavailability = (retries = 0) => {
-    requestAnimationFrame(() => {
-      if (
-        !map ||
-        !map.isStyleLoaded() ||
-        !map.getSource('parcelles') ||
-        !map.getLayer('parcelles-fill') ||
-        !map.getLayer('parcelles-outline')
-      ) {
-        if (retries < 50) {
-          // Retry up to 50 times (about 1 second)
-          setTimeout(() => trySetUnavailability(retries + 1), 20)
-        } else {
-          console.warn('Cannot set parcelles unavailable: map not ready after retries.')
-        }
-        return
-      }
+  if (!map) return
 
-      for (const id of parcelleIds) {
-        map.setFeatureState(
-          { source: 'parcelles', sourceLayer: 'parcelles', id: id },
-          { unavailable }
-        )
-      }
-    })
+  const setUnavailability = () => {
+    if (
+      !map.getSource('parcelles') ||
+      !map.getLayer('parcelles-fill') ||
+      !map.getLayer('parcelles-outline')
+    ) {
+      console.warn('Cannot set parcelles unavailable: map source/layers not ready.')
+      return
+    }
+    for (const id of parcelleIds) {
+      map.setFeatureState(
+        { source: 'parcelles', sourceLayer: 'parcelles', id: id },
+        { unavailable }
+      )
+    }
   }
 
-  trySetUnavailability()
+  if (map.isStyleLoaded()) {
+    setUnavailability()
+  } else {
+    map.once('load', setUnavailability)
+  }
 }
 
 export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
