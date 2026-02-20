@@ -14,6 +14,8 @@ import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import SectionCard from '~/ui/SectionCard'
+import { LogEntryDocumentList } from '~/components/log-entry-id/LogEntryDocumentList'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export default function SingleTask({
   logEntry,
@@ -22,6 +24,7 @@ export default function SingleTask({
   user,
   deleteEntryLogUrl,
   completeEntryLogUrl,
+  deleteDocumentUrl,
 }: InferPageProps<LogEntriesController, 'get'>) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
@@ -112,7 +115,27 @@ export default function SingleTask({
             </deleteEntryLogModal.Component>
           </aside>
           <SectionCard title={logEntryTitle}>
-            <LogEntryNoteCard notes={logEntry.notes} />
+            <div className="flex flex-col gap-10">
+              <LogEntryNoteCard notes={logEntry.notes} />
+              <SectionCard
+                size="small"
+                background="secondary"
+                icon="fr-icon-attachment-line"
+                title="Documents"
+              >
+                {logEntry.documents && logEntry.documents.length > 0 ? (
+                  <LogEntryDocumentList
+                    documents={logEntry.documents}
+                    deleteDocumentUrl={deleteDocumentUrl}
+                  />
+                ) : (
+                  <EmptyPlaceholder
+                    illustrativeIcon="fr-icon-attachment-line"
+                    label="Aucun document associé à cette tâche."
+                  />
+                )}
+              </SectionCard>
+            </div>
           </SectionCard>
         </section>
       </div>

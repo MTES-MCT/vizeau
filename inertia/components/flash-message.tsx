@@ -29,18 +29,23 @@ export function FlashMessage({
 export function FlashMessages({
   flashMessages,
 }: {
-  flashMessages: Record<FlashMessageType, FlashMessageValue>
+  flashMessages: Record<FlashMessageType, FlashMessageValue | null>
 }) {
   return (
     <>
-      {Object.entries(flashMessages).map(([type, fm], i) => (
-        <FlashMessage
-          type={type}
-          message={fm.message}
-          description={fm.description}
-          key={`fm-${i}`}
-        />
-      ))}
+      {Object.entries(flashMessages).map(([type, fm], i) => {
+        if (!fm) {
+          return null
+        }
+        return (
+          <FlashMessage
+            type={type}
+            message={fm?.message || ''}
+            description={fm?.description || ''}
+            key={`fm-${i}`}
+          />
+        )
+      })}
     </>
   )
 }
