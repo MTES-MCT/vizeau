@@ -107,20 +107,41 @@ export default function VisualisationLeftSideBar({
                   borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
                 }}
               >
-                <Button
-                  priority="secondary"
-                  size="small"
-                  iconId="fr-icon-crosshair-2-line"
-                  className="flex justify-center"
-                  onClick={() => {
-                    if (selectedExploitation) {
-                      mapRef.current?.centerOnExploitation(selectedExploitation)
-                    }
-                  }}
-                  style={{ whiteSpace: 'nowrap', width: '100%' }}
-                >
-                  Centrer sur l'exploitation
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    priority="secondary"
+                    size="small"
+                    iconId="fr-icon-crosshair-2-line"
+                    className="flex justify-center"
+                    disabled={!selectedExploitation?.location}
+                    onClick={() => {
+                      if (selectedExploitation) {
+                        mapRef.current?.centerOnExploitation(selectedExploitation)
+                      }
+                    }}
+                    style={{ whiteSpace: 'nowrap', width: '100%' }}
+                  >
+                    Centrer sur l'exploitation
+                  </Button>
+
+                  {!selectedExploitation?.location && (
+                    <Alert
+                      small
+                      severity="info"
+                      description={
+                        <div>
+                          L'exploitation agricole n'a pas de coordonnées définies.{' '}
+                          <Link
+                            href={`/exploitations/edition/${selectedExploitation.id}?step=2`}
+                            className="underline"
+                          >
+                            Ajouter une adresse
+                          </Link>
+                        </div>
+                      }
+                    />
+                  )}
+                </div>
 
                 <ParcellesManager
                   editMode={editMode}
