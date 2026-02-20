@@ -5,25 +5,30 @@ export function setParcellesHighlight(
   parcelleIds: string[],
   highlighted: boolean = true
 ) {
-  requestAnimationFrame(() => {
+  if (!map) return
+
+  const highlight = () => {
     if (
-      !map ||
-      !map.isStyleLoaded() ||
       !map.getSource('parcelles') ||
       !map.getLayer('parcelles-fill') ||
       !map.getLayer('parcelles-outline')
     ) {
-      console.warn('Cannot highlight parcelles: source or layers not ready yet.')
+      console.warn('Cannot highlight parcelles: map source/layers not ready.')
       return
     }
-
     for (const id of parcelleIds) {
       map.setFeatureState(
         { source: 'parcelles', sourceLayer: 'parcelles', id: id },
         { highlighted }
       )
     }
-  })
+  }
+
+  if (map.isStyleLoaded()) {
+    highlight()
+  } else {
+    map.once('load', highlight)
+  }
 }
 
 export function setParcellesUnavailability(
@@ -31,25 +36,30 @@ export function setParcellesUnavailability(
   parcelleIds: string[],
   unavailable: boolean = true
 ) {
-  requestAnimationFrame(() => {
+  if (!map) return
+
+  const setUnavailability = () => {
     if (
-      !map ||
-      !map.isStyleLoaded() ||
       !map.getSource('parcelles') ||
       !map.getLayer('parcelles-fill') ||
       !map.getLayer('parcelles-outline')
     ) {
-      console.warn('Cannot set parcelles unavailable: source or layers not ready yet.')
+      console.warn('Cannot set parcelles unavailable: map source/layers not ready.')
       return
     }
-
     for (const id of parcelleIds) {
       map.setFeatureState(
         { source: 'parcelles', sourceLayer: 'parcelles', id: id },
         { unavailable }
       )
     }
-  })
+  }
+
+  if (map.isStyleLoaded()) {
+    setUnavailability()
+  } else {
+    map.once('load', setUnavailability)
+  }
 }
 
 export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
