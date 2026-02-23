@@ -15,5 +15,5 @@ export function displayContactName(contact?: ContactJson) {
     return contact.lastName
   }
 
-  return 'N/A'
+  return 'Non renseigné'
 }

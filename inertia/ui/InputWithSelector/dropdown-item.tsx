@@ -1,8 +1,7 @@
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
-
-import { OptionType } from './index.js'
 import { fr } from '@codegouvfr/react-dsfr'
 
+import { OptionType } from './index.js'
 import MoreButton from '../MoreButton/index'
 
 export type DropdownAction<T> = {
@@ -15,19 +14,36 @@ export type DropdownAction<T> = {
 
 export type DropdownItemProps<T> = {
   item: OptionType<T>
+  isLast?: boolean
   onToggle: (value: T) => void
 }
 
 export default function DropdownItem<T extends string | number>({
   item,
+  isLast,
   onToggle,
 }: DropdownItemProps<T>) {
+  const hasActions = item.actions && item.actions.length > 0
+
+  const handleChange = () => onToggle(item.value)
+
+  const mappedActions = item.actions?.map((action) => ({
+    label: action.label,
+    iconId: action.iconId,
+    isCritical: action.isCritical,
+    onClick: () => action.onClick(item.value),
+  }))
+
   return (
     <div
       className="flex items-center justify-between fr-py-1v fr-px-2v relative"
-      style={{ borderBottom: `solid 1px ${fr.colors.decisions.border.default.grey.default}` }}
+      style={{
+        borderBottom: `${isLast ? 'none' : `solid 1px ${fr.colors.decisions.border.default.grey.default}`}`,
+      }}
+      role="option"
+      aria-selected={item.isSelected}
     >
-      <div className="flex-1 gap-2 flex items-center">
+      <div className="flex-1">
         <Checkbox
           small
           options={[
@@ -36,7 +52,7 @@ export default function DropdownItem<T extends string | number>({
               nativeInputProps: {
                 name: item.value.toString(),
                 value: item.value,
-                onChange: () => onToggle(item.value),
+                onChange: handleChange,
                 checked: item.isSelected,
               },
             },
@@ -44,16 +60,7 @@ export default function DropdownItem<T extends string | number>({
         />
       </div>
 
-      <MoreButton
-        actions={
-          item.actions?.map((action) => ({
-            label: action.label,
-            iconId: action.iconId,
-            isCritical: action.isCritical,
-            onClick: () => action.onClick(item.value),
-          })) || []
-        }
-      />
+      {hasActions && <MoreButton actions={mappedActions || []} />}
     </div>
   )
 }

@@ -81,6 +81,8 @@
     "@adonisjs/shield": "^8.2.0",
     "@adonisjs/static": "^1.1.1",
     "@adonisjs/vite": "^4.0.0",
+    "@aws-sdk/client-s3": "^3.994.0",
+    "@aws-sdk/s3-request-presigner": "^3.994.0",
     "@codegouvfr/react-dsfr": "^1.28.0",
     "@inertiajs/react": "^2.2.10",
     "@tailwindcss/vite": "^4.1.16",

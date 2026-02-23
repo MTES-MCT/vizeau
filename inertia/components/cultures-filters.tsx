@@ -1,7 +1,8 @@
 import { values } from 'lodash-es'
-import { GROUPES_CULTURAUX, getContrastedPicto } from '~/functions/cultures-group'
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+
 import Button from '@codegouvfr/react-dsfr/Button'
+import LegendItem from '~/ui/LegendItem'
 
 export default function CulturesFilters({
   visibleCultures,
@@ -34,31 +35,11 @@ export default function CulturesFilters({
           const isVisible = visibleCultures.includes(String(culture.code_group))
           return (
             <div key={culture.code_group} style={{ opacity: isVisible ? 1 : 0.5 }}>
-              <Checkbox
-                className="fr-m-0"
-                small
-                options={[
-                  {
-                    label: (
-                      <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: culture.color }}
-                        />
-                        <img
-                          src={getContrastedPicto(culture)}
-                          alt={culture.label}
-                          className="w-4 h-4 flex-shrink-0"
-                        />
-                        <span className="text-sm">{culture.label}</span>
-                      </div>
-                    ),
-                    nativeInputProps: {
-                      checked: isVisible,
-                      onChange: () => onToggleCulture(String(culture.code_group)),
-                    },
-                  },
-                ]}
+              <LegendItem
+                label={culture.label}
+                color={culture.color}
+                checked={isVisible}
+                onChange={() => onToggleCulture(String(culture.code_group))}
               />
             </div>
           )
