@@ -50,7 +50,10 @@ export default function VisualisationPage({
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
-    undefined
+    queryString?.exploitationId as string | undefined
+  )
+  const [selectedExploitationTab, setSelectedExploitationTab] = useState(
+    (queryString?.tab as string) || 'general'
   )
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
@@ -64,8 +67,15 @@ export default function VisualisationPage({
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
     () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
-    [selectedExploitationId, filteredExploitations, millesime]
+    [selectedExploitationId, filteredExploitations]
   )
+
+  // Calculate selected parcelle from query params
+  const selectedParcelle = useMemo(() => {
+    const parcelleIdFromQuery = queryString?.parcelleId as string | undefined
+    if (!parcelleIdFromQuery || !selectedExploitation?.parcelles) return undefined
+    return selectedExploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
+  }, [queryString?.parcelleId, selectedExploitation])
 
   const formParcelleIds = useMemo(
     () => data.parcelles.map((parcelle) => parcelle.rpgId),
@@ -118,9 +128,27 @@ export default function VisualisationPage({
           }
           return { parcelles: updatedParcelles }
         })
+      } else {
+        // In view mode, find the exploitation that owns this parcelle and navigate to it
+        const owningExploitation = filteredExploitations.find((exp) =>
+          exp.parcelles?.some((p) => p.rpgId === newId)
+        )
+
+        if (owningExploitation) {
+          // Navigate to the exploitation with the parcelle selected
+          router.visit(
+            `/visualisation?exploitationId=${owningExploitation.id}&parcelleId=${newId}&millesime=${millesime}`,
+            {
+              preserveState: true,
+              preserveScroll: true,
+              only: ['queryString'],
+            }
+          )
+          setSelectedExploitationTab('parcelles')
+        }
       }
     },
-    [editMode, selectedExploitationId, setData]
+    [editMode, selectedExploitationId, setData, filteredExploitations, millesime]
   )
 
   const handleMarkerClick = useCallback(
@@ -174,6 +202,63 @@ export default function VisualisationPage({
     }
   }, [editMode, millesime, selectedExploitationId])
 
+  // Handle initial selection from query params (e.g., when coming from a parcelle link)
+  // This effect only runs when the URL query params change, not when local state changes
+  const prevQueryExploitationIdRef = useRef<string | undefined>(undefined)
+  const prevQueryParcelleIdRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    const exploitationIdFromQuery = queryString?.exploitationId as string | undefined
+    const parcelleIdFromQuery = queryString?.parcelleId as string | undefined
+
+    // Only process if query params actually changed (not on every state update)
+    const queryExploitationChanged = prevQueryExploitationIdRef.current !== exploitationIdFromQuery
+    const queryParcelleChanged = prevQueryParcelleIdRef.current !== parcelleIdFromQuery
+
+    prevQueryExploitationIdRef.current = exploitationIdFromQuery
+    prevQueryParcelleIdRef.current = parcelleIdFromQuery
+
+    if (!queryExploitationChanged && !queryParcelleChanged) {
+      return
+    }
+
+    if (exploitationIdFromQuery && filteredExploitations.length > 0) {
+      const exploitation = filteredExploitations.find((exp) => exp.id === exploitationIdFromQuery)
+
+      if (exploitation) {
+        setSelectedExploitationId(exploitationIdFromQuery)
+
+        // Update selected tab from URL parameters
+        if (parcelleIdFromQuery) {
+          setSelectedExploitationTab('parcelles')
+        } else {
+          const tabFromQuery = queryString?.tab as string | undefined
+          setSelectedExploitationTab(tabFromQuery || 'general')
+        }
+
+        // Center on exploitation or parcelle when URL changes
+        if (parcelleIdFromQuery && exploitation.parcelles) {
+          const parcelle = exploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
+          if (parcelle) {
+            mapRef.current?.centerOnParcelle(parcelle)
+          } else {
+            mapRef.current?.centerOnExploitation(exploitation)
+          }
+        } else {
+          mapRef.current?.centerOnExploitation(exploitation)
+        }
+      }
+    } else if (!exploitationIdFromQuery) {
+      // If no exploitation in URL, clear selection
+      setSelectedExploitationId(undefined)
+    }
+  }, [
+    queryString?.exploitationId,
+    queryString?.parcelleId,
+    queryString?.tab,
+    filteredExploitations,
+  ])
+
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
@@ -185,7 +270,9 @@ export default function VisualisationPage({
             handleSearch={handleSearch}
             queryString={queryString}
             selectedExploitation={selectedExploitation}
-            setSelectedExploitationId={setSelectedExploitationId}
+            selectedParcelle={selectedParcelle}
+            selectedExploitationTab={selectedExploitationTab}
+            setSelectedExploitationTab={setSelectedExploitationTab}
             isMapLoading={isMapLoading}
             editMode={editMode}
             mapRef={mapRef}
@@ -230,7 +317,7 @@ export default function VisualisationPage({
                     setIsMapLoading(true)
                     router.reload({
                       only: ['queryString', 'filteredExploitations'],
-                      data: { millesime: e.target.value },
+                      data: { exploitationId: selectedExploitation?.id, millesime: e.target.value },
                     })
                   },
                 }}
@@ -246,6 +333,7 @@ export default function VisualisationPage({
           <VisualisationMap
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
+            selectedParcelle={selectedParcelle}
             isMapLoading={isMapLoading}
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}

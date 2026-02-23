@@ -1,25 +1,17 @@
-import { ChangeEvent, RefObject, useState } from 'react'
-import { Link } from '@inertiajs/react'
-import { fr } from '@codegouvfr/react-dsfr'
-import ListItem from '~/ui/ListItem'
-import { ExploitationJson } from '../../types/models'
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar'
-import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
-import Button from '@codegouvfr/react-dsfr/Button'
+import { ChangeEvent, RefObject } from 'react'
+import { ExploitationJson, ParcelleJson } from '../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
-import Alert from '@codegouvfr/react-dsfr/Alert'
-import TruncatedText from '~/ui/TruncatedText'
-import ParcellesSection from './parcelle/parcelles-section'
-import ParcellesManager from './parcelles-manager'
-import Tabs from '~/ui/Tabs'
-import VisualisationExploitationGeneral from './visualisation-exploitation-general'
+import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
+import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'
 
 export default function VisualisationLeftSideBar({
   exploitations,
   queryString,
   handleSearch,
   selectedExploitation,
-  setSelectedExploitationId,
+  selectedParcelle,
+  selectedExploitationTab,
+  setSelectedExploitationTab,
   isMapLoading,
   editMode,
   mapRef,
@@ -37,7 +29,9 @@ export default function VisualisationLeftSideBar({
   queryString?: { recherche?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
-  setSelectedExploitationId: (exploitationId: string | undefined) => void
+  selectedParcelle: ParcelleJson | undefined
+  selectedExploitationTab: string
+  setSelectedExploitationTab: (tab: string) => void
   isMapLoading: boolean
   editMode: boolean
   mapRef: RefObject<VisualisationMapRef>
@@ -51,179 +45,35 @@ export default function VisualisationLeftSideBar({
   reset: any
   sendFormAndResetState: any
 }) {
-  const [selectedTab, setSelectedTab] = useState('general')
-
   return (
     <div>
-      {selectedExploitation ? (
-        <div className="fr-p-1w">
-          <Breadcrumb
-            currentPageLabel={
-              <TruncatedText maxStringLength={50} hideTooltip>
-                {selectedExploitation?.name}
-              </TruncatedText>
-            }
-            segments={[
-              {
-                label: 'Liste des exploitations agricoles',
-                linkProps: {
-                  href: '#',
-                  onClick: () => {
-                    // Only allow going back to the list if not in edit mode
-                    if (!editMode) {
-                      setSelectedExploitationId(undefined)
-                    }
-                  },
-                  style: {
-                    cursor: !editMode ? 'pointer' : 'not-allowed',
-                    // href "#" transforms the link into a button with blue text, we override it to look like a normal link
-                    fontSize: 'inherit',
-                    color: 'inherit',
-                  },
-                },
-              },
-            ]}
-            style={{ marginBottom: fr.spacing('2v') }}
-            className="fr-m-1w"
-          />
-          {selectedExploitation.isDemo && (
-            <Alert
-              severity="warning"
-              title="Exploitation de test"
-              description="Cette exploitation a été créée par l'administrateur du système à des fins de démonstration. Les parcelles associées ici seront visibles des autres testeurs."
-              className="fr-mb-4w"
-            />
-          )}
-          <div
-            className="fr-p-1w fr-m-1w"
-            style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
-          >
-            <div className="flex flex-col gap-4 fr-mb-1v">
-              <Link
-                href={`/exploitations/${selectedExploitation.id}`}
-                as="h4"
-                className="fr-m-0 font-bold fr-text--lead underline cursor-pointer"
-              >
-                {selectedExploitation?.name}
-              </Link>
-              <div
-                className="flex flex-col gap-2 fr-mb-3v fr-pb-3v"
-                style={{
-                  borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-                }}
-              >
-                <div className="flex flex-col gap-2">
-                  <Button
-                    priority="secondary"
-                    size="small"
-                    iconId="fr-icon-crosshair-2-line"
-                    className="flex justify-center"
-                    disabled={!selectedExploitation?.location}
-                    onClick={() => {
-                      if (selectedExploitation) {
-                        mapRef.current?.centerOnExploitation(selectedExploitation)
-                      }
-                    }}
-                    style={{ whiteSpace: 'nowrap', width: '100%' }}
-                  >
-                    Centrer sur l'exploitation
-                  </Button>
-
-                  {!selectedExploitation?.location && (
-                    <Alert
-                      small
-                      severity="info"
-                      description={
-                        <div>
-                          L'exploitation agricole n'a pas de coordonnées définies.{' '}
-                          <Link
-                            href={`/exploitations/edition/${selectedExploitation.id}?step=2`}
-                            className="underline"
-                          >
-                            Ajouter une adresse
-                          </Link>
-                        </div>
-                      }
-                    />
-                  )}
-                </div>
-
-                <ParcellesManager
-                  editMode={editMode}
-                  setData={setData}
-                  selectedExploitation={selectedExploitation}
-                  setDefaults={setDefaults}
-                  setEditMode={setEditMode}
-                  showBioOnly={showBioOnly}
-                  millesime={millesime}
-                  isDirty={isDirty}
-                  processing={processing}
-                  reset={reset}
-                  sendFormAndResetState={sendFormAndResetState}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <Tabs
-                tabsList={[
-                  { value: 'general', label: 'Général' },
-                  { value: 'parcelles', label: 'Parcelles' },
-                ]}
-                selectedTab={selectedTab}
-                onTabChange={(value) => setSelectedTab(value)}
-              />
-
-              {selectedTab === 'general' && (
-                <VisualisationExploitationGeneral exploitation={selectedExploitation} />
-              )}
-              {selectedTab === 'parcelles' && (
-                <ParcellesSection
-                  parcelles={selectedExploitation.parcelles ?? []}
-                  exploitationId={selectedExploitation.id}
-                />
-              )}
-            </div>
-          </div>
-        </div>
+      {selectedParcelle && selectedExploitation ? (
+        <ParcelleLeftSidebar
+          parcelle={selectedParcelle}
+          exploitation={selectedExploitation}
+          mapRef={mapRef}
+        />
       ) : (
-        <div className="fr-p-1w">
-          <div className="flex">
-            <SearchBar
-              className="flex flex-1 fr-mb-2w"
-              renderInput={({ className, id, type }) => (
-                <input
-                  className={className}
-                  id={id}
-                  placeholder="Rechercher une exploitation agricole"
-                  type={type}
-                  onChange={handleSearch}
-                  defaultValue={queryString?.recherche || ''}
-                />
-              )}
-            />
-          </div>
-          {exploitations.map((exploitation, index) => (
-            <div
-              onClick={() => {
-                if (!isMapLoading) {
-                  setSelectedExploitationId(exploitation.id)
-                  mapRef.current?.centerOnExploitation(exploitation)
-                }
-              }}
-              style={{ cursor: !isMapLoading ? 'pointer' : 'progress' }}
-              key={exploitation.id}
-            >
-              <ListItem
-                iconId={exploitation?.siret ? 'fr-icon-building-line' : 'fr-icon-user-line'}
-                title={exploitation.name}
-                subtitle={exploitation?.commune || 'N/A'}
-                priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                tags={exploitation.tags?.map((tag) => ({ label: tag.name }))}
-              />
-            </div>
-          ))}
-        </div>
+        <ExploitationLeftSidebar
+          exploitations={exploitations}
+          queryString={queryString}
+          selectedExploitation={selectedExploitation}
+          isMapLoading={isMapLoading}
+          handleSearch={handleSearch}
+          selectedExploitationTab={selectedExploitationTab}
+          setSelectedExploitationTab={setSelectedExploitationTab}
+          editMode={editMode}
+          mapRef={mapRef}
+          setData={setData}
+          setDefaults={setDefaults}
+          setEditMode={setEditMode}
+          showBioOnly={showBioOnly}
+          millesime={millesime}
+          isDirty={isDirty}
+          processing={processing}
+          reset={reset}
+          sendFormAndResetState={sendFormAndResetState}
+        />
       )}
     </div>
   )
