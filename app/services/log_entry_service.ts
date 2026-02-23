@@ -2,6 +2,7 @@ import LogEntry from '#models/log_entry'
 import { errors } from '@adonisjs/auth'
 import { ModelAttributes } from '@adonisjs/lucid/types/model'
 import LogEntryDocument from '#models/log_entry_document'
+import Env from '#start/env'
 
 export class LogEntryService {
   async createLogEntry(logData: Partial<ModelAttributes<LogEntry>>, tagsIds?: number[]) {
@@ -39,7 +40,9 @@ export class LogEntryService {
       .where('id', documentId)
       .andWhereHas('logEntry', (logEntryQuery) => {
         logEntryQuery.whereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.where('userId', userId)
+          exploitationQuery.where('userId', userId).orWhereHas('user', (userQuery) => {
+            userQuery.where('email', Env.get('ADMIN_EMAIL'))
+          })
         })
       })
       .first()
