@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { ExploitationJson } from '../../../types/models'
+import { ExploitationJson, ParcelleJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
@@ -50,6 +50,7 @@ const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
 export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
+  centerOnParcelle: (parcelle: ParcelleJson) => void
 }
 
 const VisualisationMap = forwardRef<
@@ -57,6 +58,7 @@ const VisualisationMap = forwardRef<
   {
     exploitations: ExploitationJson[]
     selectedExploitation?: ExploitationJson
+    selectedParcelle?: ParcelleJson
     isMapLoading: boolean
     setIsMapLoading: (isMapLoading: boolean) => void
     onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
@@ -83,6 +85,7 @@ const VisualisationMap = forwardRef<
     {
       exploitations,
       selectedExploitation,
+      selectedParcelle,
       isMapLoading,
       setIsMapLoading,
       onParcelleClick,
@@ -182,6 +185,17 @@ const VisualisationMap = forwardRef<
           map.flyTo({
             center: coords,
             zoom: 12,
+            essential: true,
+          })
+        }
+      },
+      centerOnParcelle: (parcelle: ParcelleJson) => {
+        const map = mapRef.current
+        if (map && parcelle.centroid) {
+          const coords: LngLatLike = [parcelle.centroid.x, parcelle.centroid.y]
+          map.flyTo({
+            center: coords,
+            zoom: 15,
             essential: true,
           })
         }
@@ -688,7 +702,11 @@ const VisualisationMap = forwardRef<
           let parcelleIds: string[] = []
           if (editMode) {
             parcelleIds = formParcelleIds
+          } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
+            // Si une parcelle spécifique est sélectionnée et que son année correspond au millésime, ne highlighter que celle-ci
+            parcelleIds = [selectedParcelle.rpgId]
           } else if (selectedExploitation?.parcelles) {
+            // Sinon, highlighter toutes les parcelles de l'exploitation
             parcelleIds = selectedExploitation.parcelles
               .filter((parcelle) => parcelle.year.toString() === millesime)
               .map((parcelle) => parcelle.rpgId)
@@ -712,6 +730,8 @@ const VisualisationMap = forwardRef<
       let parcelleIds: string[] = []
       if (editMode) {
         parcelleIds = formParcelleIds
+      } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
+        parcelleIds = [selectedParcelle.rpgId]
       } else if (selectedExploitation?.parcelles) {
         parcelleIds = selectedExploitation.parcelles
           .filter((parcelle) => parcelle.year.toString() === millesime)
@@ -727,7 +747,7 @@ const VisualisationMap = forwardRef<
           setParcellesHighlight(mapRef.current, parcelleIds, false)
         }
       }
-    }, [editMode, formParcelleIds, selectedExploitation, style, millesime])
+    }, [editMode, formParcelleIds, selectedExploitation, selectedParcelle, style, millesime])
 
     // Manage unavailable parcelles highlighting
     useEffect(() => {

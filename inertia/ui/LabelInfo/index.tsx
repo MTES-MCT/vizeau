@@ -3,13 +3,13 @@ import React from 'react'
 
 export type LabelInfoProps = {
   icon?: string | null
-  label: string
+  label?: string
   info?: string | React.ReactNode
   size?: 'sm' | 'md'
 }
 export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoProps) {
   const isStringInfo = typeof info === 'string'
-  const labelText = info ? label + ' : ' : label
+  const labelText = info && label ? label + ' : ' : label
 
   return (
     <div className="flex items-start">

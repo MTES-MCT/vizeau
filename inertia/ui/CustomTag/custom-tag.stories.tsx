@@ -25,13 +25,6 @@ export default meta
 
 export const Défaut = {}
 
-export const AvecIcônePersonnalisée = {
-  args: {
-    iconId: undefined,
-    iconPath: '/cultures-pictos/light/groupe-1.png',
-  },
-}
-
 export const AvecCouleurPersonnalisée = {
   args: {
     color: '#FFD700',

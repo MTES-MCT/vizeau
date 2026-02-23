@@ -75,4 +75,44 @@ test.group('Contact front-end functions', () => {
   test('I display N/A when contact is undefined', async ({ assert }) => {
     assert.equal(displayContactName(undefined), 'N/A')
   })
+
+  // Tests for getMainContact
+  const contactA: ContactJson = {
+    id: '10',
+    firstName: 'Alice',
+    lastName: 'Smith',
+    role: null,
+    email: null,
+    phoneNumber: null,
+  }
+
+  const contactB: ContactJson = {
+    id: '11',
+    firstName: 'Bob',
+    lastName: 'Jones',
+    role: null,
+    email: null,
+    phoneNumber: null,
+  }
+
+  test('getMainContact returns the first contact when array has elements', async ({ assert }) => {
+    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
+    const contacts = [contactA, contactB]
+    assert.deepEqual(getMainContact(contacts), contactA)
+  })
+
+  test('getMainContact returns undefined when contacts is undefined', async ({ assert }) => {
+    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
+    assert.isUndefined(getMainContact(undefined))
+  })
+
+  test('getMainContact returns undefined when contacts is an empty array', async ({ assert }) => {
+    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
+    assert.isUndefined(getMainContact([]))
+  })
+
+  test('getMainContact returns undefined when contacts is null', async ({ assert }) => {
+    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
+    assert.isUndefined(getMainContact(null as any))
+  })
 })

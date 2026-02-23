@@ -35,6 +35,11 @@ const meta = {
       action: 'clicked',
       description: 'Callback déclenché lors du clic sur le bouton d’action.',
     },
+    hideLongTitleTooltip: {
+      control: 'boolean',
+      description:
+        "Masquer l'info-bulle du titre même si le texte est long. Par défaut, une info-bulle s’affiche lorsque le titre dépasse 2 lignes ou 90 caractères (en fonction de ce qui est atteint en premier).",
+    },
     children: {
       control: 'text',
       description: 'Contenu de la section (ReactNode).',
@@ -49,6 +54,7 @@ const meta = {
     size: 'medium',
     background: 'primary',
     handleAction: () => alert('Action déclenchée !'),
+    hideLongTitleTooltip: false,
     children: (
       <p className="fr-m-0">
         Une fois rien, c’est rien ; deux fois rien, ce n’est pas beaucoup, mais pour trois fois
