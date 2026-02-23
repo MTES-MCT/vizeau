@@ -35,6 +35,7 @@ export type LogEntryJson = {
   title: string | null
   notes: string | null
   userId: string
+  exploitation?: ExploitationJson
   exploitationId: string
   createdAt: string
   updatedAt: string

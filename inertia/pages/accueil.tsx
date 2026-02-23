@@ -8,8 +8,8 @@ import ListItem from '~/ui/ListItem'
 
 import Layout from '~/ui/layouts/layout'
 import Timeline from '~/ui/Timeline'
-import { ExploitationJson } from '../../types/models'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { getLogEntryTitle } from '~/functions/log_entries'
 
 export default function Accueil({
   latestExploitations,
@@ -65,11 +65,7 @@ export default function Accueil({
                   <ListItem
                     variant="compact"
                     key={log.id}
-                    title={
-                      log.notes
-                        ? log.notes.substring(0, 30) + (log.notes.length > 30 ? '...' : '')
-                        : 'Note sans contenu'
-                    }
+                    title={getLogEntryTitle(log)}
                     tags={
                       log.tags && log.tags.length > 0
                         ? log.tags.map((tag: { name: string }) => ({ label: tag.name }))
@@ -81,7 +77,7 @@ export default function Accueil({
                         iconId: 'fr-icon-calendar-event-line',
                       },
                       {
-                        content: log.exploitation.name || 'Exploitation inconnue',
+                        content: log.exploitation?.name || 'Exploitation inconnue',
                         iconId: 'fr-icon-map-pin-user-line',
                       },
                     ]}
@@ -125,7 +121,7 @@ export default function Accueil({
           </div>
           <div className="fr-mt-6w">
             {hasExploitations ? (
-              <ExploitationsList exploitations={latestExploitations as ExploitationJson[]} />
+              <ExploitationsList exploitations={latestExploitations} />
             ) : (
               <EmptyPlaceholder
                 size="lg"
