@@ -26,7 +26,12 @@ export default function LegendItem({
         {
           label: (
             <div className="flex items-center gap-2">
-              {color && <div className={`w-3 h-3 rounded-full flex-shrink-0 ${color}`} />}
+              {color && (
+                <div
+                  className={`w-3 h-3 rounded-full flex-shrink-0`}
+                  style={{ backgroundColor: color }}
+                />
+              )}
               <span className="fr-text--sm fr-mb-0 flex items-center gap-1">
                 {label}
                 {hint && <Tooltip kind="hover" title={hint} />}
