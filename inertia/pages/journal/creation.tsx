@@ -16,6 +16,10 @@ export type LogEntryFormData = {
   notes: string
   tags: number[]
   date: string
+  documents: Array<{
+    name: string
+    size: number
+  }>
 }
 
 export default function TaskCreationPage({
@@ -29,6 +33,7 @@ export default function TaskCreationPage({
     notes: '',
     tags: [],
     date: '',
+    documents: [],
   })
 
   const handleSubmit = (e: FormEvent) => {
@@ -78,6 +83,7 @@ export default function TaskCreationPage({
             setData={setData}
             inputValue={inputValue}
             setInputValue={setInputValue}
+            existingDocuments={[]}
           />
 
           <div className="flex w-full items-center justify-end gap-3">

@@ -4,6 +4,7 @@ import {
   completeLogEntryValidator,
   createLogEntryValidator,
   destroyLogEntryValidator,
+  downloadDocumentValidator,
   updateLogEntryValidator,
 } from '#validators/log_entry'
 import { LogEntryService } from '#services/log_entry_service'
@@ -35,6 +36,7 @@ const EVENTS = {
   TAG_CREATE_SUBMITTED: { name: 'log_entry_tags_create', step: 'submitted' },
   TAG_CREATE_CREATED: { name: 'log_entry_tags_create', step: 'created' },
   TAG_DELETED: { name: 'log_entry_tags_deleted' },
+  DOCUMENT_DOWNLOADED: { name: 'log_entry_document_downloaded' },
 }
 
 @inject()
@@ -107,6 +109,7 @@ export default class LogEntriesController {
       .where('id', params.logEntryId)
       .where('exploitationId', params.exploitationId)
       .preload('tags')
+      .preload('documents')
       .firstOrFail()
 
     const logEntryAuthor = await User.find(logEntry.userId)
@@ -136,16 +139,18 @@ export default class LogEntriesController {
       .where('id', params.logEntryId)
       .where('exploitationId', params.exploitationId)
       .preload('tags')
+      .preload('documents')
       .firstOrFail()
 
     const exploitation = await this.exploitationService
       .queryActiveExploitations(user.id)
+      .preload('user')
       .where('id', params.exploitationId)
       .firstOrFail()
 
     return inertia.render('journal/edition', {
-      exploitation: exploitation.serialize(),
-      logEntry: logEntry.serialize(),
+      exploitation: ExploitationDto.fromModel(exploitation),
+      logEntry: LogEntryDto.fromModel(logEntry),
       isCreator: logEntry.userId === user.id,
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
@@ -247,27 +252,45 @@ export default class LogEntriesController {
       ...EVENTS.UPDATE_SUBMITTED,
       context: { payload: request.all() },
     })
-    const { id, params, tags, ...payload } = await request.validateUsing(updateLogEntryValidator)
+    const { id, params, tags, documents, ...payload } =
+      await request.validateUsing(updateLogEntryValidator)
 
+    let hasLogEntryUpdateSucceeded = false
     try {
       await this.logEntryService.updateLogEntry(id, user.id, params.exploitationId, payload, tags)
+
+      hasLogEntryUpdateSucceeded = true
 
       this.eventLogger.logEvent({
         userId: user.id,
         ...EVENTS.UPDATE_UPDATED,
       })
 
+      // Documents upload and creation
+      for (const document of documents || []) {
+        await this.logEntryDocumentService.createDocument(id, document)
+      }
+
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
-      logger.error(error, 'Error updating log entry:')
-      if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
-        createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
+      if (!hasLogEntryUpdateSucceeded) {
+        logger.error(error, 'Error updating log entry:')
+        if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
+          createErrorFlashMessage(session, 'Vous ne pouvez éditer que vos entrées de journal.')
+        } else {
+          createErrorFlashMessage(
+            session,
+            "Une erreur est survenue lors de la mise à jour de l'entrée de journal."
+          )
+        }
       } else {
+        logger.error(error, 'Error uploading documents for log entry:')
         createErrorFlashMessage(
           session,
-          "Une erreur est survenue lors de la mise à jour de l'entrée de journal."
+          "L'entrée de journal a été mise à jour mais une erreur est survenue lors de l'import des documents."
         )
+        return response.redirect().toRoute('exploitations.get', [params.exploitationId])
       }
     }
 
@@ -375,5 +398,38 @@ export default class LogEntriesController {
       )
     }
     return response.redirect().back()
+  }
+
+  async downloadDocument({ auth, request, response, logger, session, inertia }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    const { params } = await request.validateUsing(downloadDocumentValidator)
+
+    this.eventLogger.logEvent({
+      userId: user.id,
+      ...EVENTS.DOCUMENT_DOWNLOADED,
+      context: { params },
+    })
+
+    try {
+      const document = await this.logEntryService.findDocument(params.documentId, user.id)
+
+      if (!document) {
+        logger.error(`Document with ID ${params.documentId} not found for user ${user.id}`)
+        createErrorFlashMessage(session, 'Impossible de trouver le document.')
+        return response.redirect().back()
+      }
+
+      const url = await this.logEntryDocumentService.getDocumentUrl(document.s3Key)
+
+      return inertia.location(url)
+    } catch (error) {
+      logger.error(error, 'Error downloading document:')
+      createErrorFlashMessage(
+        session,
+        'Une erreur est survenue lors du téléchargement du document.'
+      )
+      return response.redirect().back()
+    }
   }
 }

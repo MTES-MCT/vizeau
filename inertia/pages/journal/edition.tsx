@@ -24,6 +24,8 @@ export default function TaskEditionPage({
     notes: logEntry.notes || '',
     tags: logEntry.tags?.map((tag: { id: number }) => tag.id) || [],
     date: logEntry.date || '',
+    // Documents are handled separately, so we don't set them in the form data
+    documents: [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,6 +69,7 @@ export default function TaskEditionPage({
             setData={setData}
             inputValue={inputValue}
             setInputValue={setInputValue}
+            existingDocuments={logEntry.documents || []}
             disabled={!isCreator}
           />
           <div className="flex w-full items-center justify-end gap-3">

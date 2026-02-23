@@ -15,6 +15,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
+import FileItemsList from '~/ui/FileItemList'
 
 export default function SingleTask({
   logEntry,
@@ -119,7 +120,28 @@ export default function SingleTask({
             </deleteEntryLogModal.Component>
           </aside>
           <SectionCard title={logEntryTitle} hideLongTitleTooltip>
-            <LogEntryNoteCard notes={logEntry.notes} />
+            <div className="flex flex-col gap-10">
+              <LogEntryNoteCard notes={logEntry.notes} />
+              <SectionCard
+                size="small"
+                background="secondary"
+                icon="fr-icon-attachment-line"
+                title="Documents"
+              >
+                {logEntry.documents && logEntry.documents.length > 0 && (
+                  <div className="bg-white">
+                    <FileItemsList
+                      files={logEntry.documents.map((document) => ({
+                        name: document.name,
+                        href: document.href,
+                        size: document.sizeInBytes,
+                        format: 'PDF',
+                      }))}
+                    />
+                  </div>
+                )}
+              </SectionCard>
+            </div>
           </SectionCard>
         </section>
       </div>
