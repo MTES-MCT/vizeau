@@ -9,6 +9,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { FlashMessages } from '~/components/flash-message'
 import { LogEntryFormData } from '~/pages/journal/creation'
+import { getLogEntryTitle } from '~/functions/log_entries'
 
 export default function TaskEditionPage({
   logEntry,
@@ -16,6 +17,7 @@ export default function TaskEditionPage({
   exploitation,
   flashMessages,
   isCreator,
+  deleteDocumentUrl,
 }: InferPageProps<LogEntriesController, 'getForEdition'>) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<LogEntryFormData>({
@@ -56,6 +58,10 @@ export default function TaskEditionPage({
                 label: exploitation.name,
                 linkProps: { href: `/exploitations/${exploitation.id}` },
               },
+              {
+                label: getLogEntryTitle(logEntry),
+                linkProps: { href: `/exploitations/${exploitation.id}/journal/${logEntry.id}` },
+              },
             ]}
           />
         </div>
@@ -70,6 +76,7 @@ export default function TaskEditionPage({
             inputValue={inputValue}
             setInputValue={setInputValue}
             existingDocuments={logEntry.documents || []}
+            deleteDocumentUrl={deleteDocumentUrl}
             disabled={!isCreator}
           />
           <div className="flex w-full items-center justify-end gap-3">

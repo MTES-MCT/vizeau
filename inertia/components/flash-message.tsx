@@ -34,7 +34,6 @@ export function FlashMessages({
   return (
     <>
       {Object.entries(flashMessages).map(([type, fm], i) => {
-        // Log an error if the flash message is null or undefined, but continue rendering the other messages
         if (!fm) {
           return null
         }
