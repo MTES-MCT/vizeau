@@ -1,4 +1,4 @@
-import { RefObject } from 'react'
+import { RefObject, useEffect, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { router } from '@inertiajs/react'
@@ -10,6 +10,14 @@ import cultures from '../../../database/data/cultures.json'
 import CustomTag from '~/ui/CustomTag'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { createModal } from '@codegouvfr/react-dsfr/Modal'
+import Input from '@codegouvfr/react-dsfr/Input'
+
+const handleCommentModal = createModal({
+  id: 'add-comment-modal',
+  isOpenedByDefault: false,
+})
 
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
@@ -22,7 +30,27 @@ export default function ParcelleLeftSidebar({
   exploitation,
   mapRef,
 }: ParcelleLeftSidebarProps) {
+  const [comment, setComment] = useState(parcelle?.comment)
   const cultureLabel = cultures.find((culture) => culture.code === parcelle.cultureCode)?.label
+
+  useEffect(() => {
+    setComment(parcelle?.comment)
+  }, [parcelle?.comment])
+
+  const handleEditComment = () => {
+    router.patch(
+      `/exploitations/${exploitation.id}/parcelles/${parcelle.rpgId}/note`,
+      { year: parcelle.year, comment: comment?.trim() ?? null },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['filteredExploitations'],
+        onSuccess: () => {
+          handleCommentModal.close()
+        },
+      }
+    )
+  }
 
   return (
     <div className="fr-p-1w">
@@ -98,37 +126,84 @@ export default function ParcelleLeftSidebar({
             />
           )}
         </div>
+        <div className="flex flex-col gap-4">
+          <SmallSection
+            title="Informations générales"
+            iconId="fr-icon-pass-pending-line"
+            priority="secondary"
+            hasBorder
+          >
+            <div className="flex flex-col gap-2">
+              <LabelInfo
+                label="Type de culture"
+                size="sm"
+                icon="fr-icon-plant-line"
+                info={cultureLabel ? <CustomTag label={cultureLabel} /> : 'N/A'}
+              />
 
-        <SmallSection
-          title="Informations générales"
-          iconId="fr-icon-pass-pending-line"
-          priority="secondary"
-          hasBorder
-        >
-          <div className="flex flex-col gap-2">
-            <LabelInfo
-              label="Type de culture"
-              size="sm"
-              icon="fr-icon-plant-line"
-              info={cultureLabel ? <CustomTag label={cultureLabel} /> : 'N/A'}
-            />
+              <LabelInfo
+                label="Année de déclaration"
+                size="sm"
+                icon="fr-icon-calendar-line"
+                info={`${parcelle.year || 'N/A'}`}
+              />
 
-            <LabelInfo
-              label="Année de déclaration"
-              size="sm"
-              icon="fr-icon-calendar-line"
-              info={`${parcelle.year || 'N/A'}`}
-            />
+              <LabelInfo
+                label="Surface admissible PAC"
+                size="sm"
+                icon="fr-icon-ruler-line"
+                info={`${parcelle?.surface || 'N/A'} ha`}
+              />
+            </div>
+          </SmallSection>
 
-            <LabelInfo
-              label="Surface admissible PAC"
-              size="sm"
-              icon="fr-icon-ruler-line"
-              info={`${parcelle?.surface || 'N/A'} ha`}
-            />
-          </div>
-        </SmallSection>
+          <SmallSection
+            iconId="fr-icon-draft-line"
+            actionIcon={parcelle?.comment ? 'fr-icon-edit-line' : ''}
+            handleAction={handleCommentModal.open}
+            title="Commentaire"
+            priority="secondary"
+            hasBorder
+          >
+            <div className="flex flex-col gap-2">
+              {parcelle?.comment ? (
+                <p>{parcelle.comment}</p>
+              ) : (
+                <EmptyPlaceholder
+                  label="Aucun commentaire pour cette parcelle."
+                  buttonLabel="Ajouter un commentaire"
+                  handleClick={handleCommentModal.open}
+                  buttonIcon="fr-icon-add-line"
+                  illustrativeIcon="fr-icon-draft-line"
+                />
+              )}
+            </div>
+          </SmallSection>
+        </div>
       </div>
+      <handleCommentModal.Component
+        title="Ajouter un commentaire à la parcelle"
+        size="large"
+        buttons={[
+          { children: 'Annuler', doClosesModal: true },
+          {
+            children: parcelle?.comment ? 'Modifier le commentaire' : 'Ajouter le commentaire',
+            onClick: handleEditComment,
+          },
+        ]}
+      >
+        <Input
+          textArea
+          label="Commentaire"
+          hintText="Un commentaire peut être ajouté pour fournir des informations supplémentaires sur la parcelle."
+          nativeTextAreaProps={{
+            value: comment || '',
+            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value),
+            placeholder:
+              'Ex : Cette parcelle est en pente, ce qui peut expliquer les faibles rendements observés.',
+          }}
+        />
+      </handleCommentModal.Component>
     </div>
   )
 }

@@ -44,6 +44,6 @@ export const updateParcelleNoteValidator = vine.compile(
       rpgId: vine.string().maxLength(10),
     }),
     year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
-    note: vine.string().maxLength(5000).nullable(),
+    comment: vine.string().maxLength(5000).nullable(),
   })
 )
