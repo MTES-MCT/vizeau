@@ -23,6 +23,7 @@ export class ParcelleService {
       cultureCode?: string | undefined
       rpgId: string
       centroid?: { x: number; y: number } | undefined
+      comment?: string | undefined
     }[]
   ) {
     // Use a transaction to ensure data integrity between dissociation and association
@@ -51,6 +52,7 @@ export class ParcelleService {
                 surface: parcelle.surface,
                 cultureCode: parcelle.cultureCode,
                 centroid: parcelle.centroid,
+                comment: parcelle.comment,
               },
               trx
             )
@@ -103,6 +105,25 @@ export class ParcelleService {
     }
 
     parcelle.exploitationId = null
+    await parcelle.save()
+
+    return parcelle
+  }
+
+  async getParcelleForExploitation(
+    exploitationId: string,
+    rpgId: string,
+    year: number
+  ): Promise<Parcelle | null> {
+    return await Parcelle.query()
+      .where('rpgId', rpgId)
+      .andWhere('year', year)
+      .andWhere('exploitationId', exploitationId)
+      .first()
+  }
+
+  async updateParcelleNote(parcelle: Parcelle, note: string | null): Promise<Parcelle> {
+    parcelle.comment = note
     await parcelle.save()
 
     return parcelle

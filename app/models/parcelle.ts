@@ -37,6 +37,9 @@ export default class Parcelle extends BaseModel {
   @column()
   declare cultureCode: string | null
 
+  @column()
+  declare comment: string | null
+
   /*
     Stored as "POINT(lng,lat)" in database
    */
