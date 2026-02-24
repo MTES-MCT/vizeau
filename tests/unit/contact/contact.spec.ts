@@ -3,6 +3,7 @@ import { ContactFactory } from '#database/factories/contact_factory'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { ContactJson } from '../../../types/models.js'
 import { displayContactName } from '../../../inertia/functions/contacts.js'
+const { getMainContact } = await import('../../../inertia/functions/contacts.js')
 
 test.group('Contact CRUD', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -96,23 +97,19 @@ test.group('Contact front-end functions', () => {
   }
 
   test('getMainContact returns the first contact when array has elements', async ({ assert }) => {
-    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
     const contacts = [contactA, contactB]
     assert.deepEqual(getMainContact(contacts), contactA)
   })
 
   test('getMainContact returns undefined when contacts is undefined', async ({ assert }) => {
-    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
     assert.isUndefined(getMainContact(undefined))
   })
 
   test('getMainContact returns undefined when contacts is an empty array', async ({ assert }) => {
-    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
     assert.isUndefined(getMainContact([]))
   })
 
   test('getMainContact returns undefined when contacts is null', async ({ assert }) => {
-    const { getMainContact } = await import('../../../inertia/functions/contacts.js')
     assert.isUndefined(getMainContact(null as any))
   })
 })
