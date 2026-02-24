@@ -9,14 +9,6 @@ export default class CultureSeeder extends BaseSeeder {
       readFileSync(path.join('database', 'data', 'cultures.json'), 'utf-8')
     )
 
-    for (const item of cultures) {
-      const existing = await Culture.findBy('code', item.code)
-      if (existing) {
-        existing.merge(item)
-        await existing.save()
-      } else {
-        await Culture.create(item)
-      }
-    }
+    await Culture.updateOrCreateMany('code', cultures)
   }
 }

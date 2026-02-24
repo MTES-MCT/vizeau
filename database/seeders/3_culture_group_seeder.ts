@@ -30,14 +30,6 @@ export default class CultureGroupSeeder extends BaseSeeder {
       { code: '28', label: 'Divers' },
     ]
 
-    for (const item of groups) {
-      const existing = await CultureGroup.findBy('code', item.code)
-      if (existing) {
-        existing.merge(item)
-        await existing.save()
-      } else {
-        await CultureGroup.create(item)
-      }
-    }
+    await CultureGroup.updateOrCreateMany('code', groups)
   }
 }
