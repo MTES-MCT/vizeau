@@ -38,9 +38,10 @@ export default function ParcelleLeftSidebar({
   }, [parcelle?.comment])
 
   const handleEditComment = () => {
-    router.patch(
+    const trimmedComment = comment?.trim()
+     router.patch(
       `/exploitations/${exploitation.id}/parcelles/${parcelle.rpgId}/note`,
-      { year: parcelle.year, comment: comment?.trim() ?? null },
+      { year: parcelle.year, comment: trimmedComment ? trimmedComment : null },
       {
         preserveState: true,
         preserveScroll: true,
