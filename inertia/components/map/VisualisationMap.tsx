@@ -70,6 +70,7 @@ const VisualisationMap = forwardRef<
     formParcelleIds?: string[]
     unavailableParcelleIds?: string[]
     millesime: string
+    comment?: string
     editMode?: boolean
     showParcelles?: boolean
     showAac?: boolean
@@ -217,6 +218,9 @@ const VisualisationMap = forwardRef<
         const id = props?.id_parcel ?? props?.ID_PARCEL
         const isUnavailable = unavailableParcelleIds.includes(id)
 
+        const comment =
+          exploitations.flatMap((exp) => exp.parcelles ?? []).find((p) => p.rpgId === id)
+            ?.comment ?? undefined
         // Mise à jour la popup uniquement si la parcelle change
         if (currentParcelleIdRef.current !== id) {
           // Vérifier si une parcelle bio existe à la position du curseur
@@ -234,6 +238,7 @@ const VisualisationMap = forwardRef<
             codeGroup,
             surfParc,
             millesime,
+            comment,
             isUnavailable,
             isBio,
             editMode,
