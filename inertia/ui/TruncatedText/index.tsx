@@ -6,6 +6,7 @@ export type TruncatedTextProps = {
   maxLines?: number
   maxStringLength?: number
   className?: string
+  style?: React.CSSProperties
   tooltipTitle?: string
   hideTooltip?: boolean
   as?: React.ElementType
@@ -16,6 +17,7 @@ export default function TruncatedText({
   maxLines = 1,
   maxStringLength,
   className,
+  style: styleProp,
   tooltipTitle,
   hideTooltip = false,
   as,
@@ -33,11 +35,17 @@ export default function TruncatedText({
     if ((isTruncated || tooltipTitle) && !hideTooltip) {
       return (
         <Tooltip title={tooltipTitle || textContent}>
-          <Component className={className}>{truncatedContent}</Component>
+          <Component style={styleProp} className={className}>
+            {truncatedContent}
+          </Component>
         </Tooltip>
       )
     }
-    return <Component className={className}>{truncatedContent}</Component>
+    return (
+      <Component style={styleProp} className={className}>
+        {truncatedContent}
+      </Component>
+    )
   }
 
   // Troncature par lignes : affiche la tooltip si tooltipTitle est fourni ou si le texte dépasse 90 caractères
@@ -45,6 +53,7 @@ export default function TruncatedText({
     display: '-webkit-box',
     WebkitLineClamp: maxLines,
     WebkitBoxOrient: 'vertical',
+    ...styleProp,
   }
 
   if ((tooltipTitle || textContent.length > 90) && !hideTooltip) {
