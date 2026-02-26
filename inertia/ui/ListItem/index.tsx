@@ -19,8 +19,8 @@ export type AdditionalInfosProps = {
 export type ListItemProps = {
   variant?: 'default' | 'compact'
   priority?: 'primary' | 'secondary'
-  title?: ReactNode
-  subtitle?: ReactNode
+  title?: ReactNode | string
+  subtitle?: ReactNode | string
   iconId?: string
   tags?: TagsListProps['tags']
   metas?: MetasListProps['metas']
@@ -131,9 +131,13 @@ export default function ListItem({
                         style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
                       ></span>
                     )}
-                    <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
-                      {title}
-                    </TruncatedText>
+                    {typeof title === 'string' ? (
+                      <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                        {title}
+                      </TruncatedText>
+                    ) : (
+                      title
+                    )}
                   </div>
                   {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
                 </div>
@@ -187,17 +191,20 @@ export default function ListItem({
                     style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
                   ></span>
                 )}
-                <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
-                  {title}
-                </TruncatedText>
+                {typeof title === 'string' ? (
+                  <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                    {title}
+                  </TruncatedText>
+                ) : (
+                  title
+                )}
               </div>
-              {subtitle && (
-                <span
-                  className="fr-mb-0 fr-text--sm"
-                  style={{ color: fr.colors.decisions.text.mention.grey.default }}
-                >
+              {typeof subtitle === 'string' ? (
+                <TruncatedText maxLines={1} className="fr-mb-0 fr-text--sm" style={{ color: fr.colors.decisions.text.mention.grey.default }}>
                   {subtitle}
-                </span>
+                </TruncatedText>
+              ) : (
+                subtitle
               )}
             </div>
 
