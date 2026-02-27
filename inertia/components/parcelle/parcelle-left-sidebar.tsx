@@ -1,7 +1,8 @@
 import { RefObject } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
-import { router } from '@inertiajs/react'
+import { router, usePage } from '@inertiajs/react'
+import { InferPageProps } from '@adonisjs/inertia/types'
 import { ExploitationJson, ParcelleJson } from '../../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import SmallSection from '~/ui/SmallSection'
@@ -13,6 +14,8 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import CommentFormModal from './comment-form-modal'
+import VisualisationController from '#controllers/visualisation_controller'
+import { FlashMessages } from '~/components/flash-message'
 
 const handleCommentModal = createModal({
   id: 'add-comment-modal',
@@ -31,6 +34,7 @@ export default function ParcelleLeftSidebar({
   mapRef,
 }: ParcelleLeftSidebarProps) {
   const cultureLabel = cultures.find((culture) => culture.code === parcelle.cultureCode)?.label
+  const { flashMessages } = usePage<InferPageProps<VisualisationController, 'index'>>().props
 
   return (
     <div className="fr-p-1w">
@@ -145,7 +149,8 @@ export default function ParcelleLeftSidebar({
             priority="secondary"
             hasBorder
           >
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
+              <FlashMessages flashMessages={flashMessages} />
               {parcelle?.comment ? (
                 <p>{parcelle.comment}</p>
               ) : (

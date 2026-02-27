@@ -5,7 +5,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import Input from '@codegouvfr/react-dsfr/Input'
 
 export type CommentFormProps = {
-  parcelle: ParcelleJson
+  parcelle: ParcelleJson | null
   exploitationId: string
   handleCommentModal: ReturnType<typeof createModal>
 }
@@ -22,6 +22,7 @@ export default function CommentForm({
   }, [parcelle?.rpgId, parcelle?.year, parcelle?.comment])
 
   const handleEditComment = () => {
+    if (!parcelle) return
     const trimmedComment = comment?.trim()
     router.patch(
       `/exploitations/${exploitationId}/parcelles/${parcelle.rpgId}/note`,
@@ -29,7 +30,7 @@ export default function CommentForm({
       {
         preserveState: true,
         preserveScroll: true,
-        only: ['filteredExploitations'],
+        only: ['filteredExploitations', 'flashMessages'],
         onSuccess: () => {
           handleCommentModal.close()
         },
