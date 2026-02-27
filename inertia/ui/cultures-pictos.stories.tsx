@@ -44,17 +44,6 @@ export const CulturesPictos = () => {
             <div className="flex gap-2">
               <div
                 className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
-                style={{ backgroundColor: '#FFFFFF' }}
-              >
-                <img
-                  src={culture.picto_light}
-                  alt={culture.label}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-
-              <div
-                className="w-[54px] h-[54px] flex items-center rounded justify-center fr-p-2v"
                 style={{ backgroundColor: culture.color }}
               ></div>
             </div>

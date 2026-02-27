@@ -14,7 +14,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
   exploitation: ExploitationJson
-  mapRef: RefObject<VisualisationMapRef>
+  mapRef: RefObject<VisualisationMapRef | null>
 }
 
 export default function ParcelleLeftSidebar({

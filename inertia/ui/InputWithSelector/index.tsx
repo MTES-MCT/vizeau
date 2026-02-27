@@ -87,7 +87,7 @@ export default function InputWithSelector<T extends string | number>({
           'onClick': openDropdown,
           'aria-expanded': dropdownOpen,
           'aria-haspopup': 'listbox',
-          'aria-multiselectable': 'true'
+          'aria-multiselectable': 'true',
         }}
         {...props}
       />
