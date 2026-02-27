@@ -2,7 +2,7 @@ import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip'
 import { truncateStr } from '~/functions/string'
 
 export type TruncatedTextProps = {
-  children: React.ReactNode
+  children: string | number | React.ReactNode
   maxLines?: number
   maxStringLength?: number
   className?: string
@@ -22,7 +22,11 @@ export default function TruncatedText({
 }: TruncatedTextProps) {
   // children est ReactNode, on convertit en string pour la troncature
   const textContent =
-    children == null ? '' : typeof children === 'string' || typeof children === 'number' ? String(children) : ''
+    children == null
+      ? ''
+      : typeof children === 'string' || typeof children === 'number'
+        ? String(children)
+        : ''
 
   // Détermine l'élément à utiliser selon le contexte
   const Component = as || (maxStringLength ? 'span' : 'div')
