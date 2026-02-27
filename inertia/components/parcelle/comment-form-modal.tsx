@@ -59,6 +59,7 @@ export default function CommentForm({
           onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value),
           placeholder:
             'Ex : Cette parcelle est en pente, ce qui peut expliquer les faibles rendements observés.',
+          maxLength: 5000,
         }}
       />
     </handleCommentModal.Component>
