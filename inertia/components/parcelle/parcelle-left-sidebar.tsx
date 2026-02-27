@@ -10,6 +10,14 @@ import cultures from '../../../database/data/cultures.json'
 import CustomTag from '~/ui/CustomTag'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { createModal } from '@codegouvfr/react-dsfr/Modal'
+import CommentFormModal from './comment-form-modal'
+
+const handleCommentModal = createModal({
+  id: 'add-comment-modal',
+  isOpenedByDefault: false,
+})
 
 export type ParcelleLeftSidebarProps = {
   parcelle: ParcelleJson
@@ -98,37 +106,67 @@ export default function ParcelleLeftSidebar({
             />
           )}
         </div>
+        <div className="flex flex-col gap-4">
+          <SmallSection
+            title="Informations générales"
+            iconId="fr-icon-pass-pending-line"
+            priority="secondary"
+            hasBorder
+          >
+            <div className="flex flex-col gap-2">
+              <LabelInfo
+                label="Type de culture"
+                size="sm"
+                icon="fr-icon-plant-line"
+                info={cultureLabel ? <CustomTag label={cultureLabel} /> : 'N/A'}
+              />
 
-        <SmallSection
-          title="Informations générales"
-          iconId="fr-icon-pass-pending-line"
-          priority="secondary"
-          hasBorder
-        >
-          <div className="flex flex-col gap-2">
-            <LabelInfo
-              label="Type de culture"
-              size="sm"
-              icon="fr-icon-plant-line"
-              info={cultureLabel ? <CustomTag label={cultureLabel} /> : 'N/A'}
-            />
+              <LabelInfo
+                label="Année de déclaration"
+                size="sm"
+                icon="fr-icon-calendar-line"
+                info={`${parcelle.year || 'N/A'}`}
+              />
 
-            <LabelInfo
-              label="Année de déclaration"
-              size="sm"
-              icon="fr-icon-calendar-line"
-              info={`${parcelle.year || 'N/A'}`}
-            />
+              <LabelInfo
+                label="Surface admissible PAC"
+                size="sm"
+                icon="fr-icon-ruler-line"
+                info={`${parcelle?.surface || 'N/A'} ha`}
+              />
+            </div>
+          </SmallSection>
 
-            <LabelInfo
-              label="Surface admissible PAC"
-              size="sm"
-              icon="fr-icon-ruler-line"
-              info={`${parcelle?.surface || 'N/A'} ha`}
-            />
-          </div>
-        </SmallSection>
+          <SmallSection
+            iconId="fr-icon-draft-line"
+            actionIcon={parcelle?.comment ? 'fr-icon-edit-line' : ''}
+            handleAction={handleCommentModal.open}
+            title="Commentaire"
+            priority="secondary"
+            hasBorder
+          >
+            <div className="flex flex-col gap-4">
+              {parcelle?.comment ? (
+                <p>{parcelle.comment}</p>
+              ) : (
+                <EmptyPlaceholder
+                  label="Aucun commentaire pour cette parcelle."
+                  buttonLabel="Ajouter un commentaire"
+                  handleClick={handleCommentModal.open}
+                  buttonIcon="fr-icon-add-line"
+                  illustrativeIcon="fr-icon-draft-line"
+                />
+              )}
+            </div>
+          </SmallSection>
+        </div>
       </div>
+
+      <CommentFormModal
+        parcelle={parcelle}
+        exploitationId={exploitation.id}
+        handleCommentModal={handleCommentModal}
+      />
     </div>
   )
 }
