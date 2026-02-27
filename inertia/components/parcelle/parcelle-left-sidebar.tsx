@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState } from 'react'
+import { RefObject } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { router } from '@inertiajs/react'
@@ -12,7 +12,7 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
-import Input from '@codegouvfr/react-dsfr/Input'
+import CommentFormModal from './comment-form-modal'
 
 const handleCommentModal = createModal({
   id: 'add-comment-modal',
@@ -30,28 +30,7 @@ export default function ParcelleLeftSidebar({
   exploitation,
   mapRef,
 }: ParcelleLeftSidebarProps) {
-  const [comment, setComment] = useState(parcelle?.comment)
   const cultureLabel = cultures.find((culture) => culture.code === parcelle.cultureCode)?.label
-
-  useEffect(() => {
-    setComment(parcelle?.comment)
-  }, [parcelle?.comment])
-
-  const handleEditComment = () => {
-    const trimmedComment = comment?.trim()
-     router.patch(
-      `/exploitations/${exploitation.id}/parcelles/${parcelle.rpgId}/note`,
-      { year: parcelle.year, comment: trimmedComment ? trimmedComment : null },
-      {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['filteredExploitations'],
-        onSuccess: () => {
-          handleCommentModal.close()
-        },
-      }
-    )
-  }
 
   return (
     <div className="fr-p-1w">
@@ -182,29 +161,12 @@ export default function ParcelleLeftSidebar({
           </SmallSection>
         </div>
       </div>
-      <handleCommentModal.Component
-        title="Ajouter un commentaire à la parcelle"
-        size="large"
-        buttons={[
-          { children: 'Annuler', doClosesModal: true },
-          {
-            children: parcelle?.comment ? 'Modifier le commentaire' : 'Ajouter le commentaire',
-            onClick: handleEditComment,
-          },
-        ]}
-      >
-        <Input
-          textArea
-          label="Commentaire"
-          hintText="Un commentaire peut être ajouté pour fournir des informations supplémentaires sur la parcelle."
-          nativeTextAreaProps={{
-            value: comment || '',
-            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value),
-            placeholder:
-              'Ex : Cette parcelle est en pente, ce qui peut expliquer les faibles rendements observés.',
-          }}
-        />
-      </handleCommentModal.Component>
+
+      <CommentFormModal
+        parcelle={parcelle}
+        exploitationId={exploitation.id}
+        handleCommentModal={handleCommentModal}
+      />
     </div>
   )
 }
