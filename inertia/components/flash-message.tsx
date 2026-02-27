@@ -6,10 +6,12 @@ export function FlashMessage({
   type,
   message,
   description,
+  handleDismiss,
 }: {
   type: string
   message: string
   description?: string
+  handleDismiss?: () => void
 }) {
   let severity: NoticeProps.Severity
 
@@ -24,7 +26,15 @@ export function FlashMessage({
       severity = 'info'
   }
 
-  return <Notice severity={severity} title={message} description={description} isClosable={true} />
+  return (
+    <Notice
+      severity={severity}
+      title={message}
+      description={description}
+      isClosable={true}
+      onClose={handleDismiss}
+    />
+  )
 }
 
 // Persiste les messages fermés entre les remontages (changement d'onglet),
@@ -36,8 +46,10 @@ const globalDismissed = {
 
 export function FlashMessages({
   flashMessages,
+  context,
 }: {
   flashMessages: Record<FlashMessageType, FlashMessageValue | null>
+  context?: string
 }) {
   const [dismissedMessages, setDismissedMessages] = useState(() => {
     // Au remontage (ex: changement d'onglet), restaure l'état si c'est la même page
@@ -73,14 +85,16 @@ export function FlashMessages({
     <>
       {Object.entries(flashMessages).map(([type, fm]) => {
         if (!fm) return null
+        if (context && fm.context !== context) return null
         const key = `${type}:${fm.message}`
         if (dismissedMessages.has(key)) return null
         return (
-          <div key={key} onClick={() => handleDismiss(key)}>
+          <div key={key}>
             <FlashMessage
               type={type}
               message={fm?.message || ''}
               description={fm?.description || ''}
+              handleDismiss={() => handleDismiss(key)}
             />
           </div>
         )

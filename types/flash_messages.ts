@@ -5,4 +5,5 @@ export type FlashMessageValue = {
   description?: string
   code?: string
   details?: Record<string, any>
+  context?: string // Ajout du contexte (ex: 'parcelle', 'journal', etc.)
 }
