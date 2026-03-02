@@ -5,7 +5,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import TruncatedText from '../TruncatedText'
 
 export type SectionCardProps = {
-  title: string
+  title?: string
   children: ReactNode
   icon?: string
   size?: 'small' | 'medium'
@@ -41,28 +41,32 @@ export default function SectionCard({
       <div className="flex items-center">
         <div className="flex-1 min-w-0">
           {size === 'small' ? (
-            <div className="flex gap-1 fr-mb-0">
-              {icon && <span className={`${icon} fr-icon-md`} aria-hidden="true"></span>}
-              <TruncatedText
-                maxLines={1}
-                className="fr-mb-0"
-                hideTooltip={hideLongTitleTooltip}
-                as="h6"
-              >
-                {title}
-              </TruncatedText>
+            <div className="flex gap-1">
+              {icon && <span className={`${icon} fr-icon-md fr-mb-2w`} aria-hidden="true"></span>}
+              {title && (
+                <TruncatedText
+                  maxLines={1}
+                  className="fr-mb-0 fr-mb-2w"
+                  hideTooltip={hideLongTitleTooltip}
+                  as="h6"
+                >
+                  {title}
+                </TruncatedText>
+              )}
             </div>
           ) : (
-            <div className="flex gap-1 fr-mb-0">
-              {icon && <span className={`${icon}`} aria-hidden="true"></span>}
-              <TruncatedText
-                maxLines={2}
-                className="fr-mb-0"
-                hideTooltip={hideLongTitleTooltip}
-                as="h4"
-              >
-                {title}
-              </TruncatedText>
+            <div className="flex gap-1">
+              {icon && <span className={`${icon} fr-mb-2w`} aria-hidden="true"></span>}
+              {title && (
+                <TruncatedText
+                  maxLines={2}
+                  className="fr-mb-0 fr-mb-2w"
+                  hideTooltip={hideLongTitleTooltip}
+                  as="h4"
+                >
+                  {title}
+                </TruncatedText>
+              )}
             </div>
           )}
         </div>
@@ -89,7 +93,7 @@ export default function SectionCard({
           ))}
       </div>
 
-      <div className="fr-mt-3w">{children}</div>
+      <div>{children}</div>
     </section>
   )
 }
