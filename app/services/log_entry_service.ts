@@ -19,6 +19,7 @@ export class LogEntryService {
       .where('exploitationId', exploitationId)
       .preload('author')
       .preload('tags')
+      .preload('documents')
       .orderBy('createdAt', 'desc')
       .paginate(page, pageSize)
   }
