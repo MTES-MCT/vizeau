@@ -5,6 +5,7 @@ import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { LogEntryTagFactory } from '#database/factories/log_entry_tag_factory'
 import { DateTime } from 'luxon'
+import LogEntryDocument from '#models/log_entry_document'
 
 test.group('LogEntryService', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -63,6 +64,46 @@ test.group('LogEntryService', (group) => {
     assert.equal(paginatedLogsJson.meta?.total, 3)
     assert.equal(paginatedLogsJson.meta?.currentPage, 1)
     assert.equal(paginatedLogsJson?.data.length, 3)
+  })
+
+  test('I can get log entries with documents for an exploitation', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const exploitation = await ExploitationFactory.create()
+    const logEntryService = new LogEntryService()
+
+    // Create a log entry
+    const logEntry = await logEntryService.createLogEntry({
+      notes: 'Log entry with documents',
+      userId: user.id,
+      exploitationId: exploitation.id,
+    })
+
+    // Create documents associated with the log entry
+    await LogEntryDocument.createMany([
+      {
+        logEntryId: logEntry.id,
+        name: 'document1.pdf',
+        s3Key: 's3/path/document1.pdf',
+        sizeInBytes: 1024,
+      },
+      {
+        logEntryId: logEntry.id,
+        name: 'document2.pdf',
+        s3Key: 's3/path/document2.pdf',
+        sizeInBytes: 2048,
+      },
+    ])
+
+    // Fetch log entries and verify documents are preloaded
+    const paginatedLogs = await logEntryService.getLogForExploitation(exploitation.id)
+    const paginatedLogsJson = paginatedLogs.toJSON()
+
+    assert.equal(paginatedLogsJson?.data.length, 1)
+    const retrievedLogEntry = paginatedLogsJson.data[0]
+    assert.exists(retrievedLogEntry.documents, 'documents should be preloaded')
+    assert.equal(retrievedLogEntry.documents.length, 2, 'should have 2 documents')
+    assert.equal(retrievedLogEntry.documents[0].name, 'document1.pdf')
+    assert.equal(retrievedLogEntry.documents[1].name, 'document2.pdf')
   })
 
   test('I can update a log entry', async ({ assert }) => {
