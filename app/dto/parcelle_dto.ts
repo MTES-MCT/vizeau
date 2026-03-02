@@ -11,6 +11,7 @@ export class ParcelleDto {
       surface: parcelle.surface,
       cultureCode: parcelle.cultureCode,
       centroid: parcelle.centroid,
+      comment: parcelle.comment,
     }
   }
 }

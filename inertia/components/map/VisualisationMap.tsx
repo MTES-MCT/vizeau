@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
@@ -202,6 +202,16 @@ const VisualisationMap = forwardRef<
       },
     }))
 
+    const parcelleCommentMap = useMemo(() => {
+      const map = new Map<string, string | undefined>()
+      for (const exp of exploitations) {
+        for (const p of exp.parcelles ?? []) {
+          if (p.rpgId) map.set(p.rpgId, p.comment ?? undefined)
+        }
+      }
+      return map
+    }, [exploitations])
+
     const handleParcelleMouseMove = useCallback(
       (e: maplibre.MapLayerMouseEvent) => {
         // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
@@ -217,6 +227,7 @@ const VisualisationMap = forwardRef<
         const id = props?.id_parcel ?? props?.ID_PARCEL
         const isUnavailable = unavailableParcelleIds.includes(id)
 
+        const comment = parcelleCommentMap.get(id)
         // Mise à jour la popup uniquement si la parcelle change
         if (currentParcelleIdRef.current !== id) {
           // Vérifier si une parcelle bio existe à la position du curseur
@@ -234,6 +245,7 @@ const VisualisationMap = forwardRef<
             codeGroup,
             surfParc,
             millesime,
+            comment,
             isUnavailable,
             isBio,
             editMode,
@@ -260,6 +272,7 @@ const VisualisationMap = forwardRef<
       },
       [
         unavailableParcelleIds,
+        parcelleCommentMap,
         exploitations,
         selectedExploitation,
         editMode,

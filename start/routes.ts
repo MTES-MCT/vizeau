@@ -62,6 +62,13 @@ router
       .as('exploitations.detachParcelle')
 
     router
+      .patch('exploitations/:exploitationId/parcelles/:rpgId/note', [
+        ExploitationsController,
+        'updateParcelleNote',
+      ])
+      .as('parcelles.note.update')
+
+    router
       .get('exploitations/:exploitationId/journal', [LogEntriesController, 'index'])
       .as('log_entries.index')
 
