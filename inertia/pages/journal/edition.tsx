@@ -10,6 +10,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { FlashMessages } from '~/components/flash-message'
 import { LogEntryFormData } from '~/pages/journal/creation'
 import { getLogEntryTitle } from '~/functions/log_entries'
+import TruncatedText from '~/ui/TruncatedText'
 
 export default function TaskEditionPage({
   logEntry,
@@ -55,11 +56,13 @@ export default function TaskEditionPage({
             homeLinkProps={{ href: '/' }}
             segments={[
               {
-                label: exploitation.name,
+                label: <TruncatedText maxStringLength={50}>{exploitation.name}</TruncatedText>,
                 linkProps: { href: `/exploitations/${exploitation.id}` },
               },
               {
-                label: getLogEntryTitle(logEntry),
+                label: (
+                  <TruncatedText maxStringLength={50}>{getLogEntryTitle(logEntry)}</TruncatedText>
+                ),
                 linkProps: { href: `/exploitations/${exploitation.id}/journal/${logEntry.id}` },
               },
             ]}
