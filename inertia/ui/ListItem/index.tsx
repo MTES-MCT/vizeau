@@ -1,6 +1,8 @@
 import { Link } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
+import './list-item.css'
+
 import MetasList, { MetasListProps } from '../MetasList'
 import MoreButton, { MoreButtonProps } from '../MoreButton'
 import TagsList, { TagsListProps } from '../TagsList'
@@ -19,15 +21,15 @@ export type AdditionalInfosProps = {
 export type ListItemProps = {
   variant?: 'default' | 'compact'
   priority?: 'primary' | 'secondary'
-  title?: ReactNode
-  subtitle?: ReactNode
+  title?: ReactNode | string
+  subtitle?: ReactNode | string
   iconId?: string
   tags?: TagsListProps['tags']
   metas?: MetasListProps['metas']
   actions?: MoreButtonProps['actions']
   additionalInfos?: AdditionalInfosProps
-  href?: string
   hasBorder?: boolean
+  linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
 }
 
 const AdditionnalInfos = ({
@@ -86,20 +88,27 @@ export default function ListItem({
   subtitle,
   metas,
   actions,
-  href,
   priority = 'primary',
   variant = 'default',
   iconId,
   additionalInfos,
   hasBorder = false,
+  linkProps,
 }: ListItemProps) {
   // Default variant
-  const Wrapper = href ? Link : 'div'
-  const wrapperProps = href ? { href } : {}
+  const listItemHref = linkProps?.href
+  const Wrapper = listItemHref ? Link : 'div'
+  const wrapperProps = listItemHref
+    ? {
+        href: linkProps?.href,
+        preserveScroll: linkProps?.preserveScroll,
+        preserveState: linkProps?.preserveState,
+      }
+    : {}
 
   if (variant === 'compact') {
     return (
-      <Wrapper {...wrapperProps}>
+      <Wrapper {...wrapperProps} className={`${listItemHref ? 'list-item-effect' : ''}`}>
         <div
           className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
           style={{
@@ -131,9 +140,13 @@ export default function ListItem({
                         style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
                       ></span>
                     )}
-                    <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
-                      {title}
-                    </TruncatedText>
+                    {typeof title === 'string' ? (
+                      <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                        {title}
+                      </TruncatedText>
+                    ) : (
+                      <div className="flex-1">{title}</div>
+                    )}
                   </div>
                   {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
                 </div>
@@ -157,7 +170,7 @@ export default function ListItem({
   }
 
   return (
-    <Wrapper {...wrapperProps}>
+    <Wrapper {...wrapperProps} className={`${listItemHref ? 'list-item-effect' : ''}`}>
       <div
         className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{
@@ -187,17 +200,24 @@ export default function ListItem({
                     style={{ color: fr.colors.decisions.text.label.blueFrance.default }}
                   ></span>
                 )}
-                <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
-                  {title}
-                </TruncatedText>
+                {typeof title === 'string' ? (
+                  <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                    {title}
+                  </TruncatedText>
+                ) : (
+                  title
+                )}
               </div>
-              {subtitle && (
-                <span
+              {typeof subtitle === 'string' ? (
+                <TruncatedText
+                  maxLines={1}
                   className="fr-mb-0 fr-text--sm"
                   style={{ color: fr.colors.decisions.text.mention.grey.default }}
                 >
                   {subtitle}
-                </span>
+                </TruncatedText>
+              ) : (
+                subtitle
               )}
             </div>
 
