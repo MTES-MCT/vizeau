@@ -3,6 +3,7 @@ import { LogEntryJson, PaginatedJson } from '../../types/models.js'
 import { LogEntryTagDto } from './log_entry_tag_dto.js'
 import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 import { LogEntryDocumentDto } from './log_entry_document_dto.js'
+import { ExploitationDto } from './exploitation_dto.js'
 
 export class LogEntryDto {
   static fromModel(logEntry: LogEntry): LogEntryJson {
@@ -10,6 +11,9 @@ export class LogEntryDto {
       id: logEntry.id,
       userId: logEntry.userId,
       exploitationId: logEntry.exploitationId,
+      exploitation: logEntry.exploitation
+        ? ExploitationDto.fromModel(logEntry.exploitation)
+        : undefined,
       title: logEntry.title,
       notes: logEntry.notes,
       createdAt: logEntry.createdAt.toISO() as string,

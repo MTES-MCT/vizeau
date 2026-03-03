@@ -35,6 +35,7 @@ export type LogEntryJson = {
   title: string | null
   notes: string | null
   userId: string
+  exploitation?: ExploitationJson
   exploitationId: string
   createdAt: string
   updatedAt: string
@@ -52,6 +53,7 @@ export type ParcelleJson = {
   surface: number | null
   cultureCode: string | null
   centroid: { x: number; y: number } | null
+  comment: string | null
 }
 
 export type ExploitationJson = {

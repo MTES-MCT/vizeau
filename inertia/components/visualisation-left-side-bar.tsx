@@ -34,7 +34,7 @@ export default function VisualisationLeftSideBar({
   setSelectedExploitationTab: (tab: string) => void
   isMapLoading: boolean
   editMode: boolean
-  mapRef: RefObject<VisualisationMapRef>
+  mapRef: RefObject<VisualisationMapRef | null>
   setData: any
   setDefaults: any
   setEditMode: any

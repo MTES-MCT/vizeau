@@ -225,7 +225,12 @@ export default class LogEntriesController {
         await this.logEntryDocumentService.createDocument(logEntry.id, document)
       }
 
-      createSuccessFlashMessage(session, "L'entrée de journal a été créée avec succès.")
+      createSuccessFlashMessage(
+        session,
+        "L'entrée de journal a été créée avec succès.",
+        undefined,
+        'journal'
+      )
 
       return response.redirect().toRoute('exploitations.get', [params.exploitationId])
     } catch (error) {
