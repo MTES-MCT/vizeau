@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
