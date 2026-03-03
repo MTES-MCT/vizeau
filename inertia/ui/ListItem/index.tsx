@@ -28,7 +28,6 @@ export type ListItemProps = {
   metas?: MetasListProps['metas']
   actions?: MoreButtonProps['actions']
   additionalInfos?: AdditionalInfosProps
-  href?: string
   hasBorder?: boolean
   linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
 }
@@ -146,7 +145,7 @@ export default function ListItem({
                         {title}
                       </TruncatedText>
                     ) : (
-                      title
+                      <div className="flex-1">{title}</div>
                     )}
                   </div>
                   {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
@@ -174,7 +173,6 @@ export default function ListItem({
     <Wrapper
       {...wrapperProps}
       className={`${listItemHref ? 'list-item-effect' : ''}`}
-      style={{ backgroundColor: 'transparent' }}
     >
       <div
         className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"

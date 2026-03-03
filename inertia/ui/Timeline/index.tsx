@@ -84,7 +84,11 @@ export default function Timeline(props: TimelineProps) {
           <div
             key={`timeline-item-${index}`}
             className={`relative flex fr-mb-2v ${isNewlyVisible ? 'slide-in' : ''}`}
-            style={isNewlyVisible ? { animationDelay: `${(index - maxVisible) * 0.1}s` } : {}}
+            style={{
+              ...{},
+              overflow: 'visible',
+              ...(isNewlyVisible ? { animationDelay: `${(index - maxVisible) * 0.1}s` } : {})
+            }}
           >
             {/* Point et ligne verticale */}
             <div className="flex flex-col items-center fr-mr-5v fr-m-1v">
@@ -125,7 +129,9 @@ export default function Timeline(props: TimelineProps) {
                 <span>{getButtonLabel()}</span>
               </Button>
             ) : (
-              <div className="fr-mb-5v w-full">{item.content}</div>
+              <div className="fr-mb-5v w-full" style={{ paddingTop: '6px', paddingBottom: '6px' }}>
+                {item.content}
+              </div>
             )}
           </div>
         )
