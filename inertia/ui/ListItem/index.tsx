@@ -170,10 +170,7 @@ export default function ListItem({
   }
 
   return (
-    <Wrapper
-      {...wrapperProps}
-      className={`${listItemHref ? 'list-item-effect' : ''}`}
-    >
+    <Wrapper {...wrapperProps} className={`${listItemHref ? 'list-item-effect' : ''}`}>
       <div
         className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{

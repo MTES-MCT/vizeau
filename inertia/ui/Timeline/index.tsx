@@ -87,7 +87,7 @@ export default function Timeline(props: TimelineProps) {
             style={{
               ...{},
               overflow: 'visible',
-              ...(isNewlyVisible ? { animationDelay: `${(index - maxVisible) * 0.1}s` } : {})
+              ...(isNewlyVisible ? { animationDelay: `${(index - maxVisible) * 0.1}s` } : {}),
             }}
           >
             {/* Point et ligne verticale */}
