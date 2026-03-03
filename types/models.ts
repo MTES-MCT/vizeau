@@ -4,6 +4,7 @@ export type ContactJson = {
   lastName: string | null
   role: string | null
   email: string | null
+  isPrimaryContact: boolean
   phoneNumber: string | null
 }
 
