@@ -4,6 +4,8 @@ import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
 import { EventLoggerService } from '#services/event_logger_service'
 import router from '@adonisjs/core/services/router'
+import { LogEntryDto } from '../dto/log_entry_dto.js'
+import { ExploitationDto } from '../dto/exploitation_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -26,8 +28,10 @@ export default class AccueilController {
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
 
     return inertia.render('accueil', {
-      latestExploitations,
-      latestLogEntries,
+      latestExploitations: latestExploitations.map((exploitation) =>
+        ExploitationDto.fromModel(exploitation)
+      ),
+      latestLogEntries: latestLogEntries.map((log) => LogEntryDto.fromModel(log)),
       createExploitationUrl: router.builder().make('exploitations.create'),
     })
   }

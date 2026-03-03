@@ -5,10 +5,12 @@ import GroupCulture from '~/components/groupe-culture-tag'
 import Divider from '~/ui/Divider'
 import LabelInfo from '~/ui/LabelInfo'
 import { ReactNode } from 'react'
+import Tag from '@codegouvfr/react-dsfr/Tag'
 
 interface PopupParcelleProps {
   codeGroup: string
   millesime: string
+  comment?: string
   surfParc: string
   isParcelleUnavailable: boolean
   isBio?: boolean
@@ -61,6 +63,7 @@ export default function PopupParcelle({
   codeGroup,
   surfParc,
   millesime,
+  comment,
   isBio,
   isParcelleUnavailable = false,
   isEditMode = false,
@@ -82,7 +85,21 @@ export default function PopupParcelle({
         backgroundColor: fr.colors.decisions.background.default.grey.default,
       }}
     >
-      <GroupCulture code_group={codeGroup} size="sm" />
+      <div className="flex items-center gap-2 flex-wrap">
+        <GroupCulture code_group={codeGroup} size="sm" />
+        {comment && (
+          <Tag
+            small
+            iconId="fr-icon-draft-line"
+            style={{
+              backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
+              color: fr.colors.decisions.text.actionHigh.blueFrance.default,
+            }}
+          >
+            Commentaire
+          </Tag>
+        )}
+      </div>
 
       <div className="flex flex-col gap-1 fr-mt-1w">
         <LabelInfo
@@ -123,6 +140,7 @@ export function renderPopupParcelle(
   codeGroup: string,
   surfParc: string,
   millesime: string,
+  comment: string | undefined,
   isParcelleUnavailable: boolean,
   isBio?: boolean,
   isEditMode?: boolean,
@@ -135,6 +153,7 @@ export function renderPopupParcelle(
       codeGroup={codeGroup}
       surfParc={surfParc}
       millesime={millesime}
+      comment={comment}
       isBio={isBio}
       isEditMode={isEditMode}
       isOwnParcelle={isOwnParcelle}

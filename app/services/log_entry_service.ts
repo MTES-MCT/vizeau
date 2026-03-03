@@ -19,6 +19,7 @@ export class LogEntryService {
       .where('exploitationId', exploitationId)
       .preload('author')
       .preload('tags')
+      .preload('documents')
       .orderBy('createdAt', 'desc')
       .paginate(page, pageSize)
   }
@@ -27,9 +28,7 @@ export class LogEntryService {
     return LogEntry.query()
       .where('userId', userId)
       .preload('tags')
-      .preload('exploitation', (query) => {
-        query.select('id', 'name')
-      })
+      .preload('exploitation')
       .orderBy('createdAt', 'desc')
       .limit(limit)
   }
