@@ -1,14 +1,15 @@
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import GroupCulture from '~/components/groupe-culture-tag'
 import Divider from '~/ui/Divider'
 import LabelInfo from '~/ui/LabelInfo'
+import CustomTag from '~/ui/CustomTag'
 import { ReactNode } from 'react'
 import Tag from '@codegouvfr/react-dsfr/Tag'
+import { getCultureByCode } from '~/functions/cultures-group'
 
 interface PopupParcelleProps {
-  codeGroup: string
+  cultureCode?: string
   millesime: string
   comment?: string
   surfParc: string
@@ -60,7 +61,7 @@ function ExploitationInfo({ name }: { name: string }) {
 }
 
 export default function PopupParcelle({
-  codeGroup,
+  cultureCode,
   surfParc,
   millesime,
   comment,
@@ -69,6 +70,7 @@ export default function PopupParcelle({
   isEditMode = false,
   isOwnParcelle = false,
 }: PopupParcelleProps) {
+  const { label: cultureLabel, color: cultureColor } = getCultureByCode(cultureCode)
   const ownershipInfo: ReactNode[] = []
 
   if (isOwnParcelle) {
@@ -86,7 +88,7 @@ export default function PopupParcelle({
       }}
     >
       <div className="flex items-center gap-2 flex-wrap">
-        <GroupCulture code_group={codeGroup} size="sm" />
+        <CustomTag label={cultureLabel} color={cultureColor} size="sm" />
         {comment && (
           <Tag
             small
@@ -137,7 +139,7 @@ export default function PopupParcelle({
 }
 
 export function renderPopupParcelle(
-  codeGroup: string,
+  cultureCode: string | undefined,
   surfParc: string,
   millesime: string,
   comment: string | undefined,
@@ -150,7 +152,7 @@ export function renderPopupParcelle(
   const root = createRoot(container)
   root.render(
     <PopupParcelle
-      codeGroup={codeGroup}
+      cultureCode={cultureCode}
       surfParc={surfParc}
       millesime={millesime}
       comment={comment}

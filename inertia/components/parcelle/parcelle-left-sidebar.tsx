@@ -6,13 +6,13 @@ import { ExploitationJson, ParcelleJson } from '../../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
-import cultures from '../../../database/data/cultures.json'
 import CustomTag from '~/ui/CustomTag'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import CommentFormModal from './comment-form-modal'
+import { getCultureByCode } from '~/functions/cultures-group'
 
 const handleCommentModal = createModal({
   id: 'add-comment-modal',
@@ -30,7 +30,7 @@ export default function ParcelleLeftSidebar({
   exploitation,
   mapRef,
 }: ParcelleLeftSidebarProps) {
-  const cultureLabel = cultures.find((culture) => culture.code === parcelle.cultureCode)?.label
+  const culture = getCultureByCode(parcelle.cultureCode)
 
   return (
     <div className="fr-p-1w">
@@ -118,7 +118,7 @@ export default function ParcelleLeftSidebar({
                 label="Type de culture"
                 size="sm"
                 icon="fr-icon-plant-line"
-                info={cultureLabel ? <CustomTag label={cultureLabel} /> : 'N/A'}
+                info={<CustomTag label={culture.label} color={culture.color} />}
               />
 
               <LabelInfo

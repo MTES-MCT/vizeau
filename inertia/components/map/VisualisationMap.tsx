@@ -230,7 +230,7 @@ const VisualisationMap = forwardRef<
         const props = e.features?.[0]?.properties
 
         // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
-        const codeGroup = props?.code_group ?? props?.CODE_GROUP
+        const cultureCode = props?.code_cultu ?? props?.CODE_CULTU
         const surfParc = props?.surf_parc ?? props?.SURF_PARC
         const id = props?.id_parcel ?? props?.ID_PARCEL
         const isUnavailable = unavailableParcelleIds.includes(id)
@@ -250,7 +250,7 @@ const VisualisationMap = forwardRef<
           )
 
           const popupContent = renderPopupParcelle(
-            codeGroup,
+            cultureCode,
             surfParc,
             millesime,
             comment,
