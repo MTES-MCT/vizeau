@@ -6,7 +6,30 @@ const meta = {
   component: ResumeCard,
   tags: ['autodocs'],
   argTypes: {
-    // Définir les argTypes si nécessaire
+    title: {
+      control: 'text',
+    },
+    label: {
+      control: 'text',
+    },
+    value: {
+      control: 'text',
+    },
+    size: {
+      control: { type: 'select', options: ['sm', 'md'] },
+    },
+    priority: {
+      control: { type: 'select', options: ['primary', 'secondary'] },
+    },
+    color: {
+      control: 'color',
+    },
+    iconId: {
+      control: 'text',
+    },
+    hint: {
+      control: 'text',
+    },
   },
   args: {
     title: 'Title',

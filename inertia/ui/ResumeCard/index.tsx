@@ -35,6 +35,7 @@ export default function ResumeCard({
       <div className="flex gap-1 items-center">
         {iconId && (
           <span
+            aria-hidden="true"
             className={`${iconId} ${size === 'sm' ? 'fr-icon--sm' : 'fr-icon--md'}`}
             style={{ color: color }}
           />
