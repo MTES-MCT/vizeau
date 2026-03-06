@@ -1,5 +1,5 @@
 import EvolutiveChartLine, { EvolutiveChartLineProps } from './index.js'
-const chartData = {
+const chartDataDefault = {
   labels: [2026, 2025, 2024, 2023, 2022, 2021, 2020],
   datasets: [
     {
@@ -14,11 +14,25 @@ const chartData = {
       borderColor: 'rgba(153,102,255,1)',
       backgroundColor: 'rgba(153,102,255,1)',
     },
+  ],
+}
+
+const chartDataDeuxAxes = {
+  labels: [2026, 2025, 2024, 2023, 2022, 2021, 2020],
+  datasets: [
     {
-      label: 'Dataset 3',
-      data: [18, 48, 77, 9, 100, 27, 40],
-      borderColor: 'rgba(255,159,64,1)',
-      backgroundColor: 'rgba(255,159,64,1)',
+      label: 'Valeur gauche',
+      data: [65, 59, 80, 81, 56, 55, 40],
+      borderColor: 'rgba(75,192,192,1)',
+      backgroundColor: 'rgba(75,192,192,1)',
+      yAxisID: 'y',
+    },
+    {
+      label: 'Valeur droite',
+      data: [120, 110, 140, 130, 180, 170, 160],
+      borderColor: 'rgba(153,102,255,1)',
+      backgroundColor: 'rgba(153,102,255,1)',
+      yAxisID: 'y1',
     },
   ],
 }
@@ -33,8 +47,8 @@ const meta = {
     },
   },
   args: {
-    chartItems: chartData,
-    legendSize: 'md',
+    chartItems: chartDataDefault,
+    legendSize: 'sm',
     xAxisLabel: 'Year',
     yAxisLabel: 'Value',
   } as EvolutiveChartLineProps,
@@ -43,3 +57,11 @@ const meta = {
 export default meta
 
 export const Défaut = {}
+
+export const DeuxAxes = {
+  args: {
+    chartItems: chartDataDeuxAxes,
+    yAxisLabel: 'Valeur gauche',
+    yAxisRightLabel: 'Valeur droite',
+  } as EvolutiveChartLineProps,
+}

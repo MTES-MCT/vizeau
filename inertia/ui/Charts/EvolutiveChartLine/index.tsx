@@ -19,20 +19,23 @@ export type EvolutiveChartLineProps = {
       data: number[]
       borderColor: string
       backgroundColor: string
+      yAxisID?: 'y' | 'y1'
     }[]
   }
   legendSize?: 'sm' | 'md' | 'lg'
   xAxisLabel?: string
   yAxisLabel?: string
+  yAxisRightLabel?: string
 }
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
 export default function EvolutiveChartLine({
   chartItems,
-  legendSize = 'md',
+  legendSize = 'sm',
   xAxisLabel = '',
   yAxisLabel = '',
+  yAxisRightLabel = '',
 }: EvolutiveChartLineProps) {
   const labels = chartItems.labels || []
   const legendSizeMap = {
@@ -64,6 +67,7 @@ export default function EvolutiveChartLine({
     }
   }, [min, max, chartItems])
 
+  const hasRightAxis = filteredChartItems.datasets.some((ds) => ds.yAxisID === 'y1')
   const options = {
     responsive: true,
     scales: {
@@ -79,6 +83,8 @@ export default function EvolutiveChartLine({
           : {}),
       },
       y: {
+        type: 'linear' as const,
+        position: 'left' as const,
         ...(yAxisLabel
           ? {
               title: {
@@ -89,6 +95,24 @@ export default function EvolutiveChartLine({
             }
           : {}),
       },
+      ...(hasRightAxis
+        ? {
+            y1: {
+              type: 'linear' as const,
+              position: 'right' as const,
+              grid: { drawOnChartArea: false },
+              ...(yAxisRightLabel
+                ? {
+                    title: {
+                      display: true,
+                      text: yAxisRightLabel,
+                      font: { size: 16, weight: 'bold' as const },
+                    },
+                  }
+                : {}),
+            },
+          }
+        : {}),
     },
     plugins: {
       legend: {
