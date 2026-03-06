@@ -8,8 +8,9 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Line } from 'react-chartjs-2'
+import { min, max } from 'lodash-es'
 
 export type EvolutiveChartLineProps = {
   chartItems: {
@@ -44,15 +45,28 @@ export default function EvolutiveChartLine({
     lg: { box: 25, font: 20 },
   }
 
-  const minDate = labels.length > 0 ? Math.min(...labels) : 0
-  const maxDate = labels.length > 0 ? Math.max(...labels) : 0
+  // Use lodash for min/max calculation
+  const minDate = labels.length > 0 ? (min(labels) ?? 0) : 0
+  const maxDate = labels.length > 0 ? (max(labels) ?? 0) : 0
 
-  const [min, setMin] = useState(minDate)
-  const [max, setMax] = useState(maxDate)
+  const [minValue, setMinValue] = useState(minDate)
+  const [maxValue, setMaxValue] = useState(maxDate)
+
+  // Sync minValue/maxValue with bounds if labels/minDate/maxDate change
+  useEffect(() => {
+    setMinValue((prev) => {
+      if (prev < minDate || prev > maxDate) return minDate
+      return prev
+    })
+    setMaxValue((prev) => {
+      if (prev > maxDate || prev < minDate) return maxDate
+      return prev
+    })
+  }, [minDate, maxDate, labels])
 
   const filteredChartItems = useMemo(() => {
     const indices = labels.reduce<number[]>((acc, label, i) => {
-      if (label >= min && label <= max) {
+      if (label >= minValue && label <= maxValue) {
         acc.push(i)
       }
       return acc
@@ -65,7 +79,7 @@ export default function EvolutiveChartLine({
         data: indices.map((i) => dataset.data[i]),
       })),
     }
-  }, [min, max, chartItems])
+  }, [minValue, maxValue, chartItems])
 
   const hasRightAxis = filteredChartItems.datasets.some((ds) => ds.yAxisID === 'y1')
   const options = {
@@ -134,14 +148,14 @@ export default function EvolutiveChartLine({
   return (
     <div className="flex flex-col gap-10">
       <Range
-        label=""
         double={true}
         small={true}
         min={minDate}
         max={maxDate}
+        label={''}
         nativeInputProps={[
-          { value: min, onChange: (e) => setMin(Number(e.target.value)) },
-          { value: max, onChange: (e) => setMax(Number(e.target.value)) },
+          { value: minValue, onChange: (e) => setMinValue(Number(e.target.value)) },
+          { value: maxValue, onChange: (e) => setMaxValue(Number(e.target.value)) },
         ]}
       />
 
