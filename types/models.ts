@@ -1,9 +1,20 @@
+// Used for frontend forms and requests where id may be missing or null
+export type ExploitationFormValues = Omit<ExploitationJson, 'id' | 'contacts'> & {
+  id?: string | null | undefined
+  contacts: ContactPayload[]
+}
+// Used for frontend forms and requests where id may be missing or null
+export type ContactPayload = Omit<ContactJson, 'id'> & {
+  id?: string | null
+}
+
 export type ContactJson = {
   id: string
   firstName: string | null
   lastName: string | null
   role: string | null
   email: string | null
+  isPrimaryContact: boolean
   phoneNumber: string | null
 }
 
