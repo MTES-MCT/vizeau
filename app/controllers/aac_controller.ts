@@ -10,7 +10,7 @@ export default class AacController {
   constructor(public aacService: AacService) {}
 
   async index({ request, inertia }: HttpContext) {
-    const page = Number(request.input('page', 1))
+    const page = Math.max(1, parseInt(request.input('page', '1'), 10) || 1)
     const recherche = request.input('recherche') || undefined
     const commune = request.input('commune') || undefined
 
@@ -28,7 +28,7 @@ export default class AacController {
     const raw = await this.aacService.getByCode(params.code)
 
     if (!raw) {
-      return response.notFound({ message: `AAC avec le code "${params.code}" introuvable` })
+      return response.abort(`AAC avec le code "${params.code}" introuvable`, 404)
     }
 
     return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })

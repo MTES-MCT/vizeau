@@ -1,37 +1,44 @@
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api'
 import env from '#start/env'
 
+/** Escapes a value for safe embedding in a single-quoted SQL string literal. */
+function sqlEscape(value: string): string {
+  return value.replace(/'/g, "''")
+}
+
 /*
  * Singleton DuckDB connection instance.
  * Initialized on first use by getConnection(), which also sets up the S3 secret.
  * The connection is reused for all queries to avoid overhead of reconnecting.
  */
-let connection: DuckDBConnection | null = null
+let connectionPromise: Promise<DuckDBConnection> | null = null
 
 async function getConnection(): Promise<DuckDBConnection> {
-  if (connection) return connection
+  if (connectionPromise) return connectionPromise
 
-  const instance = await DuckDBInstance.create(':memory:')
-  connection = await instance.connect()
+  connectionPromise = (async () => {
+    try {
+      const instance = await DuckDBInstance.create(':memory:')
+      const conn = await instance.connect()
+      await conn.run('LOAD httpfs;')
+      await conn.run(`
+        CREATE SECRET aac_s3_secret (
+          TYPE S3,
+          KEY_ID '${sqlEscape(env.get('S3_ACCESS_KEY'))}',
+          SECRET '${sqlEscape(env.get('S3_SECRET_KEY'))}',
+          REGION '${sqlEscape(env.get('S3_REGION'))}',
+          ENDPOINT '${sqlEscape(env.get('S3_ENDPOINT'))}',
+          URL_STYLE 'path'
+        );
+      `)
+      return conn
+    } catch (err) {
+      connectionPromise = null
+      throw err
+    }
+  })()
 
-  try {
-    await connection.run('LOAD httpfs;')
-    await connection.run(`
-      CREATE SECRET aac_s3_secret (
-        TYPE S3,
-        KEY_ID '${env.get('S3_ACCESS_KEY')}',
-        SECRET '${env.get('S3_SECRET_KEY')}',
-        REGION '${env.get('S3_REGION')}',
-        ENDPOINT '${env.get('S3_ENDPOINT')}',
-        URL_STYLE 'path'
-      );
-    `)
-  } catch (err) {
-    connection = null
-    throw err
-  }
-
-  return connection
+  return connectionPromise
 }
 
 function getParquetPath(): string {

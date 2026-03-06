@@ -75,10 +75,13 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
       <div className="fr-container fr-mt-4w fr-mb-8w">
         <SectionTitle>Informations générales</SectionTitle>
         <div className="fr-card fr-card--no-arrow fr-p-3w">
-          <InfoRow label="Surface totale" value={`${aac.surface?.toLocaleString('fr-FR')} ha`} />
+          <InfoRow
+            label="Surface totale"
+            value={aac.surface != null ? `${aac.surface.toLocaleString('fr-FR')} ha` : '—'}
+          />
           <InfoRow
             label="Surface agricole"
-            value={`${aac.surface_agricole?.toLocaleString('fr-FR')} ha`}
+            value={aac.surface_agricole != null ? `${aac.surface_agricole.toLocaleString('fr-FR')} ha` : '—'}
           />
           <InfoRow label="Captages actifs" value={aac.nb_captages_actifs} />
           <InfoRow label="Installations" value={aac.nb_installations} />
@@ -93,7 +96,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
             <div className="fr-card fr-card--no-arrow fr-p-3w">
               <InfoRow
                 label="Surface bio"
-                value={`${aac.surface_agricole_bio.surface?.toLocaleString('fr-FR')} ha`}
+                value={aac.surface_agricole_bio.surface != null ? `${aac.surface_agricole_bio.surface.toLocaleString('fr-FR')} ha` : '—'}
               />
               <InfoRow label="Nb parcelles bio" value={aac.surface_agricole_bio.nb_parcelles} />
               <InfoRow label="Part bio" value={`${aac.surface_agricole_bio.part_bio} %`} />
@@ -143,7 +146,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
                           </Badge>
                         </td>
                         <td>{info?.surface?.toLocaleString('fr-FR')}</td>
-                        <td>{info?.repartition} %</td>
+                        <td>{info?.repartition != null ? `${info.repartition} %` : '—'}</td>
                       </tr>
                     ))}
                 </tbody>
