@@ -9,6 +9,7 @@ import LogEntriesController from '#controllers/log_entries_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { FlashMessages } from '~/components/flash-message'
+import TruncatedText from '~/ui/TruncatedText'
 
 export type LogEntryFormData = {
   id?: string
@@ -62,7 +63,7 @@ export default function TaskCreationPage({
             homeLinkProps={{ href: '/' }}
             segments={[
               {
-                label: exploitation.name,
+                label: <TruncatedText maxStringLength={50}>{exploitation.name}</TruncatedText>,
                 linkProps: { href: `/exploitations/${exploitation.id}` },
               },
             ]}
