@@ -20,6 +20,7 @@ async function getConnection(): Promise<DuckDBConnection> {
     try {
       const instance = await DuckDBInstance.create(':memory:')
       const conn = await instance.connect()
+      await conn.run('INSTALL httpfs;')
       await conn.run('LOAD httpfs;')
       await conn.run(`
         CREATE SECRET aac_s3_secret (
