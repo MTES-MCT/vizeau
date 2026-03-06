@@ -15,7 +15,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   2: {
     label: 'Maïs grain et ensilage',
     code_group: 2,
-    color: '#00FC07',
+    color: '#F8D200',
   },
   3: {
     label: 'Orge',
@@ -35,17 +35,17 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   6: {
     label: 'Tournesol',
     code_group: 6,
-    color: '#FFFF00',
+    color: '#F4F498',
   },
   7: {
     label: 'Autre oléagineux',
     code_group: 7,
-    color: '#FDC103',
+    color: '#C1834C',
   },
   8: {
     label: 'Protéagineux',
     code_group: 8,
-    color: '#F0B401',
+    color: '#AA9D7E',
   },
   9: {
     label: 'Plantes à fibres',
@@ -55,7 +55,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   10: {
     label: 'Semences',
     code_group: 10,
-    color: '#624700',
+    color: '#B38A61',
   },
   11: {
     label: 'Gel',
@@ -95,7 +95,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   18: {
     label: 'Prairies permanentes',
     code_group: 18,
-    color: '#BFFF60',
+    color: '#408C65',
   },
   19: {
     label: 'Prairies temporaires',
@@ -105,17 +105,17 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   20: {
     label: 'Vergers',
     code_group: 20,
-    color: '#FE0100',
+    color: '#E79876',
   },
   21: {
     label: 'Vignes',
     code_group: 21,
-    color: '#DF00E4',
+    color: '#B786C6',
   },
   22: {
     label: 'Fruits à coque',
     code_group: 22,
-    color: '#008001',
+    color: '#7BD5CB',
   },
   23: {
     label: 'Oliviers',
@@ -135,17 +135,17 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   26: {
     label: 'Canne à sucre',
     code_group: 26,
-    color: '#0000FF',
+    color: '#9494FE',
   },
   27: {
     label: 'Arboriculture',
     code_group: 27,
-    color: '#02B558',
+    color: '#5CA7CD',
   },
   28: {
     label: 'Divers - non disponible',
     code_group: 28,
-    color: '#81017F',
+    color: '#977497',
   },
 }
 
