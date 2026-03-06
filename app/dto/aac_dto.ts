@@ -1,0 +1,97 @@
+export type AacAnalyse = {
+  year: string
+  count: number
+}
+
+export type CommuneInfo = {
+  code_insee: string
+  surface: number
+  repartition: number
+}
+
+export type CultureInfo = {
+  nb_parcelles: number | null
+  surface: number | null
+  SAU: number | null
+} | null
+
+export type AacSummaryJson = {
+  code: string
+  nom: string
+  surface: number
+  nb_captages_actifs: number
+  nb_communes: number
+}
+
+export type AacListJson = {
+  data: AacSummaryJson[]
+  meta: {
+    total: number
+    perPage: number
+    currentPage: number
+    lastPage: number
+  }
+}
+
+export type AacJson = {
+  code: string
+  nom: string
+  date_creation: string
+  date_maj: string
+  surface: number
+  nb_captages_actifs: number
+  nb_installations: number
+  surface_agricole: number
+  nb_parcelles: number
+  nb_analyses: AacAnalyse[]
+  communes: {
+    nb_communes: number
+    communes: Record<string, CommuneInfo>
+  }
+  surface_agricole_utile: Record<string, CultureInfo>
+  surface_agricole_ppe: Record<string, CultureInfo>
+  surface_agricole_ppr: Record<string, CultureInfo>
+  surface_agricole_bio: { nb_parcelles: number; surface: number; part_bio: number }
+}
+
+export class AacDto {
+  static fromRawSummary(row: Record<string, unknown>): AacSummaryJson {
+    return {
+      code: row.code as string,
+      nom: row.nom as string,
+      surface: row.surface as number,
+      nb_captages_actifs: row.nb_captages_actifs as number,
+      nb_communes: row.nb_communes as number,
+    }
+  }
+
+  static fromRaw(row: Record<string, unknown>): AacJson {
+    const formatDate = (val: unknown): string => {
+      if (!val) return ''
+      if (val instanceof Date) return val.toISOString().slice(0, 10)
+      if (typeof val === 'string') return val.slice(0, 10)
+      return String(val)
+    }
+
+    return {
+      code: row.code as string,
+      nom: row.nom as string,
+      date_creation: formatDate(row.date_creation),
+      date_maj: formatDate(row.date_maj),
+      surface: row.surface as number,
+      nb_captages_actifs: row.nb_captages_actifs as number,
+      nb_installations: row.nb_installations as number,
+      surface_agricole: row.surface_agricole as number,
+      nb_parcelles: row.nb_parcelles as number,
+      nb_analyses: Object.entries(row.nb_analyses as Record<string, unknown>)
+        .filter(([, v]) => v !== null)
+        .map(([year, count]) => ({ year, count: Number(count) }))
+        .sort((a, b) => a.year.localeCompare(b.year)),
+      communes: row.communes as AacJson['communes'],
+      surface_agricole_utile: row.surface_agricole_utile as Record<string, CultureInfo>,
+      surface_agricole_ppe: row.surface_agricole_ppe as Record<string, CultureInfo>,
+      surface_agricole_ppr: row.surface_agricole_ppr as Record<string, CultureInfo>,
+      surface_agricole_bio: row.surface_agricole_bio as AacJson['surface_agricole_bio'],
+    }
+  }
+}
