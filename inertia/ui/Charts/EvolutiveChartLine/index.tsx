@@ -142,6 +142,21 @@ export default function EvolutiveChartLine({
           },
         },
       },
+      tooltip: {
+        backgroundColor: 'rgb(255, 255, 255)',
+        titleColor: 'rgb(0, 0, 0)',
+        bodyColor: 'rgb(0, 0, 0)',
+        titleFont: {
+          size: 16,
+        },
+        bodyFont: {
+          size: 14,
+        },
+        padding: 10,
+        titleMarginBottom: 10,
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderWidth: 1,
+      },
     },
   }
 
