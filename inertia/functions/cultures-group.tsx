@@ -15,7 +15,7 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   2: {
     label: 'Maïs grain et ensilage',
     code_group: 2,
-    color: '#f8d200',
+    color: '#F8D200',
   },
   3: {
     label: 'Orge',
