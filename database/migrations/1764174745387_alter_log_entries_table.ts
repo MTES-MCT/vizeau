@@ -11,11 +11,7 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    await LogEntry.query()
-      .update({
-        notes: '',
-      })
-      .whereNull('notes')
+    await LogEntry.query().whereNull('notes').update('notes', '')
 
     this.schema.alterTable(this.tableName, (table) => {
       table.dropNullable('notes')
