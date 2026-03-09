@@ -15,7 +15,7 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    await Contact.query().whereNull('first_name').update('first_name', '')
+    await this.db.query().from(this.tableName).whereNull('first_name').update('first_name', '')
 
     this.schema.alterTable(this.tableName, (table) => {
       table.renameColumn('first_name', 'name')
