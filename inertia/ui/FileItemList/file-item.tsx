@@ -32,26 +32,28 @@ export default function FileItem({
         borderBottom: `${isLast ? 'none' : `1px solid ${fr.colors.decisions.border.default.grey.default}`}`,
       }}
     >
-      {href ? (
-        <Download
-          label={name}
-          details={[format?.toUpperCase(), formattedSize].filter(Boolean).join(' - ')}
-          linkProps={{ href }}
-          className="w-full fr-mb-0"
-        />
-      ) : (
-        <div className="w-full flex flex-col gap-1">
-          <span className="text-md font-medium">{name}</span>
-          {(format || size) && (
-            <div
-              className="text-xs"
-              style={{ color: fr.colors.decisions.text.mention.grey.default }}
-            >
-              {[format?.toUpperCase(), formattedSize].filter(Boolean).join(' - ')}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="min-w-0 flex-1">
+        {href ? (
+          <Download
+            label={name}
+            details={[format?.toUpperCase(), formattedSize].filter(Boolean).join(' - ')}
+            linkProps={{ href }}
+            className="fr-mb-0"
+          />
+        ) : (
+          <div className="flex flex-col gap-1">
+            <span className="text-md font-medium">{name}</span>
+            {(format || size) && (
+              <div
+                className="text-xs"
+                style={{ color: fr.colors.decisions.text.mention.grey.default }}
+              >
+                {[format?.toUpperCase(), formattedSize].filter(Boolean).join(' - ')}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {deletable && (
         <Button
@@ -61,7 +63,8 @@ export default function FileItem({
           priority="tertiary no outline"
           title="Supprimer le fichier"
           size="small"
-          style={{ color: fr.colors.decisions.text.default.error.default }}
+          className="flex-shrink-0"
+          style={{ color: fr.colors.decisions.text.default.error.default, minWidth: '32px' }}
         />
       )}
     </div>
