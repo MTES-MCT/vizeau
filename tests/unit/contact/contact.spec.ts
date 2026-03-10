@@ -31,6 +31,7 @@ test.group('Contact front-end functions', () => {
       role: null,
       email: null,
       phoneNumber: null,
+      isPrimaryContact: true,
     }
 
     assert.equal(displayContactName(contact), 'Jane Doe')
@@ -44,6 +45,7 @@ test.group('Contact front-end functions', () => {
       role: null,
       email: null,
       phoneNumber: null,
+      isPrimaryContact: true,
     }
 
     assert.equal(displayContactName(contact), 'Jane')
@@ -56,6 +58,7 @@ test.group('Contact front-end functions', () => {
       role: null,
       email: null,
       phoneNumber: null,
+      isPrimaryContact: true,
     }
 
     assert.equal(displayContactName(contact), 'Doe')
@@ -69,6 +72,7 @@ test.group('Contact front-end functions', () => {
       role: null,
       email: null,
       phoneNumber: null,
+      isPrimaryContact: true,
     }
     assert.equal(displayContactName(contact), 'N/A')
   })
@@ -85,6 +89,7 @@ test.group('Contact front-end functions', () => {
     role: null,
     email: null,
     phoneNumber: null,
+    isPrimaryContact: true,
   }
 
   const contactB: ContactJson = {
@@ -94,6 +99,7 @@ test.group('Contact front-end functions', () => {
     role: null,
     email: null,
     phoneNumber: null,
+    isPrimaryContact: false,
   }
 
   test('getMainContact returns the first contact when array has elements', async ({ assert }) => {
