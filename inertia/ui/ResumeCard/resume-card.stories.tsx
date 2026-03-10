@@ -1,6 +1,17 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard, { ResumeCardProps } from './index.js'
 
+const metaArgs: ResumeCardProps = {
+  title: 'Title',
+  label: 'Label',
+  value: 'Value',
+  size: 'md',
+  priority: 'primary',
+  color: fr.colors.decisions.text.label.blueFrance.default,
+  iconId: 'fr-icon-information-fill',
+  hint: 'Hint text',
+}
+
 const meta = {
   title: 'UI/ResumeCard',
   component: ResumeCard,
@@ -31,16 +42,7 @@ const meta = {
       control: 'text',
     },
   },
-  args: {
-    title: 'Title',
-    label: 'Label',
-    value: 'Value',
-    size: 'md',
-    priority: 'primary',
-    color: fr.colors.decisions.text.label.blueFrance.default,
-    iconId: 'fr-icon-information-fill',
-    hint: 'Hint text',
-  } as ResumeCardProps,
+  args: metaArgs,
 }
 
 export default meta
