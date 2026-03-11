@@ -6,6 +6,7 @@ export type TagsListProps = {
   tags: {
     label: string
     iconId?: string
+    color?: string
   }[]
   size?: 'md' | 'sm'
   limit?: number
@@ -15,9 +16,9 @@ export default function TagsList({ tags, size = 'md', limit }: TagsListProps) {
 
   return (
     <ul className="fr-badges-group gap-2 flex flex-wrap fr-mb-0 items-center">
-      {uniqueMetas.slice(0, limit).map(({ label, iconId }) => (
+      {uniqueMetas.slice(0, limit).map(({ label, iconId, color }) => (
         <li key={label} className="fr-mb-0 h-fit">
-          <CustomTag label={label} iconId={iconId} size={size} />
+          <CustomTag label={label} iconId={iconId} size={size} color={color} />
         </li>
       ))}
       {limit && tags.length > limit && (

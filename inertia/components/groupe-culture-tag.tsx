@@ -2,12 +2,12 @@ import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import CustomTag from '../ui/CustomTag'
 
 export type GroupeCultureTagProps = {
-  code_group: string | number
+  group_code: string | number
   size?: 'md' | 'sm'
 }
 
-export default function GroupeCultureTag({ code_group, size = 'md' }: GroupeCultureTagProps) {
-  const cultureGroup = GROUPES_CULTURAUX[code_group]
+export default function GroupeCultureTag({ group_code, size = 'md' }: GroupeCultureTagProps) {
+  const cultureGroup = GROUPES_CULTURAUX[group_code]
 
   return <CustomTag label={cultureGroup?.label} size={size} color={cultureGroup.color} />
 }
