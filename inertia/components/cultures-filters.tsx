@@ -32,14 +32,14 @@ export default function CulturesFilters({
 
       <div className="flex flex-col gap-1">
         {culturesItems.map((culture) => {
-          const isVisible = visibleCultures.includes(String(culture.code_group))
+          const isVisible = visibleCultures.includes(String(culture.group_code))
           return (
-            <div key={culture.code_group} style={{ opacity: isVisible ? 1 : 0.5 }}>
+            <div key={culture.group_code} style={{ opacity: isVisible ? 1 : 0.5 }}>
               <LegendItem
                 label={culture.label}
                 color={culture.color}
                 checked={isVisible}
-                onChange={() => onToggleCulture(String(culture.code_group))}
+                onChange={() => onToggleCulture(String(culture.group_code))}
               />
             </div>
           )
