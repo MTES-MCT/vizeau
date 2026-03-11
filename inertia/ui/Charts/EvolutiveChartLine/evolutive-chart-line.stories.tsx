@@ -1,4 +1,5 @@
 import EvolutiveChartLine, { EvolutiveChartLineProps } from './index.js'
+
 const chartDataDefault = {
   labels: [2026, 2025, 2024, 2023, 2022, 2021, 2020],
   datasets: [
@@ -37,6 +38,13 @@ const chartDataDeuxAxes = {
   ],
 }
 
+const metaArgs: EvolutiveChartLineProps = {
+  chartItems: chartDataDefault,
+  legendSize: 'sm',
+  xAxisLabel: 'Year',
+  yAxisLabel: 'Value',
+}
+
 const meta = {
   title: 'UI/Charts/EvolutiveChartLine',
   component: EvolutiveChartLine,
@@ -46,12 +54,7 @@ const meta = {
       control: 'object',
     },
   },
-  args: {
-    chartItems: chartDataDefault,
-    legendSize: 'sm',
-    xAxisLabel: 'Year',
-    yAxisLabel: 'Value',
-  } as EvolutiveChartLineProps,
+  args: metaArgs,
 }
 
 export default meta
@@ -60,8 +63,9 @@ export const Défaut = {}
 
 export const DeuxAxes = {
   args: {
+    ...metaArgs,
     chartItems: chartDataDeuxAxes,
     yAxisLabel: 'Valeur gauche',
     yAxisRightLabel: 'Valeur droite',
-  } as EvolutiveChartLineProps,
+  },
 }
