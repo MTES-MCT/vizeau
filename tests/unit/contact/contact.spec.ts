@@ -64,7 +64,7 @@ test.group('Contact front-end functions', () => {
     assert.equal(displayContactName(contact), 'Doe')
   })
 
-  test('I display N/A when contact has no name', async ({ assert }) => {
+  test('I display a default text when contact has no name', async ({ assert }) => {
     const contact: ContactJson = {
       id: '4',
       firstName: null,
@@ -74,11 +74,11 @@ test.group('Contact front-end functions', () => {
       phoneNumber: null,
       isPrimaryContact: true,
     }
-    assert.equal(displayContactName(contact), 'N/A')
+    assert.equal(displayContactName(contact), 'Non renseigné')
   })
 
-  test('I display N/A when contact is undefined', async ({ assert }) => {
-    assert.equal(displayContactName(undefined), 'N/A')
+  test('I display a default text when contact is undefined', async ({ assert }) => {
+    assert.equal(displayContactName(undefined), 'Non renseigné')
   })
 
   // Tests for getMainContact
