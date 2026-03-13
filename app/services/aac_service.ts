@@ -67,6 +67,11 @@ function normalizeValue(value: unknown): unknown {
       return new Date(ms).toISOString().slice(0, 10)
     }
 
+    // DuckDB list value: { items: [...] }
+    if ('items' in obj && Array.isArray(obj.items)) {
+      return (obj.items as unknown[]).map(normalizeValue)
+    }
+
     // DuckDB struct or map value: has 'entries' property
     if ('entries' in obj) {
       const entries = obj.entries

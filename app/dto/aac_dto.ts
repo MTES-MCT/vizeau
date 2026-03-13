@@ -4,6 +4,28 @@ export type CommuneInfo = {
   repartition: number
 }
 
+export type CaptageRattache = {
+  code: string
+  nom: string
+  code_bss: string
+  etat: string
+}
+
+export type InstallationInfo = {
+  code: string
+  nom: string
+  code_bss: string
+  commune: string
+  departement: string
+  type: string
+  nature: string
+  usage: string
+  etat: string
+  code_ppe: string
+  prioritaire: boolean
+  captages_rattaches: CaptageRattache[]
+}
+
 export type CultureInfo = {
   nb_parcelles: number | null
   surface: number | null
@@ -31,6 +53,7 @@ export type AacListJson = {
 export type AacJson = {
   code: string
   nom: string
+  prioritaire: boolean
   date_creation: string
   date_maj: string
   surface: number
@@ -45,7 +68,13 @@ export type AacJson = {
   surface_agricole_utile: Record<string, CultureInfo>
   surface_agricole_ppe: Record<string, CultureInfo>
   surface_agricole_ppr: Record<string, CultureInfo>
-  surface_agricole_bio: { nb_parcelles: number; surface: number; part_bio: number }
+  surface_agricole_bio: {
+    nb_parcelles: number
+    surface: number
+    part_bio: number
+    evolution: { annee: number; nb_parcelles: number; surface: number }[]
+  }
+  installations: InstallationInfo[]
 }
 
 export class AacDto {
@@ -70,6 +99,7 @@ export class AacDto {
     return {
       code: row.code as string,
       nom: row.nom as string,
+      prioritaire: row.prioritaire as boolean,
       date_creation: formatDate(row.date_creation),
       date_maj: formatDate(row.date_maj),
       surface: row.surface as number,
@@ -82,6 +112,7 @@ export class AacDto {
       surface_agricole_ppe: row.surface_agricole_ppe as Record<string, CultureInfo>,
       surface_agricole_ppr: row.surface_agricole_ppr as Record<string, CultureInfo>,
       surface_agricole_bio: row.surface_agricole_bio as AacJson['surface_agricole_bio'],
+      installations: row.installations as InstallationInfo[],
     }
   }
 }
