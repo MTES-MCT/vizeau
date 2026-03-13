@@ -1,8 +1,3 @@
-export type AacAnalyse = {
-  year: string
-  count: number
-}
-
 export type CommuneInfo = {
   code_insee: string
   surface: number
@@ -43,7 +38,6 @@ export type AacJson = {
   nb_installations: number
   surface_agricole: number
   nb_parcelles: number
-  nb_analyses: AacAnalyse[]
   communes: {
     nb_communes: number
     communes: Record<string, CommuneInfo>
@@ -83,10 +77,6 @@ export class AacDto {
       nb_installations: row.nb_installations as number,
       surface_agricole: row.surface_agricole as number,
       nb_parcelles: row.nb_parcelles as number,
-      nb_analyses: Object.entries(row.nb_analyses as Record<string, unknown>)
-        .filter(([, v]) => v !== null)
-        .map(([year, count]) => ({ year, count: Number(count) }))
-        .sort((a, b) => a.year.localeCompare(b.year)),
       communes: row.communes as AacJson['communes'],
       surface_agricole_utile: row.surface_agricole_utile as Record<string, CultureInfo>,
       surface_agricole_ppe: row.surface_agricole_ppe as Record<string, CultureInfo>,

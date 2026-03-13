@@ -56,7 +56,6 @@ function CulturesTable({ data, title }: { data: Record<string, CultureInfo>; tit
 
 export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) {
   const communeEntries = Object.entries(aac.communes?.communes ?? {})
-  const analyseYears = aac.nb_analyses ?? []
 
   return (
     <Layout>
@@ -100,23 +99,6 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
               />
               <InfoRow label="Nb parcelles bio" value={aac.surface_agricole_bio.nb_parcelles} />
               <InfoRow label="Part bio" value={`${aac.surface_agricole_bio.part_bio} %`} />
-            </div>
-          </>
-        )}
-
-        {analyseYears.length > 0 && (
-          <>
-            <SectionTitle>Nombre d'analyses par année</SectionTitle>
-            <div className="flex flex-wrap gap-3">
-              {analyseYears.map(({ year, count }) => (
-                <div
-                  key={year}
-                  className="fr-card fr-card--no-arrow fr-p-2w text-center min-w-[80px]"
-                >
-                  <div className="text-xs text-gray-500">{year}</div>
-                  <div className="fr-h5 fr-mb-0">{count}</div>
-                </div>
-              ))}
             </div>
           </>
         )}
