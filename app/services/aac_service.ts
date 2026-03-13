@@ -118,13 +118,17 @@ export class AacService {
       conditions.push(
         "(nom ILIKE '%' || $" + paramIdx + " || '%' OR code ILIKE '%' || $" + paramIdx + " || '%')"
       )
+
       paramIdx++
       filterParams.push(recherche)
     }
+
     if (commune) {
       conditions.push(
-        "array_to_string(map_keys(communes.communes), '|') ILIKE '%' || $" + paramIdx++ + " || '%'"
+        "array_to_string(map_keys(communes.communes), '|') ILIKE '%' || $" + paramIdx + " || '%'"
       )
+
+      paramIdx++
       filterParams.push(commune)
     }
 

@@ -10,7 +10,7 @@ export default class AacController {
   constructor(public aacService: AacService) {}
 
   async index({ request, inertia }: HttpContext) {
-    const page = Math.max(1, parseInt(request.input('page', '1'), 10) || 1)
+    const page = Math.max(1, Number.parseInt(request.input('page', '1'), 10) || 1)
     const recherche = request.input('recherche') || undefined
     const commune = request.input('commune') || undefined
 
