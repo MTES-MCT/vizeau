@@ -66,4 +66,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   SPACES_REGION: Env.schema.string(),
   SPACES_BUCKET: Env.schema.string(),
   SPACES_ENDPOINT: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the AAC parquet file
+  |----------------------------------------------------------
+  */
+  S3_ACCESS_KEY: Env.schema.string(),
+  S3_SECRET_KEY: Env.schema.string(),
+  S3_REGION: Env.schema.string(),
+  S3_BUCKET: Env.schema.string(),
+  S3_ENDPOINT: Env.schema.string(),
 })
