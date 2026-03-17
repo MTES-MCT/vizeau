@@ -17,7 +17,8 @@ export default function ProgressBar({
 }: ProgressBarProps) {
   const BORDER_RADIUS = 5
   const percent = total > 0 ? Math.min(100, (value / total) * 100) : 0
-  const formattedPercent = percent.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+  const roundedPercent = Math.round(percent * 10) / 10
+  const formattedPercent = roundedPercent.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
   const color = progressColor || fr.colors.decisions.background.actionHigh.blueFrance.default
 
   return (
@@ -33,7 +34,7 @@ export default function ProgressBar({
         <div
           className="h-full"
           style={{
-            width: `${percent}%`,
+            width: `${roundedPercent}%`,
             height: '100%',
             background: color,
             transition: 'width 0.3s',

@@ -8,7 +8,7 @@ export type DoughnutProps = {
     data: number
     label: string
     backgroundColor: string
-    tooltipValue?: number | undefined
+    tooltipValue?: number
   }[]
   legendSize?: 'sm' | 'md' | 'lg'
   legendSide?: 'top' | 'left' | 'bottom' | 'right'
@@ -31,10 +31,10 @@ export default function Doughnut({
 
   const options = {
     maintainAspectRatio: false,
+    responsive: true,
     plugins: {
       legend: {
         display: !hideLegend,
-        responsive: true,
         position: legendSide || ('right' as const),
         align: 'center' as const,
         fullSize: true,
@@ -62,12 +62,11 @@ export default function Doughnut({
         borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
         callbacks: {
-          label: (context: { formattedValue: string; dataIndex: number }) => {
+          label: (context: { dataIndex: number }) => {
             const item = chartItems[context.dataIndex]
-            const value =
-              item?.tooltipValue !== undefined
-                ? new Intl.NumberFormat('fr-FR').format(item.tooltipValue)
-                : context.formattedValue
+            const rawValue =
+              item && item.tooltipValue !== undefined ? item.tooltipValue : (item?.data ?? 0)
+            const value = new Intl.NumberFormat('fr-FR').format(rawValue)
             return ` ${value} ${unit}`
           },
         },

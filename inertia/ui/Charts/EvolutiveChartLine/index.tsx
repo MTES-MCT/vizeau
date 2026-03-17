@@ -146,8 +146,14 @@ export default function EvolutiveChartLine({
       },
       tooltip: {
         callbacks: {
-          label: (context: { formattedValue: string }) => {
-            return ` ${context.formattedValue} ${unit}`
+          label: (context: any) => {
+            const datasetLabel = context?.dataset?.label ?? ''
+            const value = context?.formattedValue ?? ''
+            const unitSuffix = unit ? ` ${unit}` : ''
+            if (datasetLabel) {
+              return `${datasetLabel}: ${value}${unitSuffix}`
+            }
+            return `${value}${unitSuffix}`
           },
         },
         backgroundColor: 'rgb(255, 255, 255)',
