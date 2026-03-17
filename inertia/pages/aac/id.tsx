@@ -196,7 +196,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
                         <td>{row.periode}</td>
                         <td>{row.culture}</td>
                         <td>{row.nb_parcelles ?? '—'}</td>
-                        <td>{row.surface_ha?.toLocaleString('fr-FR') ?? '—'}</td>
+                        <td>{row.surface_ha?.toFixed(2) ?? '—'}</td>
                       </tr>
                     ))}
                 </tbody>
