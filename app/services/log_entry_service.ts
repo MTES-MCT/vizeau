@@ -4,6 +4,15 @@ import { ModelAttributes } from '@adonisjs/lucid/types/model'
 import LogEntryDocument from '#models/log_entry_document'
 
 export class LogEntryService {
+  /**
+   * Returns a query builder for log entries that belong to exploitations that are not marked as deleted.
+   */
+  queryLogEntriesFromActiveExploitation() {
+    return LogEntry.query().whereHas('exploitation', (exploitationQuery) => {
+      exploitationQuery.where('isDeleted', false)
+    })
+  }
+
   async createLogEntry(logData: Partial<ModelAttributes<LogEntry>>, tagsIds?: number[]) {
     const logEntry = await LogEntry.create(logData)
 
@@ -15,7 +24,7 @@ export class LogEntryService {
   }
 
   async getLogForExploitation(exploitationId: string, page = 1, pageSize = 10) {
-    return LogEntry.query()
+    return this.queryLogEntriesFromActiveExploitation()
       .where('exploitationId', exploitationId)
       .preload('author')
       .preload('tags')
@@ -25,7 +34,7 @@ export class LogEntryService {
   }
 
   async getLatestLogEntriesFromUser(userId: string, limit = 5) {
-    return LogEntry.query()
+    return this.queryLogEntriesFromActiveExploitation()
       .where('userId', userId)
       .preload('tags')
       .preload('exploitation')
@@ -38,7 +47,7 @@ export class LogEntryService {
       .where('id', documentId)
       .andWhereHas('logEntry', (logEntryQuery) => {
         logEntryQuery.whereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.where('userId', userId)
+          exploitationQuery.where('userId', userId).andWhere('isDeleted', false)
         })
       })
       .first()
@@ -52,7 +61,10 @@ export class LogEntryService {
     logData: Partial<ModelAttributes<LogEntry>>,
     tagsIds?: number[]
   ) {
-    const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
+    const logEntry = await this.queryLogEntriesFromActiveExploitation()
+      .where('id', id)
+      .andWhere('exploitationId', exploitationId)
+      .firstOrFail()
 
     if (logEntry.userId !== userId) {
       throw errors.E_UNAUTHORIZED_ACCESS
@@ -73,7 +85,10 @@ export class LogEntryService {
 
   // We require the exploitationId to ensure the log entry belongs to the correct exploitation
   async deleteLogEntry(id: string, userId: string, exploitationId: string) {
-    const logEntry = await LogEntry.findByOrFail({ id, exploitationId })
+    const logEntry = await this.queryLogEntriesFromActiveExploitation()
+      .where('id', id)
+      .andWhere('exploitationId', exploitationId)
+      .firstOrFail()
 
     if (logEntry.userId !== userId) {
       throw errors.E_UNAUTHORIZED_ACCESS

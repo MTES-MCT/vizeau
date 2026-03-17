@@ -11,6 +11,8 @@ export default class extends BaseSchema {
   }
 
   async down() {
+    await this.db.query().from(this.tableName).whereNull('notes').update('notes', '')
+
     this.schema.alterTable(this.tableName, (table) => {
       table.dropNullable('notes')
     })
