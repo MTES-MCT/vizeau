@@ -27,6 +27,7 @@ export type EvolutiveChartLineProps = {
   xAxisLabel?: string
   yAxisLabel?: string
   yAxisRightLabel?: string
+  unit?: string
 }
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
@@ -37,6 +38,7 @@ export default function EvolutiveChartLine({
   xAxisLabel = '',
   yAxisLabel = '',
   yAxisRightLabel = '',
+  unit = '%',
 }: EvolutiveChartLineProps) {
   const labels = chartItems.labels || []
   const legendSizeMap = {
@@ -143,6 +145,11 @@ export default function EvolutiveChartLine({
         },
       },
       tooltip: {
+        callbacks: {
+          label: (context: { formattedValue: string }) => {
+            return ` ${context.formattedValue} ${unit}`
+          },
+        },
         backgroundColor: 'rgb(255, 255, 255)',
         titleColor: 'rgb(0, 0, 0)',
         bodyColor: 'rgb(0, 0, 0)',
