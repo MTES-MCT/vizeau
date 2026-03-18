@@ -46,8 +46,18 @@ export default function ButtonWithSelector<T extends string | number>({
   }, [dropdownOpen])
 
   return (
-    <div style={{ position: 'relative', width: 'fit-content' }} ref={containerRef}>
-      <Button className="fr-m-0" onClick={() => setDropdownOpen(!dropdownOpen)} priority={priority}>
+    <div style={{ position: 'relative' }} ref={containerRef}>
+      <Button
+        className="fr-m-0"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        priority={priority}
+        iconId={dropdownOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+        iconPosition="right"
+        style={{
+          justifyContent: 'space-between',
+          width: '100%',
+        }}
+      >
         {label}
       </Button>
 
