@@ -90,7 +90,7 @@ export default function AacAgricultureSection({
           />
           <ResumeCard
             title="Culture Bio"
-            value={surface_agricole_bio?.surface.toFixed(2) ?? 0}
+            value={surface_agricole_bio?.surface?.toFixed(2) ?? 0}
             label="hectares"
             iconId="fr-icon-leaf-line"
             priority="secondary"
@@ -111,14 +111,16 @@ export default function AacAgricultureSection({
           />
         </SmallSection>
 
-        <SmallSection
-          title="Évolution de l'agriculture biologique"
-          iconId="fr-icon-leaf-line"
-          priority="secondary"
-          hasBorder
-        >
-          <EvolutiveChartLine chartItems={evolutiveChartData} />
-        </SmallSection>
+        {(surface_agricole_bio?.surface ?? 0) > 0 && (
+          <SmallSection
+            title="Évolution de l'agriculture biologique"
+            iconId="fr-icon-leaf-line"
+            priority="secondary"
+            hasBorder
+          >
+            <EvolutiveChartLine chartItems={evolutiveChartData} />
+          </SmallSection>
+        )}
       </div>
     </SectionCard>
   )
