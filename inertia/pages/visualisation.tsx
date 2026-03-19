@@ -36,6 +36,9 @@ export default function VisualisationPage({
   queryString,
   assignParcellesToExploitationUrl,
   unavailableParcellesIds,
+  aacs,
+  aacMeta,
+  aacQueryString,
 }: InferPageProps<VisualisationController, 'index'>) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [showParcelles, setShowParcelles] = useState(true)
@@ -263,7 +266,7 @@ export default function VisualisationPage({
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
       <MapLayout
-        pageName="Exploitations agricoles"
+        pageName="Exploitations agricoles et AAC"
         leftContent={
           <VisualisationLeftSideBar
             exploitations={filteredExploitations}
@@ -285,6 +288,9 @@ export default function VisualisationPage({
             setEditMode={setEditMode}
             showBioOnly={showBioOnly}
             millesime={millesime}
+            aacs={aacs}
+            aacMeta={aacMeta}
+            aacQueryString={aacQueryString}
           />
         }
         headerAdditionalContent={

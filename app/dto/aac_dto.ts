@@ -38,6 +38,7 @@ export type AacSummaryJson = {
   surface: number
   nb_captages_actifs: number
   nb_communes: number
+  date_maj: string
 }
 
 export type AacListJson = {
@@ -75,9 +76,17 @@ export type AacJson = {
     evolution: { annee: number; nb_parcelles: number; surface: number }[]
   }
   installations: InstallationInfo[]
+  nb_analyses: { year: number; count: number }[]
 }
 
 export class AacDto {
+  private static formatDate(val: unknown): string {
+    if (!val) return ''
+    if (val instanceof Date) return val.toISOString().slice(0, 10)
+    if (typeof val === 'string') return val.slice(0, 10)
+    return String(val)
+  }
+
   static fromRawSummary(row: Record<string, unknown>): AacSummaryJson {
     return {
       code: row.code as string,
@@ -85,23 +94,17 @@ export class AacDto {
       surface: row.surface as number,
       nb_captages_actifs: row.nb_captages_actifs as number,
       nb_communes: row.nb_communes as number,
+      date_maj: AacDto.formatDate(row.date_maj),
     }
   }
 
   static fromRaw(row: Record<string, unknown>): AacJson {
-    const formatDate = (val: unknown): string => {
-      if (!val) return ''
-      if (val instanceof Date) return val.toISOString().slice(0, 10)
-      if (typeof val === 'string') return val.slice(0, 10)
-      return String(val)
-    }
-
     return {
       code: row.code as string,
       nom: row.nom as string,
       prioritaire: row.prioritaire as boolean,
-      date_creation: formatDate(row.date_creation),
-      date_maj: formatDate(row.date_maj),
+      date_creation: AacDto.formatDate(row.date_creation),
+      date_maj: AacDto.formatDate(row.date_maj),
       surface: row.surface as number,
       nb_captages_actifs: row.nb_captages_actifs as number,
       nb_installations: row.nb_installations as number,
@@ -113,6 +116,7 @@ export class AacDto {
       surface_agricole_ppr: row.surface_agricole_ppr as Record<string, CultureInfo>,
       surface_agricole_bio: row.surface_agricole_bio as AacJson['surface_agricole_bio'],
       installations: row.installations as InstallationInfo[],
+      nb_analyses: (row.nb_analyses as { year: number; count: number }[]) ?? [],
     }
   }
 }
