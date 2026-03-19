@@ -9,7 +9,7 @@ import Doughnut from '~/ui/Charts/Doughnut'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import SmallSection from '~/ui/SmallSection'
 
-export type AacTerriroirSectionProps = {
+export type AacTerritoirSectionProps = {
   surface: number
   nb_captages_actifs: number
   nb_parcelles: number
@@ -26,12 +26,12 @@ export type AacTerriroirSectionProps = {
   }
 }
 
-export default function AacTerriroirSection({
+export default function AacTerritoirSection({
   surface,
   nb_captages_actifs,
   nb_parcelles,
   communes,
-}: AacTerriroirSectionProps) {
+}: AacTerritoirSectionProps) {
   const communeRepartitionItems = useMemo(() => {
     const totalSurface = Object.values(communes.communes).reduce(
       (acc, { surface }) => acc + surface,
