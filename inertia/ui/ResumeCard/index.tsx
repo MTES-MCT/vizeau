@@ -18,7 +18,7 @@ export default function ResumeCard({
   label,
   hint,
   priority = 'primary',
-  color,
+  color = fr.colors.decisions.text.title.blueFrance.default,
   iconId,
 }: ResumeCardProps) {
   return (
@@ -32,7 +32,7 @@ export default function ResumeCard({
             : fr.colors.decisions.background.alt.blueFrance.default,
       }}
     >
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-1 items-start">
         {iconId && (
           <span
             aria-hidden="true"
