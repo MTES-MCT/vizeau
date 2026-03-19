@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { stringToColor } from '~/functions/colors'
 
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
@@ -27,14 +27,16 @@ export default function AacCaptages({ installations }: AacCaptagesProps) {
   const [filteredInstallations, setFilteredInstallations] = useState(installations)
   const [showActifOnly, setShowActifOnly] = useState(false)
 
-  const [selectInputOptions, setSelectInputOptions] = useState(() => {
+  const [deselectedTypes, setDeselectedTypes] = useState<Set<string>>(new Set())
+
+  const selectInputOptions = useMemo(() => {
     const types = Array.from(new Set(installations.map((inst) => inst.type)))
     return types.map((type) => ({
       value: type,
       label: type,
-      isSelected: true,
+      isSelected: !deselectedTypes.has(type),
     }))
-  })
+  }, [installations, deselectedTypes])
   useEffect(() => {
     const selectedTypes = new Set(
       selectInputOptions.filter((o) => o.isSelected).map((o) => o.value)
@@ -48,9 +50,15 @@ export default function AacCaptages({ installations }: AacCaptagesProps) {
   }, [showActifOnly, installations, selectInputOptions])
 
   const handleOptionChange = (updatedOption: OptionType<string>) => {
-    setSelectInputOptions((prev) =>
-      prev.map((opt) => (opt.value === updatedOption.value ? updatedOption : opt))
-    )
+    setDeselectedTypes((prev) => {
+      const next = new Set(prev)
+      if (updatedOption.isSelected) {
+        next.delete(updatedOption.value)
+      } else {
+        next.add(updatedOption.value)
+      }
+      return next
+    })
   }
 
   return (

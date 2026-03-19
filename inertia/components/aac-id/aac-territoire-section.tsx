@@ -9,9 +9,9 @@ import Doughnut from '~/ui/Charts/Doughnut'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import SmallSection from '~/ui/SmallSection'
 
-export type AacTerritoirSectionProps = {
+export type AacTerritoireSectionProps = {
   surface: number
-  nb_captages_actifs: number
+  nb_captages_actifs: number | null
   nb_parcelles: number
   communes: {
     nb_communes: number
@@ -26,23 +26,24 @@ export type AacTerritoirSectionProps = {
   }
 }
 
-export default function AacTerritoirSection({
+export default function AacTerritoireSection({
   surface,
   nb_captages_actifs,
   nb_parcelles,
   communes,
-}: AacTerritoirSectionProps) {
+}: AacTerritoireSectionProps) {
   const communeRepartitionItems = useMemo(() => {
-    const totalSurface = Object.values(communes.communes).reduce(
-      (acc, { surface }) => acc + surface,
-      0
-    )
+    const allCommunesPresent = Object.keys(communes.communes).length >= communes.nb_communes
+
+    const totalSurface = allCommunesPresent
+      ? Object.values(communes.communes).reduce((acc, { surface }) => acc + surface, 0)
+      : 0
 
     return Object.entries(communes.communes).map(([nom, info]) => {
       const repartition =
-        totalSurface > 0
+        allCommunesPresent && totalSurface > 0
           ? Number(((info.surface / totalSurface) * 100).toFixed(1))
-          : info.repartition
+          : Number(info.repartition.toFixed(1))
       return {
         label: nom,
         surface: info.surface,
@@ -80,13 +81,14 @@ export default function AacTerritoirSection({
   }, [communes.nb_communes, communeRepartitionItems])
 
   const communeProgressBarsItems = useMemo(() => {
-    return communeRepartitionItems.map(({ label, repartition, backgroundColor }) => ({
+    return communeRepartitionItems.map(({ label, repartition, backgroundColor }, index) => ({
+      key: `${label}-${communes.communes[label]?.code_insee ?? index}`,
       label,
       value: repartition,
       total: 100,
       progressColor: backgroundColor,
     }))
-  }, [communeRepartitionItems])
+  }, [communeRepartitionItems, communes.communes])
 
   return (
     <SectionCard title="Territoire">
@@ -98,7 +100,7 @@ export default function AacTerritoirSection({
           title="Surface totale"
           iconId="fr-icon-ruler-line"
           label="hectares"
-          value={surface.toFixed(2)}
+          value={surface != null ? surface.toFixed(2) : '—'}
           priority="secondary"
         />
         <ResumeCard
@@ -137,7 +139,7 @@ export default function AacTerritoirSection({
                   total: item.total,
                   progressColor: item.progressColor,
                 }}
-                key={item.label}
+                key={item.key}
               />
             ))}
           </div>

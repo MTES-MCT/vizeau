@@ -30,18 +30,19 @@ export default function AacCulturesRepartition({
           : surface_agricole_utile
 
     const filteredSource = Object.entries(source).filter(
-      ([, entry]) => entry !== null && entry.SAU !== null
+      (entry): entry is [string, { surface: number; SAU: number | null }] =>
+        entry[1] !== null && entry[1].surface !== null && entry[1].SAU !== null
     )
 
-    const totalSAU = filteredSource.reduce((acc, [, entry]) => acc + (entry?.surface ?? 0), 0)
+    const totalSAU = filteredSource.reduce((acc, [, entry]) => acc + entry.surface, 0)
 
     return orderBy(
       filteredSource.map(([name, entry]) => {
         const color = getCultureCategoryColor(name)
         return {
           label: name,
-          data: totalSAU > 0 ? Number(((entry!.surface! / totalSAU) * 100).toFixed(1)) : 0,
-          tooltipValue: entry?.surface ?? undefined,
+          data: totalSAU > 0 ? Number(((entry.surface / totalSAU) * 100).toFixed(1)) : 0,
+          tooltipValue: entry.surface,
           backgroundColor: color,
           progressColor: color,
         }

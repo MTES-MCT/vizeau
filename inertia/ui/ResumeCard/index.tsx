@@ -4,7 +4,7 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 export type ResumeCardProps = {
   title: string
   size?: 'sm' | 'md'
-  value: string | number
+  value: string | number | null
   label?: string
   priority?: 'primary' | 'secondary'
   color?: string

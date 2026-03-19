@@ -10,7 +10,7 @@ import AacInformationsCard from '~/components/aac-id/aac-informations-card'
 import AacCommunesCard from '~/components/aac-id/aac-communes-card'
 import { map } from 'lodash-es'
 import { useState } from 'react'
-import AacTerritoirSection from '~/components/aac-id/aac-territoire-section'
+import AacTerritoireSection from '~/components/aac-id/aac-territoire-section'
 import AacAgricultureSection from '~/components/aac-id/aac-agriculture-section'
 import AacCaptages from '~/components/aac-id/aac-captages'
 
@@ -76,7 +76,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
 
             {selectedTabId === 'assolement' && (
               <div className="flex flex-col gap-4">
-                <AacTerritoirSection {...aac} />
+                <AacTerritoireSection {...aac} />
                 <AacAgricultureSection {...aac} />
               </div>
             )}
