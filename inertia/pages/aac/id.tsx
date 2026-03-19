@@ -56,6 +56,18 @@ function CulturesTable({ data, title }: { data: Record<string, CultureInfo>; tit
 
 export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) {
   const communeEntries = Object.entries(aac.communes?.communes ?? {})
+  const installations = aac.installations ?? []
+  const cultureEvolutionRows = Object.entries(aac.culture_evolution?.repartition ?? {}).flatMap(
+    ([periode, cultures]) =>
+      Object.entries(cultures ?? {})
+        .filter(([, details]) => details !== null)
+        .map(([culture, details]) => ({
+          periode,
+          culture,
+          surface_ha: details?.surface_ha ?? null,
+          nb_parcelles: details?.nb_parcelles ?? null,
+        }))
+  )
 
   return (
     <Layout>
@@ -80,7 +92,11 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
           />
           <InfoRow
             label="Surface agricole"
-            value={aac.surface_agricole != null ? `${aac.surface_agricole.toLocaleString('fr-FR')} ha` : '—'}
+            value={
+              aac.surface_agricole != null
+                ? `${aac.surface_agricole.toLocaleString('fr-FR')} ha`
+                : '—'
+            }
           />
           <InfoRow label="Captages actifs" value={aac.nb_captages_actifs} />
           <InfoRow label="Installations" value={aac.nb_installations} />
@@ -95,7 +111,11 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
             <div className="fr-card fr-card--no-arrow fr-p-3w">
               <InfoRow
                 label="Surface bio"
-                value={aac.surface_agricole_bio.surface != null ? `${aac.surface_agricole_bio.surface.toLocaleString('fr-FR')} ha` : '—'}
+                value={
+                  aac.surface_agricole_bio.surface != null
+                    ? `${aac.surface_agricole_bio.surface.toLocaleString('fr-FR')} ha`
+                    : '—'
+                }
               />
               <InfoRow label="Nb parcelles bio" value={aac.surface_agricole_bio.nb_parcelles} />
               <InfoRow label="Part bio" value={`${aac.surface_agricole_bio.part_bio} %`} />
@@ -149,6 +169,81 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
           data={aac.surface_agricole_ppr ?? {}}
           title="SAU en périmètre de protection rapproché (PPR)"
         />
+
+        {cultureEvolutionRows.length > 0 && (
+          <>
+            <SectionTitle>Évolution des cultures</SectionTitle>
+            <div className="fr-table fr-table--bordered">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Année / période</th>
+                    <th>Culture</th>
+                    <th>Nb parcelles</th>
+                    <th>Surface (ha)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cultureEvolutionRows
+                    .slice()
+                    .sort((a, b) =>
+                      a.periode === b.periode
+                        ? a.culture.localeCompare(b.culture, 'fr')
+                        : a.periode.localeCompare(b.periode, 'fr')
+                    )
+                    .map((row) => (
+                      <tr key={`${row.periode}-${row.culture}`}>
+                        <td>{row.periode}</td>
+                        <td>{row.culture}</td>
+                        <td>{row.nb_parcelles ?? '—'}</td>
+                        <td>{row.surface_ha?.toFixed(2) ?? '—'}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {installations.length > 0 && (
+          <>
+            <SectionTitle>Installations ({installations.length})</SectionTitle>
+            <div className="fr-table fr-table--bordered">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Code</th>
+                    <th>Commune</th>
+                    <th>Département</th>
+                    <th>Type</th>
+                    <th>Nature</th>
+                    <th>Usage</th>
+                    <th>État</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {installations.map((installation) => (
+                    <tr key={installation.code}>
+                      <td>{installation.nom || '—'}</td>
+                      <td>
+                        <Badge severity="info" small>
+                          {installation.code}
+                        </Badge>
+                      </td>
+                      <td>{installation.commune || '—'}</td>
+                      <td>{installation.departement || '—'}</td>
+                      <td>{installation.type || '—'}</td>
+                      <td>{installation.nature || '—'}</td>
+                      <td>{installation.usage || '—'}</td>
+                      <td>{installation.etat || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   )
