@@ -257,7 +257,7 @@ const VisualisationMap = forwardRef<
             isUnavailable,
             isBio,
             editMode,
-            exploitation?.id === selectedExploitation?.id
+            selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id
           )
 
           parcellePopupRef.current
