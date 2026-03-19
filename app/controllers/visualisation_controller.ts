@@ -45,27 +45,36 @@ export default class VisualisationController {
     const aacRecherche = request.input('aacRecherche') || undefined
     const aacCommune = request.input('aacCommune') || undefined
 
-    const { data: aacData, total: aacTotal } = await this.aacService.getAll(
-      aacPage,
-      AAC_PER_PAGE,
-      aacRecherche,
-      aacCommune
-    )
-    const aacLastPage = Math.max(1, Math.ceil(aacTotal / AAC_PER_PAGE))
+    // Memoize the DuckDB/S3 query so it only runs once even when both aacs
+    // and aacMeta are resolved in the same partial reload.
+    let aacResultPromise: Promise<{ data: Record<string, unknown>[]; total: number }> | null = null
+    const getAacResult = () => {
+      if (!aacResultPromise) {
+        aacResultPromise = this.aacService.getAll(aacPage, AAC_PER_PAGE, aacRecherche, aacCommune)
+      }
+      return aacResultPromise
+    }
 
     return inertia.render('visualisation', {
-      aacs: aacData.map(AacDto.fromRawSummary),
-      aacMeta: {
-        total: aacTotal,
-        perPage: AAC_PER_PAGE,
-        currentPage: aacPage,
-        lastPage: aacLastPage,
+      aacs: async () => {
+        const { data } = await getAacResult()
+        return data.map(AacDto.fromRawSummary)
       },
-      aacQueryString: {
+      aacMeta: async () => {
+        const { total } = await getAacResult()
+        const aacLastPage = Math.max(1, Math.ceil(total / AAC_PER_PAGE))
+        return {
+          total,
+          perPage: AAC_PER_PAGE,
+          currentPage: aacPage,
+          lastPage: aacLastPage,
+        }
+      },
+      aacQueryString: () => ({
         aacRecherche: aacRecherche ?? '',
         aacCommune: aacCommune ?? '',
         aacPage: String(aacPage),
-      },
+      }),
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitationsByNameOrContactName(request.input('recherche'), user.id)

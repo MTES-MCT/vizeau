@@ -5,6 +5,7 @@ import { Pagination, addPaginationTranslations } from '@codegouvfr/react-dsfr/Pa
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
 import { debounce } from 'lodash-es'
 import { router } from '@inertiajs/react'
+import type { AacSummaryJson } from '../../../types/models'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import ListItem from '~/ui/ListItem'
 import { formatDateFr } from '~/functions/date'
@@ -12,7 +13,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { fr } from '@codegouvfr/react-dsfr'
 
 type AACsLeftSidebarProps = {
-  aacs: any[]
+  aacs: AacSummaryJson[]
   queryString: {
     aacRecherche: string
     aacCommune: string
@@ -134,9 +135,13 @@ export default function AACsLeftSidebar({ aacs, queryString, meta }: AACsLeftSid
           {aacs.length === 0 ? (
             <EmptyPlaceholder
               label={
-                queryString?.aacRecherche
-                  ? `Aucun résultat trouvé pour "${queryString.aacRecherche}"`
-                  : 'Aucune AAC enregistrée'
+                queryString?.aacRecherche && queryString?.aacCommune
+                  ? `Aucun résultat pour "${queryString.aacRecherche}" dans la commune "${queryString.aacCommune}"`
+                  : queryString?.aacRecherche
+                    ? `Aucun résultat trouvé pour "${queryString.aacRecherche}"`
+                    : queryString?.aacCommune
+                      ? `Aucun résultat pour la commune "${queryString.aacCommune}"`
+                      : 'Aucune AAC enregistrée'
               }
               pictogram={LocationFrance}
             />

@@ -1,5 +1,5 @@
 import { ChangeEvent, RefObject, useState } from 'react'
-import { ExploitationJson, ParcelleJson } from '../../types/models'
+import { AacSummaryJson, ExploitationJson, ParcelleJson } from '../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
 import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'
@@ -50,7 +50,7 @@ export default function VisualisationLeftSideBar({
   processing: boolean
   reset: any
   sendFormAndResetState: any
-  aacs: any[]
+  aacs: AacSummaryJson[]
   aacMeta: { total: number; perPage: number; currentPage: number; lastPage: number }
   aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
 }) {
