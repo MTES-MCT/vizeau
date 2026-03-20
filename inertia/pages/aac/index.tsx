@@ -28,7 +28,7 @@ export default function AacIndex({
       </div>
 
       <div className="fr-container flex flex-col gap-4 fr-mt-4w fr-mb-8w">
-        <AacsSearch queryString={queryString} />
+        <AacsSearch queryString={queryString} reloadOnly={['aacs', 'meta', 'queryString']} />
 
         {aacs.length === 0 ? (
           <EmptyPlaceholder
@@ -72,7 +72,7 @@ export default function AacIndex({
                   defaultPage={meta.currentPage}
                   getPageLinkProps={(pageNumber) => {
                     const params = new URLSearchParams(queryString)
-                    params.set('page', String(pageNumber))
+                    params.set('aacPage', String(pageNumber))
                     return { href: `?${params.toString()}` }
                   }}
                 />

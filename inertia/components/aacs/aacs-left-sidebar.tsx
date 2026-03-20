@@ -40,7 +40,10 @@ export default function AACsLeftSidebar({ aacs, queryString, meta }: AACsLeftSid
     <div>
       <div className="fr-p-1w">
         <div className="flex flex-col gap-5">
-          <AacsSearch queryString={queryString} />
+          <AacsSearch
+            queryString={queryString}
+            reloadOnly={['aacs', 'aacMeta', 'aacQueryString']}
+          />
 
           {aacs.length === 0 ? (
             <EmptyPlaceholder

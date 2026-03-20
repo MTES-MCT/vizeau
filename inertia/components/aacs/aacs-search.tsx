@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 
 import { debounce } from 'lodash-es'
 import { router } from '@inertiajs/react'
@@ -13,31 +13,52 @@ export type AacsSearchProps = {
     aacCommune: string
     aacPage: string
   }
+  reloadOnly: string[]
 }
 
-const handleSearch = debounce((value: string) => {
-  router.reload({
-    only: ['aacs', 'aacMeta', 'aacQueryString'],
-    data: { aacRecherche: value, aacPage: '1' },
-    replace: true,
-  })
-}, 300)
-
-const handleCommuneFilter = debounce((value: string) => {
-  router.reload({
-    only: ['aacs', 'aacMeta', 'aacQueryString'],
-    data: { aacCommune: value, aacPage: '1' },
-    replace: true,
-  })
-}, 300)
-
-export default function AacsSearch({ queryString }: AacsSearchProps) {
+export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps) {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
+  const [searchValue, setSearchValue] = useState(queryString?.aacRecherche || '')
   const [communeFilter, setCommuneFilter] = useState(queryString?.aacCommune || '')
+
+  const handleSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        router.reload({
+          only: reloadOnly,
+          data: { aacRecherche: value, aacPage: '1' },
+          replace: true,
+        })
+      }, 300),
+    [reloadOnly]
+  )
+
+  const handleCommuneFilter = useMemo(
+    () =>
+      debounce((value: string) => {
+        router.reload({
+          only: reloadOnly,
+          data: { aacCommune: value, aacPage: '1' },
+          replace: true,
+        })
+      }, 300),
+    [reloadOnly]
+  )
+
+  useEffect(() => {
+    setSearchValue(queryString?.aacRecherche || '')
+  }, [queryString?.aacRecherche])
 
   useEffect(() => {
     setCommuneFilter(queryString?.aacCommune || '')
   }, [queryString?.aacCommune])
+
+  useEffect(() => {
+    return () => {
+      handleSearch.cancel()
+      handleCommuneFilter.cancel()
+    }
+  }, [handleSearch, handleCommuneFilter])
 
   return (
     <div className="flex flex-col gap-4">
@@ -50,8 +71,11 @@ export default function AacsSearch({ queryString }: AacsSearchProps) {
               id={id}
               type={type}
               placeholder="Rechercher par code ou nom d'AAC"
-              defaultValue={queryString?.aacRecherche || ''}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+              value={searchValue}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                setSearchValue(e.target.value)
+                handleSearch(e.target.value)
+              }}
             />
           )}
         />
@@ -96,9 +120,10 @@ export default function AacsSearch({ queryString }: AacsSearchProps) {
                 priority="tertiary no outline"
                 size="small"
                 onClick={() => {
+                  handleCommuneFilter.cancel()
                   setCommuneFilter('')
                   router.reload({
-                    only: ['aacs', 'aacMeta', 'aacQueryString'],
+                    only: reloadOnly,
                     data: { aacCommune: '', aacPage: '1' },
                     replace: true,
                   })
