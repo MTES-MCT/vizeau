@@ -116,7 +116,7 @@ export default function AacCaptages({ installations }: AacCaptagesProps) {
                 additionalInfos={{
                   ...(installation.prioritaire === true && {
                     message: 'Prioritaire',
-                    iconId: 'fr-icon-infos-fill',
+                    iconId: 'fr-icon-info-fill',
                   }),
                   ...(installation.etat && {
                     alert: {
