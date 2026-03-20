@@ -1,3 +1,11 @@
+import { CultureInfo } from './aac.js'
+// Types for AAC data models
+export type CommuneInfo = {
+  code_insee: string
+  surface: number
+  repartition: number
+}
+
 // Used for frontend forms and requests where id may be missing or null
 export type ExploitationFormValues = Omit<ExploitationJson, 'id' | 'contacts'> & {
   id?: string | null | undefined
@@ -94,6 +102,21 @@ export type AacSummaryJson = {
   nb_captages_actifs: number
   nb_communes: number
   date_maj: string
+  date_creation: string
+  nb_parcelles: number
+  communes: {
+    nb_communes: number
+    communes: Record<string, CommuneInfo>
+  }
+  surface_agricole_ppe: Record<string, CultureInfo>
+  surface_agricole_ppr: Record<string, CultureInfo>
+  surface_agricole_utile: Record<string, CultureInfo>
+  surface_agricole_bio: {
+    nb_parcelles: number
+    surface: number
+    part_bio: number
+    evolution: { annee: number; nb_parcelles: number; surface: number }[]
+  }
 }
 
 export type PaginatedJson<T> = {

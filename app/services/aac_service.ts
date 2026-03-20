@@ -157,7 +157,7 @@ export class AacService {
     const limitIdx = paramIdx
     const offsetIdx = paramIdx + 1
     const dataStmt = await conn.prepare(
-      'SELECT code, nom, surface, nb_captages_actifs, communes.nb_communes, date_maj, bbox ' +
+      'SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles, surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile, bbox ' +
         'FROM read_parquet($1) ' +
         where +
         ' ORDER BY nom LIMIT $' +
