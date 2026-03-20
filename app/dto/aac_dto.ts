@@ -124,7 +124,9 @@ export class AacDto {
       surface_agricole_ppe: row.surface_agricole_ppe as Record<string, CultureInfo>,
       surface_agricole_ppr: row.surface_agricole_ppr as Record<string, CultureInfo>,
       surface_agricole_bio: row.surface_agricole_bio as AacJson['surface_agricole_bio'],
-      culture_evolution: ((row as any).culture_evolution ?? (row as any).cultures_evolution ?? null) as AacJson['culture_evolution'],
+      culture_evolution: ((row as any).culture_evolution ??
+        (row as any).cultures_evolution ??
+        null) as AacJson['culture_evolution'],
       installations: row.installations as InstallationInfo[],
     }
   }
