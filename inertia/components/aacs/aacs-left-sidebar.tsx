@@ -154,7 +154,7 @@ export default function AACsLeftSidebar({ aacs, queryString, meta }: AACsLeftSid
                 }}
               >
                 <span className="font-bold">{meta.total}</span>{' '}
-                {`airs d'alimentation de captages${meta.total > 1 ? 's' : ''}`}
+                {`air${meta.total > 1 ? 's' : ''} d'alimentation de captage`}
               </span>
               <div className="flex flex-col gap-2">
                 {aacs.map((aac, index) => {
