@@ -22,6 +22,8 @@ type AACsLeftSidebarProps = {
     currentPage: number
     lastPage: number
   }
+  millesime: string
+  selectedAac?: AacSummaryJson
 }
 
 addPaginationTranslations({
@@ -35,7 +37,13 @@ addPaginationTranslations({
   },
 })
 
-export default function AACsLeftSidebar({ aacs, queryString, meta }: AACsLeftSidebarProps) {
+export default function AACsLeftSidebar({
+  aacs,
+  queryString,
+  meta,
+  millesime,
+  selectedAac,
+}: AACsLeftSidebarProps) {
   return (
     <div>
       <div className="fr-p-1w">
@@ -71,17 +79,23 @@ export default function AACsLeftSidebar({ aacs, queryString, meta }: AACsLeftSid
               </span>
               <div className="flex flex-col gap-2">
                 {aacs.map((aac, index) => {
+                  const isSelected = selectedAac?.code === aac.code
+
                   return (
                     <ListItem
                       key={aac.code}
                       title={aac.nom}
-                      linkProps={{ href: `/aac/${aac.code}` }}
-                      priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                      linkProps={{
+                        href: `/visualisation?aacCode=${aac.code}&millesime=${millesime}`,
+                        preserveState: true,
+                        preserveScroll: true,
+                      }}
+                      priority={isSelected ? 'primary' : index % 2 === 0 ? 'primary' : 'secondary'}
                       metas={[
                         { content: `${formatDateFr(aac.date_maj)}`, iconId: 'fr-icon-time-line' },
                         { content: `${Math.round(aac.surface)} ha`, iconId: 'fr-icon-ruler-line' },
                         {
-                          content: `${aac.nb_communes} commune${aac.nb_communes > 1 ? 's' : ''}`,
+                          content: `${aac.communes.nb_communes} commune${aac.communes.nb_communes > 1 ? 's' : ''}`,
                           iconId: 'fr-icon-government-line',
                         },
                       ]}
