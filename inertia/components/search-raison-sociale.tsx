@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { debounce } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 import SearchAutocomplete from './search-autocomplete'
@@ -28,19 +28,40 @@ export default function SearchRaisonSociale({
   error?: { [key: string]: any }
 }) {
   const [options, setOptions] = useState<RaisonSociale[]>([])
+  const abortRef = useRef<AbortController | null>(null)
 
   const fetchCompanies = debounce(async (search) => {
-    if (search.length > 3) {
+    if (search.length > 2) {
+      // Abort the previous request to avoid that too many requests are fired
+      if (abortRef.current) {
+        abortRef.current.abort()
+      }
+      const controller = new AbortController()
+      abortRef.current = controller
+
       try {
-        const response = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${search}`)
+        const response = await fetch(
+          `https://recherche-entreprises.api.gouv.fr/search?q=${search}`,
+          { signal: controller.signal }
+        )
+
+        if (!response.ok) {
+          const dataText = await response.text()
+          throw new Error(`Erreur API: ${response.status} (${dataText})`)
+        }
+
         const data = await response.json()
         setOptions(data.results)
       } catch (error) {
+        // Ignore request abortion errors
+        if (error.name === 'AbortError') {
+          return
+        }
         console.error(error)
         setOptions([])
       }
     }
-  }, 300)
+  }, 400)
 
   return (
     <SearchAutocomplete<RaisonSociale>

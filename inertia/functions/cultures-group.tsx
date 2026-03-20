@@ -151,6 +151,35 @@ export const GROUPES_CULTURAUX: { [key: string]: GroupeCulturauxItem } = {
   },
 }
 
+const CULTURE_CATEGORY_COLORS: Record<string, string> = {
+  'Céréales': groupColors[1],
+  'Oléagineux': groupColors[5],
+  'Protéagineux': groupColors[8],
+  'Plantes à fibres': groupColors[9],
+  'Semences': groupColors[10],
+  'Gel / jachère': groupColors[11],
+  'Légumineuses à grains': groupColors[15],
+  'Fourragères annuelles': groupColors[16],
+  'Fourragères (hors prairies)': groupColors[16],
+  'Estives et landes': groupColors[17],
+  'Prairies permanentes': groupColors[18],
+  'Prairies temporaires': groupColors[19],
+  'Vergers': groupColors[20],
+  'Vignes': groupColors[21],
+  'Fruits à coque': groupColors[22],
+  'Autres cultures industrielles': groupColors[24],
+  'Fleurs et horticulture': groupColors[25],
+  'Agroforesterie': groupColors[27],
+  'Divers': groupColors[28],
+  'Surfaces non agricoles': groupColors[28],
+  'Autres cultures permanentes': groupColors[27],
+  'Tubercules et racines industrielles': groupColors[24],
+}
+
+export function getCultureCategoryColor(name: string): string {
+  return CULTURE_CATEGORY_COLORS[name] ?? groupColors[28]
+}
+
 export function getCulturesGroup(code: string | number) {
   if (!has(GROUPES_CULTURAUX, code)) {
     return GROUPES_CULTURAUX[28]

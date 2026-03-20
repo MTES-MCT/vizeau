@@ -51,6 +51,17 @@ export type AacListJson = {
   }
 }
 
+export type CultureEvolutionDetail = {
+  surface_ha: number
+  nb_parcelles: number
+} | null
+
+export type CultureEvolutionInfo = {
+  aac: string
+  nom: string
+  repartition: Record<string, Record<string, CultureEvolutionDetail>>
+}
+
 export type AacJson = {
   code: string
   nom: string
@@ -75,6 +86,7 @@ export type AacJson = {
     part_bio: number
     evolution: { annee: number; nb_parcelles: number; surface: number }[]
   }
+  culture_evolution: CultureEvolutionInfo | null
   installations: InstallationInfo[]
   nb_analyses: { year: number; count: number }[]
 }
@@ -115,6 +127,9 @@ export class AacDto {
       surface_agricole_ppe: row.surface_agricole_ppe as Record<string, CultureInfo>,
       surface_agricole_ppr: row.surface_agricole_ppr as Record<string, CultureInfo>,
       surface_agricole_bio: row.surface_agricole_bio as AacJson['surface_agricole_bio'],
+      culture_evolution: ((row as any).culture_evolution ??
+        (row as any).cultures_evolution ??
+        null) as AacJson['culture_evolution'],
       installations: row.installations as InstallationInfo[],
       nb_analyses: (row.nb_analyses as { year: number; count: number }[]) ?? [],
     }
