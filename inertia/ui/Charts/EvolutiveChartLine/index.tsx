@@ -28,6 +28,7 @@ export type EvolutiveChartLineProps = {
   yAxisLabel?: string
   yAxisRightLabel?: string
   unit?: string
+  chartHeight?: number
 }
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
@@ -39,6 +40,7 @@ export default function EvolutiveChartLine({
   yAxisLabel = '',
   yAxisRightLabel = '',
   unit = '%',
+  chartHeight,
 }: EvolutiveChartLineProps) {
   const labels = chartItems.labels || []
   const legendSizeMap = {
@@ -84,8 +86,12 @@ export default function EvolutiveChartLine({
   }, [minValue, maxValue, chartItems])
 
   const hasRightAxis = filteredChartItems.datasets.some((ds) => ds.yAxisID === 'y1')
+  const computedChartHeight =
+    chartHeight ?? Math.min(Math.max(320, 240 + filteredChartItems.datasets.length * 24), 700)
+
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       x: {
         ...(xAxisLabel
@@ -187,7 +193,9 @@ export default function EvolutiveChartLine({
         ]}
       />
 
-      <Line options={options} data={filteredChartItems} />
+      <div style={{ height: `${computedChartHeight}px` }}>
+        <Line options={options} data={filteredChartItems} />
+      </div>
     </div>
   )
 }
