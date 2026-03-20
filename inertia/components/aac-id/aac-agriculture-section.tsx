@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 
 import { fr } from '@codegouvfr/react-dsfr'
+import { flatMap, keys, map, sortBy, uniq, filter } from 'lodash-es'
 
 import EvolutiveChartLine from '~/ui/Charts/EvolutiveChartLine'
 import ResumeCard from '~/ui/ResumeCard'
 import SectionCard from '~/ui/SectionCard'
 import SmallSection from '~/ui/SmallSection'
+import { getCultureColorByLabel } from '~/functions/cultures-group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
 export type AacAgricultureSectionProps = {
@@ -28,6 +30,11 @@ export type AacAgricultureSectionProps = {
       }
     >
   }
+  culture_evolution?: {
+    aac: string
+    nom: string
+    repartition: Record<string, Record<string, { surface_ha: number; nb_parcelles: number } | null>>
+  } | null
 }
 
 function concatSurfaces(
@@ -43,8 +50,9 @@ export default function AacAgricultureSection({
   surface_agricole_bio,
   surface_agricole_ppr,
   surface_agricole_ppe,
+  culture_evolution,
 }: AacAgricultureSectionProps) {
-  const evolutiveChartData = useMemo(() => {
+  const bioEvolutiveChartData = useMemo(() => {
     const sorted = [...(surface_agricole_bio?.evolution ?? [])].sort((a, b) => a.annee - b.annee)
 
     return {
@@ -59,6 +67,30 @@ export default function AacAgricultureSection({
       ],
     }
   }, [surface_agricole_bio])
+
+  const cultureEvolutionChartData = useMemo(() => {
+    const repartition = culture_evolution?.repartition
+    if (!repartition) return { labels: [] as number[], datasets: [] }
+
+    // Années triées en ordre croissant (les clés sont des strings, on les convertit en number)
+    const years = sortBy(map(keys(repartition), Number))
+
+    // Cultures ayant au moins une valeur non-nulle sur la période, sans doublons
+    const activeCultures = uniq(
+      flatMap(years, (year) =>
+        filter(keys(repartition[year]), (name) => repartition[year]?.[name] != null)
+      )
+    )
+
+    const datasets = map(activeCultures, (name) => ({
+      label: name,
+      data: map(years, (year) => repartition[year]?.[name]?.surface_ha ?? 0),
+      borderColor: getCultureColorByLabel(name),
+      backgroundColor: getCultureColorByLabel(name),
+    }))
+
+    return { labels: years, datasets }
+  }, [culture_evolution])
 
   return (
     <SectionCard title="Agriculture">
@@ -90,7 +122,7 @@ export default function AacAgricultureSection({
           />
           <ResumeCard
             title="Culture Bio"
-            value={surface_agricole_bio?.surface?.toFixed(2) ?? 0}
+            value={surface_agricole_bio?.surface.toFixed(2) ?? 0}
             label="hectares"
             iconId="fr-icon-leaf-line"
             priority="secondary"
@@ -111,16 +143,23 @@ export default function AacAgricultureSection({
           />
         </SmallSection>
 
-        {(surface_agricole_bio?.surface ?? 0) > 0 && (
-          <SmallSection
-            title="Évolution de l'agriculture biologique"
-            iconId="fr-icon-leaf-line"
-            priority="secondary"
-            hasBorder
-          >
-            <EvolutiveChartLine chartItems={evolutiveChartData} />
-          </SmallSection>
-        )}
+        <SmallSection
+          title="Évolution des types de cultures"
+          iconId="fr-icon-seedling-line"
+          priority="secondary"
+          hasBorder
+        >
+          <EvolutiveChartLine chartItems={cultureEvolutionChartData} unit="ha" legendSize="sm" />
+        </SmallSection>
+
+        <SmallSection
+          title="Évolution de l'agriculture biologique"
+          iconId="fr-icon-leaf-line"
+          priority="secondary"
+          hasBorder
+        >
+          <EvolutiveChartLine chartItems={bioEvolutiveChartData} legendSize="sm" />
+        </SmallSection>
       </div>
     </SectionCard>
   )
