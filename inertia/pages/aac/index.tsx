@@ -1,12 +1,14 @@
 import { Head } from '@inertiajs/react'
+import { InferPageProps } from '@adonisjs/inertia/types'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
-import { Badge } from '@codegouvfr/react-dsfr/Badge'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import Layout from '~/ui/layouts/layout'
+import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
 import AacController from '#controllers/aac_controller'
-import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { formatDateFr } from '~/functions/date'
 import AacsSearch from '~/components/aacs/aacs-search'
+import Layout from '~/ui/layouts/layout'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import ListItem from '~/ui/ListItem'
 
 export default function AacIndex({
   aacs,
@@ -25,49 +27,44 @@ export default function AacIndex({
         </div>
       </div>
 
-      <div className="fr-container fr-mt-4w fr-mb-8w">
+      <div className="fr-container flex flex-col gap-4 fr-mt-4w fr-mb-8w">
         <AacsSearch queryString={queryString} />
 
         {aacs.length === 0 ? (
           <EmptyPlaceholder
-            label="Aucune AAC à afficher"
-            illustrativeIcon="fr-icon-earth-europe-fill"
+            label={
+              queryString?.aacRecherche && queryString?.aacCommune
+                ? `Aucun résultat pour "${queryString.aacRecherche}" dans la commune "${queryString.aacCommune}"`
+                : queryString?.aacRecherche
+                  ? `Aucun résultat trouvé pour "${queryString.aacRecherche}"`
+                  : queryString?.aacCommune
+                    ? `Aucun résultat pour la commune "${queryString.aacCommune}"`
+                    : 'Aucune AAC enregistrée'
+            }
+            pictogram={LocationFrance}
           />
         ) : (
           <>
-            <div className="fr-table fr-table--bordered">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Nom</th>
-                    <th>Surface (ha)</th>
-                    <th>Captages actifs</th>
-                    <th>Communes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aacs.map((aac) => (
-                    <tr key={aac.code}>
-                      <td>
-                        <Badge severity="info" small>
-                          {aac.code}
-                        </Badge>
-                      </td>
-                      <td>
-                        <a href={`/aac/${aac.code}`} className="fr-link">
-                          {aac.nom}
-                        </a>
-                      </td>
-                      <td>{aac.surface?.toLocaleString('fr-FR')}</td>
-                      <td>{aac.nb_captages_actifs}</td>
-                      <td>{aac.nb_communes}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-col gap-2">
+              {aacs.map((aac, index) => {
+                return (
+                  <ListItem
+                    key={aac.code}
+                    title={aac.nom}
+                    linkProps={{ href: `/aac/${aac.code}` }}
+                    priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                    metas={[
+                      { content: `${formatDateFr(aac.date_maj)}`, iconId: 'fr-icon-time-line' },
+                      { content: `${Math.round(aac.surface)} ha`, iconId: 'fr-icon-ruler-line' },
+                      {
+                        content: `${aac.nb_communes} commune${aac.nb_communes > 1 ? 's' : ''}`,
+                        iconId: 'fr-icon-government-line',
+                      },
+                    ]}
+                  />
+                )
+              })}
             </div>
-
             {meta.lastPage > 1 && (
               <div className="fr-mt-4w flex justify-center">
                 <Pagination
