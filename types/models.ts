@@ -87,6 +87,15 @@ export type ExploitationJson = {
   parcelles?: ParcelleJson[] | null
 }
 
+export type AacSummaryJson = {
+  code: string
+  nom: string
+  surface: number
+  nb_captages_actifs: number
+  nb_communes: number
+  date_maj: string
+}
+
 export type PaginatedJson<T> = {
   meta: {
     total: number

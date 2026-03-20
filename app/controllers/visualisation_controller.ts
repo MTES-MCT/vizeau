@@ -8,18 +8,23 @@ import { assignParcellesToExploitationValidator } from '#validators/parcelle'
 import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
 import router from '@adonisjs/core/services/router'
+import { AacService } from '#services/aac_service'
+import { AacDto } from '../dto/aac_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
   PAGE_VIEW: { name: 'visualisation_page_viewed' },
 }
 
+const AAC_PER_PAGE = 20
+
 @inject()
 export default class VisualisationController {
   constructor(
     public exploitationService: ExploitationService,
     public parcelleService: ParcelleService,
-    public eventLogger: EventLoggerService
+    public eventLogger: EventLoggerService,
+    public aacService: AacService
   ) {}
 
   async index({ request, response, inertia, auth }: HttpContext) {
@@ -36,7 +41,40 @@ export default class VisualisationController {
       context: request.all(),
     })
 
+    const aacPage = Math.max(1, Number.parseInt(request.input('aacPage', '1'), 10) || 1)
+    const aacRecherche = request.input('aacRecherche') || undefined
+    const aacCommune = request.input('aacCommune') || undefined
+
+    // Memoize the DuckDB/S3 query so it only runs once even when both aacs
+    // and aacMeta are resolved in the same partial reload.
+    let aacResultPromise: Promise<{ data: Record<string, unknown>[]; total: number }> | null = null
+    const getAacResult = () => {
+      if (!aacResultPromise) {
+        aacResultPromise = this.aacService.getAll(aacPage, AAC_PER_PAGE, aacRecherche, aacCommune)
+      }
+      return aacResultPromise
+    }
+
     return inertia.render('visualisation', {
+      aacs: async () => {
+        const { data } = await getAacResult()
+        return data.map(AacDto.fromRawSummary)
+      },
+      aacMeta: async () => {
+        const { total } = await getAacResult()
+        const aacLastPage = Math.max(1, Math.ceil(total / AAC_PER_PAGE))
+        return {
+          total,
+          perPage: AAC_PER_PAGE,
+          currentPage: aacPage,
+          lastPage: aacLastPage,
+        }
+      },
+      aacQueryString: () => ({
+        aacRecherche: aacRecherche ?? '',
+        aacCommune: aacCommune ?? '',
+        aacPage: String(aacPage),
+      }),
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitationsByNameOrContactName(request.input('recherche'), user.id)

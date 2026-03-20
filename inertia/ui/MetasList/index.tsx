@@ -7,7 +7,7 @@ export type MetasListProps = {
 
 export default function MetasList({ metas, size = 'md' }: MetasListProps) {
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-x-4 gap-y-1 flex-wrap">
       {metas?.map((meta, index) => (
         <LabelInfo
           key={index + (meta.content ?? '')}
