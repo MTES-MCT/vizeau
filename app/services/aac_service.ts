@@ -191,6 +191,28 @@ export class AacService {
   }
 
   /**
+   * Checks whether an installation belongs to a given AAC.
+   * Reads only the `code` and `installations` columns from the Parquet file,
+   * which is significantly cheaper than a full SELECT * via getByCode().
+   */
+  async hasInstallation(aacCode: string, installationCode: string): Promise<boolean> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT 1 AS found FROM read_parquet($1) ' +
+        'WHERE code = $2 ' +
+        '  AND list_contains(list_transform(installations, i -> i.code), $3) ' +
+        'LIMIT 1'
+    )
+    stmt.bindVarchar(1, getParquetPath())
+    stmt.bindVarchar(2, aacCode)
+    stmt.bindVarchar(3, installationCode)
+
+    const result = await stmt.run()
+    const rows = await result.getRowObjects()
+    return rows.length > 0
+  }
+
+  /**
    * Get the distinct years for which analyses exist for a given installation.
    * Returns years in descending order (most recent first).
    * @param installationCode  The installation code (InstallationInfo.code)

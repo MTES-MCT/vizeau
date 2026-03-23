@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
-import { AacDto, type InstallationInfo } from '../dto/aac_dto.js'
+import { AacDto } from '../dto/aac_dto.js'
 
 const PER_PAGE = 20
 
@@ -35,13 +35,8 @@ export default class AacController {
   }
 
   async analyses({ params, request, response }: HttpContext) {
-    const aac = await this.aacService.getByCode(params.code)
-    if (!aac) return response.abort('AAC introuvable', 404)
-
-    const installations = (aac.installations as InstallationInfo[]) ?? []
-    if (!installations.some((i) => i.code === params.installationCode)) {
-      return response.abort('Installation introuvable pour cette AAC', 404)
-    }
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
     const yearParam = request.input('year')
     const year = yearParam ? Number.parseInt(yearParam, 10) : Number.NaN
@@ -54,13 +49,8 @@ export default class AacController {
   }
 
   async analysesYears({ params, response }: HttpContext) {
-    const aac = await this.aacService.getByCode(params.code)
-    if (!aac) return response.abort('AAC introuvable', 404)
-
-    const installations = (aac.installations as InstallationInfo[]) ?? []
-    if (!installations.some((i) => i.code === params.installationCode)) {
-      return response.abort('Installation introuvable pour cette AAC', 404)
-    }
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
     const years = await this.aacService.getAnalysesRobinetYears(params.installationCode)
     return response.json(years)

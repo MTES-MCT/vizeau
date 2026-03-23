@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Table } from '@codegouvfr/react-dsfr/Table'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import { fr } from '@codegouvfr/react-dsfr'
-import Loader from '../../ui/Loader/index.js'
+import Loader from '~/ui/Loader'
 
 type AnalyseRow = Record<string, unknown>
 
@@ -41,13 +41,17 @@ export default function AacAnalysesSection({ aacCode, installationCode, installa
 
   // Fetch available years when the installation changes
   useEffect(() => {
+    const controller = new AbortController()
+
     setLoadingYears(true)
     setError(null)
     setYears([])
     setSelectedYear('')
     setAnalyses(null)
 
-    fetch(`/aac/${aacCode}/installations/${installationCode}/analyses/years`)
+    fetch(`/aac/${aacCode}/installations/${installationCode}/analyses/years`, {
+      signal: controller.signal,
+    })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json() as Promise<string[]>
@@ -56,25 +60,40 @@ export default function AacAnalysesSection({ aacCode, installationCode, installa
         setYears(data)
         if (data.length > 0) setSelectedYear(data[0])
       })
-      .catch(() => setError('Impossible de charger les analyses. Veuillez réessayer.'))
+      .catch((err) => {
+        if (err.name !== 'AbortError')
+          setError('Impossible de charger les analyses. Veuillez réessayer.')
+      })
       .finally(() => setLoadingYears(false))
+
+    return () => controller.abort()
   }, [aacCode, installationCode])
 
   // Fetch analyses whenever the selected year changes
   useEffect(() => {
     if (!selectedYear) return
 
+    const controller = new AbortController()
+
     setLoadingData(true)
+    setError(null)
     setAnalyses(null)
 
-    fetch(`/aac/${aacCode}/installations/${installationCode}/analyses?year=${selectedYear}`)
+    fetch(`/aac/${aacCode}/installations/${installationCode}/analyses?year=${selectedYear}`, {
+      signal: controller.signal,
+    })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json() as Promise<AnalyseRow[]>
       })
       .then(setAnalyses)
-      .catch(() => setError('Impossible de charger les analyses. Veuillez réessayer.'))
+      .catch((err) => {
+        if (err.name !== 'AbortError')
+          setError('Impossible de charger les analyses. Veuillez réessayer.')
+      })
       .finally(() => setLoadingData(false))
+
+    return () => controller.abort()
   }, [aacCode, installationCode, selectedYear])
 
   const visibleColumns = useMemo(() => {
@@ -86,8 +105,6 @@ export default function AacAnalysesSection({ aacCode, installationCode, installa
     if (!analyses) return []
     return analyses.map((row) => visibleColumns.map((col) => formatCellValue(row[col])))
   }, [analyses, visibleColumns])
-
-  const loading = loadingYears || loadingData
 
   return (
     <div
@@ -104,7 +121,7 @@ export default function AacAnalysesSection({ aacCode, installationCode, installa
         Analyses de qualité de l'eau — {installationNom}
       </p>
 
-      {loading && (
+      {loadingYears && (
         <div className="flex items-center gap-2 fr-py-2w">
           <Loader type="dots" size="sm" />
         </div>
