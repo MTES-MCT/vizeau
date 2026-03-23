@@ -33,4 +33,26 @@ export default class AacController {
 
     return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })
   }
+
+  async analyses({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const yearParam = request.input('year')
+    const year = yearParam ? Number.parseInt(yearParam, 10) : Number.NaN
+    if (!yearParam || Number.isNaN(year)) {
+      return response.abort('Le paramètre year est requis', 400)
+    }
+
+    const data = await this.aacService.getAnalysesRobinet(params.installationCode, year)
+    return response.json(data)
+  }
+
+  async analysesYears({ params, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const years = await this.aacService.getAnalysesRobinetYears(params.installationCode)
+    return response.json(years)
+  }
 }

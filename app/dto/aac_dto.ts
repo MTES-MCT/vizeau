@@ -88,7 +88,6 @@ export type AacJson = {
   }
   culture_evolution: CultureEvolutionInfo | null
   installations: InstallationInfo[]
-  nb_analyses: { year: number; count: number }[]
 }
 
 export class AacDto {
@@ -131,7 +130,6 @@ export class AacDto {
         (row as any).cultures_evolution ??
         null) as AacJson['culture_evolution'],
       installations: row.installations as InstallationInfo[],
-      nb_analyses: (row.nb_analyses as { year: number; count: number }[]) ?? [],
     }
   }
 }
