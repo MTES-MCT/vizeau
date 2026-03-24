@@ -35,4 +35,8 @@ export default class AccueilController {
       createExploitationUrl: router.builder().make('exploitations.create'),
     })
   }
+
+  async noTerritoire({ inertia }: HttpContext) {
+    return inertia.render('no_territoire')
+  }
 }

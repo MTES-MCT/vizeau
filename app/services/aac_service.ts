@@ -256,4 +256,16 @@ export class AacService {
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
   }
+
+  /*
+   * Get all AAC codes and names, ordered by name. Used for seeding the territoires SQL table
+   */
+  async getAllNames() {
+    const conn = await getConnection()
+    const stmt = await conn.prepare('SELECT code, nom as name FROM read_parquet($1) ORDER BY nom')
+    stmt.bindVarchar(1, getParquetPath())
+
+    const result = await stmt.run()
+    return (await result.getRowObjects()) as Array<{ code: string; name: string }>
+  }
 }
