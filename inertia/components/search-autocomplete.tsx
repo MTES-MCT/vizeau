@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
-import { debounce } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Input } from '@codegouvfr/react-dsfr/Input'
 
@@ -22,47 +21,27 @@ interface SearchAutocompleteProps<T> {
   error?: { [key: string]: any }
 }
 
-export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>) {
-  const {
-    label,
-    className,
-    id,
-    placeholder,
-    type = 'text',
-    options,
-    value,
-    onChange,
-    onInputChange,
-    required,
-    getOptionLabel,
-    getOptionKey,
-    renderOption,
-    disableClientFilter = false,
-    error,
-  } = props
+export default function SearchAutocomplete<T>({
+  label,
+  className,
+  id,
+  placeholder,
+  type = 'text',
+  options,
+  value,
+  onChange,
+  onInputChange,
+  required,
+  getOptionLabel,
+  getOptionKey,
+  renderOption,
+  disableClientFilter = false,
+  error,
+}: SearchAutocompleteProps<T>) {
   const [inputValue, setInputValue] = useState(value ? getOptionLabel(value) : '')
   const [isOpen, setIsOpen] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState<T[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
-  const isUserTypingRef = useRef(false)
-  // Créer un debounce pour réinitialiser le flag après que l'utilisateur arrête de taper
-  const resetUserTypingFlag = useMemo(
-    () =>
-      debounce(() => {
-        isUserTypingRef.current = false
-      }, 500),
-    []
-  )
-  // Mise à jour de l’input lorsque la valeur change depuis un autre composant
-  useEffect(() => {
-    if (!isUserTypingRef.current) {
-      if (value) {
-        setInputValue(getOptionLabel(value))
-      } else {
-        setInputValue('')
-      }
-    }
-  }, [value, getOptionLabel])
 
   useEffect(() => {
     const filtered = disableClientFilter
@@ -83,23 +62,14 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    return () => {
-      resetUserTypingFlag.cancel()
-    }
-  }, [resetUserTypingFlag])
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
-    isUserTypingRef.current = true
     setInputValue(newValue)
     setIsOpen(true)
     onInputChange?.(newValue)
-    resetUserTypingFlag()
   }
 
   const handleOptionClick = (option: T) => {
-    isUserTypingRef.current = false
     setInputValue(getOptionLabel(option))
     setIsOpen(false)
     onChange?.(option)
