@@ -6,7 +6,7 @@ import { orderBy } from 'lodash-es'
 import { getCultureCategoryColor } from '~/functions/cultures-group'
 
 type CultureInfo = { surface: number | null; SAU: number | null } | null
-type SurfaceAgricole = Record<string, CultureInfo>
+type SurfaceAgricole = Record<string, CultureInfo> | null
 
 export type AacCulturesRepartitionProps = {
   surface_agricole_ppe: SurfaceAgricole
@@ -22,12 +22,19 @@ export default function AacCulturesRepartition({
   const [selectedTab, setSelectedTab] = useState('total')
 
   const cultureItems = useMemo(() => {
-    const source =
-      selectedTab === 'ppe'
-        ? surface_agricole_ppe
-        : selectedTab === 'ppr'
-          ? surface_agricole_ppr
-          : surface_agricole_utile
+    let source: SurfaceAgricole = surface_agricole_utile
+
+    if (selectedTab === 'ppe') {
+      source = surface_agricole_ppe
+    }
+
+    if (selectedTab === 'ppr') {
+      source = surface_agricole_ppr
+    }
+
+    if (source === null) {
+      return []
+    }
 
     const filteredSource = Object.entries(source).filter(
       (entry): entry is [string, { surface: number; SAU: number | null }] =>

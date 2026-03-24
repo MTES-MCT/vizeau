@@ -9,9 +9,12 @@ import SmallSection from '~/ui/SmallSection'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
 export type AacAgricultureSectionProps = {
-  surface_agricole_utile: Record<string, { surface: number | null; SAU: number | null } | null>
-  surface_agricole_ppe: Record<string, { surface: number | null; SAU: number | null } | null>
-  surface_agricole_ppr: Record<string, { surface: number | null; SAU: number | null } | null>
+  surface_agricole_utile: Record<
+    string,
+    { surface: number | null; SAU: number | null } | null
+  > | null
+  surface_agricole_ppe: Record<string, { surface: number | null; SAU: number | null } | null> | null
+  surface_agricole_ppr: Record<string, { surface: number | null; SAU: number | null } | null> | null
   surface_agricole_bio: {
     surface: number
     part_bio: number
