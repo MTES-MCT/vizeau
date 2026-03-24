@@ -4,33 +4,48 @@ import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import Doughnut from '~/ui/Charts/Doughnut'
 import { orderBy } from 'lodash-es'
 import { getCultureCategoryColor } from '~/functions/cultures-group'
+import { AacJson } from '../../../types/aac'
 
-type CultureInfo = { surface: number | null; SAU: number | null } | null
-type SurfaceAgricole = Record<string, CultureInfo>
+type SurfaceAgricole =
+  | AacJson['surface_agricole_utile']
+  | AacJson['surface_agricole_ppe']
+  | AacJson['surface_agricole_ppr']
 
-export type AacCulturesRepartitionProps = {
-  surface_agricole_ppe: SurfaceAgricole
-  surface_agricole_ppr: SurfaceAgricole
-  surface_agricole_utile: SurfaceAgricole
-}
+export type AacCulturesRepartitionProps = Pick<
+  AacJson,
+  'surface_agricole_ppe' | 'surface_agricole_ppr' | 'surface_agricole_utile'
+>
+
+type SurfaceAgricoleTab = 'total' | 'ppe' | 'ppr'
 
 export default function AacCulturesRepartition({
   surface_agricole_ppe,
   surface_agricole_ppr,
   surface_agricole_utile,
 }: AacCulturesRepartitionProps) {
-  const [selectedTab, setSelectedTab] = useState('total')
+  const [selectedTab, setSelectedTab] = useState<SurfaceAgricoleTab>('total')
 
   const cultureItems = useMemo(() => {
-    const source =
-      selectedTab === 'ppe'
-        ? surface_agricole_ppe
-        : selectedTab === 'ppr'
-          ? surface_agricole_ppr
-          : surface_agricole_utile
+    let source: SurfaceAgricole
+
+    switch (selectedTab) {
+      case 'ppe':
+        source = surface_agricole_ppe
+        break
+      case 'ppr':
+        source = surface_agricole_ppr
+        break
+      case 'total':
+      default:
+        source = surface_agricole_utile
+    }
+
+    if (!source) {
+      return []
+    }
 
     const filteredSource = Object.entries(source).filter(
-      (entry): entry is [string, { surface: number; SAU: number | null }] =>
+      (entry): entry is [string, { nb_parcelles: number; surface: number; SAU: number | null }] =>
         entry[1] !== null && entry[1].surface !== null && entry[1].SAU !== null
     )
 
