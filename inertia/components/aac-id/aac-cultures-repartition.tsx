@@ -16,22 +16,28 @@ export type AacCulturesRepartitionProps = Pick<
   'surface_agricole_ppe' | 'surface_agricole_ppr' | 'surface_agricole_utile'
 >
 
+type SurfaceAgricoleTab = 'total' | 'ppe' | 'ppr'
+
 export default function AacCulturesRepartition({
   surface_agricole_ppe,
   surface_agricole_ppr,
   surface_agricole_utile,
 }: AacCulturesRepartitionProps) {
-  const [selectedTab, setSelectedTab] = useState('total')
+  const [selectedTab, setSelectedTab] = useState<SurfaceAgricoleTab>('total')
 
   const cultureItems = useMemo(() => {
-    let source: SurfaceAgricole = surface_agricole_utile
+    let source: SurfaceAgricole
 
-    if (selectedTab === 'ppe') {
-      source = surface_agricole_ppe
-    }
-
-    if (selectedTab === 'ppr') {
-      source = surface_agricole_ppr
+    switch (selectedTab) {
+      case 'ppe':
+        source = surface_agricole_ppe
+        break
+      case 'ppr':
+        source = surface_agricole_ppr
+        break
+      case 'total':
+      default:
+        source = surface_agricole_utile
     }
 
     if (!source) {
