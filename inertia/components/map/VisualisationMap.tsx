@@ -22,6 +22,8 @@ import {
   getPpeLayer,
   getPprSource,
   getPprLayer,
+  getSageSource,
+  getSageLayer,
 } from './styles/zonage'
 
 import { renderPopupParcelle } from './popup-parcelle'
@@ -86,6 +88,7 @@ const VisualisationMap = forwardRef<
     showCommunes?: boolean
     showBioOnly?: boolean
     visibleCultures?: string[]
+    showSage?: boolean
     style?: string
   }
 >(
@@ -112,6 +115,7 @@ const VisualisationMap = forwardRef<
       showCommunes = false,
       showBioOnly = false,
       visibleCultures = [],
+      showSage = false,
       style = 'vector',
     },
     ref
@@ -129,6 +133,7 @@ const VisualisationMap = forwardRef<
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
     const previousVisibleCulturesRef = useRef<string[]>([])
+    const sageSourceAddedRef = useRef(false)
 
     // Synchroniser la ref avec les props
     useEffect(() => {
@@ -592,12 +597,14 @@ const VisualisationMap = forwardRef<
         addSourceIfMissing('aac', getAacSource({ pmtilesUrl }))
         addSourceIfMissing('ppe', getPpeSource({ pmtilesUrl }))
         addSourceIfMissing('ppr', getPprSource({ pmtilesUrl }))
+        addSourceIfMissing('sage', getSageSource({ pmtilesUrl }))
 
         addLayersIfMissing(getPprLayer())
         addLayersIfMissing(getPpeLayer())
         addLayersIfMissing(getAacLayer())
         addLayersIfMissing(getCommunesLayer())
         addLayersIfMissing(getParcellesLayers())
+        addLayersIfMissing(getSageLayer())
 
         // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
         const layerVisibilityConfig = [
@@ -606,6 +613,9 @@ const VisualisationMap = forwardRef<
           { layers: ['aac-fill', 'aac-outline'], visible: showAac },
           { layers: ['communes-outline'], visible: showCommunes },
           { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
+          ...(sageSourceAddedRef.current
+            ? [{ layers: ['sage-fill', 'sage-outline'], visible: showSage }]
+            : []),
         ]
 
         layerVisibilityConfig.forEach(({ layers, visible }) => {
@@ -620,7 +630,16 @@ const VisualisationMap = forwardRef<
       })
 
       currentStyleRef.current = style
-    }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, updateCultureFilter])
+    }, [
+      style,
+      showParcelles,
+      showAac,
+      showPpe,
+      showPpr,
+      showCommunes,
+      showSage,
+      updateCultureFilter,
+    ])
 
     useEffect(() => {
       if (!mapRef.current) {
@@ -806,6 +825,48 @@ const VisualisationMap = forwardRef<
         })
       })
     }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
+
+    // Chargement lazy de la couche SAGE et gestion de sa visibilité
+    useEffect(() => {
+      if (!mapRef.current) return
+
+      const map = mapRef.current
+
+      const applySageVisibility = () => {
+        if (showSage) {
+          if (!map.getSource('sage')) {
+            map.addSource('sage', getSageSource({ pmtilesUrl }))
+          }
+          sageSourceAddedRef.current = true
+          getSageLayer().forEach((layer) => {
+            if (!map.getLayer(layer.id)) {
+              map.addLayer(layer as maplibre.AddLayerObject)
+            }
+          })
+          ;['sage-fill', 'sage-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setLayoutProperty(layerId, 'visibility', 'visible')
+            }
+          })
+        } else {
+          // Masquer sans supprimer la source (évite de re-fetcher)
+          ;['sage-fill', 'sage-outline'].forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+              map.setLayoutProperty(layerId, 'visibility', 'none')
+            }
+          })
+        }
+      }
+
+      if (map.isStyleLoaded()) {
+        applySageVisibility()
+      } else {
+        map.once('styledata', applySageVisibility)
+        return () => {
+          map.off('styledata', applySageVisibility)
+        }
+      }
+    }, [showSage])
 
     // Mise à jour du filtre quand visibleCultures change
     useEffect(() => {

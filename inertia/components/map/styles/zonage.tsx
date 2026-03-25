@@ -146,3 +146,44 @@ export const getPprSource = ({
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
   }
 }
+
+export const getSageLayer = () => {
+  return [
+    {
+      id: 'sage-fill',
+      type: 'fill',
+      source: 'sage',
+      layout: {
+        visibility: 'none',
+      },
+      paint: {
+        'fill-color': '#4caf50',
+        'fill-opacity': 0.2,
+      },
+    },
+    {
+      id: 'sage-outline',
+      type: 'line',
+      source: 'sage',
+      layout: {
+        visibility: 'none',
+      },
+      paint: {
+        'line-color': '#2e7d32',
+        'line-width': 2,
+        'line-opacity': 1,
+      },
+    },
+  ]
+}
+
+export const getSageSource = ({
+  pmtilesUrl,
+}: {
+  pmtilesUrl: string
+}): maplibregl.GeoJSONSourceSpecification => {
+  return {
+    type: 'geojson',
+    data: `${pmtilesUrl}/sage.geojson`,
+  }
+}

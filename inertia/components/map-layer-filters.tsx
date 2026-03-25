@@ -9,12 +9,14 @@ export default function MapLayerFilters({
   showPpr = false,
   showCommunes = false,
   showBioOnly = false,
+  showSage = false,
   setShowParcelles = (_update) => {},
   setShowAac = (_update) => {},
   setShowPpe = (_update) => {},
   setShowPpr = (_update) => {},
   setShowCommunes = (_update) => {},
   setShowBioOnly = (_update) => {},
+  setShowSage = (_update) => {},
   canSwitchToBioOnly = true,
 }: {
   showParcelles?: boolean
@@ -23,12 +25,14 @@ export default function MapLayerFilters({
   showPpr?: boolean
   showCommunes?: boolean
   showBioOnly?: boolean
+  showSage?: boolean
   setShowParcelles?: Dispatch<SetStateAction<boolean>>
   setShowAac?: Dispatch<SetStateAction<boolean>>
   setShowPpe?: Dispatch<SetStateAction<boolean>>
   setShowPpr?: Dispatch<SetStateAction<boolean>>
   setShowCommunes?: Dispatch<SetStateAction<boolean>>
   setShowBioOnly?: Dispatch<SetStateAction<boolean>>
+  setShowSage?: Dispatch<SetStateAction<boolean>>
   canSwitchToBioOnly?: boolean
 }) {
   return (
@@ -71,6 +75,13 @@ export default function MapLayerFilters({
         checked={showBioOnly}
         disabled={!showParcelles || !canSwitchToBioOnly}
         onChange={() => setShowBioOnly((prev) => !prev)}
+      />
+      <LegendItem
+        label="SAGE"
+        hint="Schéma d'Aménagement et de Gestion des Eaux"
+        color="bg-green-500"
+        checked={showSage}
+        onChange={() => setShowSage((prev) => !prev)}
       />
     </div>
   )
