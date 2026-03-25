@@ -813,7 +813,7 @@ const VisualisationMap = forwardRef<
         { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
         { layers: ['aac-fill', 'aac-outline'], visible: showAac },
         { layers: ['communes-outline'], visible: showCommunes },
-        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
+        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles && !showBioOnly },
       ]
 
       // Application de la visibilité pour chaque groupe de layers
@@ -824,7 +824,7 @@ const VisualisationMap = forwardRef<
           }
         })
       })
-    }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
+    }, [showParcelles, showAac, showPpe, showPpr, showCommunes, showBioOnly])
 
     // Chargement lazy de la couche SAGE et gestion de sa visibilité
     useEffect(() => {
