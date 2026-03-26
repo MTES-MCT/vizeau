@@ -72,7 +72,9 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
               },
             ]}
           >
-            {selectedTabId === 'captages' && <AacCaptages installations={aac.installations} />}
+            {selectedTabId === 'captages' && (
+              <AacCaptages aacCode={aac.code} installations={aac.installations} />
+            )}
 
             {selectedTabId === 'assolement' && (
               <div className="flex flex-col gap-4">

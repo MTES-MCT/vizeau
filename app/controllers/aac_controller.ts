@@ -10,9 +10,14 @@ export default class AacController {
   constructor(public aacService: AacService) {}
 
   async index({ request, inertia }: HttpContext) {
-    const page = Math.max(1, Number.parseInt(request.input('page', '1'), 10) || 1)
-    const recherche = request.input('recherche') || undefined
-    const commune = request.input('commune') || undefined
+    // Backward compatibility for legacy bookmarks/links using page/recherche/commune.
+    const pageInput = request.input('aacPage') || request.input('page') || '1'
+    const rechercheInput = request.input('aacRecherche') ?? request.input('recherche')
+    const communeInput = request.input('aacCommune') ?? request.input('commune')
+
+    const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
+    const recherche = rechercheInput || undefined
+    const commune = communeInput || undefined
 
     const { data, total } = await this.aacService.getAll(page, PER_PAGE, recherche, commune)
     const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
@@ -20,7 +25,11 @@ export default class AacController {
     return inertia.render('aac/index', {
       aacs: data.map(AacDto.fromRawSummary),
       meta: { total, perPage: PER_PAGE, currentPage: page, lastPage },
-      queryString: { recherche: recherche ?? '', commune: commune ?? '', page: String(page) },
+      queryString: {
+        aacRecherche: recherche ?? '',
+        aacCommune: commune ?? '',
+        aacPage: String(page),
+      },
     })
   }
 
@@ -32,5 +41,27 @@ export default class AacController {
     }
 
     return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })
+  }
+
+  async analyses({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const yearParam = request.input('year')
+    const year = yearParam ? Number.parseInt(yearParam, 10) : Number.NaN
+    if (!yearParam || Number.isNaN(year)) {
+      return response.abort('Le paramètre year est requis', 400)
+    }
+
+    const data = await this.aacService.getAnalysesRobinet(params.installationCode, year)
+    return response.json(data)
+  }
+
+  async analysesYears({ params, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const years = await this.aacService.getAnalysesRobinetYears(params.installationCode)
+    return response.json(years)
   }
 }

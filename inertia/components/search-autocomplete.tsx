@@ -21,40 +21,27 @@ interface SearchAutocompleteProps<T> {
   error?: { [key: string]: any }
 }
 
-export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>) {
-  const {
-    label,
-    className,
-    id,
-    placeholder,
-    type = 'text',
-    options,
-    value,
-    onChange,
-    onInputChange,
-    required,
-    getOptionLabel,
-    getOptionKey,
-    renderOption,
-    disableClientFilter = false,
-    error,
-  } = props
+export default function SearchAutocomplete<T>({
+  label,
+  className,
+  id,
+  placeholder,
+  type = 'text',
+  options,
+  value,
+  onChange,
+  onInputChange,
+  required,
+  getOptionLabel,
+  getOptionKey,
+  renderOption,
+  disableClientFilter = false,
+  error,
+}: SearchAutocompleteProps<T>) {
   const [inputValue, setInputValue] = useState(value ? getOptionLabel(value) : '')
   const [isOpen, setIsOpen] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState<T[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
-  const isUserTypingRef = useRef(false)
-
-  // Mise à jour de l’input lorsque la valeur change depuis un autre composant
-  useEffect(() => {
-    if (!isUserTypingRef.current) {
-      if (value) {
-        setInputValue(getOptionLabel(value))
-      } else {
-        setInputValue('')
-      }
-    }
-  }, [value, getOptionLabel])
 
   useEffect(() => {
     const filtered = disableClientFilter
@@ -77,14 +64,12 @@ export default function SearchAutocomplete<T>(props: SearchAutocompleteProps<T>)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
-    isUserTypingRef.current = true
     setInputValue(newValue)
     setIsOpen(true)
     onInputChange?.(newValue)
   }
 
   const handleOptionClick = (option: T) => {
-    isUserTypingRef.current = false
     setInputValue(getOptionLabel(option))
     setIsOpen(false)
     onChange?.(option)

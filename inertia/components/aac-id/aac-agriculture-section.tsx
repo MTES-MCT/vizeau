@@ -10,32 +10,17 @@ import SmallSection from '~/ui/SmallSection'
 import { getCultureColorByLabel } from '~/functions/cultures-group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
-export type AacAgricultureSectionProps = {
-  surface_agricole_utile: Record<string, { surface: number | null; SAU: number | null } | null>
-  surface_agricole_ppe: Record<string, { surface: number | null; SAU: number | null } | null>
-  surface_agricole_ppr: Record<string, { surface: number | null; SAU: number | null } | null>
-  surface_agricole_bio: {
-    surface: number
-    part_bio: number
-    evolution?: { annee: number; surface: number }[]
-  } | null
-  communes: {
-    nb_communes: number
-    communes: Record<
-      string,
-      {
-        surface: number
-        code_insee: string
-        repartition: number
-      }
-    >
-  }
-  culture_evolution?: {
-    aac: string
-    nom: string
-    repartition: Record<string, Record<string, { surface_ha: number; nb_parcelles: number } | null>>
-  } | null
-}
+import { AacJson } from '../../../types/aac'
+
+export type AacAgricultureSectionProps = Pick<
+  AacJson,
+  | 'surface_agricole_ppe'
+  | 'surface_agricole_ppr'
+  | 'surface_agricole_utile'
+  | 'surface_agricole_bio'
+  | 'communes'
+  | 'culture_evolution'
+>
 
 function concatSurfaces(
   surfaces: Record<string, { surface: number | null } | null> | null | undefined

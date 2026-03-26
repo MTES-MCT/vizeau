@@ -46,6 +46,10 @@ function getParquetPath(): string {
   return `s3://${env.get('S3_BUCKET')}/aac.parquet`
 }
 
+function getAnalysesRobinetPath(): string {
+  return `s3://${env.get('S3_BUCKET')}/analyses_robinet.parquet`
+}
+
 /**
  * Recursively normalizes DuckDB value types to plain JS objects:
  * - DuckDBDateValue { days } → ISO date string
@@ -184,5 +188,72 @@ export class AacService {
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     if (!rows[0]) return null
     return normalizeValue(rows[0]) as Record<string, unknown>
+  }
+
+  /**
+   * Checks whether an installation belongs to a given AAC.
+   * Reads only the `code` and `installations` columns from the Parquet file,
+   * which is significantly cheaper than a full SELECT * via getByCode().
+   */
+  async hasInstallation(aacCode: string, installationCode: string): Promise<boolean> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT 1 AS found FROM read_parquet($1) ' +
+        'WHERE code = $2 ' +
+        '  AND list_contains(list_transform(installations, i -> i.code), $3) ' +
+        'LIMIT 1'
+    )
+    stmt.bindVarchar(1, getParquetPath())
+    stmt.bindVarchar(2, aacCode)
+    stmt.bindVarchar(3, installationCode)
+
+    const result = await stmt.run()
+    const rows = await result.getRowObjects()
+    return rows.length > 0
+  }
+
+  /**
+   * Get the distinct years for which analyses exist for a given installation.
+   * Returns years in descending order (most recent first).
+   * @param installationCode  The installation code (InstallationInfo.code)
+   */
+  async getAnalysesRobinetYears(installationCode: string): Promise<string[]> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      "SELECT DISTINCT CAST(date_part('year', date_prelevement) AS INTEGER) AS year " +
+        'FROM read_parquet($1) ' +
+        'WHERE code_installation = $2 AND date_prelevement IS NOT NULL ' +
+        'ORDER BY year DESC'
+    )
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+    stmt.bindVarchar(2, installationCode)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    return rows.map((r) => String(r.year))
+  }
+
+  /**
+   * Get water quality analyses for an installation filtered by year.
+   * @param installationCode  The installation code (InstallationInfo.code)
+   * @param year              The calendar year to filter by
+   */
+  async getAnalysesRobinet(
+    installationCode: string,
+    year: number
+  ): Promise<Record<string, unknown>[]> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT * FROM read_parquet($1) ' +
+        "WHERE code_installation = $2 AND date_part('year', date_prelevement) = $3 " +
+        'ORDER BY date_prelevement DESC NULLS LAST'
+    )
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+    stmt.bindVarchar(2, installationCode)
+    stmt.bindInteger(3, year)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
   }
 }
