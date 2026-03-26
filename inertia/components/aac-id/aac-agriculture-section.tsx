@@ -11,6 +11,7 @@ import { getCultureColorByLabel } from '~/functions/cultures-group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
 import { AacJson } from '../../../types/aac'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export type AacAgricultureSectionProps = Pick<
   AacJson,
@@ -57,24 +58,24 @@ export default function AacAgricultureSection({
     const repartition = culture_evolution?.repartition
     if (!repartition) return { labels: [] as number[], datasets: [] }
 
-    // Années triées en ordre croissant (les clés sont des strings, on les convertit en number)
-    const years = sortBy(map(keys(repartition), Number))
-
+    // Années triées en ordre croissant (les clés sont des strings, on les convertit en number uniquement pour le tri)
+    const yearKeys = sortBy(keys(repartition), (yearKey) => Number(yearKey))
     // Cultures ayant au moins une valeur non-nulle sur la période, sans doublons
     const activeCultures = uniq(
-      flatMap(years, (year) =>
-        filter(keys(repartition[year]), (name) => repartition[year]?.[name] != null)
+      flatMap(yearKeys, (yearKey) =>
+        filter(keys(repartition[yearKey]), (name) => repartition[yearKey]?.[name] != null)
       )
     )
-
-    const datasets = map(activeCultures, (name) => ({
-      label: name,
-      data: map(years, (year) => repartition[year]?.[name]?.surface_ha ?? 0),
-      borderColor: getCultureColorByLabel(name),
-      backgroundColor: getCultureColorByLabel(name),
-    }))
-
-    return { labels: years, datasets }
+    const datasets = map(activeCultures, (name) => {
+      const color = getCultureColorByLabel(name)
+      return {
+        label: name,
+        data: map(yearKeys, (yearKey) => repartition[yearKey]?.[name]?.surface_ha ?? 0),
+        borderColor: color,
+        backgroundColor: color,
+      }
+    })
+    return { labels: yearKeys.map((yearKey) => Number(yearKey)), datasets }
   }, [culture_evolution])
 
   return (
@@ -134,17 +135,27 @@ export default function AacAgricultureSection({
           priority="secondary"
           hasBorder
         >
-          <EvolutiveChartLine chartItems={cultureEvolutionChartData} unit="ha" legendSize="sm" />
+          {cultureEvolutionChartData.labels.length > 0 &&
+          cultureEvolutionChartData.datasets.length > 0 ? (
+            <EvolutiveChartLine chartItems={cultureEvolutionChartData} unit="ha" legendSize="sm" />
+          ) : (
+            <EmptyPlaceholder
+              illustrativeIcon="fr-icon-line-chart-fill"
+              label="Aucune donnée d'évolution des cultures n'est disponible pour cet AAC."
+            />
+          )}
         </SmallSection>
 
-        <SmallSection
-          title="Évolution de l'agriculture biologique"
-          iconId="fr-icon-leaf-line"
-          priority="secondary"
-          hasBorder
-        >
-          <EvolutiveChartLine chartItems={bioEvolutiveChartData} legendSize="sm" />
-        </SmallSection>
+        {bioEvolutiveChartData.labels.length > 0 && (
+          <SmallSection
+            title="Évolution de l'agriculture biologique"
+            iconId="fr-icon-leaf-line"
+            priority="secondary"
+            hasBorder
+          >
+            <EvolutiveChartLine chartItems={bioEvolutiveChartData} legendSize="sm" />
+          </SmallSection>
+        )}
       </div>
     </SectionCard>
   )
