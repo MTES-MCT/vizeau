@@ -35,7 +35,7 @@ export class AacDto {
       prioritaire: row.prioritaire as boolean,
       date_creation: AacDto.formatDate(row.date_creation),
       date_maj: AacDto.formatDate(row.date_maj),
-      bbox: (row.bbox as [number, number, number, number]) ?? null,
+      bbox: (row.bbox ?? null) as [number, number, number, number] | null,
       surface: row.surface as number,
       nb_captages_actifs: row.nb_captages_actifs as number,
       nb_installations: row.nb_installations as number,
