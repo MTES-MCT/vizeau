@@ -48,6 +48,7 @@ export type AacJson = {
   prioritaire: boolean
   date_creation: string
   date_maj: string
+  bbox: [number, number, number, number] | null
   surface: number
   nb_captages_actifs: number
   nb_installations: number
