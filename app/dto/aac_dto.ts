@@ -7,6 +7,7 @@ export type AacSummaryJson = {
   nb_captages_actifs: number
   nb_communes: number
   date_maj: string
+  bbox: [number, number, number, number] | null
 }
 
 export class AacDto {
@@ -25,6 +26,7 @@ export class AacDto {
       nb_captages_actifs: row.nb_captages_actifs as number,
       nb_communes: row.nb_communes as number,
       date_maj: AacDto.formatDate(row.date_maj),
+      bbox: (row.bbox ?? null) as [number, number, number, number] | null,
     }
   }
 
@@ -35,6 +37,7 @@ export class AacDto {
       prioritaire: row.prioritaire as boolean,
       date_creation: AacDto.formatDate(row.date_creation),
       date_maj: AacDto.formatDate(row.date_maj),
+      bbox: (row.bbox ?? null) as [number, number, number, number] | null,
       surface: row.surface as number,
       nb_captages_actifs: row.nb_captages_actifs as number,
       nb_installations: row.nb_installations as number,
