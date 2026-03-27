@@ -117,6 +117,7 @@ export type AacSummaryJson = {
     part_bio: number
     evolution: { annee: number; nb_parcelles: number; surface: number }[]
   }
+  bbox: [number, number, number, number] | null
 }
 
 export type PaginatedJson<T> = {

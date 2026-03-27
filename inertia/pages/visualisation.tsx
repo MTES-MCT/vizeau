@@ -269,6 +269,13 @@ export default function VisualisationPage({
     filteredExploitations,
   ])
 
+  // Center on AAC when selected
+  useEffect(() => {
+    if (selectedAac) {
+      mapRef.current?.centerOnAac(selectedAac)
+    }
+  }, [selectedAac])
+
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
