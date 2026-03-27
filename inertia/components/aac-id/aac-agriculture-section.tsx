@@ -1,14 +1,17 @@
 import { useMemo } from 'react'
 
 import { fr } from '@codegouvfr/react-dsfr'
+import { flatMap, keys, map, sortBy, uniq, filter } from 'lodash-es'
 
 import EvolutiveChartLine from '~/ui/Charts/EvolutiveChartLine'
 import ResumeCard from '~/ui/ResumeCard'
 import SectionCard from '~/ui/SectionCard'
 import SmallSection from '~/ui/SmallSection'
+import { getCultureColorByLabel } from '~/functions/cultures-group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
 import { AacJson } from '../../../types/aac'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export type AacAgricultureSectionProps = Pick<
   AacJson,
@@ -17,6 +20,7 @@ export type AacAgricultureSectionProps = Pick<
   | 'surface_agricole_utile'
   | 'surface_agricole_bio'
   | 'communes'
+  | 'culture_evolution'
 >
 
 function concatSurfaces(
@@ -32,8 +36,9 @@ export default function AacAgricultureSection({
   surface_agricole_bio,
   surface_agricole_ppr,
   surface_agricole_ppe,
+  culture_evolution,
 }: AacAgricultureSectionProps) {
-  const evolutiveChartData = useMemo(() => {
+  const bioEvolutiveChartData = useMemo(() => {
     const sorted = [...(surface_agricole_bio?.evolution ?? [])].sort((a, b) => a.annee - b.annee)
 
     return {
@@ -48,6 +53,30 @@ export default function AacAgricultureSection({
       ],
     }
   }, [surface_agricole_bio])
+
+  const cultureEvolutionChartData = useMemo(() => {
+    const repartition = culture_evolution?.repartition
+    if (!repartition) return { labels: [] as number[], datasets: [] }
+
+    // Années triées en ordre croissant (les clés sont des strings, on les convertit en number uniquement pour le tri)
+    const yearKeys = sortBy(keys(repartition), (yearKey) => Number(yearKey))
+    // Cultures ayant au moins une valeur non-nulle sur la période, sans doublons
+    const activeCultures = uniq(
+      flatMap(yearKeys, (yearKey) =>
+        filter(keys(repartition[yearKey]), (name) => repartition[yearKey]?.[name] != null)
+      )
+    )
+    const datasets = map(activeCultures, (name) => {
+      const color = getCultureColorByLabel(name)
+      return {
+        label: name,
+        data: map(yearKeys, (yearKey) => repartition[yearKey]?.[name]?.surface_ha ?? 0),
+        borderColor: color,
+        backgroundColor: color,
+      }
+    })
+    return { labels: yearKeys.map((yearKey) => Number(yearKey)), datasets }
+  }, [culture_evolution])
 
   return (
     <SectionCard title="Agriculture">
@@ -79,7 +108,7 @@ export default function AacAgricultureSection({
           />
           <ResumeCard
             title="Culture Bio"
-            value={surface_agricole_bio?.surface?.toFixed(2) ?? 0}
+            value={surface_agricole_bio?.surface.toFixed(2) ?? 0}
             label="hectares"
             iconId="fr-icon-leaf-line"
             priority="secondary"
@@ -100,14 +129,31 @@ export default function AacAgricultureSection({
           />
         </SmallSection>
 
-        {(surface_agricole_bio?.surface ?? 0) > 0 && (
+        <SmallSection
+          title="Évolution des types de cultures"
+          iconId="fr-icon-seedling-line"
+          priority="secondary"
+          hasBorder
+        >
+          {cultureEvolutionChartData.labels.length > 0 &&
+          cultureEvolutionChartData.datasets.length > 0 ? (
+            <EvolutiveChartLine chartItems={cultureEvolutionChartData} unit="ha" legendSize="sm" />
+          ) : (
+            <EmptyPlaceholder
+              illustrativeIcon="fr-icon-line-chart-fill"
+              label="Aucune donnée d'évolution des cultures n'est disponible pour cet AAC."
+            />
+          )}
+        </SmallSection>
+
+        {bioEvolutiveChartData.labels.length > 0 && (
           <SmallSection
             title="Évolution de l'agriculture biologique"
             iconId="fr-icon-leaf-line"
             priority="secondary"
             hasBorder
           >
-            <EvolutiveChartLine chartItems={evolutiveChartData} />
+            <EvolutiveChartLine chartItems={bioEvolutiveChartData} legendSize="sm" />
           </SmallSection>
         )}
       </div>

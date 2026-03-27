@@ -204,3 +204,8 @@ export function getCultureByCode(code: string | null | undefined): {
     color: getCultureColor(culture?.groupCode),
   }
 }
+
+export function getCultureColorByLabel(name: string): string {
+  const group = Object.values(GROUPES_CULTURAUX).find((g) => g.label === name)
+  return group?.color ?? getCultureCategoryColor(name)
+}
