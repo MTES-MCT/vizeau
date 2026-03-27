@@ -81,12 +81,12 @@ export default function AacCommunesRepartition({ communes }: AacCommunesRepartit
 
   return (
     <div className="flex w-full flex-wrap items-center gap-2">
-      <div className="min-h-[200px] h-full min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
+      <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
         <Doughnut chartItems={communesChartItems} unit="hectares" hideLegend />
       </div>
-      <div className="min-w-[300px] flex-1">
+      <div className="min-w-0 sm:min-w-[300px] flex-1">
         {communeProgressBarsItems.map((item) => (
-          <div key={item.label} className="w-full">
+          <div key={item.key} className="w-full">
             <LabeledProgressBar
               label={item.label}
               size="sm"

@@ -31,7 +31,6 @@ export default function Doughnut({
 
   const options = {
     maintainAspectRatio: false,
-    aspectRatio: 1,
     responsive: true,
     plugins: {
       legend: {

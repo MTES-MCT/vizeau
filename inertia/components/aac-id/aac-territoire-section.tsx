@@ -1,7 +1,3 @@
-import { useMemo } from 'react'
-
-import { brightStringToColor } from '~/functions/colors'
-
 import SectionCard from '~/ui/SectionCard'
 import ResumeCard from '~/ui/ResumeCard'
 import SmallSection from '~/ui/SmallSection'
