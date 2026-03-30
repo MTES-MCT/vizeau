@@ -117,7 +117,11 @@ export default function VisualisationLeftSideBar({
                     checked: tab === 'exploitation',
                     onChange: () => {
                       setTab('exploitation')
-                      router.reload({ data: { tab: 'exploitation' }, replace: true })
+                      router.reload({
+                        data: { tab: 'exploitation' },
+                        only: ['queryString'],
+                        replace: true,
+                      })
                     },
                   },
                 },
@@ -127,7 +131,11 @@ export default function VisualisationLeftSideBar({
                     checked: tab === 'aac',
                     onChange: () => {
                       setTab('aac')
-                      router.reload({ data: { tab: 'aac' }, replace: true })
+                      router.reload({
+                        data: { tab: 'aac' },
+                        only: ['queryString'],
+                        replace: true,
+                      })
                     },
                   },
                 },

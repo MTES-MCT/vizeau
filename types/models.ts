@@ -1,10 +1,5 @@
-import { CultureInfo } from './aac.js'
-// Types for AAC data models
-export type CommuneInfo = {
-  code_insee: string
-  surface: number
-  repartition: number
-}
+import { CommuneInfo, CultureInfo } from './aac.js'
+export type { CommuneInfo }
 
 // Used for frontend forms and requests where id may be missing or null
 export type ExploitationFormValues = Omit<ExploitationJson, 'id' | 'contacts'> & {

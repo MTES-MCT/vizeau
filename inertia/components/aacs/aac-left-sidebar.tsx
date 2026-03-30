@@ -26,7 +26,8 @@ export default function AacLeftSidebar({ aac, millesime, mapRef }: AacLeftSideba
             label: 'Liste des AAC',
             linkProps: {
               href: '#',
-              onClick: () => {
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault()
                 router.visit(`/visualisation?millesime=${millesime}&tab=aac`)
               },
               style: {
@@ -86,7 +87,7 @@ export default function AacLeftSidebar({ aac, millesime, mapRef }: AacLeftSideba
         </div>
 
         <div className="flex flex-col gap-4">
-          <AacInformationsCard {...aac} extented />
+          <AacInformationsCard {...aac} extended />
           <SmallSection
             title="Répartition des cultures"
             iconId="fr-icon-leaf-line"

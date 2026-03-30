@@ -26,14 +26,14 @@ export type AacInformationsCardProps = {
       }
     >
   }
-  extented?: boolean
+  extended?: boolean
 }
 
 export default function AacInformationsCard({
   code,
   date_creation,
   date_maj,
-  extented = false,
+  extended = false,
   nb_captages_actifs,
   nb_parcelles,
   surface_agricole_bio,
@@ -53,7 +53,7 @@ export default function AacInformationsCard({
         <LabelInfo label="Code AAC" info={code} />
         <LabelInfo label="Date de création" info={formatDateFr(date_creation)} />
         <LabelInfo label="Dernière mise à jour" info={formatDateFr(date_maj)} />
-        {extented && (
+        {extended && (
           <LabelInfo
             label="Communes"
             info={communeArray.map((commune) => commune.nom).join(', ')}
@@ -61,7 +61,7 @@ export default function AacInformationsCard({
         )}
       </div>
 
-      {extented && (
+      {extended && (
         <div
           className="grid w-full gap-2 fr-mt-2w"
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}
