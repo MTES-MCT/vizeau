@@ -8,7 +8,7 @@ test.group('Visualisation - Assign parcelles to an exploitation', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('I can assign parcelles to an exploitation', async ({ assert, client, route }) => {
-    const user = await UserFactory.create()
+    const user = await UserFactory.with('territoires', 1).create()
     const fakeExploitation = await ExploitationFactory.create()
     const exploitationPayload = {
       exploitationId: fakeExploitation.id,
