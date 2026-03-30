@@ -96,22 +96,23 @@ export default function AacCulturesRepartition({
         ]}
       />
 
-      <div className="fr-grid-row w-full items-center justify-center">
-        <div className="fr-col-12 fr-col-lg-6 h-fit flex flex-col gap-2">
+      <div className="flex w-full flex-wrap items-center gap-2">
+        <div className="min-w-0 sm:min-w-[300px] flex-1">
           {cultureItems.map((item) => (
-            <LabeledProgressBar
-              label={item.label}
-              size="sm"
-              progressBarValues={{
-                value: item.data,
-                total: 100,
-                progressColor: item.progressColor,
-              }}
-              key={item.label}
-            />
+            <div key={item.label} className="w-full">
+              <LabeledProgressBar
+                label={item.label}
+                size="sm"
+                progressBarValues={{
+                  value: item.data,
+                  total: 100,
+                  progressColor: item.progressColor,
+                }}
+              />
+            </div>
           ))}
         </div>
-        <div className="fr-col-12 fr-col-lg-6 min-h-[200px]">
+        <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
           <Doughnut chartItems={cultureItems} unit="hectares" hideLegend />
         </div>
       </div>
