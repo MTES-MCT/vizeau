@@ -11,6 +11,7 @@ export const ContactFactory = factory
       role: faker.person.jobTitle(),
       email: faker.internet.email(),
       phoneNumber: faker.phone.number(),
+      isPrimaryContact: false,
     }
   })
   .relation('exploitation', () => ExploitationFactory)

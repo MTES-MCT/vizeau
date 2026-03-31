@@ -1,6 +1,7 @@
 import factory from '@adonisjs/lucid/factories'
 import User from '#models/user'
 import { fakerFR as faker } from '@faker-js/faker'
+import { TerritoireFactory } from '#database/factories/territoire_factory'
 
 export const UserFactory = factory
   .define(User, async () => {
@@ -10,4 +11,5 @@ export const UserFactory = factory
       password: 'password',
     }
   })
+  .relation('territoires', () => TerritoireFactory)
   .build()
