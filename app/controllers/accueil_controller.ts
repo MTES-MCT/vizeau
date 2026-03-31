@@ -36,7 +36,15 @@ export default class AccueilController {
     })
   }
 
-  async noTerritoire({ inertia }: HttpContext) {
+  async noTerritoire({ inertia, response, auth }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    await user.loadOnce('territoires')
+
+    if (user.territoires.length > 0) {
+      return response.redirect('/')
+    }
+
     return inertia.render('no_territoire')
   }
 }
