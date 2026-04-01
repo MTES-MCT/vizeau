@@ -33,13 +33,25 @@ export class LogEntryService {
       .paginate(page, pageSize)
   }
 
+  // Request used on the home page
   async getLatestLogEntriesFromUser(userId: string, limit = 5) {
-    return this.queryLogEntriesFromActiveExploitation()
-      .where('userId', userId)
-      .preload('tags')
-      .preload('exploitation')
-      .orderBy('createdAt', 'desc')
-      .limit(limit)
+    return (
+      this.queryLogEntriesFromActiveExploitation()
+        // We want to only show the current user's entries on the home page
+        .where('userId', userId)
+        // Only show entries from exploitations that share at least one territoire with the user (same as the exploitations shown on the home page)
+        .whereHas('exploitation', (exploitationQuery) => {
+          exploitationQuery.whereHas('territoires', (territoireQuery) => {
+            territoireQuery.whereHas('users', (userQuery) => {
+              userQuery.where('users.id', userId)
+            })
+          })
+        })
+        .preload('tags')
+        .preload('exploitation')
+        .orderBy('createdAt', 'desc')
+        .limit(limit)
+    )
   }
 
   async findDocument(documentId: number, userId: string) {
