@@ -9,6 +9,7 @@ import AacCulturesRepartition from '../aac-id/aac-cultures-repartition'
 import SmallSection from '~/ui/SmallSection'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import { Notice } from '@codegouvfr/react-dsfr/Notice'
 
 export type AacLeftSidebarProps = {
   aac: AacSummaryJson
@@ -94,7 +95,10 @@ export default function AacLeftSidebar({ aac, millesime, mapRef }: AacLeftSideba
             priority="secondary"
             hasBorder
           >
-            <AacCulturesRepartition {...aac} />
+            <div className="flex flex-col gap-2">
+              <Notice title="Données issues du RPG 2024" />
+              <AacCulturesRepartition {...aac} />
+            </div>
           </SmallSection>
         </div>
       </div>
