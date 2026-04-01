@@ -95,9 +95,16 @@ export default function AacLeftSidebar({ aac, millesime, mapRef }: AacLeftSideba
             priority="secondary"
             hasBorder
           >
-            <div className="flex flex-col gap-2">
-              <Notice title="Données issues du RPG 2024" />
+            <div className="flex flex-col gap-2 items-end">
+              <Notice title="Données issues du RPG 2024" className="w-full" />
               <AacCulturesRepartition {...aac} />
+              <Button
+                priority="tertiary no outline"
+                iconId="fr-icon-arrow-right-line"
+                onClick={() => router.visit(`/aac/${aac.code}?tab=assolement#evolution-cultures`)}
+              >
+                Visualiser également l'évolution des cultures
+              </Button>
             </div>
           </SmallSection>
         </div>
