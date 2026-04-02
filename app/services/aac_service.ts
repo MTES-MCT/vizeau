@@ -1,7 +1,5 @@
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api'
 import env from '#start/env'
-import Territoire from '#models/territoire'
-import User from '#models/user'
 
 /** Escapes a value for safe embedding in a single-quoted SQL string literal. */
 function sqlEscape(value: string): string {
@@ -117,7 +115,7 @@ export class AacService {
     perPage: number,
     recherche?: string,
     commune?: string,
-    userId?: string
+    aacCodes?: string[]
   ): Promise<{ data: Record<string, unknown>[]; total: number }> {
     const conn = await getConnection()
     const path = getParquetPath()
@@ -144,31 +142,17 @@ export class AacService {
       filterParams.push(commune)
     }
 
-    if (userId) {
-      // Fetch territoires in which the given user is
-      const territoireCodeRows = await Territoire.query()
-        .whereHas('users', (usersQuery) => {
-          usersQuery.where(`${User.table}.id`, userId)
-        })
-        .select('code')
-
+    if (aacCodes && aacCodes.length > 0) {
       const placeholders: string[] = []
 
       // Build the param placeholders for the IN clause
-      for (const row of territoireCodeRows) {
-        if (row.code) {
-          placeholders.push(`$${paramIdx}`)
-          paramIdx++
-          filterParams.push(row.code)
-        }
+      for (const code of aacCodes) {
+        placeholders.push(`$${paramIdx}`)
+        paramIdx++
+        filterParams.push(code)
       }
 
-      if (placeholders.length > 0) {
-        conditions.push(`code IN (${placeholders.join(', ')})`)
-      } else {
-        // If there is no territoire, we add a bad filter to make the request return no results
-        conditions.push('1=0')
-      }
+      conditions.push(`code IN (${placeholders.join(', ')})`)
     }
 
     const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''

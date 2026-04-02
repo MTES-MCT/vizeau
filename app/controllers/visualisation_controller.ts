@@ -34,6 +34,13 @@ export default class VisualisationController {
     }
 
     const user = auth.getUserOrFail()
+    const userTerritoireCodes: string[] = []
+
+    for (const territoire of user.territoires) {
+      if (territoire.code) {
+        userTerritoireCodes.push(territoire.code)
+      }
+    }
 
     this.eventLogger.logEvent({
       userId: user.id,
@@ -56,7 +63,7 @@ export default class VisualisationController {
           AAC_PER_PAGE,
           aacRecherche,
           aacCommune,
-          user.id
+          userTerritoireCodes
         )
       }
       return aacResultPromise
@@ -83,7 +90,7 @@ export default class VisualisationController {
         aacPage: String(aacPage),
       }),
       selectedAac: async () => {
-        if (!aacCode) return null
+        if (!aacCode || !userTerritoireCodes.includes(aacCode.toString())) return null
         const raw = await this.aacService.getByCode(aacCode)
         if (!raw) return null
         return AacDto.fromRawSummary(raw)
