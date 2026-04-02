@@ -22,6 +22,8 @@ import {
   getPpeLayer,
   getPprSource,
   getPprLayer,
+  getSageSource,
+  getSageLayer,
 } from './styles/zonage'
 
 import { renderPopupParcelle } from './popup-parcelle'
@@ -87,6 +89,7 @@ const VisualisationMap = forwardRef<
     showCommunes?: boolean
     showBioOnly?: boolean
     visibleCultures?: string[]
+    showSage?: boolean
     style?: string
   }
 >(
@@ -113,6 +116,7 @@ const VisualisationMap = forwardRef<
       showCommunes = false,
       showBioOnly = false,
       visibleCultures = [],
+      showSage = false,
       style = 'vector',
     },
     ref
@@ -130,48 +134,25 @@ const VisualisationMap = forwardRef<
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
     const previousVisibleCulturesRef = useRef<string[]>([])
+    const showBioOnlyRef = useRef(false)
 
-    // Synchroniser la ref avec les props
+    // Synchroniser les refs avec les props
     useEffect(() => {
       previousVisibleCulturesRef.current = visibleCultures
     }, [visibleCultures])
 
+    useEffect(() => {
+      showBioOnlyRef.current = showBioOnly
+    }, [showBioOnly])
+
     // Fonction pour filtrer les parcelles par code culture
-    const updateCultureFilter = useCallback(
-      (cultureCodes: string[]) => {
-        if (!mapRef.current) return
+    const updateCultureFilter = useCallback((cultureCodes: string[]) => {
+      if (!mapRef.current) return
 
-        const map = mapRef.current
+      const map = mapRef.current
 
-        if (cultureCodes.length === 0) {
-          // Masquer tout avec un filtre qui ne match jamais
-          const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
-          ;[
-            'parcelles-fill',
-            'parcelles-outline',
-            'parcellesbio-fill',
-            'parcellesbio-outline',
-          ].forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setFilter(layerId, hideFilter)
-            }
-          })
-          return
-        }
-
-        // Convertir les codes en nombres
-        const codesAsNumbers = cultureCodes.map((code) => parseInt(code, 10))
-
-        // Créer le filtre selon le millésime
-        let filter: maplibre.FilterSpecification
-        if (millesime === '2024') {
-          // Millésime 2024 : 'code_group'
-          filter = ['in', ['to-number', ['get', 'code_group']], ['literal', codesAsNumbers]]
-        } else {
-          // Millésime 2023 : 'CODE_GROUP'
-          filter = ['in', ['to-number', ['get', 'CODE_GROUP']], ['literal', codesAsNumbers]]
-        }
-
+      if (cultureCodes.length === 0) {
+        const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
         ;[
           'parcelles-fill',
           'parcelles-outline',
@@ -179,12 +160,29 @@ const VisualisationMap = forwardRef<
           'parcellesbio-outline',
         ].forEach((layerId) => {
           if (map.getLayer(layerId)) {
-            map.setFilter(layerId, filter)
+            map.setFilter(layerId, hideFilter)
           }
         })
-      },
-      [millesime]
-    )
+        return
+      }
+
+      // Convertir les codes en nombres
+      const codesAsNumbers = cultureCodes.map((code) => parseInt(code, 10))
+
+      const filter: maplibre.FilterSpecification = [
+        'in',
+        ['to-number', ['get', 'code_group']],
+        ['literal', codesAsNumbers],
+      ]
+
+      ;['parcelles-fill', 'parcelles-outline', 'parcellesbio-fill', 'parcellesbio-outline'].forEach(
+        (layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setFilter(layerId, filter)
+          }
+        }
+      )
+    }, [])
 
     useImperativeHandle(ref, () => ({
       centerOnExploitation: (exploitation: ExploitationJson) => {
@@ -242,10 +240,9 @@ const VisualisationMap = forwardRef<
 
         const props = e.features?.[0]?.properties
 
-        // Le millésime 2024 utilise des minuscules, celui de 2023 des majuscules
-        const cultureCode = props?.code_cultu ?? props?.CODE_CULTU
-        const surfParc = props?.surf_parc ?? props?.SURF_PARC
-        const id = props?.id_parcel ?? props?.ID_PARCEL
+        const cultureCode = props?.code_cultu
+        const surfParc = props?.surf_parc
+        const id = props?.id_parcel
         const isUnavailable = unavailableParcelleIds.includes(id)
 
         const comment = parcelleCommentMap.get(id)
@@ -321,7 +318,7 @@ const VisualisationMap = forwardRef<
         }
 
         const feature = e.features?.[0]
-        const id = feature?.properties?.['id_parcel'] || feature?.properties?.['ID_PARCEL']
+        const id = feature?.properties?.['id_parcel']
 
         if (feature?.properties && !unavailableParcelleIds.includes(id)) {
           onParcelleClick(feature)
@@ -366,6 +363,10 @@ const VisualisationMap = forwardRef<
           map.addSource('ppr', getPprSource({ pmtilesUrl }))
         }
 
+        if (!map.getSource('sage')) {
+          map.addSource('sage', getSageSource({ pmtilesUrl }))
+        }
+
         const addLayers = (
           layers: Array<{ id: string; [key: string]: any }>,
           beforeId?: string
@@ -391,6 +392,7 @@ const VisualisationMap = forwardRef<
         addLayers(getPpeLayer(), beforeId)
         addLayers(getAacLayer(), beforeId)
         addLayers(getCommunesLayer(), beforeId)
+        addLayers(getSageLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
 
         setIsMapLoading(false)
@@ -605,11 +607,13 @@ const VisualisationMap = forwardRef<
         addSourceIfMissing('aac', getAacSource({ pmtilesUrl }))
         addSourceIfMissing('ppe', getPpeSource({ pmtilesUrl }))
         addSourceIfMissing('ppr', getPprSource({ pmtilesUrl }))
+        addSourceIfMissing('sage', getSageSource({ pmtilesUrl }))
 
         addLayersIfMissing(getPprLayer())
         addLayersIfMissing(getPpeLayer())
         addLayersIfMissing(getAacLayer())
         addLayersIfMissing(getCommunesLayer())
+        addLayersIfMissing(getSageLayer())
         addLayersIfMissing(getParcellesLayers())
 
         // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
@@ -618,6 +622,7 @@ const VisualisationMap = forwardRef<
           { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
           { layers: ['aac-fill', 'aac-outline'], visible: showAac },
           { layers: ['communes-outline'], visible: showCommunes },
+          { layers: ['sage-fill', 'sage-outline'], visible: showSage },
           { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
         ]
 
@@ -633,57 +638,79 @@ const VisualisationMap = forwardRef<
       })
 
       currentStyleRef.current = style
-    }, [style, showParcelles, showAac, showPpe, showPpr, showCommunes, updateCultureFilter])
+    }, [
+      style,
+      showParcelles,
+      showAac,
+      showPpe,
+      showPpr,
+      showCommunes,
+      showSage,
+      updateCultureFilter,
+    ])
 
     useEffect(() => {
-      if (!mapRef.current) {
-        return
-      }
+      if (!mapRef.current) return
 
       const map = mapRef.current
 
-      if (!map.isStyleLoaded()) {
-        return
+      const applyBioVisibility = () => {
+        if (showBioOnly) {
+          if (map.getLayer('parcelles-fill')) {
+            map.setLayoutProperty('parcelles-fill', 'visibility', 'none')
+          }
+
+          if (map.getLayer('parcelles-outline')) {
+            map.setLayoutProperty('parcelles-outline', 'visibility', 'none')
+          }
+
+          if (map.getLayer('parcellesbio-fill')) {
+            map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
+              'case',
+              ['boolean', ['feature-state', 'unavailable'], false],
+              0.3,
+              ['boolean', ['feature-state', 'highlighted'], false],
+              0.7,
+              0.5,
+            ])
+          }
+
+          if (map.getLayer('parcellesbio-outline')) {
+            map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
+          }
+        } else {
+          if (map.getLayer('parcelles-fill')) {
+            map.setLayoutProperty(
+              'parcelles-fill',
+              'visibility',
+              showParcelles ? 'visible' : 'none'
+            )
+          }
+
+          if (map.getLayer('parcelles-outline')) {
+            map.setLayoutProperty(
+              'parcelles-outline',
+              'visibility',
+              showParcelles ? 'visible' : 'none'
+            )
+          }
+
+          if (map.getLayer('parcellesbio-fill')) {
+            map.setPaintProperty('parcellesbio-fill', 'fill-opacity', 0)
+          }
+
+          if (map.getLayer('parcellesbio-outline')) {
+            map.setPaintProperty('parcellesbio-outline', 'line-opacity', 0)
+          }
+        }
       }
 
-      if (showBioOnly) {
-        // Mode bio uniquement : rendre les parcelles bio opaques
-        if (map.getLayer('parcelles-fill')) {
-          map.setLayoutProperty('parcelles-fill', 'visibility', 'none')
-        }
-        if (map.getLayer('parcelles-outline')) {
-          map.setLayoutProperty('parcelles-outline', 'visibility', 'none')
-        }
-        if (map.getLayer('parcellesbio-fill')) {
-          map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
-            'case',
-            ['boolean', ['feature-state', 'unavailable'], false],
-            0.3,
-            ['boolean', ['feature-state', 'highlighted'], false],
-            0.7,
-            0.5,
-          ])
-        }
-        if (map.getLayer('parcellesbio-outline')) {
-          map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
-        }
+      if (map.isStyleLoaded()) {
+        applyBioVisibility()
       } else {
-        // Mode normal : parcelles visibles, bio transparent pour détection uniquement
-        if (map.getLayer('parcelles-fill')) {
-          map.setLayoutProperty('parcelles-fill', 'visibility', showParcelles ? 'visible' : 'none')
-        }
-        if (map.getLayer('parcelles-outline')) {
-          map.setLayoutProperty(
-            'parcelles-outline',
-            'visibility',
-            showParcelles ? 'visible' : 'none'
-          )
-        }
-        if (map.getLayer('parcellesbio-fill')) {
-          map.setPaintProperty('parcellesbio-fill', 'fill-opacity', 0)
-        }
-        if (map.getLayer('parcellesbio-outline')) {
-          map.setPaintProperty('parcellesbio-outline', 'line-opacity', 0)
+        map.once('styledata', applyBioVisibility)
+        return () => {
+          map.off('styledata', applyBioVisibility)
         }
       }
     }, [showBioOnly, showParcelles])
@@ -732,8 +759,27 @@ const VisualisationMap = forwardRef<
           const currentCultures = previousVisibleCulturesRef.current
           updateCultureFilter(currentCultures)
 
+          // Réappliquer la visibilité bio si le mode est actif
+          if (showBioOnlyRef.current) {
+            if (map.getLayer('parcellesbio-fill')) {
+              map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
+                'case',
+                ['boolean', ['feature-state', 'unavailable'], false],
+                0.3,
+                ['boolean', ['feature-state', 'highlighted'], false],
+                0.7,
+                0.5,
+              ])
+            }
+
+            if (map.getLayer('parcellesbio-outline')) {
+              map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
+            }
+          }
+
           // Réappliquer le highlight des parcelles sélectionnées
           let parcelleIds: string[] = []
+
           if (editMode) {
             parcelleIds = formParcelleIds
           } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
@@ -807,7 +853,8 @@ const VisualisationMap = forwardRef<
         { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
         { layers: ['aac-fill', 'aac-outline'], visible: showAac },
         { layers: ['communes-outline'], visible: showCommunes },
-        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
+        { layers: ['sage-fill', 'sage-outline'], visible: showSage },
+        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles && !showBioOnly },
       ]
 
       // Application de la visibilité pour chaque groupe de layers
@@ -818,7 +865,7 @@ const VisualisationMap = forwardRef<
           }
         })
       })
-    }, [showParcelles, showAac, showPpe, showPpr, showCommunes])
+    }, [showParcelles, showAac, showPpe, showPpr, showCommunes, showSage, showBioOnly])
 
     // Mise à jour du filtre quand visibleCultures change
     useEffect(() => {

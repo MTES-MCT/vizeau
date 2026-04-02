@@ -48,6 +48,7 @@ export default function VisualisationPage({
   const [showPpr, setShowPpr] = useState(false)
   const [showCommunes, setShowCommunes] = useState(false)
   const [showBioOnly, setShowBioOnly] = useState(false)
+  const [showSage, setShowSage] = useState(false)
   const mapRef = useRef<VisualisationMapRef>(null)
   const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
   const [style, setStyle] = useState<string>('vector')
@@ -342,6 +343,9 @@ export default function VisualisationPage({
                 options={[
                   { value: '2024', label: 'RPG 2024' },
                   { value: '2023', label: 'RPG 2023' },
+                  { value: '2022', label: 'RPG 2022' },
+                  { value: '2021', label: 'RPG 2021' },
+                  { value: '2020', label: 'RPG 2020' },
                 ]}
               />
             </div>
@@ -366,6 +370,7 @@ export default function VisualisationPage({
             showPpr={showPpr}
             showCommunes={showCommunes}
             showBioOnly={showBioOnly}
+            showSage={showSage}
             ref={mapRef}
             visibleCultures={visibleCultures}
             style={style}
@@ -385,7 +390,9 @@ export default function VisualisationPage({
             setShowCommunes={() => setShowCommunes((prev) => !prev)}
             showBioOnly={showBioOnly}
             setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
-            canSwitchToBioOnly={!editMode && millesime === '2024'}
+            showSage={showSage}
+            setShowSage={() => setShowSage((prev) => !prev)}
+            canSwitchToBioOnly={!editMode}
             visibleCultures={visibleCultures}
             onToggleCulture={toggleCulture}
             onToggleAllCultures={toggleAllCultures}
