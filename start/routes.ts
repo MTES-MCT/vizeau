@@ -83,6 +83,10 @@ router
           .as('log_entries.index')
 
         router
+          .get('exploitations/:exploitationId/journal/export', [LogEntriesController, 'exportCsv'])
+          .as('log_entries.export')
+
+        router
           .get('exploitations/:exploitationId/journal/:logEntryId', [LogEntriesController, 'get'])
           .as('log_entries.get')
 

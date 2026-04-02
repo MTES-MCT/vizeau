@@ -23,6 +23,7 @@ import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryDto } from '../dto/log_entry_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { LogEntryDocumentService } from '#services/log_entry_document_service'
+import { LogEntryCsvService } from '#services/log_entry_csv_service'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -46,6 +47,7 @@ export default class LogEntriesController {
     public logEntryService: LogEntryService,
     public logEntryTagService: LogEntryTagService,
     public logEntryDocumentService: LogEntryDocumentService,
+    public logEntryCsvService: LogEntryCsvService,
     public eventLogger: EventLoggerService,
     public exploitationService: ExploitationService
   ) {}
@@ -89,6 +91,23 @@ export default class LogEntriesController {
         .make('log_entries.destroyTagForExploitation'),
       createEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.create'),
     })
+  }
+
+  async exportCsv({ params, response }: HttpContext) {
+    const exploitationId = params.exploitationId
+    const exploitation = await Exploitation.findOrFail(exploitationId)
+
+    const entries = await this.logEntryService.getAllLogEntriesForExploitation(exploitationId)
+    const csv = this.logEntryCsvService.generateCsv(entries)
+
+    const safeName = exploitation.name.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 50)
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `journal-${safeName}-${date}.csv`
+
+    return response
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(csv)
   }
 
   async get({ request, params, inertia, auth }: HttpContext) {
