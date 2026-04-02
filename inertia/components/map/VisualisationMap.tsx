@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { ExploitationJson, ParcelleJson } from '../../../types/models'
+import { AacSummaryJson, ExploitationJson, ParcelleJson } from '../../../types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
@@ -59,6 +59,7 @@ const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
   centerOnParcelle: (parcelle: ParcelleJson) => void
+  centerOnAac: (aac: AacSummaryJson) => void
 }
 
 const VisualisationMap = forwardRef<
@@ -206,6 +207,18 @@ const VisualisationMap = forwardRef<
             zoom: 15,
             essential: true,
           })
+        }
+      },
+      centerOnAac: (aac: AacSummaryJson) => {
+        const map = mapRef.current
+        if (map && aac.bbox) {
+          map.fitBounds(
+            [
+              [aac.bbox[0], aac.bbox[1]],
+              [aac.bbox[2], aac.bbox[3]],
+            ],
+            { padding: 40, essential: true }
+          )
         }
       },
     }))

@@ -75,8 +75,8 @@ export default function MapLayout({
                 />
               </div>
               <div
-                className="flex-1 overflow-auto"
-                style={{ height: `calc(100% - ${headerHeight}px)` }}
+                className="flex-1"
+                style={{ height: `calc(100% - ${headerHeight}px)`, minWidth: '430px' }}
               >
                 {leftContent}
               </div>

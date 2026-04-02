@@ -39,6 +39,7 @@ export default function VisualisationPage({
   aacs,
   aacMeta,
   aacQueryString,
+  selectedAac,
 }: InferPageProps<VisualisationController, 'index'>) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [showParcelles, setShowParcelles] = useState(true)
@@ -72,6 +73,9 @@ export default function VisualisationPage({
     () => filteredExploitations.find((exp) => exp.id === selectedExploitationId),
     [selectedExploitationId, filteredExploitations]
   )
+
+  // selectedAac is provided as a server prop, fetched independently of the
+  // paginated aacs list so that deep links always resolve correctly.
 
   // Calculate selected parcelle from query params
   const selectedParcelle = useMemo(() => {
@@ -262,6 +266,13 @@ export default function VisualisationPage({
     filteredExploitations,
   ])
 
+  // Center on AAC when selected
+  useEffect(() => {
+    if (selectedAac) {
+      mapRef.current?.centerOnAac(selectedAac)
+    }
+  }, [selectedAac])
+
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
@@ -291,6 +302,7 @@ export default function VisualisationPage({
             aacs={aacs}
             aacMeta={aacMeta}
             aacQueryString={aacQueryString}
+            selectedAac={selectedAac ?? undefined}
           />
         }
         headerAdditionalContent={

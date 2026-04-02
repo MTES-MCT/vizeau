@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import { Head, usePage } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import Layout from '~/ui/layouts/layout'
@@ -9,7 +9,7 @@ import TruncatedText from '~/ui/TruncatedText'
 import AacInformationsCard from '~/components/aac-id/aac-informations-card'
 import AacCommunesCard from '~/components/aac-id/aac-communes-card'
 import { map } from 'lodash-es'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AacTerritoireSection from '~/components/aac-id/aac-territoire-section'
 import AacAgricultureSection from '~/components/aac-id/aac-agriculture-section'
 import AacCaptages from '~/components/aac-id/aac-captages'
@@ -17,7 +17,23 @@ import AacCaptages from '~/components/aac-id/aac-captages'
 export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) {
   const communeArray = map(aac.communes?.communes ?? {}, (info, nom) => ({ nom, ...info }))
 
-  const [selectedTabId, setSelectedTabId] = useState('captages')
+  const { url } = usePage()
+  const [, queryAndHash] = url.split('?')
+  const queryString = (queryAndHash ?? '').split('#')[0]
+  const urlParams = new URLSearchParams(queryString)
+  const initialTab = urlParams.get('tab') === 'assolement' ? 'assolement' : 'captages'
+  const [selectedTabId, setSelectedTabId] = useState(initialTab)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash.slice(1)
+    if (hash) {
+      const el = document.getElementById(hash)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }, [selectedTabId])
 
   return (
     <Layout>

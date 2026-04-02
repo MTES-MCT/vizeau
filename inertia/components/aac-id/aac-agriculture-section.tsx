@@ -129,22 +129,28 @@ export default function AacAgricultureSection({
           />
         </SmallSection>
 
-        <SmallSection
-          title="Évolution des types de cultures"
-          iconId="fr-icon-seedling-line"
-          priority="secondary"
-          hasBorder
-        >
-          {cultureEvolutionChartData.labels.length > 0 &&
-          cultureEvolutionChartData.datasets.length > 0 ? (
-            <EvolutiveChartLine chartItems={cultureEvolutionChartData} unit="ha" legendSize="sm" />
-          ) : (
-            <EmptyPlaceholder
-              illustrativeIcon="fr-icon-line-chart-fill"
-              label="Aucune donnée d'évolution des cultures n'est disponible pour cet AAC."
-            />
-          )}
-        </SmallSection>
+        <div id="evolution-cultures">
+          <SmallSection
+            title="Évolution des types de cultures"
+            iconId="fr-icon-seedling-line"
+            priority="secondary"
+            hasBorder
+          >
+            {cultureEvolutionChartData.labels.length > 0 &&
+            cultureEvolutionChartData.datasets.length > 0 ? (
+              <EvolutiveChartLine
+                chartItems={cultureEvolutionChartData}
+                unit="ha"
+                legendSize="sm"
+              />
+            ) : (
+              <EmptyPlaceholder
+                illustrativeIcon="fr-icon-line-chart-fill"
+                label="Aucune donnée d'évolution des cultures n'est disponible pour cet AAC."
+              />
+            )}
+          </SmallSection>
+        </div>
 
         {bioEvolutiveChartData.labels.length > 0 && (
           <SmallSection

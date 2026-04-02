@@ -44,6 +44,7 @@ export default class VisualisationController {
     const aacPage = Math.max(1, Number.parseInt(request.input('aacPage', '1'), 10) || 1)
     const aacRecherche = request.input('aacRecherche') || undefined
     const aacCommune = request.input('aacCommune') || undefined
+    const aacCode = request.input('aacCode') || undefined
 
     // Memoize the DuckDB/S3 query so it only runs once even when both aacs
     // and aacMeta are resolved in the same partial reload.
@@ -75,6 +76,12 @@ export default class VisualisationController {
         aacCommune: aacCommune ?? '',
         aacPage: String(aacPage),
       }),
+      selectedAac: async () => {
+        if (!aacCode) return null
+        const raw = await this.aacService.getByCode(aacCode)
+        if (!raw) return null
+        return AacDto.fromRawSummary(raw)
+      },
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitationsByNameOrContactName(request.input('recherche'), user.id)

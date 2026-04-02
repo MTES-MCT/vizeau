@@ -41,7 +41,8 @@ export default function ParcelleLeftSidebar({
             label: 'Liste des exploitations agricoles',
             linkProps: {
               href: '#',
-              onClick: () => {
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault()
                 router.visit(`/visualisation?millesime=${parcelle.year}`)
               },
               style: {
@@ -55,7 +56,8 @@ export default function ParcelleLeftSidebar({
             label: exploitation.name,
             linkProps: {
               href: '#',
-              onClick: () => {
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault()
                 router.visit(
                   `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}&tab=parcelles`,
                   {

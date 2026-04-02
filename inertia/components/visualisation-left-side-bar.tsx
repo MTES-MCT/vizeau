@@ -1,8 +1,10 @@
-import { ChangeEvent, RefObject, useState } from 'react'
+import { ChangeEvent, RefObject, useEffect, useState } from 'react'
+import { router } from '@inertiajs/react'
 import { AacSummaryJson, ExploitationJson, ParcelleJson } from '../../types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
 import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'
+import AacLeftSidebar from './aacs/aac-left-sidebar'
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import { fr } from '@codegouvfr/react-dsfr'
 import AACsLeftSidebar from './aacs/aacs-left-sidebar'
@@ -30,9 +32,10 @@ export default function VisualisationLeftSideBar({
   aacs,
   aacMeta,
   aacQueryString,
+  selectedAac,
 }: {
   exploitations: ExploitationJson[]
-  queryString?: { recherche?: string }
+  queryString?: { recherche?: string; tab?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
   selectedExploitation?: ExploitationJson
   selectedParcelle: ParcelleJson | undefined
@@ -53,14 +56,38 @@ export default function VisualisationLeftSideBar({
   aacs: AacSummaryJson[]
   aacMeta: { total: number; perPage: number; currentPage: number; lastPage: number }
   aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
+  selectedAac: AacSummaryJson | undefined
 }) {
-  const [tab, setTab] = useState(() =>
-    aacQueryString?.aacRecherche ||
-    aacQueryString?.aacCommune ||
-    (aacQueryString?.aacPage && aacQueryString.aacPage !== '1')
+  const getTabFromQuery = (tab?: string) => {
+    if (tab === 'aac' || tab === 'aacs') {
+      return 'aac'
+    }
+    if (tab === 'exploitation' || tab === 'exploitations') {
+      return 'exploitation'
+    }
+    return null
+  }
+
+  const [tab, setTab] = useState(() => {
+    // Si un tab est specifie dans l'URL, l'utiliser
+    const tabFromQuery = getTabFromQuery(queryString?.tab)
+    if (tabFromQuery) {
+      return tabFromQuery
+    }
+    // Sinon, utiliser la logique existante basée sur les paramètres de recherche AAC
+    return aacQueryString?.aacRecherche ||
+      aacQueryString?.aacCommune ||
+      (aacQueryString?.aacPage && aacQueryString.aacPage !== '1')
       ? 'aac'
       : 'exploitation'
-  )
+  })
+
+  useEffect(() => {
+    const tabFromQuery = getTabFromQuery(queryString?.tab)
+    if (tabFromQuery) {
+      setTab(tabFromQuery)
+    }
+  }, [queryString?.tab])
 
   return (
     <div>
@@ -70,6 +97,8 @@ export default function VisualisationLeftSideBar({
           exploitation={selectedExploitation}
           mapRef={mapRef}
         />
+      ) : selectedAac ? (
+        <AacLeftSidebar aac={selectedAac} mapRef={mapRef} millesime={millesime} />
       ) : (
         <div>
           <div
@@ -86,14 +115,28 @@ export default function VisualisationLeftSideBar({
                   label: 'Exploitations',
                   nativeInputProps: {
                     checked: tab === 'exploitation',
-                    onChange: () => setTab('exploitation'),
+                    onChange: () => {
+                      setTab('exploitation')
+                      router.reload({
+                        data: { tab: 'exploitation' },
+                        only: ['queryString'],
+                        replace: true,
+                      })
+                    },
                   },
                 },
                 {
                   label: 'AAC',
                   nativeInputProps: {
                     checked: tab === 'aac',
-                    onChange: () => setTab('aac'),
+                    onChange: () => {
+                      setTab('aac')
+                      router.reload({
+                        data: { tab: 'aac' },
+                        only: ['queryString'],
+                        replace: true,
+                      })
+                    },
                   },
                 },
               ]}
@@ -124,7 +167,13 @@ export default function VisualisationLeftSideBar({
           )}
 
           {tab === 'aac' && (
-            <AACsLeftSidebar aacs={aacs} queryString={aacQueryString} meta={aacMeta} />
+            <AACsLeftSidebar
+              aacs={aacs}
+              queryString={aacQueryString}
+              meta={aacMeta}
+              millesime={millesime}
+              selectedAac={selectedAac}
+            />
           )}
         </div>
       )}
