@@ -51,7 +51,13 @@ export default class VisualisationController {
     let aacResultPromise: Promise<{ data: Record<string, unknown>[]; total: number }> | null = null
     const getAacResult = () => {
       if (!aacResultPromise) {
-        aacResultPromise = this.aacService.getAll(aacPage, AAC_PER_PAGE, aacRecherche, aacCommune)
+        aacResultPromise = this.aacService.getAll(
+          aacPage,
+          AAC_PER_PAGE,
+          aacRecherche,
+          aacCommune,
+          user.id
+        )
       }
       return aacResultPromise
     }
