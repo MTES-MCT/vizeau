@@ -11,7 +11,7 @@ const selectedZoomedOutLineWidth = 2
 const selectedZoomedInLineWidth = 4
 
 export const getParcellesLayers = (): LayerSpecification[] => {
-  const colorMatch: any[] = ['match', ['coalesce', ['get', 'code_group'], ['get', 'CODE_GROUP']]]
+  const colorMatch: any[] = ['match', ['get', 'code_group']]
 
   Object.entries(GROUPES_CULTURAUX).forEach(([code, info]) => {
     colorMatch.push(code.toString())
@@ -95,11 +95,6 @@ export const getParcellesLayers = (): LayerSpecification[] => {
   ]
 }
 
-const millesimeToIdKey: { [key: string]: string } = {
-  '2023': 'ID_PARCEL',
-  '2024': 'id_parcel',
-}
-
 export const getParcellesSource = ({
   pmtilesUrl,
   millesime,
@@ -110,6 +105,6 @@ export const getParcellesSource = ({
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/${millesime}/parcelles_france.pmtiles`,
-    promoteId: millesimeToIdKey[millesime] || 'id_parcel',
+    promoteId: 'id_parcel',
   }
 }
