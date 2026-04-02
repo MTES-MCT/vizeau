@@ -227,7 +227,6 @@ const VisualisationMap = forwardRef<
 
         const props = e.features?.[0]?.properties
 
-        // Tous les millésimes utilisent désormais les propriétés en minuscules
         const cultureCode = props?.code_cultu
         const surfParc = props?.surf_parc
         const id = props?.id_parcel
