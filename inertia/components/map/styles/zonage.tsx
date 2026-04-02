@@ -36,7 +36,7 @@ export const getAacLayer = () => {
       'type': 'line',
       'source': 'aac',
       'source-layer': 'aac',
-      'minzoom': 10,
+      'minzoom': 8,
       'paint': {
         'line-color': '#009099',
         'line-width': 2,
@@ -67,7 +67,7 @@ export const getPpeLayer = () => {
       'type': 'line',
       'source': 'ppe',
       'source-layer': 'ppe',
-      'minzoom': 10,
+      'minzoom': 8,
       'layout': {
         visibility: 'none',
       },
@@ -101,12 +101,46 @@ export const getPprLayer = () => {
       'type': 'line',
       'source': 'ppr',
       'source-layer': 'ppr',
-      'minzoom': 10,
+      'minzoom': 8,
       'layout': {
         visibility: 'none',
       },
       'paint': {
         'line-color': 'darkorange',
+        'line-width': 2,
+        'line-opacity': 1,
+      },
+    },
+  ]
+}
+
+export const getSageLayer = () => {
+  return [
+    {
+      'id': 'sage-fill',
+      'type': 'fill',
+      'source': 'sage',
+      'source-layer': 'sage',
+      'minzoom': 12,
+      'layout': {
+        visibility: 'none',
+      },
+      'paint': {
+        'fill-color': '#4caf50',
+        'fill-opacity': 0.2,
+      },
+    },
+    {
+      'id': 'sage-outline',
+      'type': 'line',
+      'source': 'sage',
+      'source-layer': 'sage',
+      'minzoom': 8,
+      'layout': {
+        visibility: 'none',
+      },
+      'paint': {
+        'line-color': '#2e7d32',
         'line-width': 2,
         'line-opacity': 1,
       },
@@ -137,6 +171,17 @@ export const getPpeSource = ({
 }
 
 export const getPprSource = ({
+  pmtilesUrl,
+}: {
+  pmtilesUrl: string
+}): maplibregl.VectorSourceSpecification => {
+  return {
+    type: 'vector',
+    url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
+  }
+}
+
+export const getSageSource = ({
   pmtilesUrl,
 }: {
   pmtilesUrl: string

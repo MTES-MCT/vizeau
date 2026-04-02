@@ -9,12 +9,14 @@ export default function MapLayerFilters({
   showPpr = false,
   showCommunes = false,
   showBioOnly = false,
+  showSage = false,
   setShowParcelles = (_update) => {},
   setShowAac = (_update) => {},
   setShowPpe = (_update) => {},
   setShowPpr = (_update) => {},
   setShowCommunes = (_update) => {},
   setShowBioOnly = (_update) => {},
+  setShowSage = (_update) => {},
   canSwitchToBioOnly = true,
 }: {
   showParcelles?: boolean
@@ -23,12 +25,14 @@ export default function MapLayerFilters({
   showPpr?: boolean
   showCommunes?: boolean
   showBioOnly?: boolean
+  showSage?: boolean
   setShowParcelles?: Dispatch<SetStateAction<boolean>>
   setShowAac?: Dispatch<SetStateAction<boolean>>
   setShowPpe?: Dispatch<SetStateAction<boolean>>
   setShowPpr?: Dispatch<SetStateAction<boolean>>
   setShowCommunes?: Dispatch<SetStateAction<boolean>>
   setShowBioOnly?: Dispatch<SetStateAction<boolean>>
+  setShowSage?: Dispatch<SetStateAction<boolean>>
   canSwitchToBioOnly?: boolean
 }) {
   return (
@@ -61,13 +65,19 @@ export default function MapLayerFilters({
         onChange={() => setShowPpr((prev) => !prev)}
       />
       <LegendItem
+        label="SAGE"
+        hint="Schéma d'Aménagement et de Gestion des Eaux"
+        color="bg-green-600"
+        checked={showSage}
+        onChange={() => setShowSage((prev) => !prev)}
+      />
+      <LegendItem
         label="Délimitations des communes"
         checked={showCommunes}
         onChange={() => setShowCommunes((prev) => !prev)}
       />
       <LegendItem
         label="Parcelles bio uniquement"
-        hint="Disponible pour millésime 2024 uniquement"
         checked={showBioOnly}
         disabled={!showParcelles || !canSwitchToBioOnly}
         onChange={() => setShowBioOnly((prev) => !prev)}

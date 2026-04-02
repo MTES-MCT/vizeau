@@ -9,12 +9,14 @@ export default function VisualisationRightSideBar({
   showPpr = false,
   showCommunes = false,
   showBioOnly = false,
+  showSage = false,
   setShowParcelles = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowAac = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowPpe = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowPpr = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowBioOnly = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowSage = (_update: boolean | ((prev: boolean) => boolean)) => {},
   canSwitchToBioOnly = true,
   visibleCultures,
   onToggleCulture,
@@ -26,12 +28,14 @@ export default function VisualisationRightSideBar({
   showPpr?: boolean
   showCommunes?: boolean
   showBioOnly?: boolean
+  showSage?: boolean
   setShowParcelles?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowAac?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowPpe?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowPpr?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowCommunes?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowBioOnly?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowSage?: (update: boolean | ((prev: boolean) => boolean)) => void
   canSwitchToBioOnly?: boolean
   visibleCultures?: string[]
   onToggleCulture?: (code: string) => void
@@ -58,6 +62,8 @@ export default function VisualisationRightSideBar({
           setShowCommunes={setShowCommunes}
           showBioOnly={showBioOnly}
           setShowBioOnly={setShowBioOnly}
+          showSage={showSage}
+          setShowSage={setShowSage}
           canSwitchToBioOnly={canSwitchToBioOnly}
         />
       </SmallSection>
