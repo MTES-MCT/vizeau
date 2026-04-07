@@ -1,10 +1,10 @@
 # RPG → PMTiles
 
-Pipeline [Tylt](https://github.com/vlnk/tylt) pour télécharger le **Registre Parcellaire Graphique (RPG)** publié par IGN/Géoportail, le convertir en FlatGeobuf, et assembler un fichier **PMTiles** multi-couches prêt à être servi.
+Pipeline [Tylt](https://github.com/tylt-org/tylt) pour télécharger le **Registre Parcellaire Graphique (RPG)** publié par IGN/Géoportail, le convertir en FlatGeobuf, et assembler un fichier **PMTiles** multi-couches prêt à être servi.
 
 ## Prérequis
 
-- [Tylt](https://github.com/vlnk/tylt) installé et accessible dans le PATH
+- [Tylt](https://github.com/tylt-org/tylt) installé et accessible dans le PATH
 - Docker (utilisé par Tylt pour les étapes conteneurisées)
 - Accès S3 compatible (Scaleway, AWS…) pour l'upload _(optionnel)_
 

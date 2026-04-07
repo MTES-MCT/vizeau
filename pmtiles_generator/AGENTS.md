@@ -33,7 +33,7 @@ tylt show rpg-2024
 ## Repository Structure
 
 ```
-pipeline.yaml      # Tylt pipeline definition (7 steps)
+pipeline.yaml      # Tylt pipeline definition (6 steps)
 config.yaml        # Millesimes/URLs, layer mapping reference, tippecanoe options
 .env.example       # Environment variable template (copy to .env)
 scripts/

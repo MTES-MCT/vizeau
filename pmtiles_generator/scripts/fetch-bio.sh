@@ -10,7 +10,7 @@ set -e
 source /input/setup/config.env
 echo "Millésime : $MILLESIME"
 
-DATASET_ID="616d6531c2951bbe8bd97771"
+DATASET_ID="${BIO_FALLBACK_DATASET:-}"
 
 # ── 1. BIO déjà dans l'extraction IGN ? ─────────────────────────────────────
 BIO_GPKG=$(find /input/extract/ -iname "*bio*.gpkg" 2>/dev/null | head -1)

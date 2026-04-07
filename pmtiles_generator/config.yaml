@@ -18,7 +18,7 @@ millesimes:
     version: '2-0'
     base_url: 'https://data.geopf.fr/telechargement/download/RPG/RPG_2-0__GPKG_LAMB93_FR_2020-01-01/RPG_2-0__GPKG_LAMB93_FR_2020-01-01'
 
-# Source RPG BIO de secours (si absent de l''étape fetch-bio quand le millésime RPG ne contient pas de couche BIO.
+# Source RPG BIO de secours (si absent de l'étape fetch-bio quand le millésime RPG ne contient pas de couche BIO.
 # Dataset data.gouv.fr : "Parcelles en agriculture biologique (AB) déclarées à la PAC"
 # Disponible pour les millésimes 2019–2023, formats GPKG (2021+) et SHP (2019-2020).
 # L'API est interrogée dynamiquement à l'exécution :

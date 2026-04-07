@@ -16,7 +16,7 @@ l'IGN sur le Géoportail.
 
 ## Fichiers clés
 
-- `pipeline.yaml` — définition complète du pipeline Tylt (7 étapes : setup, discover, download, extract, convert, build-pmtiles, upload)
+- `pipeline.yaml` — définition complète du pipeline Tylt (8 étapes : setup, discover, download, extract, fetch-bio, convert, build-pmtiles, upload)
 - `config.yaml` — millésimes supportés avec leurs URLs, mapping couches GeoPackage → source-layers PMTiles, options tippecanoe
 - `.env.example` — variables nécessaires : MILLESIME, S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_KEY, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
 - `scripts/setup.py` — script Python (pyyaml) qui lit config.yaml et écrit config.env pour les étapes suivantes
@@ -30,12 +30,6 @@ l'IGN sur le Géoportail.
 
 - `parcelles` — parcelles agricoles PAC (couche principale)
 - `parcellesbio` — parcelles bio
-- `parcellespp` — prairies permanentes
-- `parcellessna` — surfaces non agricoles
-- `parcelleszdh` — zones à densité d'herbe
-- `parcellesiae` — infrastructures agro-écologiques
-- `parcellesilots` — îlots RPG
-- `parcellesgraphiques` — parcelles graphiques RPG
 
 ## Commandes principales
 
