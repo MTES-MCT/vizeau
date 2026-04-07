@@ -39,8 +39,8 @@ echo "Sortie  : $OUTPUT"
 tippecanoe \
     --output "$OUTPUT" \
     $LAYER_ARGS \
-    --minimum-zoom=5 \
-    --maximum-zoom=14 \
+    --minimum-zoom="${MIN_ZOOM}" \
+    --maximum-zoom="${MAX_ZOOM}" \
     --drop-densest-as-needed \
     --temporary-directory=/tmp \
     --force

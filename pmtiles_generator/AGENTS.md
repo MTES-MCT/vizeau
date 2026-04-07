@@ -33,14 +33,17 @@ tylt show rpg-2024
 ## Repository Structure
 
 ```
-pipeline.yaml      # Tylt pipeline definition (6 steps)
+pipeline.yaml      # Tylt pipeline definition (8 steps)
 config.yaml        # Millesimes/URLs, layer mapping reference, tippecanoe options
 .env.example       # Environment variable template (copy to .env)
 scripts/
   setup.py         # Reads config.yaml, resolves download URL, writes config.env
   discover.sh      # Detects single .7z vs multi-part .7z.001+ archive
   download.sh      # Parallel download with curl
-  convert.sh       # ogr2ogr conversion LAMB93→WGS84, keyword-based layer mapping,
+  fetch-bio.sh     # Fetches RPG BIO GPKG (IGN extract or data.gouv.fr API fallback)
+  convert.sh       # ogr2ogr conversion LAMB93→WGS84; PAC GPKG (glob *_pac*.gpkg)
+                   #   → parcelles.fgb, BIO GPKG (fixed path bio.gpkg) →
+                   #   parcellesbio.fgb; handles IGN and data.gouv.fr BIO schemas;
                    #   field name normalization to lowercase
   build.sh         # tippecanoe invocation to build PMTiles
   upload.sh        # S3 upload with awscli
@@ -63,8 +66,9 @@ scripts/
 
 - Shell scripts use `set -e` — any failing command aborts the step
 - Step inputs/outputs flow through `/input/<step-id>/` and `/output/` inside containers
-- GeoPackage layer → PMTiles source-layer mapping is keyword-based in `convert.sh` (not hardcoded)
-- Layer names vary across millesimes — always rely on keyword matching, never hardcode layer names
+- GeoPackage layer → PMTiles source-layer mapping is explicit in `convert.sh`:
+  PAC GPKG (located by glob `*_pac*.gpkg`) → `parcelles`, BIO GPKG (fixed path `bio.gpkg`) → `parcellesbio`
+- The layer name within each GPKG is detected dynamically via `ogrinfo` (first layer listed)
 - Field names vary across millesimes (UPPERCASE pre-2024, lowercase 2024+) — `convert.sh`
   normalizes all field names to lowercase via a dynamic SQL SELECT built from `ogrinfo`
 - Layers absent from a given millesime are silently omitted from the PMTiles (no error);
@@ -77,7 +81,7 @@ scripts/
 
 ## Known Pitfalls
 
-- GeoPackage layer names vary across millesimes — never hardcode them, always rely on keyword matching
+- The PAC GPKG is located by filename glob (`*_pac*.gpkg` or `parcelles_graphiques.gpkg`) — the layer name inside the GPKG is read dynamically via `ogrinfo`, not hardcoded
 - The archive may be `.7z` (older years) or `.7z.001+` (recent years) — `discover.sh` handles both
 - Tylt is required (no native Docker fallback) — verify with `tylt --version`
 

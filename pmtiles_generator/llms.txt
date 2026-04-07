@@ -10,19 +10,21 @@ l'IGN sur le Géoportail.
 2. Détecte si l'archive est un fichier unique `.7z` ou multi-parties `.7z.001 / .7z.002 / …`.
 3. Télécharge toutes les parties en parallèle.
 4. Extrait l'archive avec 7zip.
-5. Convertit chaque couche GeoPackage (EPSG:2154 LAMB93) en FlatGeobuf (EPSG:4326 WGS84) via GDAL/ogr2ogr.
-6. Assemble un PMTiles multi-couches avec tippecanoe (zoom 5–14 par défaut).
-7. Envoie le fichier PMTiles vers un bucket S3 compatible (Scaleway, AWS…).
+5. Récupère le GeoPackage RPG BIO : depuis l'extraction IGN si présent, sinon via l'API data.gouv.fr.
+6. Convertit chaque couche GeoPackage (EPSG:2154 LAMB93) en FlatGeobuf (EPSG:4326 WGS84) via GDAL/ogr2ogr.
+7. Assemble un PMTiles multi-couches avec tippecanoe (zoom 5–14 par défaut).
+8. Envoie le fichier PMTiles vers un bucket S3 compatible (Scaleway, AWS…).
 
 ## Fichiers clés
 
 - `pipeline.yaml` — définition complète du pipeline Tylt (8 étapes : setup, discover, download, extract, fetch-bio, convert, build-pmtiles, upload)
 - `config.yaml` — millésimes supportés avec leurs URLs, mapping couches GeoPackage → source-layers PMTiles, options tippecanoe
-- `.env.example` — variables nécessaires : MILLESIME, S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_KEY, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
+- `.env.example` — variables S3 nécessaires : S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY (MILLESIME et S3_KEY sont injectés dynamiquement par `run.sh`)
 - `scripts/setup.py` — script Python (pyyaml) qui lit config.yaml et écrit config.env pour les étapes suivantes
 - `scripts/discover.sh` — sonde l'URL base pour détecter archive unique vs multi-parties
 - `scripts/download.sh` — téléchargement parallèle avec curl
-- `scripts/convert.sh` — mapping dynamique des noms de couches GeoPackage vers les source-layers via ogrinfo + mots-clés
+- `scripts/fetch-bio.sh` — récupère le GeoPackage RPG BIO (extraction IGN ou API data.gouv.fr en fallback)
+- `scripts/convert.sh` — PAC GPKG trouvé par glob (`*_pac*.gpkg`) → `parcelles.fgb` ; BIO GPKG depuis chemin fixe (`bio.gpkg`) → `parcellesbio.fgb` ; nom de couche interne lu via `ogrinfo` ; normalisation des noms de champs en minuscules
 - `scripts/build.sh` — invocation tippecanoe pour assembler le PMTiles
 - `scripts/upload.sh` — upload S3 avec awscli
 
@@ -50,7 +52,7 @@ tylt export rpg-2024 build-pmtiles ./output/
 ## Technologies utilisées
 
 - **Tylt** — moteur de pipeline conteneurisé (workspaces, caching, fingerprinting)
-- **Docker** — conteneurs pour chaque étape (alpine, osgeo/gdal, ghcr.io/felt/tippecanoe)
+- **Docker** — conteneurs pour chaque étape (alpine, osgeo/gdal, ubuntu:latest avec tippecanoe installé via apt)
 - **Python + pyyaml** — résolution de config
 - **GDAL/ogr2ogr** — conversion de formats géospatiaux
 - **tippecanoe** — génération de tuiles vectorielles PMTiles

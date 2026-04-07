@@ -24,6 +24,12 @@ fi
 echo "RPG BIO absent de l'extraction IGN → recherche sur data.gouv.fr..."
 
 # ── 2. Requête API data.gouv.fr ──────────────────────────────────────────────
+if [ -z "$DATASET_ID" ]; then
+    echo "Erreur : BIO_FALLBACK_DATASET est vide ou non défini dans config.env." >&2
+    echo "Vérifiez que bio_fallback_dataset est renseigné dans config.yaml et que l'étape setup s'est exécutée correctement." >&2
+    exit 1
+fi
+
 API_RESPONSE=$(curl -sfL "https://www.data.gouv.fr/api/1/datasets/${DATASET_ID}/" || true)
 if [ -z "$API_RESPONSE" ]; then
     echo "⚠  Impossible de contacter l'API data.gouv.fr" >&2

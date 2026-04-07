@@ -1,13 +1,16 @@
 name: RPG to PMTiles
 
-# Usage :
-#   tylt run --env-file .env --workspace rpg-2024
+# Usage (recommandé — passe MILLESIME et gère le workspace automatiquement) :
+#   ./run.sh 2024
 #
 # Sans upload S3 :
-#   tylt run --env-file .env --workspace rpg-2024 --target build-pmtiles
+#   ./run.sh 2024 --target build-pmtiles
 #
 # Forcer le re-téléchargement :
-#   tylt run --env-file .env --workspace rpg-2024 --force download
+#   ./run.sh 2024 --force download
+#
+# Appel tylt direct (MILLESIME doit être fourni explicitement) :
+#   tylt run --env-file .env --env MILLESIME=2024 --workspace rpg-2024
 #
 # Exporter le PMTiles en local :
 #   tylt export rpg-2024 build-pmtiles ./output/
