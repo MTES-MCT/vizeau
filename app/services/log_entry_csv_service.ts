@@ -46,9 +46,12 @@ export class LogEntryCsvService {
   }
 
   private escapeField(value: string | null | undefined): string {
+    // Ensures the value is a string
     const str = value ?? ''
+    // Protect against CSV injection by prefixing dangerous characters with a single quote
+    const safeStr = /^\s*[=+\-@]/.test(str) ? `'${str}` : str
     // Wrap in double quotes and escape inner double quotes by doubling them
-    return `"${str.replace(/"/g, '""')}"`
+    return `"${safeStr.replace(/"/g, '""')}"`
   }
 
   private formatDate(date: DateTime | null | undefined): string | null {
