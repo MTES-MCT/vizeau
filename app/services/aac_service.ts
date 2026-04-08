@@ -114,7 +114,8 @@ export class AacService {
     page: number,
     perPage: number,
     recherche?: string,
-    commune?: string
+    commune?: string,
+    aacCodes?: string[]
   ): Promise<{ data: Record<string, unknown>[]; total: number }> {
     const conn = await getConnection()
     const path = getParquetPath()
@@ -139,6 +140,19 @@ export class AacService {
 
       paramIdx++
       filterParams.push(commune)
+    }
+
+    if (aacCodes && aacCodes.length > 0) {
+      const placeholders: string[] = []
+
+      // Build the param placeholders for the IN clause
+      for (const code of aacCodes) {
+        placeholders.push(`$${paramIdx}`)
+        paramIdx++
+        filterParams.push(code)
+      }
+
+      conditions.push(`code IN (${placeholders.join(', ')})`)
     }
 
     const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''

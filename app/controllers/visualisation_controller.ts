@@ -34,6 +34,13 @@ export default class VisualisationController {
     }
 
     const user = auth.getUserOrFail()
+    const userTerritoireCodes: string[] = []
+
+    for (const territoire of user.territoires) {
+      if (territoire.code) {
+        userTerritoireCodes.push(territoire.code)
+      }
+    }
 
     this.eventLogger.logEvent({
       userId: user.id,
@@ -51,7 +58,13 @@ export default class VisualisationController {
     let aacResultPromise: Promise<{ data: Record<string, unknown>[]; total: number }> | null = null
     const getAacResult = () => {
       if (!aacResultPromise) {
-        aacResultPromise = this.aacService.getAll(aacPage, AAC_PER_PAGE, aacRecherche, aacCommune)
+        aacResultPromise = this.aacService.getAll(
+          aacPage,
+          AAC_PER_PAGE,
+          aacRecherche,
+          aacCommune,
+          userTerritoireCodes
+        )
       }
       return aacResultPromise
     }
@@ -77,7 +90,7 @@ export default class VisualisationController {
         aacPage: String(aacPage),
       }),
       selectedAac: async () => {
-        if (!aacCode) return null
+        if (!aacCode || !userTerritoireCodes.includes(aacCode.toString())) return null
         const raw = await this.aacService.getByCode(aacCode)
         if (!raw) return null
         return AacDto.fromRawSummary(raw)
