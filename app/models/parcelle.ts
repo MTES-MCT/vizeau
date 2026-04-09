@@ -54,7 +54,7 @@ export default class Parcelle extends BaseModel {
   })
   declare centroid: { x: number; y: number } | null
 
-  @hasOne(() => Culture, { localKey: 'culture_code', foreignKey: 'code' })
+  @hasOne(() => Culture, { localKey: 'cultureCode', foreignKey: 'code' })
   declare culture: HasOne<typeof Culture>
 
   @column.dateTime({ autoCreate: true })
