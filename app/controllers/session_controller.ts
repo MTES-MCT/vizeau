@@ -45,9 +45,15 @@ export default class SessionController {
     response.redirect(redirectAfterLogin)
   }
 
-  async delete({ auth, response }: HttpContext) {
+  async delete({ auth, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({ userId: user.id, name: 'session_logout' })
+
+    // Si l'utilisateur s'est connecté via ProConnect, déléguer la déconnexion
+    if (session.get('proconnect_id_token')) {
+      return response.redirect('/proconnect/logout')
+    }
+
     await auth.use('web').logout()
     return response.redirect('/')
   }

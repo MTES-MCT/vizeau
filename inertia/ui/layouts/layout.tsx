@@ -66,8 +66,8 @@ export default function Layout({
                   iconId="fr-icon-account-circle-fill"
                   className="fr-text--sm fr-m-0"
                   priority="tertiary no outline"
-                  linkProps={{
-                    href: '/logout',
+                  nativeButtonProps={{
+                    onClick: () => window.location.assign('/logout'),
                   }}
                 >
                   Déconnexion
