@@ -5,12 +5,15 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 import { Input } from '@codegouvfr/react-dsfr/Input'
 import { fr } from '@codegouvfr/react-dsfr'
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar'
+import { ProConnectButton } from '@codegouvfr/react-dsfr/ProConnectButton'
+import Divider from '~/ui/Divider'
+import { FlashMessages } from '~/components/flash-message'
 
 export default function AuthentificationBloc() {
   const borderColor = fr.colors.decisions.border.default.grey.default
   const linkColor = fr.colors.decisions.text.actionHigh.blueFrance.default
 
-  const { errors } = usePage().props
+  const { errors, flashMessages } = usePage().props
 
   return (
     <div className="flex justify-center items-center w-full">
@@ -25,7 +28,7 @@ export default function AuthentificationBloc() {
           <h4 className="text-center fr-mb-1w">Authentification</h4>
           <p>Entrez votre email pour accéder à l'application</p>
         </div>
-        <div className="fr-p-3w">
+        <div className="fr-p-3w w-full">
           {errors && errors.E_INVALID_CREDENTIALS && (
             <Alert
               description={
@@ -36,6 +39,11 @@ export default function AuthentificationBloc() {
               className="fr-my-3w"
             />
           )}
+          <FlashMessages flashMessages={flashMessages as any} />
+        </div>
+        <ProConnectButton url="/proconnect/redirect" />
+        <div className="w-full fr-my-3w">
+          <Divider label="ou" />
         </div>
         <Form className="w-full fr-mt-1w" action="/login" method="post">
           <Input
