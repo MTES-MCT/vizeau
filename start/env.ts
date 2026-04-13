@@ -77,4 +77,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   S3_REGION: Env.schema.string(),
   S3_BUCKET: Env.schema.string(),
   S3_ENDPOINT: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables pour l'intégration ProConnect (OIDC)
+  |----------------------------------------------------------
+  */
+  PROCONNECT_DOMAIN: Env.schema.string.optional(),
+  PROCONNECT_CLIENT_ID: Env.schema.string.optional(),
+  PROCONNECT_CLIENT_SECRET: Env.schema.string.optional(),
+  PROCONNECT_CALLBACK_URL: Env.schema.string.optional(),
+  PROCONNECT_POST_LOGOUT_REDIRECT_URI: Env.schema.string.optional(),
 })
