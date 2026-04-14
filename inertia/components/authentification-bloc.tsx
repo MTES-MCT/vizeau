@@ -1,4 +1,5 @@
 import { Form, Link, usePage } from '@inertiajs/react'
+import { SharedProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
@@ -13,7 +14,7 @@ export default function AuthentificationBloc() {
   const borderColor = fr.colors.decisions.border.default.grey.default
   const linkColor = fr.colors.decisions.text.actionHigh.blueFrance.default
 
-  const { errors, flashMessages } = usePage().props
+  const { errors, flashMessages } = usePage<SharedProps>().props
 
   return (
     <div className="flex justify-center items-center w-full">
@@ -39,7 +40,7 @@ export default function AuthentificationBloc() {
               className="fr-my-3w"
             />
           )}
-          <FlashMessages flashMessages={flashMessages as any} />
+          <FlashMessages flashMessages={flashMessages} />
         </div>
         <ProConnectButton url="/proconnect/redirect" />
         <div className="w-full fr-my-3w">

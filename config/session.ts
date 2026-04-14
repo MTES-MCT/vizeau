@@ -42,6 +42,7 @@ const sessionConfig = defineConfig({
    */
   stores: {
     cookie: stores.cookie(),
+    db: stores.database({ connectionName: 'postgres' }),
   },
 })
 

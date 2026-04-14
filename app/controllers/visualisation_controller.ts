@@ -34,6 +34,7 @@ export default class VisualisationController {
     }
 
     const user = auth.getUserOrFail()
+    await user.load('territoires')
     const userTerritoireCodes: string[] = []
 
     for (const territoire of user.territoires) {
