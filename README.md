@@ -97,6 +97,7 @@ Quelques notes sur les variables d’environnement :
 - `SPACES_REGION` : La région de votre bucket S3. Pré-configuré pour l'hébergeur Scaleway à Paris.
 - `SPACES_BUCKET` : Le nom de votre bucket.
 - `SPACES_ENDPOINT` : L'URL de l’endpoint de l’espace de stockage, sans le nom du bucket. Pré-configuré pour l'hébergeur Scaleway.
+- `USERS_TO_SEED` : Une chaine de caractères au format JSON représentant une liste d'utilisateurs à ajouter à la base de données lors de l'exécution de la commande `db:seed`. Utilisée pour ajouter des utilisateurs en production.
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
 

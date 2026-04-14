@@ -4,7 +4,18 @@ import Env from '#start/env'
 
 export default class extends BaseSeeder {
   async run() {
-    const usersToInject = JSON.parse(Env.get('USERS_TO_SEED') || '[]')
+    const usersToInject: Array<{
+      fullName: string
+      email: string
+      password: string
+      territoireCodes?: string[]
+    }> = JSON.parse(Env.get('USERS_TO_SEED') || '[]')
+
+    for (const user of usersToInject) {
+      user.email = user.email.toLowerCase()
+      delete user.territoireCodes
+    }
+
     await User.updateOrCreateMany(
       'email',
       [
