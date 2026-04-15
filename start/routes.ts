@@ -79,6 +79,13 @@ router
           .as('parcelles.note.update')
 
         router
+          .get('exploitations/:exploitationId/parcelles/export', [
+            ExploitationsController,
+            'exportParcellesCsv',
+          ])
+          .as('parcelles.export')
+
+        router
           .get('exploitations/:exploitationId/journal', [LogEntriesController, 'index'])
           .as('log_entries.index')
 
