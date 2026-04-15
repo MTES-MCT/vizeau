@@ -54,7 +54,7 @@ export default class Parcelle extends BaseModel {
   })
   declare centroid: { x: number; y: number } | null
 
-  @belongsTo(() => Culture, { localKey: 'cultureCode', foreignKey: 'code' })
+  @belongsTo(() => Culture, { localKey: 'code', foreignKey: 'cultureCode' })
   declare culture: BelongsTo<typeof Culture>
 
   @column.dateTime({ autoCreate: true })
