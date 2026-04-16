@@ -1,6 +1,6 @@
-import HorizontalBar, { HorizontalBarProps } from './index.js'
+import HorizontalChartBar, { HorizontalChartBarProps } from './index.js'
 
-const defaultItems: HorizontalBarProps['chartItems'] = [
+const defaultItems: HorizontalChartBarProps['chartItems'] = [
   { label: 'Catégorie A', data: 420, backgroundColor: '#4E9AF1' },
   { label: 'Catégorie B', data: 310, backgroundColor: '#36A2EB' },
   { label: 'Catégorie C', data: 280, backgroundColor: '#FF6384' },
@@ -9,8 +9,8 @@ const defaultItems: HorizontalBarProps['chartItems'] = [
 ]
 
 const meta = {
-  title: 'UI/Charts/HorizontalBar',
-  component: HorizontalBar,
+  title: 'UI/Charts/HorizontalChartBar',
+  component: HorizontalChartBar,
   tags: ['autodocs'],
   decorators: [
     (Story: any) => (
@@ -43,7 +43,7 @@ const meta = {
   },
   args: {
     chartItems: defaultItems,
-  } as HorizontalBarProps,
+  } as HorizontalChartBarProps,
 }
 
 export default meta

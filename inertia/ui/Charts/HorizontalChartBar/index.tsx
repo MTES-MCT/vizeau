@@ -4,7 +4,7 @@ import { Bar } from 'react-chartjs-2'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, ChartDataLabels)
 
-export type HorizontalBarProps = {
+export type HorizontalChartBarProps = {
   chartItems: {
     label: string
     data: number
@@ -17,13 +17,13 @@ export type HorizontalBarProps = {
   fontSize?: number
 }
 
-export default function HorizontalBar({
+export default function HorizontalChartBar({
   chartItems,
   xAxisLabel = '',
   unit = '',
   chartHeight,
   fontSize = 14,
-}: HorizontalBarProps) {
+}: HorizontalChartBarProps) {
   const computedChartHeight =
     chartHeight ?? Math.min(Math.max(160, 60 + chartItems.length * 48), 700)
 
