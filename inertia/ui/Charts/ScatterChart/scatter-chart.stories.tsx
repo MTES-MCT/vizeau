@@ -27,9 +27,13 @@ const defaultArgs: ScatterChartProps = {
     },
   ],
   categories: {
-    conforme: { label: 'Conforme', color: '#1F3B8C' },
-    reglementaire: { label: 'Au dessus du seuil réglementaire', color: '#E88A00' },
-    alerte: { label: "Au dessus du seuil d'alerte", color: '#D40000' },
+    conforme: { label: 'Conforme', color: '#1F3B8C', badgeSeverity: 'success' },
+    reglementaire: {
+      label: 'Au dessus du seuil réglementaire',
+      color: '#E88A00',
+      badgeSeverity: 'warning',
+    },
+    alerte: { label: "Au dessus du seuil d'alerte", color: '#D40000', badgeSeverity: 'error' },
   },
   thresholds: [
     { value: 1.0, label: 'Seuil réglementaire (1 µg/L)', color: '#E88A00', borderDash: [6, 4] },

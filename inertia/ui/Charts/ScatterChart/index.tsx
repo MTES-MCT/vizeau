@@ -1,7 +1,11 @@
 import { Chart as ChartJS, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
+import Badge from '@codegouvfr/react-dsfr/Badge'
+import { useState } from 'react'
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
+
+type BadgeSeverity = 'info' | 'success' | 'warning' | 'error' | 'new'
 
 type DataPoint = {
   x: number
@@ -15,6 +19,7 @@ type Category = {
   label: string
   color: string
   pointRadius?: number
+  badgeSeverity?: BadgeSeverity
 }
 
 type Threshold = {
@@ -36,6 +41,15 @@ export type ScatterChartProps = {
   xAxisMax?: number
 }
 
+type TooltipState = {
+  x: number
+  y: number
+  title: string
+  message?: string
+  formattedValue: string
+  severity?: BadgeSeverity
+}
+
 export default function ScatterChart({
   chartItems,
   categories,
@@ -52,6 +66,8 @@ export default function ScatterChart({
     md: { box: 20, font: 16 },
     lg: { box: 25, font: 20 },
   }
+
+  const [tooltipState, setTooltipState] = useState<TooltipState | null>(null)
 
   const xValues = chartItems.map((p) => p.x)
   const xMin = xAxisMin ?? (xValues.length > 0 ? Math.min(...xValues) : undefined)
@@ -139,40 +155,78 @@ export default function ScatterChart({
         },
       },
       tooltip: {
-        backgroundColor: 'rgb(255, 255, 255)',
-        titleColor: 'rgb(0, 0, 0)',
-        bodyColor: 'rgb(220, 0, 0)',
-        titleFont: { size: 16, weight: 'bold' as const },
-        bodyFont: { size: 13, weight: 'bold' as const },
-        padding: 12,
-        titleMarginBottom: 8,
-        borderColor: 'rgba(0, 0, 0, 0.15)',
-        borderWidth: 1,
-        filter: (item: { datasetIndex: number }) => item.datasetIndex < scatterDatasets.length,
-        callbacks: {
-          title: (items: { datasetIndex: number; dataIndex: number }[]) => {
-            const { datasetIndex, dataIndex } = items[0] ?? {}
-            const point = pointsByDataset[datasetIndex]?.[dataIndex]
-            return point?.tooltipTitle ?? (point ? String(point.x) : '')
-          },
-          label: (item: { datasetIndex: number; dataIndex: number; raw: { y: number } }) => {
-            const point = pointsByDataset[item.datasetIndex]?.[item.dataIndex]
-            if (point?.tooltipMessage) return `● ${point.tooltipMessage}`
-            const value = new Intl.NumberFormat('fr-FR').format(item.raw.y)
-            return `${value}${unit ? ` ${unit}` : ''}`
-          },
+        enabled: false,
+        external: ({ tooltip }: any) => {
+          if (tooltip.opacity === 0) {
+            setTooltipState(null)
+            return
+          }
+          if (!tooltip.dataPoints?.length) {
+            setTooltipState(null)
+            return
+          }
+          const dp = tooltip.dataPoints[0]
+          if (dp.datasetIndex >= scatterDatasets.length) {
+            setTooltipState(null)
+            return
+          }
+          const point = pointsByDataset[dp.datasetIndex]?.[dp.dataIndex]
+          if (!point) return
+          const cat = categories[point.category]
+          const raw = new Intl.NumberFormat('fr-FR').format(point.y)
+          setTooltipState({
+            x: tooltip.caretX,
+            y: tooltip.caretY,
+            title: point.tooltipTitle ?? String(point.x),
+            message: point.tooltipMessage,
+            formattedValue: unit ? `${raw} ${unit}` : raw,
+            severity: cat?.badgeSeverity,
+          })
         },
       },
     },
   }
 
   return (
-    <div style={{ height: `${chartHeight}px` }}>
+    <div style={{ position: 'relative', height: `${chartHeight}px` }}>
       <Chart
         type="scatter"
         options={options as any}
         data={{ datasets: [...scatterDatasets, ...thresholdDatasets] }}
       />
+      {tooltipState && (
+        <div
+          style={{
+            position: 'absolute',
+            left: tooltipState.x,
+            top: tooltipState.y,
+            transform: 'translate(-50%, calc(-100% - 12px))',
+            pointerEvents: 'none',
+            background: 'white',
+            border: '1px solid rgba(0,0,0,0.15)',
+            borderRadius: 8,
+            padding: '12px 16px',
+            minWidth: 200,
+            zIndex: 10,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          }}
+        >
+          <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: 16, color: '#000' }}>
+            {tooltipState.title}
+          </p>
+          {tooltipState.message && tooltipState.severity ? (
+            <Badge severity={tooltipState.severity}>{tooltipState.message}</Badge>
+          ) : tooltipState.message ? (
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: 'rgb(220,0,0)' }}>
+              ● {tooltipState.message}
+            </p>
+          ) : (
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: 'rgb(220,0,0)' }}>
+              {tooltipState.formattedValue}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
