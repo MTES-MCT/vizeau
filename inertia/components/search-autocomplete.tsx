@@ -112,6 +112,7 @@ export default function SearchAutocomplete<T>({
             left: 0,
             border: '1px solid var(--border-default-grey)',
             pointerEvents: 'auto',
+            zIndex: 1,
           }}
           role="listbox"
         >
