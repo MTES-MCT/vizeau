@@ -55,7 +55,6 @@ export default function VerticalChartBar({
       },
     },
     plugins: {
-      datalabels: { display: false },
       legend: {
         display: true,
         position: 'bottom' as const,

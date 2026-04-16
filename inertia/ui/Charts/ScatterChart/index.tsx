@@ -57,11 +57,16 @@ export default function ScatterChart({
   const xMin = xAxisMin ?? (xValues.length > 0 ? Math.min(...xValues) : undefined)
   const xMax = xAxisMax ?? (xValues.length > 0 ? Math.max(...xValues) : undefined)
 
+  const effectiveXMin =
+    xMin !== undefined && xMax !== undefined && xMin === xMax ? xMin - 0.5 : xMin
+  const effectiveXMax =
+    xMin !== undefined && xMax !== undefined && xMin === xMax ? xMax + 0.5 : xMax
+
   const thresholdLineData = (t: Threshold) =>
-    xMin !== undefined && xMax !== undefined
+    effectiveXMin !== undefined && effectiveXMax !== undefined
       ? [
-          { x: xMin, y: t.value },
-          { x: xMax, y: t.value },
+          { x: effectiveXMin, y: t.value },
+          { x: effectiveXMax, y: t.value },
         ]
       : []
 
@@ -97,8 +102,8 @@ export default function ScatterChart({
     scales: {
       x: {
         type: 'linear' as const,
-        ...(xMin !== undefined ? { min: xMin } : {}),
-        ...(xMax !== undefined ? { max: xMax } : {}),
+        ...(effectiveXMin !== undefined ? { min: effectiveXMin } : {}),
+        ...(effectiveXMax !== undefined ? { max: effectiveXMax } : {}),
         ticks: {
           stepSize: 1,
           callback: (val: number | string) => String(val),
@@ -121,7 +126,6 @@ export default function ScatterChart({
       },
     },
     plugins: {
-      datalabels: { display: false },
       legend: {
         display: true,
         position: 'bottom' as const,
@@ -149,7 +153,7 @@ export default function ScatterChart({
           title: (items: { datasetIndex: number; dataIndex: number }[]) => {
             const { datasetIndex, dataIndex } = items[0] ?? {}
             const point = pointsByDataset[datasetIndex]?.[dataIndex]
-            return point?.tooltipTitle ?? String(datasetIndex ?? '')
+            return point?.tooltipTitle ?? (point ? String(point.x) : '')
           },
           label: (item: { datasetIndex: number; dataIndex: number; raw: { y: number } }) => {
             const point = pointsByDataset[item.datasetIndex]?.[item.dataIndex]

@@ -2,7 +2,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip } fro
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Bar } from 'react-chartjs-2'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, ChartDataLabels)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip)
 
 export type HorizontalChartBarProps = {
   chartItems: {
@@ -115,7 +115,7 @@ export default function HorizontalChartBar({
 
   return (
     <div style={{ height: `${computedChartHeight}px` }}>
-      <Bar options={options} data={data} />
+      <Bar options={options} data={data} plugins={[ChartDataLabels]} />
     </div>
   )
 }
