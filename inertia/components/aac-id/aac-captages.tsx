@@ -79,14 +79,11 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
 
   useEffect(() => {
     fetchSummary()
-  }, [aacCode])
-
-  useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
       if (abortRef.current) abortRef.current.abort()
     }
-  }, [])
+  }, [aacCode])
 
   const handleYearFromChange = (value: number) => {
     setYearFrom(value)
