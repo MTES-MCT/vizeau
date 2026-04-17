@@ -293,11 +293,13 @@ export class AacService {
     const result = await stmt.run()
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     const row = rows[0] ?? {}
-    const yearMin = Number(row.year_min)
-    const yearMax = Number(row.year_max)
+    const yearMinRaw = row.year_min
+    const yearMaxRaw = row.year_max
+    const yearMin = yearMinRaw !== null && yearMinRaw !== undefined ? Number(yearMinRaw) : null
+    const yearMax = yearMaxRaw !== null && yearMaxRaw !== undefined ? Number(yearMaxRaw) : null
     return {
-      yearMin: Number.isFinite(yearMin) ? yearMin : null,
-      yearMax: Number.isFinite(yearMax) ? yearMax : null,
+      yearMin: yearMin !== null && Number.isFinite(yearMin) ? yearMin : null,
+      yearMax: yearMax !== null && Number.isFinite(yearMax) ? yearMax : null,
     }
   }
 
