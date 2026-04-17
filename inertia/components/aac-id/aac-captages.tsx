@@ -162,8 +162,16 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
             min={analysesSummary.yearMin}
             max={analysesSummary.yearMax}
             nativeInputProps={[
-              { value: yearFrom, onChange: (e) => handleYearFromChange(Number(e.target.value)) },
-              { value: yearTo, onChange: (e) => handleYearToChange(Number(e.target.value)) },
+              {
+                value: yearFrom,
+                onChange: (e) => handleYearFromChange(Number(e.target.value)),
+                'aria-label': 'Année de début de la période',
+              },
+              {
+                value: yearTo,
+                onChange: (e) => handleYearToChange(Number(e.target.value)),
+                'aria-label': 'Année de fin de la période',
+              },
             ]}
           />
         )}
