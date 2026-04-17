@@ -82,6 +82,8 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
       if (abortRef.current) abortRef.current.abort()
+      debounceRef.current = null
+      abortRef.current = null
     }
   }, [aacCode])
 
