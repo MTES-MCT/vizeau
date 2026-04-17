@@ -80,8 +80,8 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
   useEffect(() => {
     fetchSummary()
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
       if (abortRef.current) abortRef.current.abort()
+      if (debounceRef.current) clearTimeout(debounceRef.current)
       debounceRef.current = null
       abortRef.current = null
     }
