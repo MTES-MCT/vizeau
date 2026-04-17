@@ -271,8 +271,134 @@ export class AacService {
     return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
   }
 
+  /**
+   * Returns the min/max year range of analyses for the given installation codes.
+   */
+  async getAnalysesYearRange(
+    installationCodes: string[]
+  ): Promise<{ yearMin: number; yearMax: number }> {
+    if (installationCodes.length === 0) return { yearMin: 0, yearMax: 0 }
+
+    const conn = await getConnection()
+    const path = getAnalysesRobinetPath()
+    const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
+    const stmt = await conn.prepare(
+      `SELECT MIN(date_part('year', date_prelevement)) AS year_min,
+              MAX(date_part('year', date_prelevement)) AS year_max
+       FROM read_parquet($1)
+       WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL`
+    )
+    stmt.bindVarchar(1, path)
+    installationCodes.forEach((code, i) => stmt.bindVarchar(i + 2, code))
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0] ?? {}
+    return {
+      yearMin: Number(row.year_min ?? 0),
+      yearMax: Number(row.year_max ?? 0),
+    }
+  }
+
+  /**
+   * Groups analyses by (code_installation, date_prelevement) and classifies each
+   * as conforme (C/D), non_conforme (N), or alerte (S/blank).
+   */
+  async getConformiteSummary(
+    installationCodes: string[],
+    yearFrom?: number,
+    yearTo?: number
+  ): Promise<{ conforme: number; alerte: number; non_conforme: number }> {
+    if (installationCodes.length === 0) return { conforme: 0, alerte: 0, non_conforme: 0 }
+
+    const conn = await getConnection()
+    const path = getAnalysesRobinetPath()
+
+    const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
+    let paramIdx = installationCodes.length + 2
+    let yearFilter = ''
+    if (yearFrom !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) >= $${paramIdx++}`
+    }
+    if (yearTo !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) <= $${paramIdx++}`
+    }
+
+    const stmt = await conn.prepare(
+      `WITH analyses AS (
+         SELECT
+           code_installation,
+           date_prelevement,
+           MAX(CASE WHEN conformite_bacterio = 'N' OR conformite_chimique = 'N' THEN 1 ELSE 0 END) AS has_non_conforme,
+           MAX(CASE WHEN conformite_bacterio IN ('C','D') OR conformite_chimique IN ('C','D') THEN 1 ELSE 0 END) AS has_conforme
+         FROM read_parquet($1)
+         WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL${yearFilter}
+         GROUP BY code_installation, date_prelevement
+       )
+       SELECT
+         SUM(CASE WHEN has_non_conforme = 1 THEN 1 ELSE 0 END) AS non_conforme,
+         SUM(CASE WHEN has_non_conforme = 0 AND has_conforme = 1 THEN 1 ELSE 0 END) AS conforme,
+         SUM(CASE WHEN has_non_conforme = 0 AND has_conforme = 0 THEN 1 ELSE 0 END) AS alerte
+       FROM analyses`
+    )
+    stmt.bindVarchar(1, path)
+    let bindIdx = 2
+    installationCodes.forEach((code) => stmt.bindVarchar(bindIdx++, code))
+    if (yearFrom !== undefined) stmt.bindInteger(bindIdx++, yearFrom)
+    if (yearTo !== undefined) stmt.bindInteger(bindIdx++, yearTo)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0] ?? {}
+    return {
+      conforme: Number(row.conforme ?? 0),
+      alerte: Number(row.alerte ?? 0),
+      non_conforme: Number(row.non_conforme ?? 0),
+    }
+  }
+
+  /**
+   * Returns total number of analyses rows and distinct parameters.
+   */
+  async getAnalysesSummary(
+    installationCodes: string[],
+    yearFrom?: number,
+    yearTo?: number
+  ): Promise<{ nb_analyses: number; nb_parametres: number }> {
+    if (installationCodes.length === 0) return { nb_analyses: 0, nb_parametres: 0 }
+
+    const conn = await getConnection()
+    const path = getAnalysesRobinetPath()
+
+    const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
+    let paramIdx = installationCodes.length + 2
+    let yearFilter = ''
+    if (yearFrom !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) >= $${paramIdx++}`
+    }
+    if (yearTo !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) <= $${paramIdx++}`
+    }
+
+    const stmt = await conn.prepare(
+      `SELECT COUNT(DISTINCT (code_installation, date_prelevement)) AS nb_analyses, COUNT(DISTINCT code_parametre) AS nb_parametres ` +
+        `FROM read_parquet($1) WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL${yearFilter}`
+    )
+    stmt.bindVarchar(1, path)
+    let bindIdx = 2
+    installationCodes.forEach((code) => stmt.bindVarchar(bindIdx++, code))
+    if (yearFrom !== undefined) stmt.bindInteger(bindIdx++, yearFrom)
+    if (yearTo !== undefined) stmt.bindInteger(bindIdx++, yearTo)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0] ?? {}
+    return {
+      nb_analyses: Number(row.nb_analyses ?? 0),
+      nb_parametres: Number(row.nb_parametres ?? 0),
+    }
+  }
+
   /*
-   * Get all AAC codes and names, ordered by name. Used for seeding the territoires SQL table
    */
   async getAllNames() {
     const conn = await getConnection()
