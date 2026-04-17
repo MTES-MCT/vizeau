@@ -44,8 +44,8 @@ async function getDiscovery(domain: string): Promise<OidcDiscovery> {
 
 async function getJWKS(domain: string) {
   if (cachedJWKS) return cachedJWKS
-  const { jwks_uri } = await getDiscovery(domain)
-  cachedJWKS = createRemoteJWKSet(new URL(jwks_uri))
+  const { jwks_uri: jwksUri } = await getDiscovery(domain)
+  cachedJWKS = createRemoteJWKSet(new URL(jwksUri))
   return cachedJWKS
 }
 
@@ -57,7 +57,7 @@ interface ProConnectConfig {
   postLogoutRedirectUri: string
 }
 
-function getProConnectConfig(session: HttpContext['session']): ProConnectConfig | null {
+function getProConnectConfig({ session, logger }: HttpContext): ProConnectConfig | null {
   const domain = env.get('PROCONNECT_DOMAIN')
   const clientId = env.get('PROCONNECT_CLIENT_ID')
   const clientSecret = env.get('PROCONNECT_CLIENT_SECRET')
@@ -65,6 +65,7 @@ function getProConnectConfig(session: HttpContext['session']): ProConnectConfig 
   const postLogoutRedirectUri = env.get('PROCONNECT_POST_LOGOUT_REDIRECT_URI')
 
   if (!domain || !clientId || !clientSecret || !callbackUrl || !postLogoutRedirectUri) {
+    logger.error('La connexion ProConnect est indisponible (configuration manquante).')
     createErrorFlashMessage(
       session,
       'La connexion ProConnect est indisponible (configuration manquante).'
@@ -79,8 +80,8 @@ export default class ProConnectController {
   /**
    * Génère state/nonce, les stocke en session et redirige vers ProConnect.
    */
-  async redirect({ session, response }: HttpContext) {
-    const config = getProConnectConfig(session)
+  async redirect({ session, response, logger }: HttpContext) {
+    const config = getProConnectConfig({ session, response, logger } as HttpContext)
     if (!config) return response.redirect('/login')
 
     try {
@@ -102,7 +103,8 @@ export default class ProConnectController {
       })
 
       return response.redirect(`${authorizationEndpoint}?${params}`)
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'ProConnect est indisponible lors de la redirection vers login.')
       createErrorFlashMessage(session, 'ProConnect est indisponible, veuillez réessayer plus tard.')
       return response.redirect('/login')
     }
@@ -112,18 +114,20 @@ export default class ProConnectController {
    * Point de retour après authentification ProConnect.
    * Échange le code contre des tokens, vérifie nonce, connecte l'utilisateur.
    */
-  async callback({ session, request, response, auth }: HttpContext) {
-    const config = getProConnectConfig(session)
+  async callback({ session, request, response, auth, logger }: HttpContext) {
+    const config = getProConnectConfig({ session, request, response, auth, logger } as HttpContext)
     if (!config) return response.redirect('/login')
 
     const { code, state, error } = request.qs() as Record<string, string>
 
     if (error) {
+      logger.warn({ error }, 'Connexion ProConnect annulée ou refusée.')
       createErrorFlashMessage(session, `Connexion ProConnect annulée ou refusée.`, error)
       return response.redirect('/login')
     }
 
     if (!code) {
+      logger.warn("Réponse ProConnect invalide : code d'autorisation manquant.")
       createErrorFlashMessage(
         session,
         "Réponse ProConnect invalide : code d'autorisation manquant."
@@ -133,6 +137,7 @@ export default class ProConnectController {
 
     const savedState = session.get(SESSION_KEYS.STATE) as string | null
     if (!state || state !== savedState) {
+      logger.warn('Erreur de sécurité lors de la connexion ProConnect (state invalide).')
       createErrorFlashMessage(
         session,
         'Erreur de sécurité lors de la connexion ProConnect (state invalide).'
@@ -158,6 +163,10 @@ export default class ProConnectController {
       })
 
       if (!tokenRes.ok) {
+        logger.error(
+          { status: tokenRes.status },
+          `Échec de l'échange de token avec ProConnect (HTTP ${tokenRes.status}).`
+        )
         createErrorFlashMessage(session, "Échec de l'échange de token avec ProConnect.")
         return response.redirect('/login')
       }
@@ -168,6 +177,7 @@ export default class ProConnectController {
       }
 
       if (!accessToken || !idToken) {
+        logger.error('Réponse ProConnect invalide : tokens manquants dans la réponse token.')
         createErrorFlashMessage(session, 'Réponse ProConnect invalide : tokens manquants.')
         return response.redirect('/login')
       }
@@ -182,7 +192,11 @@ export default class ProConnectController {
           audience: config.clientId,
         })
         idTokenPayload = payload
-      } catch {
+      } catch (err) {
+        logger.error(
+          { err },
+          'Erreur de sécurité lors de la connexion ProConnect (token invalide).'
+        )
         createErrorFlashMessage(
           session,
           'Erreur de sécurité lors de la connexion ProConnect (token invalide).'
@@ -192,6 +206,7 @@ export default class ProConnectController {
 
       const savedNonce = session.get(SESSION_KEYS.NONCE) as string | null
       if (idTokenPayload['nonce'] !== savedNonce) {
+        logger.warn('Erreur de sécurité lors de la connexion ProConnect (nonce invalide).')
         createErrorFlashMessage(
           session,
           'Erreur de sécurité lors de la connexion ProConnect (nonce invalide).'
@@ -210,6 +225,10 @@ export default class ProConnectController {
       })
 
       if (!userInfoRes.ok) {
+        logger.error(
+          { status: userInfoRes.status },
+          `Échec de la récupération des informations utilisateur ProConnect (HTTP ${userInfoRes.status}).`
+        )
         createErrorFlashMessage(
           session,
           `Échec de la récupération des informations utilisateur ProConnect (HTTP ${userInfoRes.status}).`
@@ -220,15 +239,17 @@ export default class ProConnectController {
       let userInfo: Record<string, string>
       const contentType = userInfoRes.headers.get('content-type') ?? ''
       if (contentType.includes('application/jwt')) {
-        const jwks = await getJWKS(config.domain)
-        const { issuer } = await getDiscovery(config.domain)
         try {
           const { payload } = await jwtVerify(await userInfoRes.text(), jwks, {
             issuer,
             audience: config.clientId,
           })
           userInfo = payload as Record<string, string>
-        } catch {
+        } catch (err) {
+          logger.error(
+            { err },
+            'Erreur de sécurité lors de la connexion ProConnect (userinfo invalide).'
+          )
           createErrorFlashMessage(
             session,
             'Erreur de sécurité lors de la connexion ProConnect (userinfo invalide).'
@@ -241,6 +262,7 @@ export default class ProConnectController {
 
       // Vérification OIDC §5.3.2 : le sub du userinfo doit correspondre au sub de l'id_token signé
       if (userInfo['sub'] !== idTokenPayload['sub']) {
+        logger.warn('Erreur de sécurité lors de la connexion ProConnect (sub incohérent).')
         createErrorFlashMessage(
           session,
           'Erreur de sécurité lors de la connexion ProConnect (sub incohérent).'
@@ -252,6 +274,7 @@ export default class ProConnectController {
       const openconnectId = idTokenPayload['sub'] as string | undefined
 
       if (!email) {
+        logger.warn("ProConnect n'a pas fourni d'adresse e-mail dans le userinfo.")
         createErrorFlashMessage(session, "ProConnect n'a pas fourni d'adresse e-mail.")
         return response.redirect('/login')
       }
@@ -272,6 +295,7 @@ export default class ProConnectController {
 
       // 3. Aucun compte trouvé — on ne crée pas
       if (!user) {
+        logger.warn({ email }, 'Tentative de connexion ProConnect sans compte associé.')
         createErrorFlashMessage(
           session,
           'Aucun compte ne correspond à cet identifiant. Contactez votre administrateur.'
@@ -282,7 +306,8 @@ export default class ProConnectController {
       await auth.use('web').login(user)
 
       return response.redirect(REDIRECT_AFTER_LOGIN)
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'ProConnect est indisponible lors du callback.')
       createErrorFlashMessage(session, 'ProConnect est indisponible, veuillez réessayer plus tard.')
       return response.redirect('/login')
     }
@@ -291,7 +316,7 @@ export default class ProConnectController {
   /**
    * Déconnecte l'utilisateur de ProConnect (redirection vers end_session_endpoint).
    */
-  async logout({ session, response, auth }: HttpContext) {
+  async logout({ session, response, auth, logger }: HttpContext) {
     const idToken = session.get(SESSION_KEYS.ID_TOKEN) as string | null
 
     await auth.use('web').logout()
@@ -300,7 +325,7 @@ export default class ProConnectController {
       return response.redirect('/login')
     }
 
-    const config = getProConnectConfig(session)
+    const config = getProConnectConfig({ session, response, auth, logger } as HttpContext)
     if (!config) return response.redirect('/login')
 
     try {
@@ -316,7 +341,8 @@ export default class ProConnectController {
       })
 
       return response.redirect(`${endSessionEndpoint}?${params}`)
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'ProConnect est indisponible lors de la déconnexion.')
       createErrorFlashMessage(session, 'ProConnect est indisponible, veuillez réessayer plus tard.')
       return response.redirect('/login')
     }
@@ -325,11 +351,12 @@ export default class ProConnectController {
   /**
    * Point de retour après déconnexion ProConnect.
    */
-  async logoutCallback({ session, request, response }: HttpContext) {
+  async logoutCallback({ session, request, response, logger }: HttpContext) {
     const { state } = request.qs() as Record<string, string>
     const savedState = session.get(SESSION_KEYS.LOGOUT_STATE) as string | null
 
     if (state !== savedState) {
+      logger.warn('Erreur de sécurité lors de la déconnexion ProConnect (state invalide).')
       createErrorFlashMessage(session, 'Erreur de sécurité lors de la déconnexion ProConnect.')
     }
 
