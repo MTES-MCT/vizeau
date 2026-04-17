@@ -276,8 +276,8 @@ export class AacService {
    */
   async getAnalysesYearRange(
     installationCodes: string[]
-  ): Promise<{ yearMin: number; yearMax: number }> {
-    if (installationCodes.length === 0) return { yearMin: 0, yearMax: 0 }
+  ): Promise<{ yearMin: number | null; yearMax: number | null }> {
+    if (installationCodes.length === 0) return { yearMin: null, yearMax: null }
 
     const conn = await getConnection()
     const path = getAnalysesRobinetPath()
@@ -293,9 +293,11 @@ export class AacService {
     const result = await stmt.run()
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     const row = rows[0] ?? {}
+    const yearMin = Number(row.year_min)
+    const yearMax = Number(row.year_max)
     return {
-      yearMin: Number(row.year_min ?? 0),
-      yearMax: Number(row.year_max ?? 0),
+      yearMin: Number.isFinite(yearMin) ? yearMin : null,
+      yearMax: Number.isFinite(yearMax) ? yearMax : null,
     }
   }
 

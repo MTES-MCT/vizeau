@@ -18,8 +18,8 @@ type AnalysesSummary = {
   conforme: number
   alerte: number
   non_conforme: number
-  yearMin: number
-  yearMax: number
+  yearMin: number | null
+  yearMax: number | null
 }
 
 export type AacCaptagesProps = {
@@ -66,8 +66,8 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         if (!data) return
         setAnalysesSummary(data)
         // Initialize slider bounds on first load
-        setYearFrom((prev) => prev ?? data.yearMin)
-        setYearTo((prev) => prev ?? data.yearMax)
+        setYearFrom((prev) => (data.yearMin === null ? null : (prev ?? data.yearMin)))
+        setYearTo((prev) => (data.yearMax === null ? null : (prev ?? data.yearMax)))
       })
       .catch((err) => {
         if (err.name !== 'AbortError') console.error(err)
@@ -154,27 +154,32 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           </p>
         </div>
 
-        {analysesSummary && yearFrom !== null && yearTo !== null && (
-          <Range
-            double
-            small
-            label=""
-            min={analysesSummary.yearMin}
-            max={analysesSummary.yearMax}
-            nativeInputProps={[
-              {
-                value: yearFrom,
-                onChange: (e) => handleYearFromChange(Number(e.target.value)),
-                'aria-label': 'Année de début de la période',
-              },
-              {
-                value: yearTo,
-                onChange: (e) => handleYearToChange(Number(e.target.value)),
-                'aria-label': 'Année de fin de la période',
-              },
-            ]}
-          />
-        )}
+        {analysesSummary &&
+          analysesSummary.yearMin !== null &&
+          analysesSummary.yearMax !== null &&
+          analysesSummary.yearMin <= analysesSummary.yearMax &&
+          yearFrom !== null &&
+          yearTo !== null && (
+            <Range
+              double
+              small
+              label=""
+              min={analysesSummary.yearMin}
+              max={analysesSummary.yearMax}
+              nativeInputProps={[
+                {
+                  'value': yearFrom,
+                  'onChange': (e) => handleYearFromChange(Number(e.target.value)),
+                  'aria-label': 'Année de début de la période',
+                },
+                {
+                  'value': yearTo,
+                  'onChange': (e) => handleYearToChange(Number(e.target.value)),
+                  'aria-label': 'Année de fin de la période',
+                },
+              ]}
+            />
+          )}
       </div>
 
       <div className="grid grid-cols-3 gap-3">
