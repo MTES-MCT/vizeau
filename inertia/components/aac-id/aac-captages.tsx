@@ -66,8 +66,14 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         if (!data) return
         setAnalysesSummary(data)
         // Initialize slider bounds on first load
-        setYearFrom((prev) => (data.yearMin === null ? null : (prev ?? data.yearMin)))
-        setYearTo((prev) => (data.yearMax === null ? null : (prev ?? data.yearMax)))
+        setYearFrom((prev) => {
+          if (data.yearMin === null) return null
+          return prev ?? data.yearMin
+        })
+        setYearTo((prev) => {
+          if (data.yearMax === null) return null
+          return prev ?? data.yearMax
+        })
       })
       .catch((err) => {
         if (err.name !== 'AbortError') console.error(err)

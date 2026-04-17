@@ -295,11 +295,11 @@ export class AacService {
     const row = rows[0] ?? {}
     const yearMinRaw = row.year_min
     const yearMaxRaw = row.year_max
-    const yearMin = yearMinRaw !== null && yearMinRaw !== undefined ? Number(yearMinRaw) : null
-    const yearMax = yearMaxRaw !== null && yearMaxRaw !== undefined ? Number(yearMaxRaw) : null
+    const yearMin = yearMinRaw === null || yearMinRaw === undefined ? null : Number(yearMinRaw)
+    const yearMax = yearMaxRaw === null || yearMaxRaw === undefined ? null : Number(yearMaxRaw)
     return {
-      yearMin: yearMin !== null && Number.isFinite(yearMin) ? yearMin : null,
-      yearMax: yearMax !== null && Number.isFinite(yearMax) ? yearMax : null,
+      yearMin: Number.isFinite(yearMin) ? yearMin : null,
+      yearMax: Number.isFinite(yearMax) ? yearMax : null,
     }
   }
 
