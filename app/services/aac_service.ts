@@ -403,7 +403,8 @@ export class AacService {
     }
   }
 
-  /*
+  /**
+   * Returns all AAC names ordered alphabetically.
    */
   async getAllNames() {
     const conn = await getConnection()

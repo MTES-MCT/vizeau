@@ -22,6 +22,11 @@ type AnalysesSummary = {
   yearMax: number | null
 }
 
+type AnalysesSummaryResponse = Omit<AnalysesSummary, 'yearMin' | 'yearMax'> & {
+  yearMin?: number | null
+  yearMax?: number | null
+}
+
 export type AacCaptagesProps = {
   aacCode: string
   installations: {
@@ -62,17 +67,27 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
     const qs = params.size > 0 ? `?${params}` : ''
     fetch(`/aac/${aacCode}/analyses/summary${qs}`, { signal })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: AnalysesSummary | null) => {
+      .then((data: AnalysesSummaryResponse | null) => {
         if (!data) return
-        setAnalysesSummary(data)
-        // Initialize slider bounds on first load
-        setYearFrom((prev) => {
-          if (data.yearMin === null) return null
-          return prev ?? data.yearMin
-        })
-        setYearTo((prev) => {
-          if (data.yearMax === null) return null
-          return prev ?? data.yearMax
+        setAnalysesSummary((prevSummary) => {
+          const yearMin = data.yearMin === undefined ? (prevSummary?.yearMin ?? null) : data.yearMin
+          const yearMax = data.yearMax === undefined ? (prevSummary?.yearMax ?? null) : data.yearMax
+
+          // Initialize slider bounds on first load
+          setYearFrom((prev) => {
+            if (yearMin === null) return null
+            return prev ?? yearMin
+          })
+          setYearTo((prev) => {
+            if (yearMax === null) return null
+            return prev ?? yearMax
+          })
+
+          return {
+            ...data,
+            yearMin,
+            yearMax,
+          }
         })
       })
       .catch((err) => {

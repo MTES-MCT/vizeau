@@ -62,21 +62,35 @@ export default class AacController {
         : undefined
 
     if (
-      (yearFromParam !== undefined && yearFromParam !== null && yearFromParam !== '' && Number.isNaN(yearFrom)) ||
-      (yearToParam !== undefined && yearToParam !== null && yearToParam !== '' && Number.isNaN(yearTo))
+      (yearFromParam !== undefined &&
+        yearFromParam !== null &&
+        yearFromParam !== '' &&
+        Number.isNaN(yearFrom)) ||
+      (yearToParam !== undefined &&
+        yearToParam !== null &&
+        yearToParam !== '' &&
+        Number.isNaN(yearTo))
     ) {
-      return response.abort('Les paramètres yearFrom et yearTo doivent être des entiers valides', 400)
+      return response.abort(
+        'Les paramètres yearFrom et yearTo doivent être des entiers valides',
+        400
+      )
     }
 
     if (yearFrom !== undefined && yearTo !== undefined && yearFrom > yearTo) {
       return response.abort('Le paramètre yearFrom doit être inférieur ou égal à yearTo', 400)
     }
+    const includeYearRange = yearFrom === undefined && yearTo === undefined
     const [summary, conformite, yearRange] = await Promise.all([
       this.aacService.getAnalysesSummary(codes, yearFrom, yearTo),
       this.aacService.getConformiteSummary(codes, yearFrom, yearTo),
-      this.aacService.getAnalysesYearRange(codes),
+      includeYearRange ? this.aacService.getAnalysesYearRange(codes) : Promise.resolve(null),
     ])
-    return response.json({ ...summary, ...conformite, ...yearRange })
+    return response.json({
+      ...summary,
+      ...conformite,
+      ...(yearRange ?? {}),
+    })
   }
 
   async analyses({ params, request, response }: HttpContext) {
