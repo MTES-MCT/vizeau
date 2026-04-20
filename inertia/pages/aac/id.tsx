@@ -13,8 +13,9 @@ import { useEffect, useState } from 'react'
 import AacTerritoireSection from '~/components/aac-id/aac-territoire-section'
 import AacAgricultureSection from '~/components/aac-id/aac-agriculture-section'
 import AacCaptages from '~/components/aac-id/aac-captages'
+import { AacActionCard } from '~/components/aac-id/AacActionCard'
 
-export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) {
+export default function AacShow({ aac, exportUrls }: InferPageProps<AacController, 'show'>) {
   const communeArray = map(aac.communes?.communes ?? {}, (info, nom) => ({ nom, ...info }))
 
   const { url } = usePage()
@@ -70,6 +71,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
           <aside className="flex flex-col gap-4">
             <AacInformationsCard {...aac} />
             <AacCommunesCard communes={communeArray} />
+            <AacActionCard exportUrls={exportUrls} />
           </aside>
 
           <Tabs
