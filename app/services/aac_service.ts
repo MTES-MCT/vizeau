@@ -283,8 +283,8 @@ export class AacService {
     const path = getAnalysesRobinetPath()
     const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
     const stmt = await conn.prepare(
-      `SELECT MIN(date_part('year', date_prelevement)) AS year_min,
-              MAX(date_part('year', date_prelevement)) AS year_max
+      `SELECT MIN(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_min,
+              MAX(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_max
        FROM read_parquet($1)
        WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL`
     )
