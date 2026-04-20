@@ -43,6 +43,56 @@ export default class AacController {
     return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })
   }
 
+  async analysesSummary({ params, request, response }: HttpContext) {
+    const raw = await this.aacService.getByCode(params.code)
+    if (!raw) return response.abort('AAC introuvable', 404)
+
+    const installations = (raw.installations as { code: string }[]) ?? []
+    const codes = installations.map((i) => i.code)
+
+    const yearFromParam = request.input('yearFrom')
+    const yearToParam = request.input('yearTo')
+    const yearFrom =
+      yearFromParam !== undefined && yearFromParam !== null && yearFromParam !== ''
+        ? Number.parseInt(String(yearFromParam), 10)
+        : undefined
+    const yearTo =
+      yearToParam !== undefined && yearToParam !== null && yearToParam !== ''
+        ? Number.parseInt(String(yearToParam), 10)
+        : undefined
+
+    if (
+      (yearFromParam !== undefined &&
+        yearFromParam !== null &&
+        yearFromParam !== '' &&
+        Number.isNaN(yearFrom)) ||
+      (yearToParam !== undefined &&
+        yearToParam !== null &&
+        yearToParam !== '' &&
+        Number.isNaN(yearTo))
+    ) {
+      return response.abort(
+        'Les paramètres yearFrom et yearTo doivent être des entiers valides',
+        400
+      )
+    }
+
+    if (yearFrom !== undefined && yearTo !== undefined && yearFrom > yearTo) {
+      return response.abort('Le paramètre yearFrom doit être inférieur ou égal à yearTo', 400)
+    }
+    const includeYearRange = yearFrom === undefined && yearTo === undefined
+    const [summary, conformite, yearRange] = await Promise.all([
+      this.aacService.getAnalysesSummary(codes, yearFrom, yearTo),
+      this.aacService.getConformiteSummary(codes, yearFrom, yearTo),
+      includeYearRange ? this.aacService.getAnalysesYearRange(codes) : Promise.resolve(null),
+    ])
+    return response.json({
+      ...summary,
+      ...conformite,
+      ...(yearRange ?? {}),
+    })
+  }
+
   async analyses({ params, request, response }: HttpContext) {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)

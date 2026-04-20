@@ -78,7 +78,7 @@ export default function AacShow({ aac }: InferPageProps<AacController, 'show'>) 
             tabs={[
               {
                 tabId: 'captages',
-                label: 'Points de captages',
+                label: 'Points de prélèvement',
                 iconId: 'fr-icon-drop-line',
               },
               {
