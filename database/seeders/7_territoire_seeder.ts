@@ -8,6 +8,11 @@ export default class TerritoireSeeder extends BaseSeeder {
     const aacService = new AacService()
     const rows = await aacService.getAllNames()
 
+    // Populate codes on existing records that were seeded before the code column was added
+    for (const row of rows) {
+      await Territoire.query().whereNull('code').where('name', row.name).update({ code: row.code })
+    }
+
     const territoires = await Territoire.updateOrCreateMany('code', rows)
 
     // Assign all territoires to the admin

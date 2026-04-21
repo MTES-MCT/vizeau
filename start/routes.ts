@@ -13,6 +13,7 @@ import { middleware } from '#start/kernel'
 const AccueilController = () => import('#controllers/accueil_controller')
 const ExploitationsController = () => import('#controllers/exploitations_controller')
 const SessionController = () => import('#controllers/session_controller')
+const ProConnectController = () => import('#controllers/pro_connect_controller')
 const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
 const AacController = () => import('#controllers/aac_controller')
@@ -22,10 +23,16 @@ router.get('/', ({ response }) => response.redirect('login'))
 router.get('login', [SessionController, 'index'])
 router.post('login', [SessionController, 'store'])
 
+// Routes ProConnect (OIDC)
+router.get('proconnect/redirect', [ProConnectController, 'redirect'])
+router.get('proconnect/callback', [ProConnectController, 'callback'])
+router.get('proconnect/logout/callback', [ProConnectController, 'logoutCallback'])
+
 // Protected routes
 router
   .group(() => {
     router.get('logout', [SessionController, 'delete'])
+    router.get('proconnect/logout', [ProConnectController, 'logout'])
     router.get('pas-de-territoire', [AccueilController, 'noTerritoire']).as('noTerritoire')
 
     // Routes in this group will redirect to an error page if no territoire is assigned to the user

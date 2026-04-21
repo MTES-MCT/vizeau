@@ -3,6 +3,7 @@ import { errors } from '@adonisjs/auth'
 import User from '#models/user'
 import { EventLoggerService } from '#services/event_logger_service'
 import { inject } from '@adonisjs/core'
+import { SESSION_KEYS } from './pro_connect_controller.js'
 
 const redirectAfterLogin = '/accueil'
 
@@ -45,9 +46,15 @@ export default class SessionController {
     response.redirect(redirectAfterLogin)
   }
 
-  async delete({ auth, response }: HttpContext) {
+  async delete({ auth, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
     this.eventLogger.logEvent({ userId: user.id, name: 'session_logout' })
+
+    // Si l'utilisateur s'est connecté via ProConnect, déléguer la déconnexion
+    if (session.get(SESSION_KEYS.ID_TOKEN)) {
+      return response.redirect('/proconnect/logout')
+    }
+
     await auth.use('web').logout()
     return response.redirect('/')
   }
