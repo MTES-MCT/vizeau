@@ -81,14 +81,12 @@ export default class AacController {
       return response.abort('Le paramètre yearFrom doit être inférieur ou égal à yearTo', 400)
     }
     const includeYearRange = yearFrom === undefined && yearTo === undefined
-    const [summary, conformite, yearRange] = await Promise.all([
+    const [summary, yearRange] = await Promise.all([
       this.aacService.getAnalysesSummary(codes, yearFrom, yearTo),
-      this.aacService.getConformiteSummary(codes, yearFrom, yearTo),
       includeYearRange ? this.aacService.getAnalysesYearRange(codes) : Promise.resolve(null),
     ])
     return response.json({
       ...summary,
-      ...conformite,
       ...(yearRange ?? {}),
     })
   }

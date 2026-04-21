@@ -11,13 +11,11 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import AacAnalysesSection from '~/components/aac-id/aac-analyses-section'
 import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard from '~/ui/ResumeCard'
+import Loader from '~/ui/Loader'
 
 type AnalysesSummary = {
   nb_analyses: number
   nb_parametres: number
-  conforme: number
-  alerte: number
-  non_conforme: number
   yearMin: number | null
   yearMax: number | null
 }
@@ -175,40 +173,55 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           </p>
         </div>
 
-        {analysesSummary &&
+        {loadingSummary && !analysesSummary ? (
+          <div className="flex items-center justify-center fr-py-2w">
+            <Loader type="dots" size="sm" />
+          </div>
+        ) : (
+          analysesSummary &&
           analysesSummary.yearMin !== null &&
           analysesSummary.yearMax !== null &&
           analysesSummary.yearMin <= analysesSummary.yearMax &&
           yearFrom !== null &&
           yearTo !== null && (
-            <Range
-              double
-              small
-              label=""
-              min={analysesSummary.yearMin}
-              max={analysesSummary.yearMax}
-              nativeInputProps={[
-                {
-                  'value': yearFrom,
-                  'onChange': (e) => handleYearFromChange(Number(e.target.value)),
-                  'aria-label': 'Année de début de la période',
-                },
-                {
-                  'value': yearTo,
-                  'onChange': (e) => handleYearToChange(Number(e.target.value)),
-                  'aria-label': 'Année de fin de la période',
-                },
-              ]}
-            />
-          )}
+            <div className="relative">
+              <Range
+                double
+                small
+                label=""
+                min={analysesSummary.yearMin}
+                max={analysesSummary.yearMax}
+                nativeInputProps={[
+                  {
+                    'value': yearFrom,
+                    'onChange': (e) => handleYearFromChange(Number(e.target.value)),
+                    'aria-label': 'Année de début de la période',
+                    'disabled': loadingSummary,
+                  },
+                  {
+                    'value': yearTo,
+                    'onChange': (e) => handleYearToChange(Number(e.target.value)),
+                    'aria-label': 'Année de fin de la période',
+                    'disabled': loadingSummary,
+                  },
+                ]}
+              />
+              {loadingSummary && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader type="dots" size="sm" />
+                </div>
+              )}
+            </div>
+          )
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <ResumeCard
           title="Points de prélèvement"
           iconId="fr-icon-drop-line"
-          value={installations.length}
-          label="points de prélèvement"
+          value={installations.filter((i) => i.etat === 'ACTIF').length}
+          label="captages actifs"
           priority="secondary"
         />
         <ResumeCard
@@ -229,35 +242,14 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <ResumeCard
-          title="Conformes"
-          iconId="fr-icon-checkbox-circle-line"
-          value={analysesSummary?.conforme ?? '—'}
-          label="analyses"
-          priority="secondary"
-          color={fr.colors.decisions.text.default.success.default}
-          loading={loadingSummary}
-        />
-        <ResumeCard
-          title="En alerte"
-          iconId="fr-icon-alert-line"
-          value={analysesSummary?.alerte ?? '—'}
-          label="sans données bactério ni chimique"
-          priority="secondary"
-          color={fr.colors.decisions.text.default.warning.default}
-          loading={loadingSummary}
-        />
-        <ResumeCard
-          title="Non-conformes"
-          iconId="fr-icon-close-circle-line"
-          value={analysesSummary?.non_conforme ?? '—'}
-          label="analyses"
-          priority="secondary"
-          color={fr.colors.decisions.text.default.error.default}
-          loading={loadingSummary}
-        />
-      </div>
+      <ResumeCard
+        title="Prioritaire(s)"
+        iconId="fr-icon-warning-fill"
+        value={installations.filter((i) => i.prioritaire === true).length}
+        label="point(s) de prélèvement"
+        priority="secondary"
+        color={fr.colors.decisions.text.default.warning.default}
+      />
 
       <SmallSection title="Filtres" iconId="fr-icon-filter-line" hasBorder>
         <div className="flex flex-col gap-3">
