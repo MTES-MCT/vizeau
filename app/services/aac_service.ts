@@ -205,6 +205,32 @@ export class AacService {
   }
 
   /**
+   * Returns installation codes for a given AAC code.
+   * Reads only the installations column to avoid loading the full AAC row.
+   */
+  async getInstallationCodesByAacCode(aacCode: string): Promise<string[] | null> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT list_transform(installations, i -> i.code) AS installation_codes ' +
+        'FROM read_parquet($1) WHERE code = $2 LIMIT 1'
+    )
+    stmt.bindVarchar(1, getParquetPath())
+    stmt.bindVarchar(2, aacCode)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    if (!rows[0]) return null
+
+    const installationCodes = normalizeValue(rows[0].installation_codes)
+    if (!Array.isArray(installationCodes)) return []
+
+    return installationCodes
+      .filter((code): code is string => typeof code === 'string')
+      .map((code) => code.trim())
+      .filter((code) => code.length > 0)
+  }
+
+  /**
    * Checks whether an installation belongs to a given AAC.
    * Reads only the `code` and `installations` columns from the Parquet file,
    * which is significantly cheaper than a full SELECT * via getByCode().

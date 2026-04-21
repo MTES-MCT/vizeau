@@ -44,11 +44,8 @@ export default class AacController {
   }
 
   async analysesSummary({ params, request, response }: HttpContext) {
-    const raw = await this.aacService.getByCode(params.code)
-    if (!raw) return response.abort('AAC introuvable', 404)
-
-    const installations = (raw.installations as { code: string }[]) ?? []
-    const codes = installations.map((i) => i.code)
+    const codes = await this.aacService.getInstallationCodesByAacCode(params.code)
+    if (!codes) return response.abort('AAC introuvable', 404)
 
     const yearFromParam = request.input('yearFrom')
     const yearToParam = request.input('yearTo')
