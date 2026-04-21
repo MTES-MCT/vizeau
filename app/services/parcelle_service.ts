@@ -93,6 +93,14 @@ export class ParcelleService {
     return parcelles.map((parcelle) => parcelle.rpgId)
   }
 
+  async getAllParcellesForExploitation(exploitationId: string): Promise<Parcelle[]> {
+    return Parcelle.query()
+      .where('exploitationId', exploitationId)
+      .preload('culture')
+      .orderBy('year', 'desc')
+      .orderBy('rpgId', 'asc')
+  }
+
   async detachParcelleFromExploitation(exploitationId: string, rpgId: string, year: number) {
     const parcelle = await this.queryParcelleByRpgId(rpgId, year).first()
 

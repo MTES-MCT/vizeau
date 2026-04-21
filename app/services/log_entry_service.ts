@@ -23,6 +23,14 @@ export class LogEntryService {
     return logEntry
   }
 
+  async getAllLogEntriesForExploitation(exploitationId: string) {
+    return this.queryLogEntriesFromActiveExploitation()
+      .where('exploitationId', exploitationId)
+      .preload('author')
+      .preload('tags')
+      .orderBy('date', 'desc')
+  }
+
   async getLogForExploitation(exploitationId: string, page = 1, pageSize = 10) {
     return this.queryLogEntriesFromActiveExploitation()
       .where('exploitationId', exploitationId)

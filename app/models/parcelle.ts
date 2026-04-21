@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, hasOne } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
-import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Culture from '#models/culture'
 
 export default class Parcelle extends BaseModel {
@@ -54,8 +54,8 @@ export default class Parcelle extends BaseModel {
   })
   declare centroid: { x: number; y: number } | null
 
-  @hasOne(() => Culture, { localKey: 'culture_code', foreignKey: 'code' })
-  declare culture: HasOne<typeof Culture>
+  @belongsTo(() => Culture, { localKey: 'code', foreignKey: 'cultureCode' })
+  declare culture: BelongsTo<typeof Culture>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
