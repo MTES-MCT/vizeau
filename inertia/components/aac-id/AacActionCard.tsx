@@ -46,6 +46,9 @@ export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
             setIsLoading(true)
             fetch(exportUrl)
               .then(async (res) => {
+                if (!res.ok) {
+                  throw new Error(`Erreur lors de l'export : ${res.statusText}`)
+                }
                 const disposition = res.headers.get('Content-Disposition')
                 const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? 'export'
                 const blob = await res.blob()
@@ -65,7 +68,7 @@ export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
           {isLoading ? (
             <Loader size={'sm'} type={'dots'} />
           ) : (
-            <div className="fr-icon-download-line" />
+            <div className="fr-icon-download-line" aria-label={'Export des données'} />
           )}
         </Button>
       </div>

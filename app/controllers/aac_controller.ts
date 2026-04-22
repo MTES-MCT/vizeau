@@ -57,10 +57,7 @@ export default class AacController {
           .builder()
           .params([params.code])
           .make('aac.export.cultureEvolution'),
-        qualiteEau: router
-          .builder()
-          .params([params.code, new Date().getUTCFullYear()])
-          .make('aac.export.qualite'),
+        qualiteEau: router.builder().params([params.code]).make('aac.export.qualite'),
       },
     })
   }

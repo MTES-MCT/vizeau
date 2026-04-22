@@ -170,7 +170,7 @@ router
           .where('code', /^\d+$/)
           .as('aac.export.cultureEvolution')
         router
-          .get('aac/:code/export/qualite/', [AacController, 'exportQualiteEau'])
+          .get('aac/:code/export/qualite', [AacController, 'exportQualiteEau'])
           .where('code', /^\d+$/)
           .as('aac.export.qualite')
         router
