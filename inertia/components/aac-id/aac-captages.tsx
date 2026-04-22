@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { stringToColor } from '~/functions/colors'
 
+import Button from '@codegouvfr/react-dsfr/Button'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
 import { Range } from '@codegouvfr/react-dsfr/Range'
 import ButtonWithSelector, { OptionType } from '~/ui/ButtonWithSelector'
@@ -46,6 +47,8 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
   const [showActifOnly, setShowActifOnly] = useState(false)
   const [selectedInstallationCode, setSelectedInstallationCode] = useState<string | null>(null)
   const [deselectedTypes, setDeselectedTypes] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
   const [analysesSummary, setAnalysesSummary] = useState<AnalysesSummary | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(true)
   const [yearFrom, setYearFrom] = useState<number | null>(null)
@@ -133,10 +136,14 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
     setFilteredInstallations(
       installations.filter(
         (installation) =>
-          (!showActifOnly || installation.etat === 'ACTIF') && selectedTypes.has(installation.type)
+          (!showActifOnly || installation.etat === 'ACTIF') &&
+          selectedTypes.has(installation.type) &&
+          (searchQuery === '' ||
+            installation.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            installation.code.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     )
-  }, [showActifOnly, installations, selectInputOptions])
+  }, [showActifOnly, installations, selectInputOptions, searchQuery])
 
   const handleOptionChange = (updatedOption: OptionType<string>) => {
     setDeselectedTypes((prev) => {
@@ -216,172 +223,207 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <ResumeCard
-          title="Points de prélèvement"
-          iconId="fr-icon-drop-line"
-          value={installations.filter((i) => i.etat === 'ACTIF').length}
-          label="captages actifs"
-          priority="secondary"
-        />
-        <ResumeCard
-          title="Analyses effectuées"
-          iconId="fr-icon-microscope-line"
-          value={analysesSummary?.nb_analyses ?? '—'}
-          label="analyses"
-          priority="secondary"
-          loading={loadingSummary}
-        />
-        <ResumeCard
-          title="Paramètres analysés"
-          iconId="fr-icon-bar-chart-box-line"
-          value={analysesSummary?.nb_parametres ?? '—'}
-          label="paramètres"
-          priority="secondary"
-          loading={loadingSummary}
-        />
-      </div>
-
-      <ResumeCard
-        title="Prioritaire(s)"
-        iconId="fr-icon-warning-fill"
-        value={installations.filter((i) => i.prioritaire === true).length}
-        label="point(s) de prélèvement"
-        priority="secondary"
-        color={fr.colors.decisions.text.default.warning.default}
-      />
-
-      <SmallSection title="Filtres" iconId="fr-icon-filter-line" hasBorder>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <ButtonWithSelector
-              label="Filtrer par type"
-              options={selectInputOptions}
-              onOptionChange={handleOptionChange}
-            />
-            <ul className="flex gap-1 fr-p-0 fr-m-0">
-              {selectInputOptions
-                .filter((o) => o.isSelected)
-                .map((option) => (
-                  <li key={option.value} style={{ listStyle: 'none' }}>
-                    <Tag
-                      key={option.value}
-                      small
-                      dismissible
-                      nativeButtonProps={{
-                        onClick: () => handleOptionChange({ ...option, isSelected: false }),
-                      }}
-                    >
-                      {option.label}
-                    </Tag>
-                  </li>
-                ))}
-            </ul>
-          </div>
-          <Checkbox
-            small
-            options={[
-              {
-                label: 'Afficher uniquement les points de prélèvement actifs',
-                nativeInputProps: {
-                  name: 'showActifOnly',
-                  value: showActifOnly.toString(),
-                  onChange: (e) => setShowActifOnly(e.target.checked),
-                  checked: showActifOnly,
-                },
-              },
-            ]}
+      <div
+        className="flex flex-col gap-3 fr-p-3w"
+        style={{ border: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}
+      >
+        <div className="grid grid-cols-3 gap-3">
+          <ResumeCard
+            title="Points de prélèvement"
+            iconId="fr-icon-drop-line"
+            value={installations.filter((i) => i.etat === 'ACTIF').length}
+            label="captages actifs"
+            priority="secondary"
+          />
+          <ResumeCard
+            title="Analyses effectuées"
+            iconId="fr-icon-microscope-line"
+            value={analysesSummary?.nb_analyses ?? '—'}
+            label="analyses"
+            priority="secondary"
+            loading={loadingSummary}
+          />
+          <ResumeCard
+            title="Paramètres analysés"
+            iconId="fr-icon-test-tube-line"
+            value={analysesSummary?.nb_parametres ?? '—'}
+            label="paramètres"
+            priority="secondary"
+            loading={loadingSummary}
           />
         </div>
-      </SmallSection>
 
-      {filteredInstallations && filteredInstallations.length > 0 ? (
-        <ul className="flex flex-col gap-2 fr-p-0">
-          {filteredInstallations.map((installation, index) => {
-            const isSelected = selectedInstallationCode === installation.code
-            return (
-              <li key={installation.code} style={{ listStyle: 'none' }}>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={isSelected}
-                  className="cursor-pointer"
-                  style={{
-                    outline: isSelected
-                      ? `2px solid ${fr.colors.decisions.border.default.blueFrance.default}`
-                      : undefined,
-                  }}
-                  onClick={() => toggleInstallation(installation.code)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      toggleInstallation(installation.code)
-                    }
-                  }}
-                >
-                  <ListItem
-                    additionalInfos={{
-                      ...(installation.prioritaire === true && {
-                        message: 'Prioritaire',
-                        iconId: 'fr-icon-info-fill',
-                      }),
-                      ...(installation.etat && {
-                        alert: {
-                          text: installation.etat,
-                          severity: installation.etat === 'ACTIF' ? 'success' : 'error',
-                        },
-                      }),
-                    }}
-                    variant="compact"
-                    hasBorder
-                    priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                    title={
-                      <span className="flex items-center gap-1">
-                        {installation.nom}
-                        <span
-                          className={
-                            isSelected ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'
-                          }
-                          aria-hidden="true"
-                          style={{
-                            color: fr.colors.decisions.text.label.blueFrance.default,
-                            fontSize: '0.875rem',
-                          }}
-                        />
-                      </span>
-                    }
-                    tags={[
-                      {
-                        label: installation.type,
-                        color: stringToColor(installation.type),
-                      },
-                    ]}
-                    metas={[
-                      {
-                        iconId: 'fr-icon-government-line',
-                        content: `${installation.commune} (${installation.departement})`,
-                      },
-                    ]}
-                  />
-                </div>
-
-                {isSelected && (
-                  <AacAnalysesSection
-                    aacCode={aacCode}
-                    installationCode={installation.code}
-                    installationNom={installation.nom}
-                  />
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      ) : (
-        <EmptyPlaceholder
-          label={`${installations.length > 0 ? 'Aucun point de prélèvement ne correspond à ces critères' : 'Aucun point de prélèvement trouvé'}`}
-          illustrativeIcon="fr-icon-drop-fill"
+        <ResumeCard
+          title="Prioritaire(s)"
+          iconId="fr-icon-warning-line"
+          value={installations.filter((i) => i.prioritaire === true).length}
+          label="point(s) de prélèvement"
+          priority="secondary"
+          color={fr.colors.decisions.text.default.warning.default}
         />
-      )}
+
+        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de captages</h2>
+
+        <div className="flex gap-2 items-stretch">
+          <div
+            className="flex flex-1 items-stretch"
+            style={{
+              border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+            }}
+          >
+            <input
+              className="fr-input"
+              type="search"
+              placeholder="Rechercher une AAC"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ border: 'none', boxShadow: 'none', flex: 1, outline: 'none' }}
+              aria-label="Rechercher une AAC"
+            />
+            <Button iconId="fr-icon-search-line" title="Rechercher" priority="primary" />
+          </div>
+          <Button
+            iconId="fr-icon-filter-line"
+            title={showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+            priority={showFilters ? 'primary' : 'secondary'}
+            onClick={() => setShowFilters(!showFilters)}
+          />
+        </div>
+
+        {showFilters && (
+          <SmallSection title="Filtres" iconId="fr-icon-filter-line" hasBorder priority="secondary">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <ButtonWithSelector
+                  label="Filtrer par type"
+                  options={selectInputOptions}
+                  onOptionChange={handleOptionChange}
+                />
+                <ul className="flex gap-1 fr-p-0 fr-m-0">
+                  {selectInputOptions
+                    .filter((o) => o.isSelected)
+                    .map((option) => (
+                      <li key={option.value} style={{ listStyle: 'none' }}>
+                        <Tag
+                          key={option.value}
+                          small
+                          dismissible
+                          nativeButtonProps={{
+                            onClick: () => handleOptionChange({ ...option, isSelected: false }),
+                          }}
+                        >
+                          {option.label}
+                        </Tag>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <Checkbox
+                small
+                options={[
+                  {
+                    label: 'Afficher uniquement les points de prélèvement actifs',
+                    nativeInputProps: {
+                      name: 'showActifOnly',
+                      value: showActifOnly.toString(),
+                      onChange: (e) => setShowActifOnly(e.target.checked),
+                      checked: showActifOnly,
+                    },
+                  },
+                ]}
+              />
+            </div>
+          </SmallSection>
+        )}
+
+        {filteredInstallations && filteredInstallations.length > 0 ? (
+          <ul className="flex flex-col gap-2 fr-p-0">
+            {filteredInstallations.map((installation, index) => {
+              const isSelected = selectedInstallationCode === installation.code
+              return (
+                <li key={installation.code} style={{ listStyle: 'none' }}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isSelected}
+                    className="cursor-pointer"
+                    style={{
+                      outline: isSelected
+                        ? `2px solid ${fr.colors.decisions.border.default.blueFrance.default}`
+                        : undefined,
+                    }}
+                    onClick={() => toggleInstallation(installation.code)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        toggleInstallation(installation.code)
+                      }
+                    }}
+                  >
+                    <ListItem
+                      additionalInfos={{
+                        ...(installation.prioritaire === true && {
+                          message: 'Prioritaire',
+                          iconId: 'fr-icon-info-fill',
+                        }),
+                        ...(installation.etat && {
+                          alert: {
+                            text: installation.etat,
+                            severity: installation.etat === 'ACTIF' ? 'success' : 'error',
+                          },
+                        }),
+                      }}
+                      variant="compact"
+                      hasBorder
+                      priority={index % 2 === 1 ? 'secondary' : 'primary'}
+                      title={
+                        <span className="flex items-center gap-1">
+                          {installation.nom}
+                          <span
+                            className={
+                              isSelected ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'
+                            }
+                            aria-hidden="true"
+                            style={{
+                              color: fr.colors.decisions.text.label.blueFrance.default,
+                              fontSize: '0.875rem',
+                            }}
+                          />
+                        </span>
+                      }
+                      tags={[
+                        {
+                          label: installation.type,
+                          color: stringToColor(installation.type),
+                        },
+                      ]}
+                      metas={[
+                        {
+                          iconId: 'fr-icon-government-line',
+                          content: `${installation.commune} (${installation.departement})`,
+                        },
+                      ]}
+                    />
+                  </div>
+
+                  {isSelected && (
+                    <AacAnalysesSection
+                      aacCode={aacCode}
+                      installationCode={installation.code}
+                      installationNom={installation.nom}
+                    />
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
+          <EmptyPlaceholder
+            label={`${installations.length > 0 ? 'Aucun point de prélèvement ne correspond à ces critères' : 'Aucun point de prélèvement trouvé'}`}
+            illustrativeIcon="fr-icon-drop-fill"
+          />
+        )}
+      </div>
     </div>
   )
 }
