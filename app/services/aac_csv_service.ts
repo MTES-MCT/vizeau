@@ -192,13 +192,13 @@ export class AacCsvService {
     if (!aac.culture_evolution?.repartition) return null
     const evoHeaders = ['Année', 'Culture', 'Surface (ha)', 'Nb parcelles']
     const evoRows: string[] = []
-    for (const [culture, years] of Object.entries(aac.culture_evolution.repartition)) {
-      for (const [year, detail] of Object.entries(years)) {
+    for (const [year, culture] of Object.entries(aac.culture_evolution.repartition)) {
+      for (const [cultureName, detail] of Object.entries(culture)) {
         if (!detail) continue
         evoRows.push(
           buildRow([
-            culture,
             year,
+            cultureName,
             String(detail.surface_ha ?? ''),
             String(detail.nb_parcelles ?? ''),
           ])
