@@ -3,6 +3,7 @@ import { LogEntryJson } from '../../types/models'
 import { AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'
 import { fr } from '@codegouvfr/react-dsfr'
+import { formatDateFr } from './date'
 
 export const severityColorMap: Record<
   NonNullable<NonNullable<AdditionalInfosProps['alert']>['severity']>,
@@ -14,8 +15,8 @@ export const severityColorMap: Record<
   warning: fr.colors.decisions.text.default.warning.default,
   // Error: red color, late tasks
   error: fr.colors.decisions.text.default.error.default,
-  // Success: neutral color, completed tasks
-  success: fr.colors.decisions.text.default.info.default,
+  // Success: green color, completed tasks
+  success: fr.colors.decisions.text.default.success.default,
 }
 
 export function getLogEntryTitle(logEntry: LogEntryJson): string {
@@ -88,18 +89,20 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
 export function getLogEntryAdditionalInfos(logEntry: LogEntryJson): AdditionalInfosProps {
   const additionalInfos: AdditionalInfosProps = {}
 
+  if (logEntry.isCompleted) {
+    return {
+      alert: {
+        severity: 'success',
+        text: `Tâche effectuée le ${formatDateFr(logEntry.updatedAt)}`,
+      },
+    }
+  }
+
   if (logEntry.date) {
     const date = DateTime.fromISO(logEntry.date)
 
     additionalInfos.iconId = 'fr-icon-time-line'
-    additionalInfos.message = `Tâche planifiée pour le ${date.toLocaleString(
-      {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      },
-      { locale: 'fr-FR' }
-    )}`
+    additionalInfos.message = `Tâche planifiée pour le ${formatDateFr(date.toISO())}`
 
     additionalInfos.alert = getLogEntryDateDiffObject(logEntry)
   }

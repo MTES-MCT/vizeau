@@ -2,38 +2,10 @@
   {
     "id": "a1b2c3d4-0001-4000-8000-000000000001",
     "nom": "Réduction des intrants azotés – Bassin versant Nord",
-    "description": "Accompagnement des exploitations du bassin versant Nord dans la réduction des apports azotés sur les parcelles en zone de captage prioritaire.",
+    "description": "Accompagnement des exploitations du bassin versant Nord dans la réduction des apports azotés sur les parcelles en zone de captage prioritaire. Accompagnement des exploitations du bassin versant Nord dans la réduction des apports azotés sur les parcelles en zone de captage prioritaire",
     "type_action": "Accompagnement agronomique",
     "statut": "current",
-    "etapes": [
-      {
-        "title": "Diagnostic initial",
-        "note": "Visite des exploitations pour état des lieux des pratiques azotées.",
-        "date": "2025-03-15T00:00:00.000Z",
-        "date_maj": "2025-03-20T00:00:00.000Z",
-        "documents": [],
-        "tags": ["diagnostic"],
-        "is_validated": true
-      },
-      {
-        "title": "Plan d'actions individualisé",
-        "note": "Rédaction des plans pour chaque exploitation participante.",
-        "date": "2025-05-01T00:00:00.000Z",
-        "date_maj": "2025-05-10T00:00:00.000Z",
-        "documents": [],
-        "tags": ["plan"],
-        "is_validated": true
-      },
-      {
-        "title": "Suivi de campagne",
-        "note": null,
-        "date": "2025-10-01T00:00:00.000Z",
-        "date_maj": "2025-10-01T00:00:00.000Z",
-        "documents": [],
-        "tags": [],
-        "is_validated": false
-      }
-    ],
+    "etapes": [],
     "parcelles": [
       {
         "id": "parcelle-0001",
@@ -82,7 +54,11 @@
         "code": "BSS001XXXX",
         "nom": "Captage de la Fontaine Nord",
         "code_bss": "BSS001XXXX",
-        "etat": "actif"
+        "etat": "ACTIF",
+        "commune": "Saint-Martin-du-Bois",
+        "postalCode": "49170",
+        "location": { "x": 2.3522, "y": 48.8566 },
+        "departement": "Loire-Atlantique"
       }
     ],
     "created_at": "2025-02-01T10:00:00.000Z",
@@ -243,7 +219,11 @@
         "code": "BSS002YYYY",
         "nom": "Source de la Garigue",
         "code_bss": "BSS002YYYY",
-        "etat": "actif"
+        "etat": "ACTIF",
+        "commune": "Saint-Martin-du-Bois",
+        "postalCode": "49170",
+        "location": { "x": 2.3522, "y": 48.8566 },
+        "departement": "Loire-Atlantique"
       }
     ],
     "created_at": "2023-02-10T08:00:00.000Z",
@@ -252,7 +232,7 @@
   {
     "id": "a1b2c3d4-0004-4000-8000-000000000004",
     "nom": "Implantation de haies bocagères",
-    "description": "Plantation de haies en bordure de parcelles pour limiter les transferts de pesticides vers les captages.",
+    "description": null,
     "type_action": "Aménagement bocager",
     "statut": "abandoned",
     "etapes": [
@@ -352,7 +332,7 @@
   {
     "id": "a1b2c3d4-0005-4000-8000-000000000005",
     "nom": "Gestion des zones tampons en bordure de cours d'eau",
-    "description": "Mise en place et entretien de bandes enherbées de 5m le long des cours d'eau traversant la zone de captage.",
+    "description": "Lorem ipsum dolor sit amet consectetur. Arcu lectus non donec eget dolor sit dui magna et. Pharetra vehicula enim euismod pharetra nullam tincidunt bibendum in. Ac eleifend massa phasellus scelerisque fermentum risus. Faucibus tellus adipiscing eros a.\nEu leo cursus cum nunc scelerisque purus amet sit at. Nisl libero ligula odio phasellus platea elit non eu sed. Malesuada ut cras aenean aliquet at consequat. Pellentesque iaculis aliquam tortor aliquam mattis. Ultrices odio malesuada velit metus eu placerat. Purus vestibulum arcu blandit tempor. In in enim lectus mattis mauris. Et nulla elit amet vivamus. Urna enim odio rhoncus nunc in volutpat. Semper platea montes nunc dictumst quisque eleifend tortor facilisis rutrum. Nibh curabitur dignissim ut ante id imperdiet quis.\nEt ac proin tincidunt egestas tellus erat. Suscipit in faucibus mauris bibendum mattis nisl sed. Sed adipiscing volutpat eget tellus pulvinar cursus egestas. Nibh facilisis enim elementum egestas hac nibh facilisi nibh. Lorem ipsum dolor sit amet consectetur. Arcu lectus non donec eget dolor sit dui magna et. Pharetra vehicula enim euismod pharetra nullam tincidunt bibendum in. Ac eleifend massa phasellus scelerisque fermentum risus. Faucibus tellus adipiscing eros a.\nEu leo cursus cum nunc scelerisque purus amet sit at. Nisl libero ligula odio phasellus platea elit non eu sed. Malesuada ut cras aenean aliquet at consequat. Pellentesque iaculis aliquam tortor aliquam mattis. Ultrices odio malesuada velit metus eu placerat. Purus vestibulum arcu blandit tempor. In in enim lectus mattis mauris. Et nulla elit amet vivamus. Urna enim odio rhoncus nunc in volutpat. Semper platea montes nunc dictumst quisque eleifend tortor facilisis rutrum. Nibh curabitur dignissim ut ante id imperdiet quis.\nEt ac proin tincidunt egestas tellus erat. Suscipit in faucibus mauris bibendum mattis nisl sed. Sed adipiscing volutpat eget tellus pulvinar cursus egestas. Nibh facilisis enim elementum egestas hac nibh facilisi nibh.",
     "type_action": "Zone tampon",
     "statut": "current",
     "etapes": [
@@ -402,7 +382,11 @@
         "code": "BSS003ZZZZ",
         "nom": "Prise d'eau du Moulin",
         "code_bss": "BSS003ZZZZ",
-        "etat": "actif"
+        "etat": "ACTIF",
+        "commune": "Saint-Martin-du-Bois",
+        "postalCode": "49170",
+        "location": { "x": 2.3522, "y": 48.8566 },
+        "departement": "Loire-Atlantique"
       }
     ],
     "created_at": "2024-01-20T10:00:00.000Z",

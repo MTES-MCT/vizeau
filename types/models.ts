@@ -140,7 +140,7 @@ export type ProjetJson = {
   updated_at: string
   created_at: string
   parcelles: ParcelleJson[]
-  exploitations: ParcelleJson[]
+  exploitations: ExploitationJson[]
   installations: {
     code: string
     nom: string
