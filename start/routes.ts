@@ -16,6 +16,7 @@ const SessionController = () => import('#controllers/session_controller')
 const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
 const AacController = () => import('#controllers/aac_controller')
+const ProjetsController = () => import('#controllers/projets_controller')
 
 router.get('/', ({ response }) => response.redirect('login'))
 
@@ -146,6 +147,9 @@ router
         router
           .delete('journal-document', [LogEntriesController, 'destroyDocument'])
           .as('log_entries.destroyDocument')
+
+        router.get('projets', [ProjetsController, 'index']).as('projets.index')
+        router.get('projets/:id', [ProjetsController, 'get']).as('projets.get')
 
         router.get('aac', [AacController, 'index']).as('aac.index')
         router.get('aac/:code', [AacController, 'show']).where('code', /^\d+$/).as('aac.show')

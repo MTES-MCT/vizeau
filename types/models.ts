@@ -129,3 +129,40 @@ export type PaginatedJson<T> = {
   }
   data: T[]
 }
+
+export type ProjetJson = {
+  id: string
+  nom: string
+  description: string | null
+  type_action: string
+  statut: ProjetStatutJson
+  etapes: ProjetEtapeJson[]
+  updated_at: string
+  created_at: string
+  parcelles: ParcelleJson[]
+  exploitations: ParcelleJson[]
+  installations: {
+    code: string
+    nom: string
+    code_bss: string
+    commune: string
+    departement: string
+    type: string
+    nature: string
+    usage: string
+    etat: string
+    prioritaire: boolean | null
+  }[]
+}
+
+export type ProjetEtapeJson = {
+  title: string
+  note: string | null
+  date: string
+  date_maj: string
+  documents: unknown[]
+  tags: string[]
+  is_validated: boolean
+}
+
+export type ProjetStatutJson = 'to_be_started' | 'current' | 'completed' | 'abandoned'

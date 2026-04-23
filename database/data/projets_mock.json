@@ -1,0 +1,411 @@
+[
+  {
+    "id": "a1b2c3d4-0001-4000-8000-000000000001",
+    "nom": "Réduction des intrants azotés – Bassin versant Nord",
+    "description": "Accompagnement des exploitations du bassin versant Nord dans la réduction des apports azotés sur les parcelles en zone de captage prioritaire.",
+    "type_action": "Accompagnement agronomique",
+    "statut": "current",
+    "etapes": [
+      {
+        "title": "Diagnostic initial",
+        "note": "Visite des exploitations pour état des lieux des pratiques azotées.",
+        "date": "2025-03-15T00:00:00.000Z",
+        "date_maj": "2025-03-20T00:00:00.000Z",
+        "documents": [],
+        "tags": ["diagnostic"],
+        "is_validated": true
+      },
+      {
+        "title": "Plan d'actions individualisé",
+        "note": "Rédaction des plans pour chaque exploitation participante.",
+        "date": "2025-05-01T00:00:00.000Z",
+        "date_maj": "2025-05-10T00:00:00.000Z",
+        "documents": [],
+        "tags": ["plan"],
+        "is_validated": true
+      },
+      {
+        "title": "Suivi de campagne",
+        "note": null,
+        "date": "2025-10-01T00:00:00.000Z",
+        "date_maj": "2025-10-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": false
+      }
+    ],
+    "parcelles": [
+      {
+        "id": "parcelle-0001",
+        "year": 2024,
+        "rpgId": "75001000AB0012",
+        "exploitationId": "exploit-0001",
+        "surface": 8.42,
+        "cultureCode": "BTH",
+        "centroid": { "x": 2.3522, "y": 48.8566 },
+        "comment": null
+      },
+      {
+        "id": "parcelle-0002",
+        "year": 2024,
+        "rpgId": "75001000AB0013",
+        "exploitationId": "exploit-0001",
+        "surface": 5.1,
+        "cultureCode": "MIS",
+        "centroid": { "x": 2.3601, "y": 48.861 },
+        "comment": "Parcelle en bordure de cours d'eau"
+      }
+    ],
+    "exploitations": [
+      {
+        "id": "exploit-0001",
+        "name": "EARL Durand",
+        "formeJuridique": "EARL",
+        "siret": "12345678900012",
+        "denominationLegale": "EARL DURAND ET FILS",
+        "activite": "Culture céréalière",
+        "addressLine1": "12 Route des Champs",
+        "addressLine2": null,
+        "commune": "Saint-Martin-du-Bois",
+        "postalCode": "49170",
+        "postalBox": null,
+        "location": { "x": 2.3522, "y": 48.8566 },
+        "notes": null,
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      }
+    ],
+    "installations": [
+      {
+        "code": "BSS001XXXX",
+        "nom": "Captage de la Fontaine Nord",
+        "code_bss": "BSS001XXXX",
+        "etat": "actif"
+      }
+    ],
+    "created_at": "2025-02-01T10:00:00.000Z",
+    "updated_at": "2025-10-10T14:30:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0002-4000-8000-000000000002",
+    "nom": "Conversion agriculture biologique – AAC Sud",
+    "description": "Soutien à la conversion en agriculture biologique pour les exploitations situées en aire d'alimentation de captage Sud.",
+    "type_action": "Conversion AB",
+    "statut": "to_be_started",
+    "etapes": [
+      {
+        "title": "Réunion d'information",
+        "note": "Présentation du dispositif de conversion aux exploitants.",
+        "date": "2026-02-10T00:00:00.000Z",
+        "date_maj": "2026-02-10T00:00:00.000Z",
+        "documents": [],
+        "tags": ["réunion"],
+        "is_validated": true
+      },
+      {
+        "title": "Dépôt des dossiers de candidature",
+        "note": null,
+        "date": "2026-04-01T00:00:00.000Z",
+        "date_maj": "2026-04-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": false
+      },
+      {
+        "title": "Signature des engagements",
+        "note": null,
+        "date": "2026-06-01T00:00:00.000Z",
+        "date_maj": "2026-06-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": false
+      }
+    ],
+    "parcelles": [
+      {
+        "id": "parcelle-0003",
+        "year": 2024,
+        "rpgId": "69001000CD0045",
+        "exploitationId": "exploit-0002",
+        "surface": 12.7,
+        "cultureCode": "LEG",
+        "centroid": { "x": 4.8357, "y": 45.764 },
+        "comment": null
+      }
+    ],
+    "exploitations": [
+      {
+        "id": "exploit-0002",
+        "name": "GAEC Les Collines Vertes",
+        "formeJuridique": "GAEC",
+        "siret": "98765432100023",
+        "denominationLegale": "GAEC LES COLLINES VERTES",
+        "activite": "Maraîchage et légumes",
+        "addressLine1": "5 Chemin des Collines",
+        "addressLine2": null,
+        "commune": "Beaujeu",
+        "postalCode": "69430",
+        "postalBox": null,
+        "location": { "x": 4.8357, "y": 45.764 },
+        "notes": "Exploitant déjà sensibilisé aux pratiques bio",
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      }
+    ],
+    "installations": [],
+    "created_at": "2026-01-15T09:00:00.000Z",
+    "updated_at": "2026-04-20T11:00:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0003-4000-8000-000000000003",
+    "nom": "Enherbement des inter-rangs viticoles",
+    "description": null,
+    "type_action": "Pratique culturale",
+    "statut": "completed",
+    "etapes": [
+      {
+        "title": "Sélection des parcelles pilotes",
+        "note": "Critères : pente > 5%, proximité captage.",
+        "date": "2023-04-01T00:00:00.000Z",
+        "date_maj": "2023-04-05T00:00:00.000Z",
+        "documents": [],
+        "tags": ["pilote"],
+        "is_validated": true
+      },
+      {
+        "title": "Mise en place des couverts",
+        "note": "Semis réalisés au printemps 2023.",
+        "date": "2023-05-15T00:00:00.000Z",
+        "date_maj": "2023-06-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": true
+      },
+      {
+        "title": "Bilan annuel",
+        "note": "Réduction de 40% du ruissellement constatée.",
+        "date": "2024-01-20T00:00:00.000Z",
+        "date_maj": "2024-01-25T00:00:00.000Z",
+        "documents": [],
+        "tags": ["bilan"],
+        "is_validated": true
+      }
+    ],
+    "parcelles": [
+      {
+        "id": "parcelle-0004",
+        "year": 2023,
+        "rpgId": "34001000EF0088",
+        "exploitationId": "exploit-0003",
+        "surface": 3.5,
+        "cultureCode": "VRB",
+        "centroid": { "x": 3.8767, "y": 43.6119 },
+        "comment": "Parcelle en pente avec risque de ruissellement"
+      },
+      {
+        "id": "parcelle-0005",
+        "year": 2023,
+        "rpgId": "34001000EF0089",
+        "exploitationId": "exploit-0003",
+        "surface": 2.8,
+        "cultureCode": "VRB",
+        "centroid": { "x": 3.8801, "y": 43.6145 },
+        "comment": null
+      }
+    ],
+    "exploitations": [
+      {
+        "id": "exploit-0003",
+        "name": "SCA Domaine de la Garigue",
+        "formeJuridique": "SCA",
+        "siret": "55544433300034",
+        "denominationLegale": "SCA DOMAINE DE LA GARIGUE",
+        "activite": "Viticulture",
+        "addressLine1": "Route de Montpellier",
+        "addressLine2": null,
+        "commune": "Aniane",
+        "postalCode": "34150",
+        "postalBox": null,
+        "location": { "x": 3.8767, "y": 43.6119 },
+        "notes": null,
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      }
+    ],
+    "installations": [
+      {
+        "code": "BSS002YYYY",
+        "nom": "Source de la Garigue",
+        "code_bss": "BSS002YYYY",
+        "etat": "actif"
+      }
+    ],
+    "created_at": "2023-02-10T08:00:00.000Z",
+    "updated_at": "2024-02-01T16:00:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0004-4000-8000-000000000004",
+    "nom": "Implantation de haies bocagères",
+    "description": "Plantation de haies en bordure de parcelles pour limiter les transferts de pesticides vers les captages.",
+    "type_action": "Aménagement bocager",
+    "statut": "abandoned",
+    "etapes": [
+      {
+        "title": "Repérage terrain",
+        "note": "Identification des linéaires prioritaires avec le technicien.",
+        "date": "2025-11-01T00:00:00.000Z",
+        "date_maj": "2025-11-10T00:00:00.000Z",
+        "documents": [],
+        "tags": ["terrain"],
+        "is_validated": true
+      },
+      {
+        "title": "Commande des plants",
+        "note": null,
+        "date": "2025-12-15T00:00:00.000Z",
+        "date_maj": "2025-12-15T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": true
+      },
+      {
+        "title": "Plantation",
+        "note": null,
+        "date": "2026-02-01T00:00:00.000Z",
+        "date_maj": "2026-02-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": true
+      },
+      {
+        "title": "Suivi reprise végétale",
+        "note": null,
+        "date": "2026-05-01T00:00:00.000Z",
+        "date_maj": "2026-05-01T00:00:00.000Z",
+        "documents": [],
+        "tags": [],
+        "is_validated": false
+      }
+    ],
+    "parcelles": [
+      {
+        "id": "parcelle-0006",
+        "year": 2025,
+        "rpgId": "44001000GH0101",
+        "exploitationId": "exploit-0004",
+        "surface": 18.3,
+        "cultureCode": "BTH",
+        "centroid": { "x": -1.5534, "y": 47.2184 },
+        "comment": null
+      }
+    ],
+    "exploitations": [
+      {
+        "id": "exploit-0004",
+        "name": "SCEA Les Grandes Landes",
+        "formeJuridique": "SCEA",
+        "siret": "11122233300045",
+        "denominationLegale": "SCEA LES GRANDES LANDES",
+        "activite": "Polyculture-élevage",
+        "addressLine1": "22 Route de la Forêt",
+        "addressLine2": null,
+        "commune": "Nozay",
+        "postalCode": "44170",
+        "postalBox": null,
+        "location": { "x": -1.5534, "y": 47.2184 },
+        "notes": null,
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      },
+      {
+        "id": "exploit-0005",
+        "name": "EARL Perrin",
+        "formeJuridique": "EARL",
+        "siret": "22233344400056",
+        "denominationLegale": "EARL PERRIN",
+        "activite": "Élevage bovin",
+        "addressLine1": "8 Impasse du Pré",
+        "addressLine2": null,
+        "commune": "Nozay",
+        "postalCode": "44170",
+        "postalBox": null,
+        "location": { "x": -1.5601, "y": 47.221 },
+        "notes": null,
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      }
+    ],
+    "installations": [],
+    "created_at": "2025-10-01T07:30:00.000Z",
+    "updated_at": "2026-04-15T09:15:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0005-4000-8000-000000000005",
+    "nom": "Gestion des zones tampons en bordure de cours d'eau",
+    "description": "Mise en place et entretien de bandes enherbées de 5m le long des cours d'eau traversant la zone de captage.",
+    "type_action": "Zone tampon",
+    "statut": "current",
+    "etapes": [
+      {
+        "title": "Cartographie des cours d'eau concernés",
+        "note": "Données issues du référentiel hydrographique BD TOPO.",
+        "date": "2024-03-01T00:00:00.000Z",
+        "date_maj": "2024-03-15T00:00:00.000Z",
+        "documents": [],
+        "tags": ["cartographie"],
+        "is_validated": true
+      },
+      {
+        "title": "Convention avec les exploitants",
+        "note": "En attente de signature de 2 exploitants sur 4.",
+        "date": "2024-06-01T00:00:00.000Z",
+        "date_maj": "2024-07-20T00:00:00.000Z",
+        "documents": [],
+        "tags": ["convention"],
+        "is_validated": false
+      }
+    ],
+    "parcelles": [],
+    "exploitations": [
+      {
+        "id": "exploit-0006",
+        "name": "GAEC du Moulin Blanc",
+        "formeJuridique": "GAEC",
+        "siret": "33344455500067",
+        "denominationLegale": "GAEC DU MOULIN BLANC",
+        "activite": "Grandes cultures",
+        "addressLine1": "1 Chemin du Moulin",
+        "addressLine2": null,
+        "commune": "Versailles",
+        "postalCode": "78000",
+        "postalBox": null,
+        "location": { "x": 2.1301, "y": 48.8014 },
+        "notes": null,
+        "contacts": null,
+        "tags": null,
+        "logEntries": null,
+        "parcelles": null
+      }
+    ],
+    "installations": [
+      {
+        "code": "BSS003ZZZZ",
+        "nom": "Prise d'eau du Moulin",
+        "code_bss": "BSS003ZZZZ",
+        "etat": "actif"
+      }
+    ],
+    "created_at": "2024-01-20T10:00:00.000Z",
+    "updated_at": "2024-08-01T12:00:00.000Z"
+  }
+]
