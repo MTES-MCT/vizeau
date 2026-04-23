@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { debounce } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 import SearchAutocomplete from './search-autocomplete'
@@ -30,38 +30,52 @@ export default function SearchRaisonSociale({
   const [options, setOptions] = useState<RaisonSociale[]>([])
   const abortRef = useRef<AbortController | null>(null)
 
-  const fetchCompanies = debounce(async (search) => {
-    if (search.length > 2) {
-      // Abort the previous request to avoid that too many requests are fired
-      if (abortRef.current) {
-        abortRef.current.abort()
-      }
-      const controller = new AbortController()
-      abortRef.current = controller
+  const fetchCompanies = useMemo(
+    () =>
+      debounce(async (search: string) => {
+        if (search.length > 2) {
+          // Abort the previous request to avoid that too many requests are fired
+          if (abortRef.current) {
+            abortRef.current.abort()
+          }
+          const controller = new AbortController()
+          abortRef.current = controller
 
-      try {
-        const response = await fetch(
-          `https://recherche-entreprises.api.gouv.fr/search?q=${search}`,
-          { signal: controller.signal }
-        )
+          try {
+            const response = await fetch(
+              `https://recherche-entreprises.api.gouv.fr/search?q=${search}`,
+              { signal: controller.signal }
+            )
 
-        if (!response.ok) {
-          const dataText = await response.text()
-          throw new Error(`Erreur API: ${response.status} (${dataText})`)
-        }
+            if (!response.ok) {
+              const dataText = await response.text()
+              throw new Error(`Erreur API: ${response.status} (${dataText})`)
+            }
 
-        const data = await response.json()
-        setOptions(data.results)
-      } catch (error) {
-        // Ignore request abortion errors
-        if (error.name === 'AbortError') {
+            const data = await response.json()
+            setOptions(data.results)
+          } catch (error) {
+            // Ignore request abortion errors
+            if (error instanceof Error && error.name === 'AbortError') {
+              return
+            }
+            console.error(error)
+            setOptions([])
+          }
           return
         }
-        console.error(error)
+
         setOptions([])
-      }
+      }, 400),
+    []
+  )
+
+  useEffect(() => {
+    return () => {
+      fetchCompanies.cancel()
+      abortRef.current?.abort()
     }
-  }, 400)
+  }, [fetchCompanies])
 
   return (
     <SearchAutocomplete<RaisonSociale>
