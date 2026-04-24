@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 
 import TruncatedText from '../TruncatedText'
 import MetasList, { MetasListProps } from '../MetasList'
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
+import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 
 export type CheckboxCardProps = {
   value: string
@@ -11,7 +11,7 @@ export type CheckboxCardProps = {
   iconId?: string
   metas?: MetasListProps['metas']
   isSelected?: boolean
-  onCheck?: (value: string) => void
+  onCheck?: (value: string, checked: boolean) => void
 }
 
 export default function CheckboxCard({
@@ -67,10 +67,11 @@ export default function CheckboxCard({
             {
               label: '',
               nativeInputProps: {
-                name: value,
-                value: value,
-                onChange: onCheck ? (e) => onCheck(e.target.value) : undefined,
-                checked: isSelected,
+                'name': value,
+                'value': value,
+                'aria-label': title,
+                'onChange': onCheck ? (e) => onCheck(e.target.value, e.target.checked) : undefined,
+                'checked': isSelected,
               },
             },
           ]}
