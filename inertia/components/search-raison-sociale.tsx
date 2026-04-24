@@ -43,7 +43,7 @@ export default function SearchRaisonSociale({
 
           try {
             const response = await fetch(
-              `https://recherche-entreprises.api.gouv.fr/search?q=${search}`,
+              `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(search)}`,
               { signal: controller.signal }
             )
 
@@ -56,7 +56,7 @@ export default function SearchRaisonSociale({
             setOptions(data.results)
           } catch (error) {
             // Ignore request abortion errors
-            if (error instanceof Error && error.name === 'AbortError') {
+            if (error?.name === 'AbortError') {
               return
             }
             console.error(error)

@@ -31,7 +31,7 @@ export default function SearchAdresse({
         if (search.length > 3) {
           try {
             const response = await fetch(
-              `https://data.geopf.fr/geocodage/search?q=${search}&limit=5`
+              `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(search)}&limit=5`
             )
             const data = await response.json()
 
