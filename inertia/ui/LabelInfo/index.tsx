@@ -5,14 +5,14 @@ export type LabelInfoProps = {
   icon?: string | null
   label?: string
   info?: string | React.ReactNode
-  size?: 'sm' | 'md'
+  size?: 'xs' | 'sm' | 'md'
 }
 export default function LabelInfo({ icon, label, info, size = 'md' }: LabelInfoProps) {
   const isStringInfo = typeof info === 'string'
   const labelText = info && label ? label + ' : ' : label
 
   return (
-    <div className="flex items-start">
+    <div className="flex items-center">
       {icon && (
         <span
           className={`${icon} fr-icon--${size} fr-mr-1v flex-shrink-0`}
