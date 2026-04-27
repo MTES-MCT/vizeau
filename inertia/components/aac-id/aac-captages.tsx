@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { stringToColor } from '~/functions/colors'
+import type { AacAnalysesSummaryJson } from '#types/aac'
 
 import Button from '@codegouvfr/react-dsfr/Button'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
@@ -19,11 +20,6 @@ type AnalysesSummary = {
   nb_parametres: number
   yearMin: number | null
   yearMax: number | null
-}
-
-type AnalysesSummaryResponse = Omit<AnalysesSummary, 'yearMin' | 'yearMax'> & {
-  yearMin?: number | null
-  yearMax?: number | null
 }
 
 export type AacCaptagesProps = {
@@ -68,7 +64,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
     const qs = params.size > 0 ? `?${params}` : ''
     fetch(`/aac/${aacCode}/analyses/summary${qs}`, { signal })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: AnalysesSummaryResponse | null) => {
+      .then((data: AacAnalysesSummaryJson | null) => {
         if (!data) return
         setAnalysesSummary((prevSummary) => {
           const yearMin = data.yearMin === undefined ? (prevSummary?.yearMin ?? null) : data.yearMin
