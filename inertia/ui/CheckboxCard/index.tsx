@@ -4,6 +4,8 @@ import TruncatedText from '../TruncatedText'
 import MetasList, { MetasListProps } from '../MetasList'
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 
+import './checkbox-card.css'
+
 export type CheckboxCardProps = {
   value: string
   title: string
@@ -25,7 +27,12 @@ export default function CheckboxCard({
 }: CheckboxCardProps) {
   return (
     <div
-      className="flex flex-col gap-3 w-full fr-p-1w"
+      className="checkbox-card-effect flex flex-col gap-3 w-full fr-p-1w cursor-pointer"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).tagName !== 'INPUT' && onCheck) {
+          onCheck(value, !isSelected)
+        }
+      }}
       style={{
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
         backgroundColor: fr.colors.decisions.background.default.grey.default,
@@ -65,13 +72,12 @@ export default function CheckboxCard({
         <Checkbox
           options={[
             {
-              label: '',
+              label: <span className="fr-sr-only">{title}</span>,
               nativeInputProps: {
-                'name': value,
-                'value': value,
-                'aria-label': title,
-                'onChange': onCheck ? (e) => onCheck(e.target.value, e.target.checked) : undefined,
-                'checked': isSelected,
+                name: value,
+                value: value,
+                // onChange: onCheck ? (e) => onCheck(e.target.value, e.target.checked) : undefined,
+                checked: isSelected,
               },
             },
           ]}
