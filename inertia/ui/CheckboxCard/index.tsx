@@ -26,13 +26,8 @@ export default function CheckboxCard({
   onCheck,
 }: CheckboxCardProps) {
   return (
-    <div
+    <label
       className="checkbox-card-effect flex flex-col gap-3 w-full fr-p-1w cursor-pointer"
-      onClick={(e) => {
-        if ((e.target as HTMLElement).tagName !== 'INPUT' && onCheck) {
-          onCheck(value, !isSelected)
-        }
-      }}
       style={{
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
         backgroundColor: fr.colors.decisions.background.default.grey.default,
@@ -76,13 +71,13 @@ export default function CheckboxCard({
               nativeInputProps: {
                 name: value,
                 value: value,
-                // onChange: onCheck ? (e) => onCheck(e.target.value, e.target.checked) : undefined,
                 checked: isSelected,
+                onChange: () => onCheck && onCheck(value, !isSelected),
               },
             },
           ]}
         />
       </div>
-    </div>
+    </label>
   )
 }
