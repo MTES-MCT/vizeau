@@ -271,6 +271,298 @@ export class AacService {
     return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
   }
 
+  /**
+   * Get aggregate stats for an installation over a year range:
+   * total analyses, dépassements d'alerte (reference_qualite exceeded),
+   * and dépassements réglementaires (limite_qualite exceeded).
+   */
+  async getAnalysesStats(
+    installationCode: string,
+    yearMin: number,
+    yearMax: number
+  ): Promise<{ total: number; depassements_alerte: number; depassements_reglementaires: number }> {
+    const conn = await getConnection()
+    const sql = `
+      WITH date_flags AS (
+        SELECT
+          date_prelevement,
+          BOOL_OR(
+            TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction IS NOT NULL
+            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
+          ) AS dep_regl,
+          BOOL_OR(
+            (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+              AND resultat_traduction IS NOT NULL
+              AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+            OR
+            (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
+              AND resultat_traduction IS NOT NULL
+              AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
+                OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
+          ) AS dep_alerte
+        FROM read_parquet($1)
+        WHERE code_installation = $2
+          AND date_part('year', date_prelevement) BETWEEN $3 AND $4
+        GROUP BY date_prelevement
+      )
+      SELECT
+        CAST(COUNT(*) AS INTEGER) AS total,
+        CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
+        CAST(COUNT(*) FILTER (WHERE dep_alerte) AS INTEGER) AS depassements_alerte
+      FROM date_flags
+    `
+    const stmt = await conn.prepare(sql)
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+    stmt.bindVarchar(2, installationCode)
+    stmt.bindInteger(3, yearMin)
+    stmt.bindInteger(4, yearMax)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0]
+    return {
+      total: Number(row.total),
+      depassements_alerte: Number(row.depassements_alerte),
+      depassements_reglementaires: Number(row.depassements_reglementaires),
+    }
+  }
+
+  /**
+   * Get per-year analyses stats for an installation:
+   * total analyses, with/without dépassement per year.
+   * One "analyse" = one distinct date of sampling.
+   * A date has a dépassement if at least one parameter exceeds its threshold.
+   */
+  async getAnalysesPerYear(
+    installationCode: string,
+    yearMin: number,
+    yearMax: number
+  ): Promise<Array<{ annee: number; total: number; avec_dep: number; sans_dep: number }>> {
+    const conn = await getConnection()
+    const sql = `
+      WITH date_flags AS (
+        SELECT
+          date_prelevement,
+          CAST(date_part('year', date_prelevement) AS INTEGER) AS annee,
+          BOOL_OR(
+            (TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+              AND resultat_traduction IS NOT NULL
+              AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+            OR
+            (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+              AND resultat_traduction IS NOT NULL
+              AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+            OR
+            (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
+              AND resultat_traduction IS NOT NULL
+              AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
+                OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
+          ) AS date_a_dep
+        FROM read_parquet($1)
+        WHERE code_installation = $2
+          AND date_part('year', date_prelevement) BETWEEN $3 AND $4
+        GROUP BY date_prelevement
+      )
+      SELECT
+        annee,
+        CAST(COUNT(*) AS INTEGER) AS total,
+        CAST(COUNT(*) FILTER (WHERE date_a_dep) AS INTEGER) AS avec_dep,
+        CAST(COUNT(*) FILTER (WHERE NOT date_a_dep) AS INTEGER) AS sans_dep
+      FROM date_flags
+      GROUP BY annee
+      ORDER BY annee
+    `
+    const stmt = await conn.prepare(sql)
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+    stmt.bindVarchar(2, installationCode)
+    stmt.bindInteger(3, yearMin)
+    stmt.bindInteger(4, yearMax)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    return rows.map((r) => ({
+      annee: Number(r.annee),
+      total: Number(r.total),
+      avec_dep: Number(r.avec_dep),
+      sans_dep: Number(r.sans_dep),
+    }))
+  }
+
+  /**
+   * Get the list of distinct substances analysed for an installation over a year range.
+   */
+  async getSubstances(
+    installationCode: string,
+    yearMin: number,
+    yearMax: number
+  ): Promise<
+    Array<{
+      code_parametre: number
+      libelle_parametre: string
+      code_unite: string
+      has_dep: boolean
+    }>
+  > {
+    const conn = await getConnection()
+    const sql = `
+      SELECT
+        CAST(code_parametre AS INTEGER) AS code_parametre,
+        ANY_VALUE(libelle_parametre) AS libelle_parametre,
+        ANY_VALUE(code_unite) AS code_unite,
+        BOOL_OR(
+          (TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction IS NOT NULL
+            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+          OR
+          (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction IS NOT NULL
+            AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+          OR
+          (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction IS NOT NULL
+            AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
+              OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
+        ) AS has_dep
+      FROM read_parquet($1)
+      WHERE code_installation = $2
+        AND date_part('year', date_prelevement) BETWEEN $3 AND $4
+        AND resultat_traduction > 0
+      GROUP BY code_parametre
+      ORDER BY libelle_parametre
+    `
+    const stmt = await conn.prepare(sql)
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+    stmt.bindVarchar(2, installationCode)
+    stmt.bindInteger(3, yearMin)
+    stmt.bindInteger(4, yearMax)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    return rows.map((r) => ({
+      code_parametre: Number(r.code_parametre),
+      libelle_parametre: String(r.libelle_parametre),
+      code_unite: String(r.code_unite ?? ''),
+      has_dep: Boolean(r.has_dep),
+    }))
+  }
+
+  /**
+   * Get detailed chronique for a specific substance: info, stats, and time series.
+   */
+  async getSubstanceChronique(
+    installationCode: string,
+    codeParametre: number,
+    yearMin: number,
+    yearMax: number
+  ): Promise<{
+    info: {
+      code_parametre: number
+      libelle_parametre: string
+      code_unite: string
+      seuil_regl: number | null
+      seuil_alerte: number | null
+    }
+    stats: {
+      moyenne: number
+      maximum: number
+      nb_total: number
+      nb_dep_regl: number
+      frequence_dep_regl: number
+    }
+    series: Array<{ date: string; valeur: number; statut: 'conforme' | 'dep_alerte' | 'dep_regl' }>
+  }> {
+    const conn = await getConnection()
+
+    const statsSql = `
+      SELECT
+        ANY_VALUE(libelle_parametre) AS libelle_parametre,
+        ANY_VALUE(code_unite) AS code_unite,
+        TRY_CAST(replace(regexp_extract(ANY_VALUE(limite_qualite), '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) AS seuil_regl,
+        TRY_CAST(replace(regexp_extract(ANY_VALUE(reference_qualite), '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) AS seuil_alerte,
+        ROUND(AVG(resultat_traduction), 4) AS moyenne,
+        ROUND(MAX(resultat_traduction), 4) AS maximum,
+        CAST(COUNT(*) AS INTEGER) AS nb_total,
+        CAST(COUNT(*) FILTER (WHERE
+          TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+          AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
+        ) AS INTEGER) AS nb_dep_regl,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE
+          TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+          AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
+        ) / NULLIF(COUNT(*), 0), 1) AS frequence_dep_regl
+      FROM read_parquet($1)
+      WHERE code_installation = $2
+        AND CAST(code_parametre AS INTEGER) = $3
+        AND date_part('year', date_prelevement) BETWEEN $4 AND $5
+        AND resultat_traduction IS NOT NULL
+    `
+
+    const seriesSql = `
+      SELECT
+        CAST(date_prelevement AS VARCHAR) AS date,
+        resultat_traduction AS valeur,
+        CASE
+          WHEN TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
+          THEN 'dep_regl'
+          WHEN TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
+          THEN 'dep_alerte'
+          WHEN TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
+            AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
+              OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
+          THEN 'dep_alerte'
+          ELSE 'conforme'
+        END AS statut
+      FROM read_parquet($1)
+      WHERE code_installation = $2
+        AND CAST(code_parametre AS INTEGER) = $3
+        AND date_part('year', date_prelevement) BETWEEN $4 AND $5
+        AND resultat_traduction IS NOT NULL
+      ORDER BY date_prelevement
+    `
+
+    const [statsStmt, seriesStmt] = await Promise.all([
+      conn.prepare(statsSql),
+      conn.prepare(seriesSql),
+    ])
+    for (const stmt of [statsStmt, seriesStmt]) {
+      stmt.bindVarchar(1, getAnalysesRobinetPath())
+      stmt.bindVarchar(2, installationCode)
+      stmt.bindInteger(3, codeParametre)
+      stmt.bindInteger(4, yearMin)
+      stmt.bindInteger(5, yearMax)
+    }
+
+    const [statsResult, seriesResult] = await Promise.all([statsStmt.run(), seriesStmt.run()])
+    const statsRows = (await statsResult.getRowObjects()) as Array<Record<string, unknown>>
+    const seriesRows = (await seriesResult.getRowObjects()) as Array<Record<string, unknown>>
+
+    const row = statsRows[0] ?? {}
+    return {
+      info: {
+        code_parametre: codeParametre,
+        libelle_parametre: String(row.libelle_parametre ?? ''),
+        code_unite: String(row.code_unite ?? ''),
+        seuil_regl: row.seuil_regl != null ? Number(row.seuil_regl) : null,
+        seuil_alerte: row.seuil_alerte != null ? Number(row.seuil_alerte) : null,
+      },
+      stats: {
+        moyenne: Number(row.moyenne ?? 0),
+        maximum: Number(row.maximum ?? 0),
+        nb_total: Number(row.nb_total ?? 0),
+        nb_dep_regl: Number(row.nb_dep_regl ?? 0),
+        frequence_dep_regl: Number(row.frequence_dep_regl ?? 0),
+      },
+      series: seriesRows.map((r) => ({
+        date: String(r.date),
+        valeur: Number(r.valeur),
+        statut: String(r.statut) as 'conforme' | 'dep_alerte' | 'dep_regl',
+      })),
+    }
+  }
+
   /*
    * Get all AAC codes and names, ordered by name. Used for seeding the territoires SQL table
    */

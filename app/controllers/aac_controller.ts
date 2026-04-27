@@ -43,6 +43,99 @@ export default class AacController {
     return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })
   }
 
+  async showInstallation({ params, inertia, response }: HttpContext) {
+    const raw = await this.aacService.getByCode(params.code)
+    if (!raw) {
+      return response.abort(`AAC avec le code "${params.code}" introuvable`, 404)
+    }
+
+    const aac = AacDto.fromRaw(raw)
+    const installation = aac.installations.find((i) => i.code === params.installationCode)
+    if (!installation) {
+      return response.abort(
+        `Installation "${params.installationCode}" introuvable dans l'AAC "${params.code}"`,
+        404
+      )
+    }
+
+    return inertia.render('aac/captage', {
+      aac: { code: aac.code, nom: aac.nom },
+      installation,
+    })
+  }
+
+  async substances({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const yearMinParam = request.input('yearMin')
+    const yearMaxParam = request.input('yearMax')
+    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
+    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
+    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
+      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
+    }
+
+    const data = await this.aacService.getSubstances(params.installationCode, yearMin, yearMax)
+    return response.json(data)
+  }
+
+  async substanceChronique({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const codeParametre = Number.parseInt(params.codeParametre, 10)
+    if (Number.isNaN(codeParametre)) return response.abort('Code paramètre invalide', 400)
+
+    const yearMinParam = request.input('yearMin')
+    const yearMaxParam = request.input('yearMax')
+    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
+    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
+    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
+      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
+    }
+
+    const data = await this.aacService.getSubstanceChronique(
+      params.installationCode,
+      codeParametre,
+      yearMin,
+      yearMax
+    )
+    return response.json(data)
+  }
+
+  async analysesPerYear({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const yearMinParam = request.input('yearMin')
+    const yearMaxParam = request.input('yearMax')
+    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
+    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
+    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
+      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
+    }
+
+    const data = await this.aacService.getAnalysesPerYear(params.installationCode, yearMin, yearMax)
+    return response.json(data)
+  }
+
+  async analysesStats({ params, request, response }: HttpContext) {
+    const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
+    if (!valid) return response.abort('AAC ou installation introuvable', 404)
+
+    const yearMinParam = request.input('yearMin')
+    const yearMaxParam = request.input('yearMax')
+    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
+    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
+    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
+      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
+    }
+
+    const data = await this.aacService.getAnalysesStats(params.installationCode, yearMin, yearMax)
+    return response.json(data)
+  }
+
   async analyses({ params, request, response }: HttpContext) {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
