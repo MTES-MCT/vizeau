@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Culture from '#models/culture'
+import Project from '#models/project'
 
 export default class Parcelle extends BaseModel {
   static table = 'parcelles'
@@ -56,6 +57,12 @@ export default class Parcelle extends BaseModel {
 
   @belongsTo(() => Culture, { localKey: 'code', foreignKey: 'cultureCode' })
   declare culture: BelongsTo<typeof Culture>
+
+  @manyToMany(() => Project, {
+    pivotTable: 'project_parcelle_relations',
+    pivotTimestamps: true,
+  })
+  declare projects: ManyToMany<typeof Project>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
