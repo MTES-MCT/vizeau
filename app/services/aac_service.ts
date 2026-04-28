@@ -50,6 +50,44 @@ function getAnalysesRobinetPath(): string {
   return `s3://${env.get('S3_BUCKET')}/analyses_robinet.parquet`
 }
 
+// ---------------------------------------------------------------------------
+// Reusable SQL threshold-detection fragments (DuckDB dialect).
+// Centralised here to avoid divergence across queries.
+// ---------------------------------------------------------------------------
+
+/** Row exceeds the réglementaire threshold: limite_qualite encodes a ≤X value. */
+const SQL_DEP_REGL =
+  `TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL` +
+  ` AND resultat_traduction IS NOT NULL` +
+  ` AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)`
+
+/** Row exceeds the alerte threshold via a simple ≤X pattern on reference_qualite. */
+const SQL_DEP_ALERTE_LTEQ =
+  `TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL` +
+  ` AND resultat_traduction IS NOT NULL` +
+  ` AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)`
+
+/** Row falls outside the alerte range via a ≥X et ≤Y pattern on reference_qualite. */
+const SQL_DEP_ALERTE_RANGE =
+  `TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL` +
+  ` AND resultat_traduction IS NOT NULL` +
+  ` AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)` +
+  ` OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))`
+
+/** Row violates any alerte threshold (either pattern). */
+const SQL_DEP_ALERTE = `(${SQL_DEP_ALERTE_LTEQ}) OR (${SQL_DEP_ALERTE_RANGE})`
+
+/** Row violates any threshold (réglementaire or alerte). */
+const SQL_DEP_ANY = `(${SQL_DEP_REGL}) OR (${SQL_DEP_ALERTE})`
+
+/** CASE expression returning the most severe statut for each row. */
+const SQL_STATUT_CASE =
+  `CASE` +
+  ` WHEN ${SQL_DEP_REGL} THEN 'dep_regl'` +
+  ` WHEN ${SQL_DEP_ALERTE_LTEQ} THEN 'dep_alerte'` +
+  ` WHEN ${SQL_DEP_ALERTE_RANGE} THEN 'dep_alerte'` +
+  ` ELSE 'conforme' END`
+
 /**
  * Recursively normalizes DuckDB value types to plain JS objects:
  * - DuckDBDateValue { days } → ISO date string
@@ -286,21 +324,8 @@ export class AacService {
       WITH date_flags AS (
         SELECT
           date_prelevement,
-          BOOL_OR(
-            TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction IS NOT NULL
-            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
-          ) AS dep_regl,
-          BOOL_OR(
-            (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-              AND resultat_traduction IS NOT NULL
-              AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-            OR
-            (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
-              AND resultat_traduction IS NOT NULL
-              AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
-                OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
-          ) AS dep_alerte
+          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
+          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
         FROM read_parquet($1)
         WHERE code_installation = $2
           AND date_part('year', date_prelevement) BETWEEN $3 AND $4
@@ -345,20 +370,7 @@ export class AacService {
         SELECT
           date_prelevement,
           CAST(date_part('year', date_prelevement) AS INTEGER) AS annee,
-          BOOL_OR(
-            (TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-              AND resultat_traduction IS NOT NULL
-              AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-            OR
-            (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-              AND resultat_traduction IS NOT NULL
-              AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-            OR
-            (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
-              AND resultat_traduction IS NOT NULL
-              AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
-                OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
-          ) AS date_a_dep
+          BOOL_OR(${SQL_DEP_ANY}) AS date_a_dep
         FROM read_parquet($1)
         WHERE code_installation = $2
           AND date_part('year', date_prelevement) BETWEEN $3 AND $4
@@ -410,20 +422,7 @@ export class AacService {
         CAST(code_parametre AS INTEGER) AS code_parametre,
         ANY_VALUE(libelle_parametre) AS libelle_parametre,
         ANY_VALUE(code_unite) AS code_unite,
-        BOOL_OR(
-          (TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction IS NOT NULL
-            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-          OR
-          (TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction IS NOT NULL
-            AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-          OR
-          (TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction IS NOT NULL
-            AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
-              OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)))
-        ) AS has_dep
+        BOOL_OR(${SQL_DEP_ANY}) AS has_dep
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND date_part('year', date_prelevement) BETWEEN $3 AND $4
@@ -483,14 +482,8 @@ export class AacService {
         ROUND(AVG(resultat_traduction), 4) AS moyenne,
         ROUND(MAX(resultat_traduction), 4) AS maximum,
         CAST(COUNT(*) AS INTEGER) AS nb_total,
-        CAST(COUNT(*) FILTER (WHERE
-          TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-          AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
-        ) AS INTEGER) AS nb_dep_regl,
-        ROUND(100.0 * COUNT(*) FILTER (WHERE
-          TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-          AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
-        ) / NULLIF(COUNT(*), 0), 1) AS frequence_dep_regl
+        CAST(COUNT(*) FILTER (WHERE ${SQL_DEP_REGL}) AS INTEGER) AS nb_dep_regl,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE ${SQL_DEP_REGL}) / NULLIF(COUNT(*), 0), 1) AS frequence_dep_regl
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND CAST(code_parametre AS INTEGER) = $3
@@ -502,19 +495,7 @@ export class AacService {
       SELECT
         CAST(date_prelevement AS VARCHAR) AS date,
         resultat_traduction AS valeur,
-        CASE
-          WHEN TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction > TRY_CAST(replace(regexp_extract(limite_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
-          THEN 'dep_regl'
-          WHEN TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, '<=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE)
-          THEN 'dep_alerte'
-          WHEN TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE) IS NOT NULL
-            AND (resultat_traduction < TRY_CAST(replace(regexp_extract(reference_qualite, '>=([0-9][0-9,.]*) et', 1), ',', '.') AS DOUBLE)
-              OR resultat_traduction > TRY_CAST(replace(regexp_extract(reference_qualite, 'et <=([0-9][0-9,.]*)', 1), ',', '.') AS DOUBLE))
-          THEN 'dep_alerte'
-          ELSE 'conforme'
-        END AS statut
+        ${SQL_STATUT_CASE} AS statut
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND CAST(code_parametre AS INTEGER) = $3
