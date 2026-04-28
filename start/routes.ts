@@ -150,6 +150,10 @@ router
         router.get('aac', [AacController, 'index']).as('aac.index')
         router.get('aac/:code', [AacController, 'show']).where('code', /^\d+$/).as('aac.show')
         router
+          .get('aac/:code/analyses/summary', [AacController, 'analysesSummary'])
+          .where('code', /^\d+$/)
+          .as('aac.analysesSummary')
+        router
           .get('aac/:code/installations/:installationCode/analyses/years', [
             AacController,
             'analysesYears',

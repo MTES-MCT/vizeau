@@ -42,6 +42,13 @@ export type InstallationInfo = {
   captages_rattaches: CaptageRattache[]
 }
 
+export type AacAnalysesSummaryJson = {
+  nb_analyses: number
+  nb_parametres: number
+  yearMin?: number | null
+  yearMax?: number | null
+}
+
 export type AacJson = {
   code: string
   nom: string

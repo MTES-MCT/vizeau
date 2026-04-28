@@ -205,6 +205,32 @@ export class AacService {
   }
 
   /**
+   * Returns installation codes for a given AAC code.
+   * Reads only the installations column to avoid loading the full AAC row.
+   */
+  async getInstallationCodesByAacCode(aacCode: string): Promise<string[] | null> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT list_transform(installations, i -> i.code) AS installation_codes ' +
+        'FROM read_parquet($1) WHERE code = $2 LIMIT 1'
+    )
+    stmt.bindVarchar(1, getParquetPath())
+    stmt.bindVarchar(2, aacCode)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    if (!rows[0]) return null
+
+    const installationCodes = normalizeValue(rows[0].installation_codes)
+    if (!Array.isArray(installationCodes)) return []
+
+    return installationCodes
+      .filter((code): code is string => typeof code === 'string')
+      .map((code) => code.trim())
+      .filter((code) => code.length > 0)
+  }
+
+  /**
    * Checks whether an installation belongs to a given AAC.
    * Reads only the `code` and `installations` columns from the Parquet file,
    * which is significantly cheaper than a full SELECT * via getByCode().
@@ -271,8 +297,83 @@ export class AacService {
     return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
   }
 
-  /*
-   * Get all AAC codes and names, ordered by name. Used for seeding the territoires SQL table
+  /**
+   * Returns the min/max year range of analyses for the given installation codes.
+   */
+  async getAnalysesYearRange(
+    installationCodes: string[]
+  ): Promise<{ yearMin: number | null; yearMax: number | null }> {
+    if (installationCodes.length === 0) return { yearMin: null, yearMax: null }
+
+    const conn = await getConnection()
+    const path = getAnalysesRobinetPath()
+    const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
+    const stmt = await conn.prepare(
+      `SELECT MIN(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_min,
+              MAX(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_max
+       FROM read_parquet($1)
+       WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL`
+    )
+    stmt.bindVarchar(1, path)
+    installationCodes.forEach((code, i) => stmt.bindVarchar(i + 2, code))
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0] ?? {}
+    const toNullableFiniteNumber = (value: unknown): number | null => {
+      if (value === null || value === undefined) return null
+      const numericValue = Number(value)
+      return Number.isFinite(numericValue) ? numericValue : null
+    }
+    return {
+      yearMin: toNullableFiniteNumber(row.year_min),
+      yearMax: toNullableFiniteNumber(row.year_max),
+    }
+  }
+
+  /**
+   * Returns total number of analyses rows and distinct parameters.
+   */
+  async getAnalysesSummary(
+    installationCodes: string[],
+    yearFrom?: number,
+    yearTo?: number
+  ): Promise<{ nb_analyses: number; nb_parametres: number }> {
+    if (installationCodes.length === 0) return { nb_analyses: 0, nb_parametres: 0 }
+
+    const conn = await getConnection()
+    const path = getAnalysesRobinetPath()
+
+    const placeholders = installationCodes.map((_, i) => `$${i + 2}`).join(', ')
+    let paramIdx = installationCodes.length + 2
+    let yearFilter = ''
+    if (yearFrom !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) >= $${paramIdx++}`
+    }
+    if (yearTo !== undefined) {
+      yearFilter += ` AND date_part('year', date_prelevement) <= $${paramIdx++}`
+    }
+
+    const stmt = await conn.prepare(
+      `SELECT COUNT(DISTINCT (code_installation, date_prelevement)) AS nb_analyses, COUNT(DISTINCT code_parametre) AS nb_parametres ` +
+        `FROM read_parquet($1) WHERE code_installation IN (${placeholders}) AND date_prelevement IS NOT NULL${yearFilter}`
+    )
+    stmt.bindVarchar(1, path)
+    let bindIdx = 2
+    installationCodes.forEach((code) => stmt.bindVarchar(bindIdx++, code))
+    if (yearFrom !== undefined) stmt.bindInteger(bindIdx++, yearFrom)
+    if (yearTo !== undefined) stmt.bindInteger(bindIdx++, yearTo)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    const row = rows[0] ?? {}
+    return {
+      nb_analyses: Number(row.nb_analyses ?? 0),
+      nb_parametres: Number(row.nb_parametres ?? 0),
+    }
+  }
+
+  /**
+   * Returns all AAC names ordered alphabetically.
    */
   async getAllNames() {
     const conn = await getConnection()

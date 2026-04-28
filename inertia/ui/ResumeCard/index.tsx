@@ -1,5 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
+import Loader from '~/ui/Loader'
 
 export type ResumeCardProps = {
   title: string
@@ -10,6 +11,7 @@ export type ResumeCardProps = {
   color?: string
   iconId?: string
   hint?: string | React.ReactNode
+  loading?: boolean
 }
 export default function ResumeCard({
   title,
@@ -20,6 +22,7 @@ export default function ResumeCard({
   priority = 'primary',
   color = fr.colors.decisions.text.title.blueFrance.default,
   iconId,
+  loading = false,
 }: ResumeCardProps) {
   return (
     <div
@@ -44,12 +47,18 @@ export default function ResumeCard({
       </div>
 
       <div>
-        <span
-          className={`${size === 'sm' ? 'text-xl' : 'text-3xl'} font-bold`}
-          style={{ color: color }}
-        >
-          {value}
-        </span>
+        {loading ? (
+          <div className="fr-py-1v">
+            <Loader type="dots" size="sm" />
+          </div>
+        ) : (
+          <span
+            className={`${size === 'sm' ? 'text-xl' : 'text-3xl'} font-bold`}
+            style={{ color: color }}
+          >
+            {value}
+          </span>
+        )}
 
         {label && (
           <div className="flex gap-1 items-center">
