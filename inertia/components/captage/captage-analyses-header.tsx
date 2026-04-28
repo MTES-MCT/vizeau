@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
@@ -29,11 +29,13 @@ function DualRangeSlider({
   valueMin,
   valueMax,
   onChange,
+  onCommit,
 }: {
   years: number[]
   valueMin: number
   valueMax: number
   onChange: (min: number, max: number) => void
+  onCommit: (min: number, max: number) => void
 }) {
   const min = years[0]
   const max = years[years.length - 1]
@@ -44,14 +46,28 @@ function DualRangeSlider({
   const leftPct = toPercent(valueMin)
   const rightPct = toPercent(valueMax)
 
+  // Refs track the latest pending values so onPointerUp/onKeyUp
+  // always commit the most recent drag position without stale closures.
+  const pendingMinRef = useRef(valueMin)
+  const pendingMaxRef = useRef(valueMax)
+  useEffect(() => {
+    pendingMinRef.current = valueMin
+  }, [valueMin])
+  useEffect(() => {
+    pendingMaxRef.current = valueMax
+  }, [valueMax])
+
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Math.min(Number(e.target.value), valueMax)
-    onChange(val, valueMax)
+    const val = Math.min(Number(e.target.value), pendingMaxRef.current)
+    pendingMinRef.current = val
+    onChange(val, pendingMaxRef.current)
   }
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Math.max(Number(e.target.value), valueMin)
-    onChange(valueMin, val)
+    const val = Math.max(Number(e.target.value), pendingMinRef.current)
+    pendingMaxRef.current = val
+    onChange(pendingMinRef.current, val)
   }
+  const handleCommit = () => onCommit(pendingMinRef.current, pendingMaxRef.current)
 
   if (years.length === 1) {
     return (
@@ -122,6 +138,8 @@ function DualRangeSlider({
           step={1}
           value={valueMin}
           onChange={handleMinChange}
+          onPointerUp={handleCommit}
+          onKeyUp={handleCommit}
           style={{
             position: 'absolute',
             width: '100%',
@@ -150,6 +168,8 @@ function DualRangeSlider({
           step={1}
           value={valueMax}
           onChange={handleMaxChange}
+          onPointerUp={handleCommit}
+          onKeyUp={handleCommit}
           style={{
             position: 'absolute',
             width: '100%',
@@ -252,6 +272,8 @@ function StatBox({
 
 export default function CaptageAnalysesHeader({ aacCode, installationCode }: Props) {
   const [years, setYears] = useState<number[]>([])
+  const [sliderMin, setSliderMin] = useState<number | null>(null)
+  const [sliderMax, setSliderMax] = useState<number | null>(null)
   const [yearMin, setYearMin] = useState<number | null>(null)
   const [yearMax, setYearMax] = useState<number | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
@@ -280,6 +302,8 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
         const nums = data.map(Number).sort((a, b) => a - b)
         setYears(nums)
         if (nums.length > 0) {
+          setSliderMin(nums[0])
+          setSliderMax(nums[nums.length - 1])
           setYearMin(nums[0])
           setYearMax(nums[nums.length - 1])
         }
@@ -430,12 +454,16 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
         >
           Sélectionner une période pour consulter les résultats d'analyse de l'eau
         </p>
-        {yearMin !== null && yearMax !== null && (
+        {sliderMin !== null && sliderMax !== null && (
           <DualRangeSlider
             years={years}
-            valueMin={yearMin}
-            valueMax={yearMax}
+            valueMin={sliderMin}
+            valueMax={sliderMax}
             onChange={(min, max) => {
+              setSliderMin(min)
+              setSliderMax(max)
+            }}
+            onCommit={(min, max) => {
               setYearMin(min)
               setYearMax(max)
             }}
