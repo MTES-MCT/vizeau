@@ -112,6 +112,11 @@ function DualRangeSlider({
         {/* Min input */}
         <input
           type="range"
+          aria-label="Année minimum"
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={valueMin}
+          aria-valuetext={String(valueMin)}
           min={min}
           max={max}
           step={1}
@@ -135,6 +140,11 @@ function DualRangeSlider({
         {/* Max input */}
         <input
           type="range"
+          aria-label="Année maximum"
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={valueMax}
+          aria-valuetext={String(valueMax)}
           min={min}
           max={max}
           step={1}
