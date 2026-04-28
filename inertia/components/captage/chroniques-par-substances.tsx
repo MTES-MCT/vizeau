@@ -9,6 +9,8 @@ import {
   LineElement,
   Tooltip,
   Legend,
+  type ChartDataset,
+  type ChartOptions,
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import Loader from '~/ui/Loader'
@@ -74,7 +76,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
     label: string,
     points: typeof series,
     color: string
-  ): ChartJS.ChartDataset<'scatter'> => ({
+  ): ChartDataset<'scatter'> => ({
     type: 'scatter' as const,
     label,
     data: points.map((p) => ({ x: toTs(p.date), y: p.valeur })),
@@ -83,7 +85,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
     pointHoverRadius: 7,
   })
 
-  const lineDs = (label: string, y: number, color: string): ChartJS.ChartDataset<'line'> => ({
+  const lineDs = (label: string, y: number, color: string): ChartDataset<'line'> => ({
     type: 'line' as const,
     label,
     data: [
@@ -97,7 +99,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
     fill: false,
   })
 
-  const datasets: ChartJS.ChartDataset[] = [
+  const datasets: ChartDataset[] = [
     pointDs('Conforme', conformes, '#003189'),
     pointDs('Au dessus du seuil réglementaire', depRegl, '#D40000'),
     pointDs("Au dessus du seuil d'alerte", depAlerte, '#E18B00'),
@@ -109,7 +111,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
       : []),
   ]
 
-  const options: ChartJS.ChartOptions = {
+  const options: ChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
