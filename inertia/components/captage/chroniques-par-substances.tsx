@@ -227,6 +227,7 @@ export default function ChroniquesParSubstances({
     setSubstances([])
     setSelectedCode(null)
     setChronique(null)
+    setError(null)
 
     fetch(
       `/aac/${aacCode}/installations/${installationCode}/analyses/substances?yearMin=${yearMin}&yearMax=${yearMax}`,
@@ -255,6 +256,7 @@ export default function ChroniquesParSubstances({
     const controller = new AbortController()
     setLoadingChronique(true)
     setChronique(null)
+    setError(null)
 
     fetch(
       `/aac/${aacCode}/installations/${installationCode}/analyses/substances/${selectedCode}?yearMin=${yearMin}&yearMax=${yearMax}`,
