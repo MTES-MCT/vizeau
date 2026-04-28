@@ -12,6 +12,44 @@ type ExportUrls = {
   qualiteEau: string
 }
 
+function getFilenameFromDisposition(disposition: string | null) {
+  if (!disposition) return 'export.csv'
+
+  const utf8Filename = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  if (utf8Filename) {
+    return decodeURIComponent(utf8Filename)
+  }
+
+  return disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? 'export.csv'
+}
+
+async function downloadCsv(url: string) {
+  const response = await fetch(url, {
+    credentials: 'same-origin',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Erreur lors de l'export : ${response.status} ${response.statusText}`)
+  }
+
+  const blob = await response.blob()
+  const filename = getFilenameFromDisposition(response.headers.get('Content-Disposition'))
+  const objectUrl = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = objectUrl
+  link.download = filename
+  link.style.display = 'none'
+
+  document.body.append(link)
+  link.click()
+  link.remove()
+
+  window.setTimeout(() => {
+    window.URL.revokeObjectURL(objectUrl)
+  }, 1000)
+}
+
 export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
   const [exportUrl, setExportUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -21,6 +59,7 @@ export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
       <div className="flex items-end gap-2 fr-mb-3w">
         <Select
           className="flex-1 fr-mb-0"
+          disabled={isLoading}
           options={[
             { value: 'infoGenerale', label: 'Informations générales' },
             { value: 'captages', label: 'Captages' },
@@ -39,30 +78,20 @@ export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
         <Button
           priority={'secondary'}
           title={'Export des données'}
+          aria-busy={isLoading}
           disabled={exportUrl === null || isLoading}
           onClick={() => {
             if (!exportUrl) return
 
             setIsLoading(true)
-            fetch(exportUrl)
-              .then(async (res) => {
-                if (!res.ok) {
-                  throw new Error(`Erreur lors de l'export : ${res.statusText}`)
-                }
-                const disposition = res.headers.get('Content-Disposition')
-                const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? 'export'
-                const blob = await res.blob()
-                return { blob, filename }
+
+            downloadCsv(exportUrl)
+              .catch((error) => {
+                console.error(error)
               })
-              .then(({ blob, filename }) => {
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = filename
-                a.click()
-                URL.revokeObjectURL(url)
+              .finally(() => {
+                setIsLoading(false)
               })
-              .finally(() => setIsLoading(false))
           }}
         >
           {isLoading ? (
