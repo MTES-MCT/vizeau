@@ -425,7 +425,7 @@ export class AacService {
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND date_part('year', date_prelevement) BETWEEN $3 AND $4
-        AND resultat_traduction > 0
+        AND resultat_traduction IS NOT NULL
       GROUP BY code_parametre
       ORDER BY libelle_parametre
     `
