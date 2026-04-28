@@ -371,7 +371,10 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
     const a = document.createElement('a')
     a.href = url
     a.download = `qualite-eau-${installationCode}.csv`
+    a.style.visibility = 'hidden'
+    document.body.append(a)
     a.click()
+    a.remove()
     URL.revokeObjectURL(url)
   }
 
