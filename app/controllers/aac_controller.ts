@@ -5,6 +5,21 @@ import { AacDto } from '../dto/aac_dto.js'
 
 const PER_PAGE = 20
 
+function parseYearRange(
+  yearMinParam: string | null,
+  yearMaxParam: string | null
+): { yearMin: number; yearMax: number } | { error: string } {
+  const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
+  const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
+  if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
+    return { error: 'Les paramètres yearMin et yearMax sont requis' }
+  }
+  if (yearMin > yearMax) {
+    return { error: 'yearMin ne peut pas être supérieur à yearMax' }
+  }
+  return { yearMin, yearMax }
+}
+
 @inject()
 export default class AacController {
   constructor(public aacService: AacService) {}
@@ -68,13 +83,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const yearMinParam = request.input('yearMin')
-    const yearMaxParam = request.input('yearMax')
-    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
-    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
-    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
-      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
-    }
+    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
+    if ('error' in range) return response.abort(range.error, 400)
+    const { yearMin, yearMax } = range
 
     const data = await this.aacService.getSubstances(params.installationCode, yearMin, yearMax)
     return response.json(data)
@@ -87,13 +98,9 @@ export default class AacController {
     const codeParametre = Number.parseInt(params.codeParametre, 10)
     if (Number.isNaN(codeParametre)) return response.abort('Code paramètre invalide', 400)
 
-    const yearMinParam = request.input('yearMin')
-    const yearMaxParam = request.input('yearMax')
-    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
-    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
-    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
-      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
-    }
+    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
+    if ('error' in range) return response.abort(range.error, 400)
+    const { yearMin, yearMax } = range
 
     const data = await this.aacService.getSubstanceChronique(
       params.installationCode,
@@ -108,13 +115,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const yearMinParam = request.input('yearMin')
-    const yearMaxParam = request.input('yearMax')
-    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
-    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
-    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
-      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
-    }
+    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
+    if ('error' in range) return response.abort(range.error, 400)
+    const { yearMin, yearMax } = range
 
     const data = await this.aacService.getAnalysesPerYear(params.installationCode, yearMin, yearMax)
     return response.json(data)
@@ -124,13 +127,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const yearMinParam = request.input('yearMin')
-    const yearMaxParam = request.input('yearMax')
-    const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
-    const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
-    if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
-      return response.abort('Les paramètres yearMin et yearMax sont requis', 400)
-    }
+    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
+    if ('error' in range) return response.abort(range.error, 400)
+    const { yearMin, yearMax } = range
 
     const data = await this.aacService.getAnalysesStats(params.installationCode, yearMin, yearMax)
     return response.json(data)
