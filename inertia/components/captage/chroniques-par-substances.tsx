@@ -99,7 +99,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
     fill: false,
   })
 
-  const datasets: ChartDataset[] = [
+  const datasets: ChartDataset<'scatter' | 'line'>[] = [
     pointDs('Conforme', conformes, '#003189'),
     pointDs('Au dessus du seuil réglementaire', depRegl, '#D40000'),
     pointDs("Au dessus du seuil d'alerte", depAlerte, '#E18B00'),
