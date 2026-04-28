@@ -369,7 +369,6 @@ export class AacService {
       WITH date_flags AS (
         SELECT
           date_prelevement,
-          CAST(date_part('year', date_prelevement) AS INTEGER) AS annee,
           BOOL_OR(${SQL_DEP_ANY}) AS date_a_dep
         FROM read_parquet($1)
         WHERE code_installation = $2
@@ -377,7 +376,7 @@ export class AacService {
         GROUP BY date_prelevement
       )
       SELECT
-        annee,
+        CAST(date_part('year', date_prelevement) AS INTEGER) AS annee,
         CAST(COUNT(*) AS INTEGER) AS total,
         CAST(COUNT(*) FILTER (WHERE date_a_dep) AS INTEGER) AS avec_dep,
         CAST(COUNT(*) FILTER (WHERE NOT date_a_dep) AS INTEGER) AS sans_dep
