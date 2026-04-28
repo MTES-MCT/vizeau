@@ -26,7 +26,7 @@ type Substance = {
   has_dep: boolean
 }
 
-type ChroniqeData = {
+type ChroniqueData = {
   info: {
     code_parametre: number
     libelle_parametre: string
@@ -57,7 +57,7 @@ function formatUnite(code: string): string {
   return code === 'SANS OBJET' ? '' : code
 }
 
-function SubstanceScatterChart({ data }: { data: ChroniqeData }) {
+function SubstanceScatterChart({ data }: { data: ChroniqueData }) {
   const { info, series } = data
   const unite = formatUnite(info.code_unite)
 
@@ -217,7 +217,7 @@ export default function ChroniquesParSubstances({
 }: Props) {
   const [substances, setSubstances] = useState<Substance[]>([])
   const [selectedCode, setSelectedCode] = useState<number | null>(null)
-  const [chronique, setChronique] = useState<ChroniqeData | null>(null)
+  const [chronique, setChronique] = useState<ChroniqueData | null>(null)
   const [loadingSubstances, setLoadingSubstances] = useState(true)
   const [loadingChronique, setLoadingChronique] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -266,7 +266,7 @@ export default function ChroniquesParSubstances({
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<ChroniqeData>
+        return res.json() as Promise<ChroniqueData>
       })
       .then(setChronique)
       .catch((err) => {
