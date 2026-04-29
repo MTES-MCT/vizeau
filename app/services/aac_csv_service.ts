@@ -189,23 +189,48 @@ export class AacCsvService {
   }
 
   private buildCultureEvolutionSection(aac: AacJson): string | null {
-    if (!aac.culture_evolution?.repartition) return null
-    const evoHeaders = ['Année', 'Culture', 'Surface (ha)', 'Nb parcelles']
-    const evoRows: string[] = []
-    for (const [year, culture] of Object.entries(aac.culture_evolution.repartition)) {
-      for (const [cultureName, detail] of Object.entries(culture)) {
-        if (!detail) continue
-        evoRows.push(
-          buildRow([
-            year,
-            cultureName,
-            String(detail.surface_ha ?? ''),
-            String(detail.nb_parcelles ?? ''),
-          ])
-        )
-      }
+    const repartition = aac.culture_evolution?.repartition
+    if (!repartition) return null
+
+    const years = Object.keys(repartition).sort((a, b) => Number(a) - Number(b))
+    if (years.length === 0) return null
+
+    const cultureNames = Array.from(
+      new Set(years.flatMap((year) => Object.keys(repartition[year] ?? {})))
+    ).sort((a, b) => a.localeCompare(b))
+
+    if (cultureNames.length === 0) return null
+
+    const headers = ['Culture', 'Indicateur', ...years]
+    const rows: string[] = []
+
+    for (const cultureName of cultureNames) {
+      const surfaceRow = buildRow([
+        cultureName,
+        'Surface (ha)',
+        ...years.map((year) => {
+          const detail = repartition[year]?.[cultureName]
+          return detail?.surface_ha !== null && detail?.surface_ha !== undefined
+            ? String(detail.surface_ha)
+            : ''
+        }),
+      ])
+
+      const parcellesRow = buildRow([
+        cultureName,
+        'Nb parcelles',
+        ...years.map((year) => {
+          const detail = repartition[year]?.[cultureName]
+          return detail?.nb_parcelles !== null && detail?.nb_parcelles !== undefined
+            ? String(detail.nb_parcelles)
+            : ''
+        }),
+      ])
+
+      rows.push(surfaceRow, parcellesRow)
     }
-    return buildSection(evoHeaders, evoRows)
+
+    return buildSection(headers, rows)
   }
 
   private async buildQualiteEauSection(installations: InstallationInfo[]): Promise<string | null> {
