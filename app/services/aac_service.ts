@@ -372,6 +372,35 @@ export class AacService {
     }
   }
 
+
+  async getAnalysesRobinetForExport(
+    installationCodes: string[]
+  ): Promise<Record<string, unknown>[]> {
+    if (installationCodes.length === 0) {
+      return []
+    }
+
+    const conn = await getConnection()
+    const placeholders = installationCodes.map((_, index) => `$${index + 2}`).join(', ')
+
+    const stmt = await conn.prepare(
+      'SELECT "code_insee", "nom_commune", "code_installation", "nom_installation", "date_prelevement", "heure_prelevement", "code_brgm", "resultat", "code_unite", "libelle_parametre", "limite_qualite", "reference_qualite", "captage_prioritaire" ' +
+      'FROM read_parquet($1) ' +
+      `WHERE "code_installation" IN (${placeholders}) ` +
+      'ORDER BY "date_prelevement" DESC NULLS LAST'
+    )
+
+    stmt.bindVarchar(1, getAnalysesRobinetPath())
+
+    installationCodes.forEach((code, index) => {
+      stmt.bindVarchar(index + 2, code)
+    })
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+    return rows.map((r) => normalizeValue(r) as Record<string, unknown>)
+  }
+
   /**
    * Returns all AAC names ordered alphabetically.
    */

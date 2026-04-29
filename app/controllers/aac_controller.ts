@@ -4,12 +4,17 @@ import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import { analysesSummaryValidator, analysesValidator } from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '../../types/aac.js'
+import { AacCsvService } from '#services/aac_csv_service'
+import router from '@adonisjs/core/services/router'
 
 const PER_PAGE = 20
 
 @inject()
 export default class AacController {
-  constructor(public aacService: AacService) {}
+  constructor(
+    public aacService: AacService,
+    public aacCsvService: AacCsvService
+  ) {}
 
   async index({ request, inertia }: HttpContext) {
     // Backward compatibility for legacy bookmarks/links using page/recherche/commune.
@@ -42,7 +47,19 @@ export default class AacController {
       return response.abort(`AAC avec le code "${params.code}" introuvable`, 404)
     }
 
-    return inertia.render('aac/id', { aac: AacDto.fromRaw(raw) })
+    return inertia.render('aac/id', {
+      aac: AacDto.fromRaw(raw),
+      exportUrls: {
+        infoGenerale: router.builder().params([params.code]).make('aac.export.infoGenerale'),
+        captages: router.builder().params([params.code]).make('aac.export.captages'),
+        assolement: router.builder().params([params.code]).make('aac.export.assolement'),
+        cultureEvolution: router
+          .builder()
+          .params([params.code])
+          .make('aac.export.cultureEvolution'),
+        qualiteEau: router.builder().params([params.code]).make('aac.export.qualite'),
+      },
+    })
   }
 
   async analysesSummary({ params, request, response }: HttpContext) {
@@ -73,6 +90,56 @@ export default class AacController {
 
     const data = await this.aacService.getAnalysesRobinet(params.installationCode, year)
     return response.json(data)
+  }
+
+  async exportInfoGenerale({ params, response }: HttpContext) {
+    return this.sendCsvExport(response, params.code, 'info-generale', () =>
+      this.aacCsvService.exportInfoGenerale(params.code)
+    )
+  }
+
+  async exportCaptages({ params, response }: HttpContext) {
+    return this.sendCsvExport(response, params.code, 'captages', () =>
+      this.aacCsvService.exportCaptages(params.code)
+    )
+  }
+
+  async exportAssolement({ params, response }: HttpContext) {
+    return this.sendCsvExport(response, params.code, 'assolement', () =>
+      this.aacCsvService.exportAssolement(params.code)
+    )
+  }
+
+  async exportCultureEvolution({ params, response }: HttpContext) {
+    return this.sendCsvExport(response, params.code, 'culture-evolution', () =>
+      this.aacCsvService.exportCultureEvolution(params.code)
+    )
+  }
+
+  async exportQualiteEau({ params, response }: HttpContext) {
+    return this.sendCsvExport(response, params.code, 'qualite-eau', () =>
+      this.aacCsvService.exportQualiteEau(params.code)
+    )
+  }
+
+  private async sendCsvExport(
+    response: HttpContext['response'],
+    code: string,
+    suffix: string,
+    generate: () => Promise<string | null>
+  ) {
+    const csv = await generate()
+    if (!csv) {
+      return response.abort(`AAC avec le code "${code}" introuvable`, 404)
+    }
+
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `aac-${code}-${suffix}-${date}.csv`
+
+    return response
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(csv)
   }
 
   async analysesYears({ params, response }: HttpContext) {

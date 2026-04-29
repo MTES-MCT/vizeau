@@ -154,6 +154,26 @@ router
           .where('code', /^\d+$/)
           .as('aac.analysesSummary')
         router
+          .get('aac/:code/export/general', [AacController, 'exportInfoGenerale'])
+          .where('code', /^\d+$/)
+          .as('aac.export.infoGenerale')
+        router
+          .get('aac/:code/export/captages', [AacController, 'exportCaptages'])
+          .where('code', /^\d+$/)
+          .as('aac.export.captages')
+        router
+          .get('aac/:code/export/assolement', [AacController, 'exportAssolement'])
+          .where('code', /^\d+$/)
+          .as('aac.export.assolement')
+        router
+          .get('aac/:code/export/culture-evolution', [AacController, 'exportCultureEvolution'])
+          .where('code', /^\d+$/)
+          .as('aac.export.cultureEvolution')
+        router
+          .get('aac/:code/export/qualite', [AacController, 'exportQualiteEau'])
+          .where('code', /^\d+$/)
+          .as('aac.export.qualite')
+        router
           .get('aac/:code/installations/:installationCode/analyses/years', [
             AacController,
             'analysesYears',
