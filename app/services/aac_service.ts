@@ -1,5 +1,6 @@
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api'
 import env from '#start/env'
+import type { InstallationInfo } from '../../types/aac.js'
 
 /** Escapes a value for safe embedding in a single-quoted SQL string literal. */
 function sqlEscape(value: string): string {
@@ -281,5 +282,102 @@ export class AacService {
 
     const result = await stmt.run()
     return (await result.getRowObjects()) as Array<{ code: string; name: string }>
+  }
+
+  /**
+   * Get paginated unique installations found across all AACs, ordered by name.
+   */
+  async getAllInstallationsPaginated(
+    page: number,
+    perPage: number,
+    recherche?: string,
+    types?: string[],
+    actifOnly?: boolean
+  ): Promise<{ data: InstallationInfo[]; total: number }> {
+    const conn = await getConnection()
+    const path = getParquetPath()
+
+    const baseFrom =
+      'FROM (SELECT DISTINCT unnest(installations) AS installation FROM read_parquet($1)) AS t'
+
+    let paramIdx = 2
+    const filterParams: string[] = []
+    const conditions: string[] = []
+
+    if (recherche) {
+      conditions.push(
+        "(installation.nom ILIKE '%' || $" +
+          paramIdx +
+          " || '%' OR installation.code ILIKE '%' || $" +
+          paramIdx +
+          " || '%')"
+      )
+      paramIdx++
+      filterParams.push(recherche)
+    }
+
+    if (types && types.length > 0) {
+      const placeholders = types.map(() => '$' + paramIdx++).join(', ')
+      conditions.push(`(installation.type IS NULL OR installation.type IN (${placeholders}))`)
+      filterParams.push(...types)
+    }
+
+    if (actifOnly) {
+      conditions.push("installation.etat = 'ACTIF'")
+    }
+
+    const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : ''
+
+    const bindAll = (stmt: { bindVarchar: (i: number, v: string) => void }) => {
+      stmt.bindVarchar(1, path)
+      filterParams.forEach((v, i) => stmt.bindVarchar(i + 2, v))
+    }
+
+    const countStmt = await conn.prepare('SELECT COUNT(*) AS total ' + baseFrom + where)
+    bindAll(countStmt)
+    const countResult = await countStmt.run()
+    const countRows = (await countResult.getRowObjects()) as Array<Record<string, unknown>>
+    const total = Number(countRows[0].total)
+
+    const limitIdx = paramIdx
+    const offsetIdx = paramIdx + 1
+    const dataStmt = await conn.prepare(
+      'SELECT installation.code, installation.nom, installation.commune, ' +
+        'installation.departement, installation.type, installation.nature, installation.usage, ' +
+        'installation.etat, installation.code_ppe, installation.prioritaire, ' +
+        'installation.captages_rattaches ' +
+        baseFrom +
+        where +
+        ' ORDER BY installation.nom LIMIT $' +
+        limitIdx +
+        ' OFFSET $' +
+        offsetIdx
+    )
+    bindAll(dataStmt)
+    dataStmt.bindInteger(limitIdx, perPage)
+    dataStmt.bindInteger(offsetIdx, (page - 1) * perPage)
+
+    const dataResult = await dataStmt.run()
+    const rows = (await dataResult.getRowObjects()) as Array<Record<string, unknown>>
+    return { data: rows.map((r) => normalizeValue(r) as InstallationInfo), total }
+  }
+
+  /**
+   * Get all distinct non-null installation types across all AACs.
+   */
+  async getAllInstallationTypes(): Promise<string[]> {
+    const conn = await getConnection()
+    const path = getParquetPath()
+
+    const stmt = await conn.prepare(
+      'SELECT DISTINCT installation.type ' +
+        'FROM (SELECT unnest(installations) AS installation FROM read_parquet($1)) AS t ' +
+        'WHERE installation.type IS NOT NULL ' +
+        'ORDER BY installation.type'
+    )
+    stmt.bindVarchar(1, path)
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<{ type: string }>
+    return rows.map((r) => r.type)
   }
 }

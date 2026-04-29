@@ -5,6 +5,7 @@ import MetasList, { MetasListProps } from '../MetasList'
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 
 import './checkbox-card.css'
+import TagsList, { TagsListProps } from '../TagsList'
 
 export type CheckboxCardProps = {
   value: string
@@ -12,6 +13,7 @@ export type CheckboxCardProps = {
   subtitle?: string
   iconId?: string
   metas?: MetasListProps['metas']
+  tags?: TagsListProps['tags']
   isSelected?: boolean
   onCheck?: (value: string, checked: boolean) => void
 }
@@ -22,6 +24,7 @@ export default function CheckboxCard({
   subtitle,
   iconId,
   metas,
+  tags,
   isSelected = false,
   onCheck,
 }: CheckboxCardProps) {
@@ -48,9 +51,12 @@ export default function CheckboxCard({
 
         <div className="flex flex-col gap-1 w-full">
           <div className="flex flex-col w-full">
-            <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--lg font-bold">
-              {title}
-            </TruncatedText>
+            <div className="flex gap-4 items-center">
+              <TruncatedText maxLines={1} className="fr-m-0 fr-text--lg font-bold">
+                {title}
+              </TruncatedText>
+              {tags && tags.length > 0 && <TagsList tags={tags} limit={5} size="sm" />}
+            </div>
 
             {subtitle && (
               <TruncatedText
