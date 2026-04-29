@@ -211,40 +211,16 @@ export class AacCsvService {
   private async buildQualiteEauSection(installations: InstallationInfo[]): Promise<string | null> {
     const headers: string[] = []
     const rows: string[] = []
-    let headersSet = false
 
-    for (const inst of installations) {
-      let years: string[]
-      try {
-        years = await this.aacService.getAnalysesRobinetYears(inst.code)
-      } catch {
-        continue
-      }
+    const codes = installations.map((inst) => inst.code)
+    const analyses = await this.aacService.getAnalysesRobinetForExport(codes)
 
-      for (const yearStr of years) {
-        const y = Number.parseInt(yearStr, 10)
-        if (Number.isNaN(y)) continue
+    if (analyses.length > 0 && Object.keys(analyses[0]).length > 0) {
+      headers.push(...Object.keys(analyses[0]))
+    }
 
-        let analyses: Record<string, unknown>[]
-        try {
-          analyses = await this.aacService.getAnalysesRobinet(inst.code, y)
-        } catch {
-          continue
-        }
-
-        for (const analyse of analyses) {
-          if (!headersSet && Object.keys(analyse).length > 0) {
-            headers.push('Installation', ...Object.keys(analyse))
-            headersSet = true
-          }
-          rows.push(
-            buildRow([
-              inst.code,
-              ...Object.values(analyse).map((v) => (v !== null ? String(v) : '')),
-            ])
-          )
-        }
-      }
+    for (const analyse of analyses) {
+      rows.push(buildRow(Object.values(analyse).map((v) => (v !== null ? String(v) : ''))))
     }
 
     if (rows.length === 0) return null
