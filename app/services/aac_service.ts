@@ -584,8 +584,12 @@ export class AacService {
         code_parametre: codeParametre,
         libelle_parametre: String(row.libelle_parametre ?? ''),
         code_unite: String(row.code_unite ?? ''),
-        seuil_regl: row.seuil_regl != null ? Number(row.seuil_regl) : null,
-        seuil_alerte: row.seuil_alerte != null ? Number(row.seuil_alerte) : null,
+        seuil_regl:
+          row.seuil_regl !== null && row.seuil_regl !== undefined ? Number(row.seuil_regl) : null,
+        seuil_alerte:
+          row.seuil_alerte !== null && row.seuil_alerte !== undefined
+            ? Number(row.seuil_alerte)
+            : null,
       },
       stats: {
         moyenne: Number(row.moyenne ?? 0),
