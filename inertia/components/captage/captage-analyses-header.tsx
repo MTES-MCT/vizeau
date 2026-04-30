@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
+import ResumeCard from '~/ui/ResumeCard'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
 import ChroniquesParSubstances from './chroniques-par-substances'
 
@@ -210,64 +211,6 @@ function DualRangeSlider({
 
 // ─── Stat Box ─────────────────────────────────────────────────────────────────
 
-function StatBox({
-  label,
-  iconId,
-  iconColor,
-  value,
-  hasAlert,
-}: {
-  label: string
-  iconId: string
-  iconColor: string
-  value: number | null
-  hasAlert?: boolean
-}) {
-  return (
-    <div
-      className="flex flex-col gap-2 fr-p-2w"
-      style={{
-        border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        backgroundColor: fr.colors.decisions.background.default.grey.default,
-      }}
-    >
-      <div className="flex items-center gap-2">
-        <span className={`${iconId} fr-icon--md`} aria-hidden="true" style={{ color: iconColor }} />
-        <span className="fr-text--sm fr-mb-0" style={{ fontWeight: 600 }}>
-          {label}
-        </span>
-      </div>
-
-      <div className="flex items-end justify-between gap-2">
-        <div>
-          {value === null ? (
-            <Loader type="dots" size="sm" />
-          ) : (
-            <>
-              <p className="fr-h3 fr-mb-0">{value.toLocaleString('fr-FR')}</p>
-              <p
-                className="fr-text--xs fr-mb-0"
-                style={{ color: fr.colors.decisions.text.mention.grey.default }}
-              >
-                au total sur la période
-              </p>
-            </>
-          )}
-        </div>
-
-        {value !== null && hasAlert && value > 0 && (
-          <span
-            className="fr-badge fr-badge--sm fr-badge--error"
-            aria-label={`${value} dépassement${value > 1 ? 's' : ''}`}
-          >
-            {value.toLocaleString('fr-FR')}
-          </span>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CaptageAnalysesHeader({ aacCode, installationCode }: Props) {
@@ -472,25 +415,32 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
 
         {/* Stats boxes: 2 on top, 1 bottom-left */}
         <div className="grid grid-cols-2 gap-3 fr-mt-3w">
-          <StatBox
-            label="Dépassements d'alerte (80 %)"
+          <ResumeCard
+            title="Dépassements d'alerte (80 %)"
             iconId="fr-icon-warning-line"
-            iconColor={fr.colors.decisions.text.default.warning.default}
-            value={loadingStats ? null : (stats?.depassements_alerte ?? null)}
-            hasAlert
+            color={fr.colors.decisions.text.default.warning.default}
+            value={
+              loadingStats ? null : (stats?.depassements_alerte?.toLocaleString('fr-FR') ?? null)
+            }
+            label="au total sur la période"
           />
-          <StatBox
-            label="Dépassements réglementaires"
+          <ResumeCard
+            title="Dépassements réglementaires"
             iconId="fr-icon-information-line"
-            iconColor={fr.colors.decisions.text.label.blueFrance.default}
-            value={loadingStats ? null : (stats?.depassements_reglementaires ?? null)}
-            hasAlert
+            color={fr.colors.decisions.text.label.blueFrance.default}
+            value={
+              loadingStats
+                ? null
+                : (stats?.depassements_reglementaires?.toLocaleString('fr-FR') ?? null)
+            }
+            label="au total sur la période"
           />
-          <StatBox
-            label="Analyses"
+          <ResumeCard
+            title="Analyses"
             iconId="fr-icon-microscope-line"
-            iconColor={fr.colors.decisions.text.label.blueFrance.default}
-            value={loadingStats ? null : (stats?.total ?? null)}
+            color={fr.colors.decisions.text.label.blueFrance.default}
+            value={loadingStats ? null : (stats?.total?.toLocaleString('fr-FR') ?? null)}
+            label="au total sur la période"
           />
         </div>
       </section>
