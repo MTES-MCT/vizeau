@@ -252,7 +252,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           color={fr.colors.decisions.text.default.warning.default}
         />
 
-        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de captages</h2>
+        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de captage</h2>
 
         <div className="flex gap-2 items-stretch">
           <div
@@ -264,7 +264,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
             <input
               className="fr-input"
               type="search"
-              placeholder="Rechercher une AAC"
+              placeholder="Rechercher un point de prélèvement"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ border: 'none', boxShadow: 'none', flex: 1, outline: 'none' }}
