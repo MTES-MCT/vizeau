@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
+import Select from '@codegouvfr/react-dsfr/Select'
 import 'chartjs-adapter-date-fns'
 import {
   Chart as ChartJS,
@@ -288,32 +289,29 @@ export default function ChroniquesParSubstances({
   return (
     <div className="flex flex-col gap-4">
       {/* Substance selector */}
-      <div className="flex flex-col gap-1" style={{ maxWidth: 320 }}>
-        <label
-          className="fr-text--sm fr-mb-0"
-          style={{ fontWeight: 600 }}
-          htmlFor="substance-select"
-        >
-          Sélectionnez une substance
-        </label>
+      <div
+        className="fr-px-3w fr-py-2w"
+        style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
+      >
         {loadingSubstances ? (
           <Loader type="dots" size="sm" />
         ) : (
-          <div className="fr-select-group" style={{ marginBottom: 0 }}>
-            <select
-              id="substance-select"
-              className="fr-select"
-              value={selectedCode ?? ''}
-              onChange={(e) => setSelectedCode(Number(e.target.value))}
-            >
-              {substances.map((s) => (
-                <option key={s.code_parametre} value={s.code_parametre}>
-                  {s.libelle_parametre}
-                  {s.has_dep ? ' ⚠' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Sélectionnez une substance"
+            nativeSelectProps={{
+              id: 'substance-select',
+              value: selectedCode ?? '',
+              onChange: (e) => setSelectedCode(Number(e.target.value)),
+            }}
+            style={{ marginBottom: 0, maxWidth: 400 }}
+          >
+            {substances.map((s) => (
+              <option key={s.code_parametre} value={s.code_parametre}>
+                {s.libelle_parametre}
+                {s.has_dep ? ' ⚠' : ''}
+              </option>
+            ))}
+          </Select>
         )}
       </div>
 
