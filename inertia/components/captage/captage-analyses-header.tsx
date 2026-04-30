@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
 import ResumeCard from '~/ui/ResumeCard'
+import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
 import ChroniquesParSubstances from './chroniques-par-substances'
 
@@ -455,45 +456,25 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
           className="fr-px-3w fr-py-2w"
           style={{ borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}
         >
-          <div
-            style={{
-              display: 'flex',
-              width: 'fit-content',
-              border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-            }}
-          >
-            {(
-              [
-                { value: 'suivi', label: "Suivi de la qualité de l'eau" },
-                { value: 'chroniques', label: 'Chroniques par substances' },
-              ] as const
-            ).map(({ value, label }, i) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setActiveSection(value)}
-                style={{
-                  padding: '6px 16px',
-                  fontSize: 14,
-                  fontWeight: activeSection === value ? 700 : 400,
-                  cursor: 'pointer',
-                  border: 'none',
-                  borderLeft:
-                    i > 0 ? `1px solid ${fr.colors.decisions.border.default.grey.default}` : 'none',
-                  backgroundColor:
-                    activeSection === value
-                      ? fr.colors.decisions.background.active.blueFrance.default
-                      : fr.colors.decisions.background.default.grey.default,
-                  color:
-                    activeSection === value
-                      ? '#fff'
-                      : fr.colors.decisions.text.default.grey.default,
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            hideLegend
+            segments={[
+              {
+                label: "Suivi de la qualité de l'eau",
+                nativeInputProps: {
+                  checked: activeSection === 'suivi',
+                  onChange: () => setActiveSection('suivi'),
+                },
+              },
+              {
+                label: 'Chroniques par substances',
+                nativeInputProps: {
+                  checked: activeSection === 'chroniques',
+                  onChange: () => setActiveSection('chroniques'),
+                },
+              },
+            ]}
+          />
         </div>
 
         {activeSection === 'suivi' && (
@@ -530,41 +511,25 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
                 margin: '0 -24px',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-                }}
-              >
-                {(['graphique', 'tableau'] as const).map((view, i) => (
-                  <button
-                    key={view}
-                    type="button"
-                    onClick={() => setActiveView(view)}
-                    style={{
-                      padding: '6px 16px',
-                      fontSize: 14,
-                      fontWeight: activeView === view ? 700 : 400,
-                      cursor: 'pointer',
-                      border: 'none',
-                      borderLeft:
-                        i > 0
-                          ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
-                          : 'none',
-                      backgroundColor:
-                        activeView === view
-                          ? fr.colors.decisions.background.active.blueFrance.default
-                          : fr.colors.decisions.background.default.grey.default,
-                      color:
-                        activeView === view
-                          ? '#fff'
-                          : fr.colors.decisions.text.default.grey.default,
-                    }}
-                  >
-                    {view.charAt(0).toUpperCase() + view.slice(1)}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl
+                hideLegend
+                segments={[
+                  {
+                    label: 'Graphique',
+                    nativeInputProps: {
+                      checked: activeView === 'graphique',
+                      onChange: () => setActiveView('graphique'),
+                    },
+                  },
+                  {
+                    label: 'Tableau',
+                    nativeInputProps: {
+                      checked: activeView === 'tableau',
+                      onChange: () => setActiveView('tableau'),
+                    },
+                  },
+                ]}
+              />
               <button
                 className="fr-btn fr-btn--sm fr-icon-download-line fr-btn--icon-left"
                 onClick={handleExportCsv}
