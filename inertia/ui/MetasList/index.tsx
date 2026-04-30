@@ -2,7 +2,7 @@ import LabelInfo from '../LabelInfo'
 
 export type MetasListProps = {
   metas: { content: string | null; iconId: string | null }[]
-  size?: 'sm' | 'md'
+  size?: 'xs' | 'sm' | 'md'
 }
 
 export default function MetasList({ metas, size = 'md' }: MetasListProps) {

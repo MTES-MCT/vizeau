@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { fr } from '@codegouvfr/react-dsfr'
 import { Input } from '@codegouvfr/react-dsfr/Input'
@@ -43,6 +43,10 @@ export default function SearchAutocomplete<T>({
   const [filteredOptions, setFilteredOptions] = useState<T[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
 
+  const selectedValueKeyRef = useRef<string | number | null>(
+    value ? (getOptionKey ? getOptionKey(value) : getOptionLabel(value)) : null
+  )
+
   useEffect(() => {
     const filtered = disableClientFilter
       ? options
@@ -62,6 +66,19 @@ export default function SearchAutocomplete<T>({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    const nextSelectedKey = value
+      ? getOptionKey
+        ? getOptionKey(value)
+        : getOptionLabel(value)
+      : null
+
+    if (nextSelectedKey !== selectedValueKeyRef.current) {
+      selectedValueKeyRef.current = nextSelectedKey
+      setInputValue(value ? getOptionLabel(value) : '')
+    }
+  }, [value, getOptionKey, getOptionLabel])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setInputValue(newValue)
@@ -70,6 +87,7 @@ export default function SearchAutocomplete<T>({
   }
 
   const handleOptionClick = (option: T) => {
+    selectedValueKeyRef.current = getOptionKey ? getOptionKey(option) : getOptionLabel(option)
     setInputValue(getOptionLabel(option))
     setIsOpen(false)
     onChange?.(option)

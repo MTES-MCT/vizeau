@@ -1,0 +1,17 @@
+.checkbox-card-effect {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
+  will-change: transform;
+}
+
+.checkbox-card-effect:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(150, 150, 150, 0.1);
+  filter: brightness(0.96);
+}

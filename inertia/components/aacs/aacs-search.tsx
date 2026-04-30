@@ -18,6 +18,10 @@ export type AacsSearchProps = {
 
 export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps) {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false)
+
+  // The inputs are initialized from the URL once, then kept fully local.
+  // This prevents a late Inertia response from overwriting what the user
+  // is still typing.
   const [searchValue, setSearchValue] = useState(queryString?.aacRecherche || '')
   const [communeFilter, setCommuneFilter] = useState(queryString?.aacCommune || '')
 
@@ -44,14 +48,6 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
       }, 300),
     [reloadOnly]
   )
-
-  useEffect(() => {
-    setSearchValue(queryString?.aacRecherche || '')
-  }, [queryString?.aacRecherche])
-
-  useEffect(() => {
-    setCommuneFilter(queryString?.aacCommune || '')
-  }, [queryString?.aacCommune])
 
   useEffect(() => {
     return () => {

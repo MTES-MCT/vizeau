@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import SearchAutocomplete from './search-autocomplete'
 import { debounce } from 'lodash-es'
 
@@ -25,19 +25,34 @@ export default function SearchAdresse({
 }) {
   const [options, setOptions] = useState([])
 
-  const fetchAdresses = debounce(async (search) => {
-    if (search.length > 3) {
-      try {
-        const response = await fetch(`https://data.geopf.fr/geocodage/search?q=${search}&limit=5`)
-        const data = await response.json()
+  const fetchAdresses = useMemo(
+    () =>
+      debounce(async (search: string) => {
+        if (search.length > 3) {
+          try {
+            const response = await fetch(
+              `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(search)}&limit=5`
+            )
+            const data = await response.json()
 
-        setOptions(data.features)
-      } catch (error) {
-        console.error(error)
+            setOptions(data.features)
+          } catch (error) {
+            console.error(error)
+            setOptions([])
+          }
+          return
+        }
+
         setOptions([])
-      }
+      }, 300),
+    []
+  )
+
+  useEffect(() => {
+    return () => {
+      fetchAdresses.cancel()
     }
-  }, 300)
+  }, [fetchAdresses])
 
   return (
     <SearchAutocomplete
