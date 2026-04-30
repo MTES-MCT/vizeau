@@ -447,15 +447,8 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
       </section>
 
       {/* Section tabs */}
-      <div
-        style={{
-          border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        }}
-      >
-        <div
-          className="fr-px-3w fr-py-2w"
-          style={{ borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}
-        >
+      <div>
+        <div className="fr-px-3w fr-py-2w">
           <SegmentedControl
             hideLegend
             segments={[
@@ -477,157 +470,158 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
           />
         </div>
 
-        {activeSection === 'suivi' && (
-          <div className="fr-p-3w flex flex-col gap-4">
-            <div className="flex items-start gap-2">
-              <span
-                className="fr-icon-bar-chart-fill fr-icon--md"
-                aria-hidden="true"
+        <div style={{ border: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}>
+          {activeSection === 'suivi' && (
+            <div className="fr-p-3w flex flex-col gap-4">
+              <div className="flex items-start gap-2">
+                <span
+                  className="fr-icon-bar-chart-fill fr-icon--md"
+                  aria-hidden="true"
+                  style={{
+                    color: fr.colors.decisions.text.label.blueFrance.default,
+                    flexShrink: 0,
+                    marginTop: 2,
+                  }}
+                />
+                <div>
+                  <h6 className="fr-text--md fr-mb-1v" style={{ fontWeight: 700 }}>
+                    Suivi de la qualité de l'eau
+                  </h6>
+                  <p
+                    className="fr-text--sm fr-mb-0"
+                    style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                  >
+                    Consulter sur un nombre d'analyses données, l'évolution des dépassements par
+                    années
+                  </p>
+                </div>
+              </div>
+
+              {/* Segmented control + exporter */}
+              <div
+                className="flex items-center justify-between fr-px-3w fr-py-2w"
                 style={{
-                  color: fr.colors.decisions.text.label.blueFrance.default,
-                  flexShrink: 0,
-                  marginTop: 2,
+                  backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
                 }}
-              />
-              <div>
-                <h6 className="fr-text--md fr-mb-1v" style={{ fontWeight: 700 }}>
-                  Suivi de la qualité de l'eau
-                </h6>
+              >
+                <SegmentedControl
+                  hideLegend
+                  segments={[
+                    {
+                      label: 'Graphique',
+                      nativeInputProps: {
+                        checked: activeView === 'graphique',
+                        onChange: () => setActiveView('graphique'),
+                      },
+                    },
+                    {
+                      label: 'Tableau',
+                      nativeInputProps: {
+                        checked: activeView === 'tableau',
+                        onChange: () => setActiveView('tableau'),
+                      },
+                    },
+                  ]}
+                />
+                <button
+                  className="fr-btn fr-btn--sm fr-icon-download-line fr-btn--icon-left"
+                  onClick={handleExportCsv}
+                  disabled={!perYearData || perYearData.length === 0}
+                  type="button"
+                >
+                  Exporter
+                </button>
+              </div>
+
+              {/* Content */}
+              {loadingPerYear ? (
+                <div className="flex items-center gap-2 fr-py-3w">
+                  <Loader type="dots" size="sm" />
+                </div>
+              ) : !perYearData || perYearData.length === 0 ? (
                 <p
                   className="fr-text--sm fr-mb-0"
                   style={{ color: fr.colors.decisions.text.mention.grey.default }}
                 >
-                  Consulter sur un nombre d'analyses données, l'évolution des dépassements par
-                  années
+                  Aucune donnée disponible pour cette période.
                 </p>
-              </div>
-            </div>
-
-            {/* Segmented control + exporter */}
-            <div
-              className="flex items-center justify-between fr-px-3w fr-py-2w"
-              style={{
-                backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
-                margin: '0 -24px',
-              }}
-            >
-              <SegmentedControl
-                hideLegend
-                segments={[
-                  {
-                    label: 'Graphique',
-                    nativeInputProps: {
-                      checked: activeView === 'graphique',
-                      onChange: () => setActiveView('graphique'),
-                    },
-                  },
-                  {
-                    label: 'Tableau',
-                    nativeInputProps: {
-                      checked: activeView === 'tableau',
-                      onChange: () => setActiveView('tableau'),
-                    },
-                  },
-                ]}
-              />
-              <button
-                className="fr-btn fr-btn--sm fr-icon-download-line fr-btn--icon-left"
-                onClick={handleExportCsv}
-                disabled={!perYearData || perYearData.length === 0}
-                type="button"
-              >
-                Exporter
-              </button>
-            </div>
-
-            {/* Content */}
-            {loadingPerYear ? (
-              <div className="flex items-center gap-2 fr-py-3w">
-                <Loader type="dots" size="sm" />
-              </div>
-            ) : !perYearData || perYearData.length === 0 ? (
-              <p
-                className="fr-text--sm fr-mb-0"
-                style={{ color: fr.colors.decisions.text.mention.grey.default }}
-              >
-                Aucune donnée disponible pour cette période.
-              </p>
-            ) : activeView === 'graphique' ? (
-              chartItems && (
-                <VerticalChartBar
-                  chartItems={chartItems}
-                  yAxisLabel="Nombre d'analyses"
-                  unit="analyse(s)"
-                  chartHeight={350}
-                />
-              )
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: fr.colors.decisions.background.default.grey.default,
-                      borderBottom: `2px solid ${fr.colors.decisions.border.default.grey.default}`,
-                    }}
-                  >
-                    {['Année', 'Conformes', 'En dépassement', 'Total'].map((col) => (
-                      <th
-                        key={col}
-                        scope="col"
-                        style={{
-                          padding: '10px 16px',
-                          textAlign: 'left',
-                          fontWeight: 700,
-                          fontSize: 14,
-                        }}
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {perYearData.map((d) => (
+              ) : activeView === 'graphique' ? (
+                chartItems && (
+                  <VerticalChartBar
+                    chartItems={chartItems}
+                    yAxisLabel="Nombre d'analyses"
+                    unit="analyse(s)"
+                    chartHeight={350}
+                  />
+                )
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
                     <tr
-                      key={d.annee}
                       style={{
-                        borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                        backgroundColor: fr.colors.decisions.background.default.grey.default,
+                        borderBottom: `2px solid ${fr.colors.decisions.border.default.grey.default}`,
                       }}
                     >
-                      <td style={{ padding: '10px 16px', fontSize: 14 }}>{d.annee}</td>
-                      <td style={{ padding: '10px 16px', fontSize: 14 }}>
-                        {d.sans_dep.toLocaleString('fr-FR')}
-                      </td>
-                      <td style={{ padding: '10px 16px', fontSize: 14 }}>
-                        {d.avec_dep > 0 ? (
-                          <span style={{ color: fr.colors.decisions.text.default.error.default }}>
-                            {d.avec_dep.toLocaleString('fr-FR')}
-                          </span>
-                        ) : (
-                          d.avec_dep.toLocaleString('fr-FR')
-                        )}
-                      </td>
-                      <td style={{ padding: '10px 16px', fontSize: 14 }}>
-                        {d.total.toLocaleString('fr-FR')}
-                      </td>
+                      {['Année', 'Conformes', 'En dépassement', 'Total'].map((col) => (
+                        <th
+                          key={col}
+                          scope="col"
+                          style={{
+                            padding: '10px 16px',
+                            textAlign: 'left',
+                            fontWeight: 700,
+                            fontSize: 14,
+                          }}
+                        >
+                          {col}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+                  </thead>
+                  <tbody>
+                    {perYearData.map((d) => (
+                      <tr
+                        key={d.annee}
+                        style={{
+                          borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                        }}
+                      >
+                        <td style={{ padding: '10px 16px', fontSize: 14 }}>{d.annee}</td>
+                        <td style={{ padding: '10px 16px', fontSize: 14 }}>
+                          {d.sans_dep.toLocaleString('fr-FR')}
+                        </td>
+                        <td style={{ padding: '10px 16px', fontSize: 14 }}>
+                          {d.avec_dep > 0 ? (
+                            <span style={{ color: fr.colors.decisions.text.default.error.default }}>
+                              {d.avec_dep.toLocaleString('fr-FR')}
+                            </span>
+                          ) : (
+                            d.avec_dep.toLocaleString('fr-FR')
+                          )}
+                        </td>
+                        <td style={{ padding: '10px 16px', fontSize: 14 }}>
+                          {d.total.toLocaleString('fr-FR')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
 
-        {activeSection === 'chroniques' && yearMin !== null && yearMax !== null && (
-          <div className="fr-p-3w">
-            <ChroniquesParSubstances
-              aacCode={aacCode}
-              installationCode={installationCode}
-              yearMin={yearMin}
-              yearMax={yearMax}
-            />
-          </div>
-        )}
+          {activeSection === 'chroniques' && yearMin !== null && yearMax !== null && (
+            <div className="fr-p-3w">
+              <ChroniquesParSubstances
+                aacCode={aacCode}
+                installationCode={installationCode}
+                yearMin={yearMin}
+                yearMax={yearMax}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
