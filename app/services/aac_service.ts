@@ -1,5 +1,11 @@
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api'
 import env from '#start/env'
+import type {
+  AnalysesStats,
+  AnalysesPerYear,
+  SubstanceItem,
+  ChroniqueData,
+} from '../../types/captage.js'
 
 /** Escapes a value for safe embedding in a single-quoted SQL string literal. */
 function sqlEscape(value: string): string {
@@ -344,7 +350,7 @@ export class AacService {
     installationCode: string,
     yearMin: number,
     yearMax: number
-  ): Promise<{ total: number; depassements_alerte: number; depassements_reglementaires: number }> {
+  ): Promise<AnalysesStats> {
     const conn = await getConnection()
     const sql = `
       WITH date_flags AS (
@@ -422,7 +428,7 @@ export class AacService {
     installationCode: string,
     yearMin: number,
     yearMax: number
-  ): Promise<Array<{ annee: number; total: number; avec_dep: number; sans_dep: number }>> {
+  ): Promise<AnalysesPerYear[]> {
     const conn = await getConnection()
     const sql = `
       WITH date_flags AS (
@@ -466,14 +472,7 @@ export class AacService {
     installationCode: string,
     yearMin: number,
     yearMax: number
-  ): Promise<
-    Array<{
-      code_parametre: number
-      libelle_parametre: string
-      code_unite: string
-      has_dep: boolean
-    }>
-  > {
+  ): Promise<SubstanceItem[]> {
     const conn = await getConnection()
     const sql = `
       SELECT
@@ -512,23 +511,7 @@ export class AacService {
     codeParametre: number,
     yearMin: number,
     yearMax: number
-  ): Promise<{
-    info: {
-      code_parametre: number
-      libelle_parametre: string
-      code_unite: string
-      seuil_regl: number | null
-      seuil_alerte: number | null
-    }
-    stats: {
-      moyenne: number
-      maximum: number
-      nb_total: number
-      nb_dep_regl: number
-      frequence_dep_regl: number
-    }
-    series: Array<{ date: string; valeur: number; statut: 'conforme' | 'dep_alerte' | 'dep_regl' }>
-  }> {
+  ): Promise<ChroniqueData> {
     const conn = await getConnection()
 
     const statsSql = `

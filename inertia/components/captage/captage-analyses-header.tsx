@@ -5,19 +5,7 @@ import ResumeCard from '~/ui/ResumeCard'
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
 import ChroniquesParSubstances from './chroniques-par-substances'
-
-type Stats = {
-  total: number
-  depassements_alerte: number
-  depassements_reglementaires: number
-}
-
-type PerYearData = {
-  annee: number
-  total: number
-  avec_dep: number
-  sans_dep: number
-}
+import type { AnalysesStats, AnalysesPerYear } from '#types/captage'
 
 type Props = {
   aacCode: string
@@ -220,8 +208,8 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
   const [sliderMax, setSliderMax] = useState<number | null>(null)
   const [yearMin, setYearMin] = useState<number | null>(null)
   const [yearMax, setYearMax] = useState<number | null>(null)
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [perYearData, setPerYearData] = useState<PerYearData[] | null>(null)
+  const [stats, setStats] = useState<AnalysesStats | null>(null)
+  const [perYearData, setPerYearData] = useState<AnalysesPerYear[] | null>(null)
   const [loadingYears, setLoadingYears] = useState(true)
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingPerYear, setLoadingPerYear] = useState(false)
@@ -275,7 +263,7 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<Stats>
+        return res.json() as Promise<AnalysesStats>
       })
       .then(setStats)
       .catch((err) => {
@@ -301,7 +289,7 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<PerYearData[]>
+        return res.json() as Promise<AnalysesPerYear[]>
       })
       .then(setPerYearData)
       .catch((err) => {

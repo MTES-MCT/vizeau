@@ -16,35 +16,9 @@ import {
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import Loader from '~/ui/Loader'
+import type { SubstanceItem, ChroniqueData } from '#types/captage'
 
 ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Substance = {
-  code_parametre: number
-  libelle_parametre: string
-  code_unite: string
-  has_dep: boolean
-}
-
-type ChroniqueData = {
-  info: {
-    code_parametre: number
-    libelle_parametre: string
-    code_unite: string
-    seuil_regl: number | null
-    seuil_alerte: number | null
-  }
-  stats: {
-    moyenne: number
-    maximum: number
-    nb_total: number
-    nb_dep_regl: number
-    frequence_dep_regl: number
-  }
-  series: Array<{ date: string; valeur: number; statut: 'conforme' | 'dep_alerte' | 'dep_regl' }>
-}
 
 type Props = {
   aacCode: string
@@ -183,7 +157,7 @@ export default function ChroniquesParSubstances({
   yearMin,
   yearMax,
 }: Props) {
-  const [substances, setSubstances] = useState<Substance[]>([])
+  const [substances, setSubstances] = useState<SubstanceItem[]>([])
   const [selectedCode, setSelectedCode] = useState<number | null>(null)
   const [chronique, setChronique] = useState<ChroniqueData | null>(null)
   const [loadingSubstances, setLoadingSubstances] = useState(true)
@@ -205,7 +179,7 @@ export default function ChroniquesParSubstances({
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<Substance[]>
+        return res.json() as Promise<SubstanceItem[]>
       })
       .then((data) => {
         setSubstances(data)
