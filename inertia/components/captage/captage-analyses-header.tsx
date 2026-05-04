@@ -200,8 +200,6 @@ function DualRangeSlider({
   )
 }
 
-// ─── Stat Box ─────────────────────────────────────────────────────────────────
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CaptageAnalysesHeader({ aacCode, installationCode }: Props) {

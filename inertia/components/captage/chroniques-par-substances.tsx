@@ -147,8 +147,6 @@ function SubstanceScatterChart({ data }: { data: ChroniqueData }) {
   )
 }
 
-// ─── Mini stat box ─────────────────────────────────────────────────────────────
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ChroniquesParSubstances({
