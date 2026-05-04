@@ -27,6 +27,8 @@ function DualRangeSlider({
   onChange: (min: number, max: number) => void
   onCommit: (min: number, max: number) => void
 }) {
+  if (years.length === 0) return null
+
   const min = years[0]
   const max = years[years.length - 1]
   const blue = fr.colors.decisions.border.default.blueFrance.default
