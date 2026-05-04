@@ -12,3 +12,10 @@ export const analysesValidator = vine.compile(
     year: vine.number().withoutDecimals(),
   })
 )
+
+export const yearRangeValidator = vine.compile(
+  vine.object({
+    yearMin: vine.number().withoutDecimals(),
+    yearMax: vine.number().withoutDecimals(),
+  })
+)

@@ -2,25 +2,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
-import { analysesSummaryValidator, analysesValidator } from '#validators/aac'
+import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '../../types/aac.js'
 
 const PER_PAGE = 20
-
-function parseYearRange(
-  yearMinParam: string | null,
-  yearMaxParam: string | null
-): { yearMin: number; yearMax: number } | { error: string } {
-  const yearMin = yearMinParam ? Number.parseInt(yearMinParam, 10) : Number.NaN
-  const yearMax = yearMaxParam ? Number.parseInt(yearMaxParam, 10) : Number.NaN
-  if (!yearMinParam || !yearMaxParam || Number.isNaN(yearMin) || Number.isNaN(yearMax)) {
-    return { error: 'Les paramètres yearMin et yearMax sont requis' }
-  }
-  if (yearMin > yearMax) {
-    return { error: 'yearMin ne peut pas être supérieur à yearMax' }
-  }
-  return { yearMin, yearMax }
-}
 
 @inject()
 export default class AacController {
@@ -105,9 +90,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
-    if ('error' in range) return response.abort(range.error, 400)
-    const { yearMin, yearMax } = range
+    const { yearMin, yearMax } = await request.validateUsing(yearRangeValidator)
+    if (yearMin > yearMax)
+      return response.abort('yearMin ne peut pas être supérieur à yearMax', 400)
 
     const data = await this.aacService.getSubstances(params.installationCode, yearMin, yearMax)
     return response.json(data)
@@ -120,9 +105,9 @@ export default class AacController {
     const codeParametre = Number.parseInt(params.codeParametre, 10)
     if (Number.isNaN(codeParametre)) return response.abort('Code paramètre invalide', 400)
 
-    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
-    if ('error' in range) return response.abort(range.error, 400)
-    const { yearMin, yearMax } = range
+    const { yearMin, yearMax } = await request.validateUsing(yearRangeValidator)
+    if (yearMin > yearMax)
+      return response.abort('yearMin ne peut pas être supérieur à yearMax', 400)
 
     const data = await this.aacService.getSubstanceChronique(
       params.installationCode,
@@ -137,9 +122,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
-    if ('error' in range) return response.abort(range.error, 400)
-    const { yearMin, yearMax } = range
+    const { yearMin, yearMax } = await request.validateUsing(yearRangeValidator)
+    if (yearMin > yearMax)
+      return response.abort('yearMin ne peut pas être supérieur à yearMax', 400)
 
     const data = await this.aacService.getAnalysesPerYear(params.installationCode, yearMin, yearMax)
     return response.json(data)
@@ -149,9 +134,9 @@ export default class AacController {
     const valid = await this.aacService.hasInstallation(params.code, params.installationCode)
     if (!valid) return response.abort('AAC ou installation introuvable', 404)
 
-    const range = parseYearRange(request.input('yearMin'), request.input('yearMax'))
-    if ('error' in range) return response.abort(range.error, 400)
-    const { yearMin, yearMax } = range
+    const { yearMin, yearMax } = await request.validateUsing(yearRangeValidator)
+    if (yearMin > yearMax)
+      return response.abort('yearMin ne peut pas être supérieur à yearMax', 400)
 
     const data = await this.aacService.getAnalysesStats(params.installationCode, yearMin, yearMax)
     return response.json(data)
