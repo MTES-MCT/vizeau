@@ -375,7 +375,7 @@ export default function ChroniquesParSubstances({
             style={{ border: `1px solid ${fr.colors.decisions.border.default.grey.default}` }}
           >
             <h6 className="fr-text--md fr-mb-0" style={{ fontWeight: 700 }}>
-              <span className="fr-icon-account-line fr-icon--sm fr-mr-1v" aria-hidden="true" />
+              <span className="fr-icon-microscope-line fr-icon--sm fr-mr-1v" aria-hidden="true" />
               Résultat des prélèvements sur la période
             </h6>
 
