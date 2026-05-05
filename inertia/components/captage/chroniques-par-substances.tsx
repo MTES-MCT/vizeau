@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Select from '@codegouvfr/react-dsfr/Select'
 import ResumeCard from '~/ui/ResumeCard'
@@ -17,6 +17,7 @@ import {
 import { Chart } from 'react-chartjs-2'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
+import { useFetch } from '~/hooks/use-fetch'
 
 ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
@@ -155,67 +156,33 @@ export default function ChroniquesParSubstances({
   yearMin,
   yearMax,
 }: Props) {
-  const [substances, setSubstances] = useState<SubstanceItem[]>([])
   const [selectedCode, setSelectedCode] = useState<number | null>(null)
-  const [chronique, setChronique] = useState<ChroniqueData | null>(null)
-  const [loadingSubstances, setLoadingSubstances] = useState(true)
-  const [loadingChronique, setLoadingChronique] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  // Load substances list when year range changes
-  useEffect(() => {
-    const controller = new AbortController()
-    setLoadingSubstances(true)
-    setSubstances([])
-    setSelectedCode(null)
-    setChronique(null)
-    setError(null)
+  const baseUrl = `/aac/${aacCode}/installations/${installationCode}/analyses`
+  const yearParams = `?yearMin=${yearMin}&yearMax=${yearMax}`
 
-    fetch(
-      `/aac/${aacCode}/installations/${installationCode}/analyses/substances?yearMin=${yearMin}&yearMax=${yearMax}`,
-      { signal: controller.signal }
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<SubstanceItem[]>
-      })
-      .then((data) => {
-        setSubstances(data)
-        if (data.length > 0) setSelectedCode(data[0].code_parametre)
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError('Impossible de charger les substances.')
-      })
-      .finally(() => setLoadingSubstances(false))
+  const {
+    data: substances,
+    loading: loadingSubstances,
+    error: errorSubstances,
+  } = useFetch<SubstanceItem[]>(
+    `${baseUrl}/substances${yearParams}`,
+    'Impossible de charger les substances.',
+    (data) => {
+      setSelectedCode(data.length > 0 ? data[0].code_parametre : null)
+    }
+  )
 
-    return () => controller.abort()
-  }, [aacCode, installationCode, yearMin, yearMax])
+  const {
+    data: chronique,
+    loading: loadingChronique,
+    error: errorChronique,
+  } = useFetch<ChroniqueData>(
+    selectedCode !== null ? `${baseUrl}/substances/${selectedCode}${yearParams}` : null,
+    'Impossible de charger la chronique.'
+  )
 
-  // Load chronique when substance selection changes
-  useEffect(() => {
-    if (selectedCode === null) return
-
-    const controller = new AbortController()
-    setLoadingChronique(true)
-    setChronique(null)
-    setError(null)
-
-    fetch(
-      `/aac/${aacCode}/installations/${installationCode}/analyses/substances/${selectedCode}?yearMin=${yearMin}&yearMax=${yearMax}`,
-      { signal: controller.signal }
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<ChroniqueData>
-      })
-      .then(setChronique)
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError('Impossible de charger la chronique.')
-      })
-      .finally(() => setLoadingChronique(false))
-
-    return () => controller.abort()
-  }, [aacCode, installationCode, selectedCode, yearMin, yearMax])
+  const error = errorSubstances ?? errorChronique
 
   if (error) {
     return (
@@ -244,7 +211,7 @@ export default function ChroniquesParSubstances({
             }}
             style={{ marginBottom: 0, maxWidth: 400 }}
           >
-            {substances.map((s) => (
+            {(substances ?? []).map((s) => (
               <option key={s.code_parametre} value={s.code_parametre}>
                 {s.libelle_parametre}
                 {s.has_dep ? ' ⚠' : ''}
