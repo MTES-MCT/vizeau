@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
 import ResumeCard from '~/ui/ResumeCard'
@@ -6,6 +6,7 @@ import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
 import ChroniquesParSubstances from './chroniques-par-substances'
 import DualRangeSlider from './dual-range-slider'
+import { useFetch } from '~/hooks/use-fetch'
 import type { AnalysesStats, AnalysesPerYear } from '#types/captage'
 
 type Props = {
@@ -14,102 +15,55 @@ type Props = {
 }
 
 export default function CaptageAnalysesHeader({ aacCode, installationCode }: Props) {
-  const [years, setYears] = useState<number[]>([])
   const [sliderMin, setSliderMin] = useState<number | null>(null)
   const [sliderMax, setSliderMax] = useState<number | null>(null)
   const [yearMin, setYearMin] = useState<number | null>(null)
   const [yearMax, setYearMax] = useState<number | null>(null)
-  const [stats, setStats] = useState<AnalysesStats | null>(null)
-  const [perYearData, setPerYearData] = useState<AnalysesPerYear[] | null>(null)
-  const [loadingYears, setLoadingYears] = useState(true)
-  const [loadingStats, setLoadingStats] = useState(false)
-  const [loadingPerYear, setLoadingPerYear] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<'suivi' | 'chroniques'>('suivi')
   const [activeView, setActiveView] = useState<'graphique' | 'tableau'>('graphique')
 
-  // Fetch available years
-  useEffect(() => {
-    const controller = new AbortController()
-    setLoadingYears(true)
-    setError(null)
+  const baseUrl = `/aac/${aacCode}/installations/${installationCode}/analyses`
+  const yearParams =
+    yearMin !== null && yearMax !== null ? `?yearMin=${yearMin}&yearMax=${yearMax}` : null
 
-    fetch(`/aac/${aacCode}/installations/${installationCode}/analyses/years`, {
-      signal: controller.signal,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<string[]>
-      })
-      .then((data) => {
-        const nums = data.map(Number).sort((a, b) => a - b)
-        setYears(nums)
-        if (nums.length > 0) {
-          setSliderMin(nums[0])
-          setSliderMax(nums[nums.length - 1])
-          setYearMin(nums[0])
-          setYearMax(nums[nums.length - 1])
-        }
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError('Impossible de charger les années disponibles.')
-      })
-      .finally(() => setLoadingYears(false))
+  const {
+    data: years,
+    loading: loadingYears,
+    error: errorYears,
+  } = useFetch<string[]>(
+    `${baseUrl}/years`,
+    'Impossible de charger les années disponibles.',
+    (data) => {
+      const nums = data.map(Number).sort((a, b) => a - b)
+      if (nums.length > 0) {
+        setSliderMin(nums[0])
+        setSliderMax(nums[nums.length - 1])
+        setYearMin(nums[0])
+        setYearMax(nums[nums.length - 1])
+      }
+    }
+  )
 
-    return () => controller.abort()
-  }, [aacCode, installationCode])
+  const {
+    data: stats,
+    loading: loadingStats,
+    error: errorStats,
+  } = useFetch<AnalysesStats>(
+    yearParams ? `${baseUrl}/stats${yearParams}` : null,
+    'Impossible de charger les statistiques.'
+  )
 
-  // Fetch stats when year range changes
-  useEffect(() => {
-    if (yearMin === null || yearMax === null) return
+  const {
+    data: perYearData,
+    loading: loadingPerYear,
+    error: errorPerYear,
+  } = useFetch<AnalysesPerYear[]>(
+    yearParams ? `${baseUrl}/per-year${yearParams}` : null,
+    'Impossible de charger les données par année.'
+  )
 
-    const controller = new AbortController()
-    setLoadingStats(true)
-    setStats(null)
-    setError(null)
-
-    fetch(
-      `/aac/${aacCode}/installations/${installationCode}/analyses/stats?yearMin=${yearMin}&yearMax=${yearMax}`,
-      { signal: controller.signal }
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<AnalysesStats>
-      })
-      .then(setStats)
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError('Impossible de charger les statistiques.')
-      })
-      .finally(() => setLoadingStats(false))
-
-    return () => controller.abort()
-  }, [aacCode, installationCode, yearMin, yearMax])
-
-  // Fetch per-year data when year range changes
-  useEffect(() => {
-    if (yearMin === null || yearMax === null) return
-
-    const controller = new AbortController()
-    setLoadingPerYear(true)
-    setPerYearData(null)
-    setError(null)
-
-    fetch(
-      `/aac/${aacCode}/installations/${installationCode}/analyses/per-year?yearMin=${yearMin}&yearMax=${yearMax}`,
-      { signal: controller.signal }
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<AnalysesPerYear[]>
-      })
-      .then(setPerYearData)
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError('Impossible de charger les données par année.')
-      })
-      .finally(() => setLoadingPerYear(false))
-
-    return () => controller.abort()
-  }, [aacCode, installationCode, yearMin, yearMax])
+  const yearNums = years?.map(Number).sort((a, b) => a - b) ?? []
+  const error = errorYears ?? errorStats ?? errorPerYear
 
   if (loadingYears) {
     return (
@@ -127,7 +81,7 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
     )
   }
 
-  if (years.length === 0) {
+  if (yearNums.length === 0) {
     return (
       <p
         className="fr-text--sm fr-mb-0"
@@ -199,7 +153,7 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
         </p>
         {sliderMin !== null && sliderMax !== null && (
           <DualRangeSlider
-            years={years}
+            years={yearNums}
             valueMin={sliderMin}
             valueMax={sliderMax}
             onChange={(min, max) => {
