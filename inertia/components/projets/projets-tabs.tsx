@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from 'react'
+import { ChangeEvent, useCallback, useMemo, useState } from 'react'
 import { router } from '@inertiajs/react'
 
 import { ProjetStatutJson, ProjetJson } from '../../../types/models'
@@ -53,18 +53,21 @@ export default function ProjetsTabs({ projets, queryString }: ProjetsTabsProps) 
     })
   }
 
-  const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
-    /*
-      We refresh the projets with the new search query,
-      the query string so that the pagination doesn't break,
-      and we reset the page to 1.
-     */
-    router.reload({
-      only: ['projetsWithPagination', 'queryString'],
-      data: { recherche: e.target.value, page: 1 },
-      replace: true,
-    })
-  }, 300)
+  const handleSearch = useCallback(
+    debounce((e: ChangeEvent<HTMLInputElement>) => {
+      /*
+        We refresh the projets with the new search query,
+        the query string so that the pagination doesn't break,
+        and we reset the page to 1.
+       */
+      router.reload({
+        only: ['projets', 'queryString'],
+        data: { recherche: e.target.value, page: 1 },
+        replace: true,
+      })
+    }, 300),
+    []
+  )
 
   const statutCounts = countBy(projets, 'statut')
 
