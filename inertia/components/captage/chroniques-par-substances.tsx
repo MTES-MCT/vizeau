@@ -143,7 +143,7 @@ function SubstanceScatterChart({ data }: { data: ChroniqueData }) {
 
   return (
     <div style={{ height: 320 }}>
-      <Chart type="scatter" data={{ datasets }} options={options} />
+      <Chart type="scatter" data={{ datasets: datasets as any }} options={options} />
     </div>
   )
 }
