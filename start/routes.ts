@@ -154,12 +154,45 @@ router
           .where('code', /^\d+$/)
           .as('aac.analysesSummary')
         router
+          .get('aac/:code/installations/:installationCode', [AacController, 'showInstallation'])
+          .where('code', /^\d+$/)
+          .as('aac.showInstallation')
+        router
+          .get('aac/:code/installations/:installationCode/analyses/substances', [
+            AacController,
+            'substances',
+          ])
+          .where('code', /^\d+$/)
+          .as('aac.substances')
+        router
+          .get('aac/:code/installations/:installationCode/analyses/substances/:codeParametre', [
+            AacController,
+            'substanceChronique',
+          ])
+          .where('code', /^\d+$/)
+          .where('codeParametre', /^\d+$/)
+          .as('aac.substanceChronique')
+        router
+          .get('aac/:code/installations/:installationCode/analyses/per-year', [
+            AacController,
+            'analysesPerYear',
+          ])
+          .where('code', /^\d+$/)
+          .as('aac.analysesPerYear')
+        router
           .get('aac/:code/installations/:installationCode/analyses/years', [
             AacController,
             'analysesYears',
           ])
           .where('code', /^\d+$/)
           .as('aac.analysesYears')
+        router
+          .get('aac/:code/installations/:installationCode/analyses/stats', [
+            AacController,
+            'analysesStats',
+          ])
+          .where('code', /^\d+$/)
+          .as('aac.analysesStats')
         router
           .get('aac/:code/installations/:installationCode/analyses', [AacController, 'analyses'])
           .where('code', /^\d+$/)

@@ -12,6 +12,39 @@ body {
   width: 100%;
 }
 
+/* Dual range slider thumbs */
+.dual-range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: all;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--blue-france-sun-113-625, #000091);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--blue-france-sun-113-625, #000091);
+}
+
+.dual-range-thumb::-moz-range-thumb {
+  pointer-events: all;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--blue-france-sun-113-625, #000091);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--blue-france-sun-113-625, #000091);
+}
+
+.dual-range-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.dual-range-thumb::-moz-range-track {
+  background: transparent;
+}
+
 @keyframes glow {
   0%,
   100% {
