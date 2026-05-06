@@ -1,9 +1,26 @@
-import { Chart as ChartJS, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
+import {
+  Chart as ChartJS,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  ScatterController,
+  LineController,
+} from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import Badge from '@codegouvfr/react-dsfr/Badge'
 import { useState } from 'react'
 
-ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
+ChartJS.register(
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  ScatterController,
+  LineController
+)
 
 type BadgeSeverity = 'info' | 'success' | 'warning' | 'error' | 'new'
 

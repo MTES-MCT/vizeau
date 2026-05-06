@@ -7,13 +7,24 @@ import {
   LineElement,
   Tooltip,
   Legend,
+  ScatterController,
+  LineController,
   type ChartDataset,
   type ChartOptions,
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import type { ChroniqueData } from '#types/captage'
 
-ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
+ChartJS.register(
+  TimeScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  ScatterController,
+  LineController
+)
 
 export function formatUnite(code: string): string {
   return code === 'SANS OBJET' ? '' : code
