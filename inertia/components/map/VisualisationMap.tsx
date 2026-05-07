@@ -137,11 +137,6 @@ const VisualisationMap = forwardRef<
     const currentStyleRef = useRef<string>('vector')
     const previousVisibleCulturesRef = useRef<string[]>([])
     const showBioOnlyRef = useRef(false)
-    const onZoomChangeRef = useRef(onZoomChange)
-
-    useEffect(() => {
-      onZoomChangeRef.current = onZoomChange
-    }, [onZoomChange])
 
     // Synchroniser les refs avec les props
     useEffect(() => {
@@ -402,7 +397,7 @@ const VisualisationMap = forwardRef<
         addLayers(getSageLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
 
-        onZoomChangeRef.current?.(map.getZoom())
+        onZoomChange?.(map.getZoom())
         setIsMapLoading(false)
       })
 
@@ -412,7 +407,7 @@ const VisualisationMap = forwardRef<
       })
 
       map.on('zoomend', () => {
-        onZoomChangeRef.current?.(map.getZoom())
+        onZoomChange?.(map.getZoom())
       })
 
       mapRef.current = map
