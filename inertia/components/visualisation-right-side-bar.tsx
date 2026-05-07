@@ -18,6 +18,7 @@ export default function VisualisationRightSideBar({
   setShowBioOnly = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowSage = (_update: boolean | ((prev: boolean) => boolean)) => {},
   canSwitchToBioOnly = true,
+  parcellesZoomDisabled = false,
   visibleCultures,
   onToggleCulture,
   onToggleAllCultures,
@@ -37,6 +38,7 @@ export default function VisualisationRightSideBar({
   setShowBioOnly?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowSage?: (update: boolean | ((prev: boolean) => boolean)) => void
   canSwitchToBioOnly?: boolean
+  parcellesZoomDisabled?: boolean
   visibleCultures?: string[]
   onToggleCulture?: (code: string) => void
   onToggleAllCultures?: () => void
@@ -65,6 +67,7 @@ export default function VisualisationRightSideBar({
           showSage={showSage}
           setShowSage={setShowSage}
           canSwitchToBioOnly={canSwitchToBioOnly}
+          parcellesZoomDisabled={parcellesZoomDisabled}
         />
       </SmallSection>
 

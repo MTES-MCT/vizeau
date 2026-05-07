@@ -91,6 +91,7 @@ const VisualisationMap = forwardRef<
     visibleCultures?: string[]
     showSage?: boolean
     style?: string
+    onZoomChange?: (zoom: number) => void
   }
 >(
   (
@@ -118,6 +119,7 @@ const VisualisationMap = forwardRef<
       visibleCultures = [],
       showSage = false,
       style = 'vector',
+      onZoomChange,
     },
     ref
   ) => {
@@ -135,6 +137,11 @@ const VisualisationMap = forwardRef<
     const currentStyleRef = useRef<string>('vector')
     const previousVisibleCulturesRef = useRef<string[]>([])
     const showBioOnlyRef = useRef(false)
+    const onZoomChangeRef = useRef(onZoomChange)
+
+    useEffect(() => {
+      onZoomChangeRef.current = onZoomChange
+    }, [onZoomChange])
 
     // Synchroniser les refs avec les props
     useEffect(() => {
@@ -401,6 +408,10 @@ const VisualisationMap = forwardRef<
       // Ensures the map is not blocked in loading state after any loading event
       map.on('idle', () => {
         setIsMapLoading(false)
+      })
+
+      map.on('zoomend', () => {
+        onZoomChangeRef.current?.(map.getZoom())
       })
 
       mapRef.current = map
