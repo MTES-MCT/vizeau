@@ -402,6 +402,7 @@ const VisualisationMap = forwardRef<
         addLayers(getSageLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
 
+        onZoomChangeRef.current?.(map.getZoom())
         setIsMapLoading(false)
       })
 

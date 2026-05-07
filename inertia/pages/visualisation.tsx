@@ -42,7 +42,7 @@ export default function VisualisationPage({
   selectedAac,
 }: InferPageProps<VisualisationController, 'index'>) {
   const [isMapLoading, setIsMapLoading] = useState(true)
-  const [mapZoom, setMapZoom] = useState(5)
+  const [mapZoom, setMapZoom] = useState<number | null>(null)
   const [showParcelles, setShowParcelles] = useState(true)
   const [showAac, setShowAac] = useState(true)
   const [showPpe, setShowPpe] = useState(false)
@@ -395,7 +395,7 @@ export default function VisualisationPage({
             showSage={showSage}
             setShowSage={() => setShowSage((prev) => !prev)}
             canSwitchToBioOnly={!editMode}
-            parcellesZoomDisabled={mapZoom < 10}
+            parcellesZoomDisabled={mapZoom !== null && mapZoom < 10}
             visibleCultures={visibleCultures}
             onToggleCulture={toggleCulture}
             onToggleAllCultures={toggleAllCultures}
