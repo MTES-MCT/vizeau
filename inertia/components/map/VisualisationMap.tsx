@@ -91,6 +91,7 @@ const VisualisationMap = forwardRef<
     visibleCultures?: string[]
     showSage?: boolean
     style?: string
+    onZoomChange?: (zoom: number) => void
   }
 >(
   (
@@ -118,6 +119,7 @@ const VisualisationMap = forwardRef<
       visibleCultures = [],
       showSage = false,
       style = 'vector',
+      onZoomChange,
     },
     ref
   ) => {
@@ -395,12 +397,17 @@ const VisualisationMap = forwardRef<
         addLayers(getSageLayer(), beforeId)
         addLayers(getParcellesLayers(), beforeId)
 
+        onZoomChange?.(map.getZoom())
         setIsMapLoading(false)
       })
 
       // Ensures the map is not blocked in loading state after any loading event
       map.on('idle', () => {
         setIsMapLoading(false)
+      })
+
+      map.on('zoomend', () => {
+        onZoomChange?.(map.getZoom())
       })
 
       mapRef.current = map

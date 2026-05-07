@@ -26,7 +26,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'type': 'fill',
       'source': 'parcelles',
       'source-layer': 'parcelles',
-      'minzoom': 12,
+      'minzoom': 10,
       'paint': {
         'fill-color': colorMatch as any,
         'fill-opacity': [
@@ -44,7 +44,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'type': 'line',
       'source': 'parcelles',
       'source-layer': 'parcelles',
-      'minzoom': 12,
+      'minzoom': 10,
       'paint': {
         'line-color': '#000000',
         'line-width': [
@@ -74,7 +74,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'type': 'fill',
       'source': 'parcelles',
       'source-layer': 'parcellesbio',
-      'minzoom': 12,
+      'minzoom': 10,
       'paint': {
         'fill-color': colorMatch as any,
         'fill-opacity': 0, // Transparent par défaut pour la détection uniquement
@@ -85,7 +85,7 @@ export const getParcellesLayers = (): LayerSpecification[] => {
       'type': 'line',
       'source': 'parcelles',
       'source-layer': 'parcellesbio',
-      'minzoom': 12,
+      'minzoom': 10,
       'paint': {
         'line-color': '#000000',
         'line-width': ['interpolate', ['linear'], ['zoom'], 15, 1, 18, 3],

@@ -18,6 +18,7 @@ export default function MapLayerFilters({
   setShowBioOnly = (_update) => {},
   setShowSage = (_update) => {},
   canSwitchToBioOnly = true,
+  parcellesZoomDisabled = false,
 }: {
   showParcelles?: boolean
   showAac?: boolean
@@ -34,14 +35,26 @@ export default function MapLayerFilters({
   setShowBioOnly?: Dispatch<SetStateAction<boolean>>
   setShowSage?: Dispatch<SetStateAction<boolean>>
   canSwitchToBioOnly?: boolean
+  parcellesZoomDisabled?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1">
       <LegendItem
         label="Parcelles"
-        hint="Terrains cadastrés"
+        hint={
+          parcellesZoomDisabled
+            ? 'Zoomez davantage pour afficher les parcelles'
+            : 'Terrains cadastrés'
+        }
         checked={showParcelles}
+        disabled={parcellesZoomDisabled}
         onChange={() => setShowParcelles((prev) => !prev)}
+      />
+      <LegendItem
+        label="Parcelles bio uniquement"
+        checked={showBioOnly}
+        disabled={!showParcelles || !canSwitchToBioOnly || parcellesZoomDisabled}
+        onChange={() => setShowBioOnly((prev) => !prev)}
       />
       <LegendItem
         label="AAC"
@@ -75,12 +88,6 @@ export default function MapLayerFilters({
         label="Délimitations des communes"
         checked={showCommunes}
         onChange={() => setShowCommunes((prev) => !prev)}
-      />
-      <LegendItem
-        label="Parcelles bio uniquement"
-        checked={showBioOnly}
-        disabled={!showParcelles || !canSwitchToBioOnly}
-        onChange={() => setShowBioOnly((prev) => !prev)}
       />
     </div>
   )
