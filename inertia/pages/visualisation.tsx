@@ -98,11 +98,12 @@ export default function VisualisationPage({
     parcelles: data.parcelles,
   }))
 
-  const sendFormAndResetState = () => {
+  const sendFormAndResetState = (onAfterSuccess?: () => void) => {
     post(assignParcellesToExploitationUrl, {
       preserveState: true,
       onSuccess: () => {
         setEditMode(false)
+        onAfterSuccess?.()
       },
       // Reload the exploitations to get updated parcelle data
       only: ['filteredExploitations'],

@@ -1,7 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { fr } from '@codegouvfr/react-dsfr'
+import { toast } from 'react-toastify'
 import Loader from '~/ui/Loader'
+import Toast from '~/ui/Toaster'
 import { ExploitationJson } from '../../types/models'
 
 export type ParcellesManagerProps = {
@@ -15,7 +17,7 @@ export type ParcellesManagerProps = {
   isDirty: boolean
   processing: boolean
   reset: (...args: unknown[]) => void
-  sendFormAndResetState: (...args: unknown[]) => void
+  sendFormAndResetState: (onAfterSuccess?: () => void) => void
 }
 
 export default function ParcellesManager({
@@ -35,6 +37,20 @@ export default function ParcellesManager({
     id: 'cancel-edit-mode-modal',
     isOpenedByDefault: false,
   })
+  const showSuccessToast = () => {
+    toast(
+      <Toast
+        alerts={[
+          { severity: 'success', message: 'Les parcelles ont été mises à jour avec succès.' },
+        ]}
+      />,
+      {
+        closeButton: false,
+        style: { padding: 0, background: 'transparent', boxShadow: 'none' },
+      }
+    )
+  }
+
   return (
     <div
       className="flex flex-col gap-1"
@@ -72,7 +88,7 @@ export default function ParcellesManager({
               size="small"
               disabled={processing}
               onClick={() => {
-                sendFormAndResetState()
+                sendFormAndResetState(showSuccessToast)
               }}
             >
               Appliquer
@@ -118,7 +134,7 @@ export default function ParcellesManager({
             children: 'Appliquer les modifications',
             disabled: processing,
             onClick: () => {
-              sendFormAndResetState()
+              sendFormAndResetState(showSuccessToast)
             },
           },
         ]}

@@ -631,7 +631,6 @@ export class AacService {
     }
   }
 
-
   async getAnalysesRobinetForExport(
     installationCodes: string[]
   ): Promise<Record<string, unknown>[]> {
@@ -644,9 +643,9 @@ export class AacService {
 
     const stmt = await conn.prepare(
       'SELECT "code_insee", "nom_commune", "code_installation", "nom_installation", "date_prelevement", "heure_prelevement", "code_brgm", "resultat", "code_unite", "libelle_parametre", "limite_qualite", "reference_qualite", "captage_prioritaire" ' +
-      'FROM read_parquet($1) ' +
-      `WHERE "code_installation" IN (${placeholders}) ` +
-      'ORDER BY "date_prelevement" DESC NULLS LAST'
+        'FROM read_parquet($1) ' +
+        `WHERE "code_installation" IN (${placeholders}) ` +
+        'ORDER BY "date_prelevement" DESC NULLS LAST'
     )
 
     stmt.bindVarchar(1, getAnalysesRobinetPath())
