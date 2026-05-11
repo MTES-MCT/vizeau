@@ -30,7 +30,7 @@ export default function Toast({ alerts, closeToast }: ToastProps) {
           description={message}
           small
           closable
-          style={{ fontFamily: 'Marianne' }}
+          style={{ fontFamily: 'Marianne, arial, sans-serif' }}
           onClose={() => handleAlertClose(message)}
         />
       ))}
