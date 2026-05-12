@@ -1,16 +1,8 @@
 import Project, { ProjectStatus } from '#models/project'
-import type { DateTime } from 'luxon'
-
-export type CreateProjectPayload = {
-  name: string
-  description?: string | null
-  actionType?: string | null
-  status?: Project['status']
-  closedAt?: DateTime | null
-}
+import { ModelAttributes } from '@adonisjs/lucid/types/model'
 
 export class ProjectService {
-  async createProject(payload: CreateProjectPayload, userId: string) {
+  async createProject(payload: Partial<ModelAttributes<Project>>, userId: string) {
     return Project.create({
       name: payload.name,
       description: payload.description ?? null,
@@ -30,7 +22,11 @@ export class ProjectService {
     await project.delete()
   }
 
-  async updateProject(projectId: string, userId: string, payload: Partial<CreateProjectPayload>) {
+  async updateProject(
+    projectId: string,
+    userId: string,
+    payload: Partial<ModelAttributes<Project>>
+  ) {
     const project = await this.findOwnedProjectOrFail(projectId, userId)
 
     project.merge(payload)

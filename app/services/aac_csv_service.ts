@@ -28,7 +28,7 @@ function wrapCsv(sections: string[]): string {
 
 @inject()
 export class AacCsvService {
-  constructor(private aacService: AacService) {}
+  constructor(protected aacService: AacService) {}
 
   private async getAacDto(aacCode: string): Promise<AacJson | null> {
     const raw = await this.aacService.getByCode(aacCode)

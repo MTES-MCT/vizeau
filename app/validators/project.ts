@@ -11,6 +11,13 @@ export const createProjectValidator = vine.compile(
   })
 )
 
+export const showProjectValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      projectId: vine.string().uuid(),
+    }),
+  })
+)
 export const destroyProjectValidator = vine.compile(
   vine.object({
     params: vine.object({
@@ -31,7 +38,7 @@ export const updateProjectValidator = vine.compile(
       .nullable()
       .transform((value) => (value ? DateTime.fromJSDate(value) : value)),
     params: vine.object({
-      projetId: vine.string().uuid(),
+      projectId: vine.string().uuid(),
     }),
   })
 )

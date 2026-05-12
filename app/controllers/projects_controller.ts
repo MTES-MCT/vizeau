@@ -5,6 +5,7 @@ import { ProjectService } from '#services/project_service'
 import {
   createProjectValidator,
   destroyProjectValidator,
+  showProjectValidator,
   updateProjectValidator,
 } from '#validators/project'
 import { ProjectDto } from '../dto/project_dto.js'
@@ -22,8 +23,9 @@ export default class ProjectsController {
     })
   }
 
-  async show({ auth, params, response }: HttpContext) {
+  async show({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
+    const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
     return response.json({
@@ -44,7 +46,7 @@ export default class ProjectsController {
   async update({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params, ...payload } = await request.validateUsing(updateProjectValidator)
-    const project = await this.projectService.updateProject(params.projetId, user.id, payload)
+    const project = await this.projectService.updateProject(params.projectId, user.id, payload)
 
     return response.json({
       data: ProjectDto.fromModel(project),

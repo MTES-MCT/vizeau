@@ -692,7 +692,7 @@ export class AacService {
   /**
    * Returns all captages extracted from AAC installations.
    * The source parquet may contain the same installation across multiple AACs,
-   * so rows are deduplicated to satisfy unique constraints on `code` and `code_bss`.
+   * so rows are deduplicated to satisfy unique constraints on `code` and `bssCode`.
    */
   async getAllCaptagesFromInstallations(): Promise<CaptageSeedRow[]> {
     const conn = await getConnection()

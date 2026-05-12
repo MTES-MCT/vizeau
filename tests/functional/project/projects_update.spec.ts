@@ -13,7 +13,7 @@ test.group('Projects - Update Route', (group) => {
     await project.related('user').associate(user)
 
     const response = await client
-      .patch(route('projets.update', { projetId: project.id }))
+      .patch(route('projets.update', { projectId: project.id }))
       .loginAs(user)
       .json({
         name: 'Updated project name',
@@ -49,7 +49,7 @@ test.group('Projects - Update Route', (group) => {
     await project.related('user').associate(user)
 
     const response = await client
-      .patch(route('projets.update', { projetId: project.id }))
+      .patch(route('projets.update', { projectId: project.id }))
       .loginAs(user)
       .json({
         description: null,
@@ -70,7 +70,7 @@ test.group('Projects - Update Route', (group) => {
     const project = await ProjectFactory.with('user').create()
 
     const response = await client
-      .patch(route('projets.update', { projetId: project.id }))
+      .patch(route('projets.update', { projectId: project.id }))
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -88,7 +88,7 @@ test.group('Projects - Update Route', (group) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .patch(route('projets.update', { projetId: 'invalid-project-id' }))
+      .patch(route('projets.update', { projectId: 'invalid-project-id' }))
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({

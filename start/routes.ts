@@ -222,7 +222,7 @@ router
         router.get('projets', [ProjectsController, 'index']).as('projets.index')
         router.get('projets/:projectId', [ProjectsController, 'show']).as('projets.show')
         router.post('projets', [ProjectsController, 'store']).as('projets.store')
-        router.patch('projets/:projetId', [ProjectsController, 'update']).as('projets.update')
+        router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
         router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
       })
       .use(middleware.territoireAssignation())

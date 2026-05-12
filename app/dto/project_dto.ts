@@ -10,8 +10,8 @@ export class ProjectDto {
       actionType: project.actionType,
       status: project.status,
       closedAt: project.closedAt?.toISO() ?? null,
-      createdAt: project.createdAt.toISO(),
-      updatedAt: project.updatedAt.toISO(),
+      createdAt: project.createdAt.toISO() as string,
+      updatedAt: project.updatedAt.toISO() as string,
     }
   }
 }

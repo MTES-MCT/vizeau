@@ -77,8 +77,8 @@ export type ProjectJson = {
   actionType: string | null
   status: 'to_be_started' | 'current' | 'completed' | 'abandoned'
   closedAt: string | null
-  createdAt: string | null
-  updatedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export type ExploitationJson = {
