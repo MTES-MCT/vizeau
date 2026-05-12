@@ -97,7 +97,7 @@ export default class VisualisationController {
       },
       filteredExploitations: async () => {
         const results = await this.exploitationService
-          .getAllActiveExploitationsByNameOrContactName(request.input('recherche'), user.id)
+          .getAllActiveExploitations(request.input('recherche'), user.id)
           .preload('parcelles', (parcelleQuery) => {
             parcelleQuery.where('year', request.qs().millesime).orderBy('rpgId', 'asc')
           })
