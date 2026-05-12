@@ -16,6 +16,7 @@ const SessionController = () => import('#controllers/session_controller')
 const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
 const AacController = () => import('#controllers/aac_controller')
+const ProjectsController = () => import('#controllers/projects_controller')
 
 router.get('/', ({ response }) => response.redirect('login'))
 
@@ -217,6 +218,12 @@ router
           .get('aac/:code/installations/:installationCode/analyses', [AacController, 'analyses'])
           .where('code', /^\d+$/)
           .as('aac.analyses')
+
+        router.get('projets', [ProjectsController, 'index']).as('projets.index')
+        router.get('projets/:projectId', [ProjectsController, 'show']).as('projets.show')
+        router.post('projets', [ProjectsController, 'store']).as('projets.store')
+        router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
+        router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
       })
       .use(middleware.territoireAssignation())
   })

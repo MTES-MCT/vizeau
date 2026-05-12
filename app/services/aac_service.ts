@@ -146,6 +146,24 @@ function normalizeValue(value: unknown): unknown {
   return value
 }
 
+type CaptageSeedRow = {
+  code: string
+  name: string
+  bssCode: string
+  state: string
+}
+
+function normalizeString(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : null
+}
+
+function getCaptageStatePriority(state: string): number {
+  return state.toUpperCase() === 'ACTIF' ? 0 : 1
+}
+
 /**
  * Service for querying the AAC dataset stored as a Parquet file in S3 via DuckDB.
  * Provides methods to get paginated lists of AACs with optional search filters,
@@ -669,5 +687,68 @@ export class AacService {
 
     const result = await stmt.run()
     return (await result.getRowObjects()) as Array<{ code: string; name: string }>
+  }
+
+  /**
+   * Returns all captages extracted from AAC installations.
+   * The source parquet may contain the same installation across multiple AACs,
+   * so rows are deduplicated to satisfy unique constraints on `code` and `bssCode`.
+   */
+  async getAllCaptagesFromInstallations(): Promise<CaptageSeedRow[]> {
+    const conn = await getConnection()
+    const stmt = await conn.prepare(
+      'SELECT unnest(installations) AS installation FROM read_parquet($1) WHERE installations IS NOT NULL'
+    )
+    stmt.bindVarchar(1, getParquetPath())
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+
+    const candidates = rows
+      .map((row) => normalizeValue(row.installation) as Record<string, unknown> | null)
+      .flatMap((installation): CaptageSeedRow[] => {
+        if (!installation || typeof installation !== 'object') return []
+
+        const code = normalizeString(installation.code)
+        const name = normalizeString(installation.nom)
+        const bssCode = normalizeString(installation.code_bss)
+        const state = normalizeString(installation.etat)
+
+        if (!code || !name || !bssCode || !state) return []
+
+        return [
+          {
+            code,
+            name,
+            bssCode,
+            state,
+          },
+        ]
+      })
+      .sort((left, right) => {
+        const byState = getCaptageStatePriority(left.state) - getCaptageStatePriority(right.state)
+        if (byState !== 0) return byState
+
+        const byCode = left.code.localeCompare(right.code)
+        if (byCode !== 0) return byCode
+
+        const byBssCode = left.bssCode.localeCompare(right.bssCode)
+        if (byBssCode !== 0) return byBssCode
+
+        return left.name.localeCompare(right.name)
+      })
+
+    const captagesByCode = new Map<string, CaptageSeedRow>()
+    const usedBssCodes = new Set<string>()
+
+    for (const captage of candidates) {
+      if (captagesByCode.has(captage.code)) continue
+      if (usedBssCodes.has(captage.bssCode)) continue
+
+      captagesByCode.set(captage.code, captage)
+      usedBssCodes.add(captage.bssCode)
+    }
+
+    return Array.from(captagesByCode.values())
   }
 }

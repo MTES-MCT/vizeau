@@ -70,6 +70,17 @@ export type ParcelleJson = {
   comment: string | null
 }
 
+export type ProjectJson = {
+  id: string
+  name: string
+  description: string | null
+  actionType: string | null
+  status: 'to_be_started' | 'current' | 'completed' | 'abandoned'
+  closedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export type ExploitationJson = {
   id: string
   name: string
