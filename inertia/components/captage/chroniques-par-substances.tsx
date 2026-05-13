@@ -13,6 +13,22 @@ type Props = {
   yearMax: number
 }
 
+function groupSubstances(list: SubstanceItem[]): {
+  withDep: SubstanceItem[]
+  withoutDep: SubstanceItem[]
+  notDetected: SubstanceItem[]
+} {
+  const filtered = list.filter((s) => s.libelle_parametre && s.libelle_parametre.trim() !== '')
+  const byName = (a: SubstanceItem, b: SubstanceItem) =>
+    a.libelle_parametre.localeCompare(b.libelle_parametre)
+
+  return {
+    withDep: filtered.filter((s) => s.has_dep).sort(byName),
+    withoutDep: filtered.filter((s) => !s.has_dep && s.max_value > 0).sort(byName),
+    notDetected: filtered.filter((s) => !s.has_dep && s.max_value === 0).sort(byName),
+  }
+}
+
 export default function ChroniquesParSubstances({
   aacCode,
   installationCode,
@@ -32,7 +48,9 @@ export default function ChroniquesParSubstances({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.',
     (data) => {
-      setSelectedCode(data.length > 0 ? data[0].code_parametre : null)
+      const { withDep, withoutDep, notDetected } = groupSubstances(data)
+      const first = withDep[0] ?? withoutDep[0] ?? notDetected[0]
+      setSelectedCode(first ? first.code_parametre : null)
     }
   )
 
@@ -74,12 +92,28 @@ export default function ChroniquesParSubstances({
             }}
             style={{ marginBottom: 0, maxWidth: 400 }}
           >
-            {(substances ?? []).map((s) => (
-              <option key={s.code_parametre} value={s.code_parametre}>
-                {s.libelle_parametre}
-                {s.has_dep ? ' ⚠' : ''}
-              </option>
-            ))}
+            {(() => {
+              const { withDep, withoutDep, notDetected } = groupSubstances(substances ?? [])
+              const renderOption = (s: SubstanceItem) => (
+                <option key={s.code_parametre} value={s.code_parametre}>
+                  {s.libelle_parametre}
+                  {s.has_dep ? ' ⚠' : ''}
+                </option>
+              )
+              return (
+                <>
+                  {withDep.length > 0 && (
+                    <optgroup label="En dépassement">{withDep.map(renderOption)}</optgroup>
+                  )}
+                  {withoutDep.length > 0 && (
+                    <optgroup label="Sans dépassement">{withoutDep.map(renderOption)}</optgroup>
+                  )}
+                  {notDetected.length > 0 && (
+                    <optgroup label="Non détectée">{notDetected.map(renderOption)}</optgroup>
+                  )}
+                </>
+              )
+            })()}
           </Select>
         )}
       </div>
