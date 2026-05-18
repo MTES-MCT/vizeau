@@ -21,10 +21,6 @@ const meta = {
       control: 'text',
       description: 'Texte indicatif affiché sous le libellé.',
     },
-    iconId: {
-      control: 'text',
-      description: 'Identifiant de l’icône à afficher à gauche du label de chaque option.',
-    },
     placeholder: {
       control: 'text',
       description: "Texte affiché dans le déclencheur quand aucune option n'est sélectionnée.",
@@ -32,7 +28,7 @@ const meta = {
     options: {
       control: 'object',
       description:
-        'Liste des options. Une seule peut avoir `isSelected: true`.\n\nModèle :\n[\n  {\n    value: string | number,\n    label: string,\n    isSelected: boolean,\n    group?: string,\n  }\n]',
+        "Liste des options. Une seule peut avoir `isSelected: true`.\n\nModèle :\n[\n  {\n    value: string | number,\n    label: string,\n    isSelected: boolean,\n    iconId?: string,  // identifiant de l'icône à afficher à gauche du label\n    group?: string,\n  }\n]",
     },
     onChange: {
       control: false,

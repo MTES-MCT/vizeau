@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { groupBy } from 'lodash-es'
 
 import SingleSelectItem from './single-select-item'
-import { DropdownAction } from '../InputWithSelector/dropdown-item'
 
 export type OptionType<T> = {
   value: T
@@ -11,7 +10,6 @@ export type OptionType<T> = {
   iconId?: string
   isSelected: boolean
   group?: string
-  actions?: DropdownAction<T>[]
 }
 
 export type SingleSelectMenuProps<T extends string | number> = {
@@ -52,7 +50,7 @@ export default function SingleSelectMenu<T extends string | number>({
 }: SingleSelectMenuProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const triggerId = useRef(`single-select-trigger-${Math.random().toString(36).slice(2)}`)
+  const triggerId = `triggerId-${useId()}`
 
   const selectedOption = options.find((opt) => opt.isSelected)
   const closeDropdown = useCallback(() => setIsOpen(false), [])
@@ -81,7 +79,7 @@ export default function SingleSelectMenu<T extends string | number>({
   return (
     <div ref={containerRef} className="fr-select-group" style={{ marginBottom: 0 }}>
       {label && (
-        <label className="fr-label" htmlFor={triggerId.current}>
+        <label className="fr-label" htmlFor={triggerId}>
           {label}
           {hint && <span className="fr-hint-text">{hint}</span>}
         </label>
@@ -89,7 +87,7 @@ export default function SingleSelectMenu<T extends string | number>({
 
       <div style={{ position: 'relative' }}>
         <button
-          id={triggerId.current}
+          id={triggerId}
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           aria-haspopup="listbox"
