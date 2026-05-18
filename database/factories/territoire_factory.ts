@@ -6,7 +6,10 @@ export const TerritoireFactory = factory
   .define(Territoire, async () => {
     return {
       name: faker.location.county(),
-      code: faker.string.numeric({ length: { min: 1, max: 10 } }),
+      code: faker.helpers.arrayElement([
+        faker.string.numeric({ length: { min: 1, max: 10 } }),
+        null,
+      ]),
     }
   })
   .build()
