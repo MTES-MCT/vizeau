@@ -29,6 +29,30 @@ function groupSubstances(list: SubstanceItem[]): {
   }
 }
 
+function SubstanceOptions({ substances }: { substances: SubstanceItem[] }) {
+  const { withDep, withoutDep, notDetected } = groupSubstances(substances)
+  const renderOption = (s: SubstanceItem) => (
+    <option key={s.code_parametre} value={s.code_parametre}>
+      {s.libelle_parametre}
+      {s.has_dep ? ' ⚠' : ''}
+    </option>
+  )
+
+  return (
+    <>
+      {withDep.length > 0 && (
+        <optgroup label="En dépassement">{withDep.map(renderOption)}</optgroup>
+      )}
+      {withoutDep.length > 0 && (
+        <optgroup label="Sans dépassement">{withoutDep.map(renderOption)}</optgroup>
+      )}
+      {notDetected.length > 0 && (
+        <optgroup label="Non détectée">{notDetected.map(renderOption)}</optgroup>
+      )}
+    </>
+  )
+}
+
 export default function ChroniquesParSubstances({
   aacCode,
   installationCode,
@@ -92,28 +116,7 @@ export default function ChroniquesParSubstances({
             }}
             style={{ marginBottom: 0, maxWidth: 400 }}
           >
-            {(() => {
-              const { withDep, withoutDep, notDetected } = groupSubstances(substances ?? [])
-              const renderOption = (s: SubstanceItem) => (
-                <option key={s.code_parametre} value={s.code_parametre}>
-                  {s.libelle_parametre}
-                  {s.has_dep ? ' ⚠' : ''}
-                </option>
-              )
-              return (
-                <>
-                  {withDep.length > 0 && (
-                    <optgroup label="En dépassement">{withDep.map(renderOption)}</optgroup>
-                  )}
-                  {withoutDep.length > 0 && (
-                    <optgroup label="Sans dépassement">{withoutDep.map(renderOption)}</optgroup>
-                  )}
-                  {notDetected.length > 0 && (
-                    <optgroup label="Non détectée">{notDetected.map(renderOption)}</optgroup>
-                  )}
-                </>
-              )
-            })()}
+            <SubstanceOptions substances={substances ?? []} />
           </Select>
         )}
       </div>
