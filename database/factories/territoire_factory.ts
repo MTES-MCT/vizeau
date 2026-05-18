@@ -9,4 +9,7 @@ export const TerritoireFactory = factory
       code: faker.string.numeric({ length: { min: 1, max: 10 } }),
     }
   })
+  .state('nonAAC', (territoire) => {
+    territoire.code = null
+  })
   .build()
