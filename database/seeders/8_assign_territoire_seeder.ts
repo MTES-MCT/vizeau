@@ -30,6 +30,8 @@ export default class extends BaseSeeder {
         continue
       }
 
+      const territoiresIdsToSync = new Set<string>()
+
       if (userData.territoireCodes && userData.territoireCodes.length > 0) {
         const territoires = await Territoire.query().whereIn('code', userData.territoireCodes)
         const notFound = userData.territoireCodes.filter(
@@ -39,14 +41,9 @@ export default class extends BaseSeeder {
           console.warn(`Territoire codes not found: ${notFound.join(', ')}`)
         }
 
-        // The sync method ensures the relations are up to date with the env var value
-        await user.related('territoires').sync(
-          territoires.map((t) => t.id),
-          false
-        )
-        console.info(
-          `Assigned ${territoires.length} territoire(s) to "${userData.email}" based on their AAC codes.`
-        )
+        for (const territoire of territoires) {
+          territoiresIdsToSync.add(territoire.id)
+        }
       }
       if (userData.territoireIds && userData.territoireIds.length > 0) {
         const territoires = await Territoire.query().whereIn('id', userData.territoireIds)
@@ -55,15 +52,16 @@ export default class extends BaseSeeder {
           console.warn(`Territoire ids not found: ${notFound.join(', ')}`)
         }
 
-        // The sync method ensures the relations are up to date with the env var value
-        await user.related('territoires').sync(
-          territoires.map((t) => t.id),
-          false
-        )
-        console.info(
-          `Assigned ${territoires.length} territoire(s) to "${userData.email}" based on their ids.`
-        )
+        for (const territoire of territoires) {
+          territoiresIdsToSync.add(territoire.id)
+        }
       }
+
+      // The sync method ensures the relations are up to date with the env var value
+      await user.related('territoires').sync(territoiresIdsToSync.values().toArray(), false)
+      console.info(
+        `Assigned ${territoiresIdsToSync.size} territoire(s) to "${userData.email}" based on their ids.`
+      )
     }
   }
 }

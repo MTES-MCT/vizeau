@@ -6,10 +6,10 @@ export const TerritoireFactory = factory
   .define(Territoire, async () => {
     return {
       name: faker.location.county(),
-      code: faker.helpers.arrayElement([
-        faker.string.numeric({ length: { min: 1, max: 10 } }),
-        null,
-      ]),
+      code: faker.string.numeric({ length: { min: 1, max: 10 } }),
     }
+  })
+  .state('nonAAC', (territoire) => {
+    territoire.code = null
   })
   .build()
