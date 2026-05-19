@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Select from '@codegouvfr/react-dsfr/Select'
+import SingleSelectMenu, { OptionType } from '~/ui/SingleSelectMenu'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
 import { useFetch } from '~/hooks/use-fetch'
@@ -54,25 +54,24 @@ export default function ChroniquesParSubstances({
     )
   }
 
+  const substanceOptions: OptionType<number>[] = (substances ?? [])
+    .filter((s) => s.code_parametre !== null)
+    .map((s) => ({
+      value: s.code_parametre,
+      label: `${s.libelle_parametre} ${s.has_dep ? '⚠' : ''}`,
+      iconId: s.has_dep ? 'fr-icon-warning-line' : undefined,
+      isSelected: s.code_parametre === selectedCode,
+    }))
+
   const substanceSelector = loadingSubstances ? (
     <Loader type="dots" size="sm" />
   ) : (
-    <Select
-      label=""
-      nativeSelectProps={{
-        id: 'substance-select',
-        value: selectedCode ?? '',
-        onChange: (e) => setSelectedCode(Number(e.target.value)),
-      }}
-      style={{ marginBottom: 0, maxWidth: '50%' }}
-    >
-      {(substances ?? []).map((s) => (
-        <option key={s.code_parametre} value={s.code_parametre}>
-          {s.libelle_parametre}
-          {s.has_dep ? ' ⚠' : ''}
-        </option>
-      ))}
-    </Select>
+    <div className="w-[300px]">
+      <SingleSelectMenu
+        options={substanceOptions}
+        onChange={(option) => setSelectedCode(option.value)}
+      />
+    </div>
   )
 
   return (
