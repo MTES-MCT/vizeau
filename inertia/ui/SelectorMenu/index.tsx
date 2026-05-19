@@ -23,7 +23,7 @@ type GroupHeaderProps = {
 function GroupHeader({ groupName }: GroupHeaderProps) {
   return (
     <div
-      className="fr-px-2v fr-py-1v font-bold text-sm"
+      className="font-bold fr-p-2v"
       style={{
         background: fr.colors.decisions.background.actionHigh.blueFrance.default,
         color: fr.colors.decisions.background.default.grey.default,
