@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
-import Select from '@codegouvfr/react-dsfr/Select'
+import SingleSelectMenu, { OptionType } from '~/ui/SingleSelectMenu'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
 import { useFetch } from '~/hooks/use-fetch'
@@ -29,28 +29,26 @@ function groupSubstances(list: SubstanceItem[]): {
   }
 }
 
-function SubstanceOptions({ substances }: { substances: SubstanceItem[] }) {
+function toSelectOptions(
+  substances: SubstanceItem[],
+  selectedCode: number | null
+): OptionType<number>[] {
   const { withDep, withoutDep, notDetected } = groupSubstances(substances)
-  const renderOption = (s: SubstanceItem) => (
-    <option key={s.code_parametre} value={s.code_parametre}>
-      {s.libelle_parametre}
-      {s.has_dep ? ' ⚠' : ''}
-    </option>
-  )
+  const toOption =
+    (group: string) =>
+    (s: SubstanceItem): OptionType<number> => ({
+      value: s.code_parametre,
+      label: s.libelle_parametre,
+      isSelected: s.code_parametre === selectedCode,
+      group,
+      iconId: s.has_dep ? 'fr-icon-warning-fill' : undefined,
+    })
 
-  return (
-    <>
-      {withDep.length > 0 && (
-        <optgroup label="En dépassement">{withDep.map(renderOption)}</optgroup>
-      )}
-      {withoutDep.length > 0 && (
-        <optgroup label="Sans dépassement">{withoutDep.map(renderOption)}</optgroup>
-      )}
-      {notDetected.length > 0 && (
-        <optgroup label="Non détectée">{notDetected.map(renderOption)}</optgroup>
-      )}
-    </>
-  )
+  return [
+    ...withDep.map(toOption('En dépassement')),
+    ...withoutDep.map(toOption('Sans dépassement')),
+    ...notDetected.map(toOption('Non détectée')),
+  ]
 }
 
 export default function ChroniquesParSubstances({
@@ -107,17 +105,13 @@ export default function ChroniquesParSubstances({
         {loadingSubstances ? (
           <Loader type="dots" size="sm" />
         ) : (
-          <Select
-            label="Sélectionnez une substance"
-            nativeSelectProps={{
-              id: 'substance-select',
-              value: selectedCode ?? '',
-              onChange: (e) => setSelectedCode(Number(e.target.value)),
-            }}
-            style={{ marginBottom: 0, maxWidth: 400 }}
-          >
-            <SubstanceOptions substances={substances ?? []} />
-          </Select>
+          <div style={{ maxWidth: 400 }}>
+            <SingleSelectMenu
+              label="Sélectionnez une substance"
+              options={toSelectOptions(substances ?? [], selectedCode)}
+              onChange={(opt) => setSelectedCode(opt.value)}
+            />
+          </div>
         )}
       </div>
 
