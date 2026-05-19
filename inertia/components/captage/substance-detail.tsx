@@ -36,62 +36,64 @@ export function SubstanceDetail({ chronique, loading, headerContent }: Props) {
             : 'none',
         }}
       >
-        <div style={{ width: 260 }}>
-          <div
-            className="flex items-center fr-pl-2v h-16"
-            style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
-          >
-            <h6 className="fr-text--md font-medium fr-m-0 w-full fr-pr-2v">
-              Informations générales
-            </h6>
-            <Button
-              iconId="fr-icon-arrow-left-s-line"
-              priority="tertiary no outline"
-              onClick={() => setLeftOpen(false)}
-              title="Fermer le panneau"
-            />
-          </div>
-
-          {chronique && (
-            <div className="flex flex-col gap-3 fr-p-2w">
-              <div className="flex flex-col gap-1">
-                <LabelInfo label="Code SANDRE" info={chronique.info.code_parametre} />
-                {unite && <LabelInfo label="Unité" info={unite} />}
-              </div>
-
-              {(chronique.info.seuil_regl !== null || chronique.info.seuil_alerte !== null) && (
-                <div className="flex flex-col gap-3">
-                  <Divider label=" Seuils" />
-                  <div className="flex flex-col gap-1">
-                    {chronique.info.seuil_regl !== null && (
-                      <LabelInfo
-                        label="Seuil réglementaire"
-                        info={`${chronique.info.seuil_regl} ${unite}`}
-                      />
-                    )}
-                    {chronique.info.seuil_alerte !== null && (
-                      <LabelInfo
-                        label="Seuil d'alerte"
-                        info={`${chronique.info.seuil_alerte} ${unite}`}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-              <ResumeCard
-                size="sm"
-                title="Dépassement réglementaire"
-                value={`${chronique.stats.frequence_dep_regl.toLocaleString('fr-FR')}%`}
-                iconId="fr-icon-warning-line"
-                color={
-                  chronique.stats.nb_dep_regl > 0
-                    ? fr.colors.decisions.text.default.error.default
-                    : fr.colors.decisions.text.default.grey.default
-                }
+        {leftOpen && (
+          <div style={{ width: 260 }}>
+            <div
+              className="flex items-center fr-pl-2v h-16"
+              style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
+            >
+              <h6 className="fr-text--md font-medium fr-m-0 w-full fr-pr-2v">
+                Informations générales
+              </h6>
+              <Button
+                iconId="fr-icon-arrow-left-s-line"
+                priority="tertiary no outline"
+                onClick={() => setLeftOpen(false)}
+                title="Fermer le panneau"
               />
             </div>
-          )}
-        </div>
+
+            {chronique && (
+              <div className="flex flex-col gap-3 fr-p-2w">
+                <div className="flex flex-col gap-1">
+                  <LabelInfo label="Code SANDRE" info={chronique.info.code_parametre} />
+                  {unite && <LabelInfo label="Unité" info={unite} />}
+                </div>
+
+                {(chronique.info.seuil_regl !== null || chronique.info.seuil_alerte !== null) && (
+                  <div className="flex flex-col gap-3">
+                    <Divider label=" Seuils" />
+                    <div className="flex flex-col gap-1">
+                      {chronique.info.seuil_regl !== null && (
+                        <LabelInfo
+                          label="Seuil réglementaire"
+                          info={`${chronique.info.seuil_regl} ${unite}`}
+                        />
+                      )}
+                      {chronique.info.seuil_alerte !== null && (
+                        <LabelInfo
+                          label="Seuil d'alerte"
+                          info={`${chronique.info.seuil_alerte} ${unite}`}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+                <ResumeCard
+                  size="sm"
+                  title="Dépassement réglementaire"
+                  value={`${chronique.stats.frequence_dep_regl.toLocaleString('fr-FR')}%`}
+                  iconId="fr-icon-warning-line"
+                  color={
+                    chronique.stats.nb_dep_regl > 0
+                      ? fr.colors.decisions.text.default.error.default
+                      : fr.colors.decisions.text.default.grey.default
+                  }
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Center: Header + Content */}

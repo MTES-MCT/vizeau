@@ -72,7 +72,7 @@ export default function QualiteSuivi({
     <SectionCard
       title="Suivi de la qualité de l'eau"
       icon="fr-icon-bar-chart-fill"
-      caption="Consulter sur un nombre d'analyses données, l'évolution des dépassements par années."
+      caption="Consulter, pour un nombre donné d'analyses, l'évolution des dépassements par année."
       size="small"
     >
       {/* Segmented control + exporter */}

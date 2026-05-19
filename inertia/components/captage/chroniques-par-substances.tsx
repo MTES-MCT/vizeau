@@ -58,7 +58,7 @@ export default function ChroniquesParSubstances({
     .filter((s) => s.code_parametre !== null)
     .map((s) => ({
       value: s.code_parametre,
-      label: `${s.libelle_parametre} ${s.has_dep ? '⚠' : ''}`,
+      label: s.libelle_parametre,
       iconId: s.has_dep ? 'fr-icon-warning-line' : undefined,
       isSelected: s.code_parametre === selectedCode,
     }))
