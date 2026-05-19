@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { fr } from '@codegouvfr/react-dsfr'
 import Select from '@codegouvfr/react-dsfr/Select'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
@@ -55,42 +54,32 @@ export default function ChroniquesParSubstances({
     )
   }
 
+  const substanceSelector = loadingSubstances ? (
+    <Loader type="dots" size="sm" />
+  ) : (
+    <Select
+      label=""
+      nativeSelectProps={{
+        id: 'substance-select',
+        value: selectedCode ?? '',
+        onChange: (e) => setSelectedCode(Number(e.target.value)),
+      }}
+      style={{ marginBottom: 0, maxWidth: '50%' }}
+    >
+      {(substances ?? []).map((s) => (
+        <option key={s.code_parametre} value={s.code_parametre}>
+          {s.libelle_parametre}
+          {s.has_dep ? ' ⚠' : ''}
+        </option>
+      ))}
+    </Select>
+  )
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* Substance selector */}
-      <div
-        className="fr-px-3w fr-py-2w"
-        style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
-      >
-        {loadingSubstances ? (
-          <Loader type="dots" size="sm" />
-        ) : (
-          <Select
-            label="Sélectionnez une substance"
-            nativeSelectProps={{
-              id: 'substance-select',
-              value: selectedCode ?? '',
-              onChange: (e) => setSelectedCode(Number(e.target.value)),
-            }}
-            style={{ marginBottom: 0, maxWidth: 400 }}
-          >
-            {(substances ?? []).map((s) => (
-              <option key={s.code_parametre} value={s.code_parametre}>
-                {s.libelle_parametre}
-                {s.has_dep ? ' ⚠' : ''}
-              </option>
-            ))}
-          </Select>
-        )}
-      </div>
-
-      {loadingChronique && (
-        <div className="flex items-center gap-2 fr-py-2w">
-          <Loader type="dots" size="sm" />
-        </div>
-      )}
-
-      {!loadingChronique && chronique && <SubstanceDetail chronique={chronique} />}
-    </div>
+    <SubstanceDetail
+      chronique={chronique ?? null}
+      loading={loadingChronique}
+      headerContent={substanceSelector}
+    />
   )
 }
