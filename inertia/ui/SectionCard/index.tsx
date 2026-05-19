@@ -6,6 +6,7 @@ import TruncatedText from '../TruncatedText'
 
 export type SectionCardProps = {
   title?: string
+  caption?: string
   children: ReactNode
   icon?: string
   size?: 'small' | 'medium'
@@ -18,6 +19,7 @@ export type SectionCardProps = {
 
 export default function SectionCard({
   title,
+  caption,
   children,
   icon,
   size = 'medium',
@@ -30,7 +32,7 @@ export default function SectionCard({
   const hasHeader = !!(title || icon || (handleAction && actionIcon))
   return (
     <section
-      className={`flex flex-col fr-p-2w${hasHeader ? ' gap-2' : ''}`}
+      className={`flex flex-col fr-p-2w${hasHeader ? ' gap-6' : ''}`}
       style={{
         border: `1px solid ${background === 'primary' ? fr.colors.decisions.border.default.grey.default : 'transparent'}`,
         backgroundColor:
@@ -43,35 +45,70 @@ export default function SectionCard({
         <div className="flex items-center">
           <div className="flex-1 min-w-0">
             {size === 'small' ? (
-              <div className="flex gap-1">
-                {icon && <span className={`${icon} fr-icon-md fr-mb-2w`} aria-hidden="true"></span>}
-                {title && (
-                  <TruncatedText
-                    maxLines={1}
-                    className="fr-mb-0"
-                    hideTooltip={hideLongTitleTooltip}
-                    as="h6"
-                  >
-                    {title}
-                  </TruncatedText>
+              <div className={`flex gap-1 ${caption ? 'items-start' : 'items-center'}`}>
+                {icon && (
+                  <span
+                    className={`${icon} fr-icon-md ${caption ? 'fr-mb-2w' : 'fr-mb-0'}`}
+                    style={{ color: fr.colors.decisions.text.title.blueFrance.default }}
+                    aria-hidden="true"
+                  ></span>
                 )}
+
+                <div className="flex flex-col">
+                  {title && (
+                    <TruncatedText
+                      maxLines={1}
+                      className="fr-mb-0"
+                      hideTooltip={hideLongTitleTooltip}
+                      as="h6"
+                    >
+                      {title}
+                    </TruncatedText>
+                  )}
+                  {caption && (
+                    <span
+                      className="fr-text--sm fr-mb-0"
+                      style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                    >
+                      {caption}
+                    </span>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="flex gap-1">
-                {icon && <span className={`${icon} fr-mb-2w`} aria-hidden="true"></span>}
-                {title && (
-                  <TruncatedText
-                    maxLines={2}
-                    className="fr-mb-0 fr-mb-2w"
-                    hideTooltip={hideLongTitleTooltip}
-                    as="h4"
-                  >
-                    {title}
-                  </TruncatedText>
+              <div className={`flex gap-1 ${caption ? 'items-start' : 'items-center'}`}>
+                {icon && (
+                  <span
+                    className={`${icon} ${caption ? 'fr-mb-2w' : 'fr-mb-0'}`}
+                    style={{ color: fr.colors.decisions.text.title.blueFrance.default }}
+                    aria-hidden="true"
+                  ></span>
                 )}
+
+                <div className="flex flex-col">
+                  {title && (
+                    <TruncatedText
+                      maxLines={2}
+                      className="fr-mb-0"
+                      hideTooltip={hideLongTitleTooltip}
+                      as="h4"
+                    >
+                      {title}
+                    </TruncatedText>
+                  )}
+                  {caption && (
+                    <span
+                      className="fr-mb-0"
+                      style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                    >
+                      {caption}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
+
           {handleAction &&
             actionIcon &&
             (size === 'small' ? (

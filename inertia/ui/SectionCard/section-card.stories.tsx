@@ -9,6 +9,10 @@ const meta = {
       control: 'text',
       description: 'Titre affiché dans l’en-tête de la section.',
     },
+    caption: {
+      control: 'text',
+      description: 'Texte d’accompagnement affiché sous le titre.',
+    },
     icon: {
       control: 'text',
       description: 'Nom de l’icône FR à afficher à gauche du titre (ex: "map-pin-2-line").',
@@ -48,6 +52,7 @@ const meta = {
   },
   args: {
     title: 'Titre de la section',
+    caption: 'Ceci est une description de la section pour donner plus de contexte à l’utilisateur.',
     icon: 'fr-icon-map-pin-2-line',
     actionIcon: 'fr-icon-edit-line',
     actionLabel: 'Modifier',
@@ -80,6 +85,18 @@ export const SansAction = {
   args: {
     actionIcon: null,
     handleAction: null,
+  },
+}
+
+export const PetiteTaille = {
+  args: {
+    size: 'small',
+  },
+}
+
+export const SansSousTitre = {
+  args: {
+    caption: null,
   },
 }
 
