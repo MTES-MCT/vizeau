@@ -497,7 +497,8 @@ export class AacService {
         CAST(code_parametre AS INTEGER) AS code_parametre,
         ANY_VALUE(libelle_parametre) AS libelle_parametre,
         ANY_VALUE(code_unite) AS code_unite,
-        BOOL_OR(${SQL_DEP_ANY}) AS has_dep
+        BOOL_OR(${SQL_DEP_ANY}) AS has_dep,
+        MAX(resultat_traduction) AS max_value
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND date_part('year', date_prelevement) BETWEEN $3 AND $4
@@ -515,9 +516,10 @@ export class AacService {
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     return rows.map((r) => ({
       code_parametre: Number(r.code_parametre),
-      libelle_parametre: String(r.libelle_parametre),
+      libelle_parametre: r.libelle_parametre != null ? String(r.libelle_parametre) : '',
       code_unite: String(r.code_unite ?? ''),
       has_dep: Boolean(r.has_dep),
+      max_value: Number(r.max_value ?? 0),
     }))
   }
 

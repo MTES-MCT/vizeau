@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
-import Select from '@codegouvfr/react-dsfr/Select'
+import SingleSelectMenu, { OptionType } from '~/ui/SingleSelectMenu'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
 import { useFetch } from '~/hooks/use-fetch'
@@ -32,9 +32,30 @@ export default function ChroniquesParSubstances({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.',
     (data) => {
-      setSelectedCode(data.length > 0 ? data[0].code_parametre : null)
+      const filtered = data.filter((s) => s.libelle_parametre?.trim())
+      const first =
+        filtered.find((s) => s.has_dep) ??
+        filtered.find((s) => !s.has_dep && s.max_value > 0) ??
+        filtered.find((s) => s.max_value === 0)
+      setSelectedCode(first?.code_parametre ?? null)
     }
   )
+
+  const sorted = (substances ?? [])
+    .filter((s) => s.libelle_parametre?.trim())
+    .sort((a, b) => a.libelle_parametre.localeCompare(b.libelle_parametre))
+
+  const substanceOptions: OptionType<number>[] = [
+    ...sorted.filter((s) => s.has_dep),
+    ...sorted.filter((s) => !s.has_dep && s.max_value > 0),
+    ...sorted.filter((s) => !s.has_dep && s.max_value === 0),
+  ].map((s) => ({
+    value: s.code_parametre,
+    label: s.libelle_parametre,
+    isSelected: s.code_parametre === selectedCode,
+    group: s.has_dep ? 'En dépassement' : s.max_value > 0 ? 'Sans dépassement' : 'Non détectée',
+    iconId: s.has_dep ? 'fr-icon-warning-fill' : undefined,
+  }))
 
   const {
     data: chronique,
@@ -65,22 +86,13 @@ export default function ChroniquesParSubstances({
         {loadingSubstances ? (
           <Loader type="dots" size="sm" />
         ) : (
-          <Select
-            label="Sélectionnez une substance"
-            nativeSelectProps={{
-              id: 'substance-select',
-              value: selectedCode ?? '',
-              onChange: (e) => setSelectedCode(Number(e.target.value)),
-            }}
-            style={{ marginBottom: 0, maxWidth: 400 }}
-          >
-            {(substances ?? []).map((s) => (
-              <option key={s.code_parametre} value={s.code_parametre}>
-                {s.libelle_parametre}
-                {s.has_dep ? ' ⚠' : ''}
-              </option>
-            ))}
-          </Select>
+          <div style={{ maxWidth: 400 }}>
+            <SingleSelectMenu
+              label="Sélectionnez une substance"
+              options={substanceOptions}
+              onChange={(opt) => setSelectedCode(opt.value)}
+            />
+          </div>
         )}
       </div>
 

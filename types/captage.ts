@@ -16,6 +16,7 @@ export type SubstanceItem = {
   libelle_parametre: string
   code_unite: string
   has_dep: boolean
+  max_value: number
 }
 
 export type SubstanceChroniqueInfo = {
