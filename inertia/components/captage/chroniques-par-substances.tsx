@@ -13,44 +13,6 @@ type Props = {
   yearMax: number
 }
 
-function groupSubstances(list: SubstanceItem[]): {
-  withDep: SubstanceItem[]
-  withoutDep: SubstanceItem[]
-  notDetected: SubstanceItem[]
-} {
-  const filtered = list.filter((s) => s.libelle_parametre && s.libelle_parametre.trim() !== '')
-  const byName = (a: SubstanceItem, b: SubstanceItem) =>
-    a.libelle_parametre.localeCompare(b.libelle_parametre)
-
-  return {
-    withDep: filtered.filter((s) => s.has_dep).sort(byName),
-    withoutDep: filtered.filter((s) => !s.has_dep && s.max_value > 0).sort(byName),
-    notDetected: filtered.filter((s) => !s.has_dep && s.max_value === 0).sort(byName),
-  }
-}
-
-function toSelectOptions(
-  substances: SubstanceItem[],
-  selectedCode: number | null
-): OptionType<number>[] {
-  const { withDep, withoutDep, notDetected } = groupSubstances(substances)
-  const toOption =
-    (group: string) =>
-    (s: SubstanceItem): OptionType<number> => ({
-      value: s.code_parametre,
-      label: s.libelle_parametre,
-      isSelected: s.code_parametre === selectedCode,
-      group,
-      iconId: s.has_dep ? 'fr-icon-warning-fill' : undefined,
-    })
-
-  return [
-    ...withDep.map(toOption('En dépassement')),
-    ...withoutDep.map(toOption('Sans dépassement')),
-    ...notDetected.map(toOption('Non détectée')),
-  ]
-}
-
 export default function ChroniquesParSubstances({
   aacCode,
   installationCode,
@@ -70,11 +32,30 @@ export default function ChroniquesParSubstances({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.',
     (data) => {
-      const { withDep, withoutDep, notDetected } = groupSubstances(data)
-      const first = withDep[0] ?? withoutDep[0] ?? notDetected[0]
-      setSelectedCode(first ? first.code_parametre : null)
+      const filtered = data.filter((s) => s.libelle_parametre?.trim())
+      const first =
+        filtered.find((s) => s.has_dep) ??
+        filtered.find((s) => !s.has_dep && s.max_value > 0) ??
+        filtered.find((s) => s.max_value === 0)
+      setSelectedCode(first?.code_parametre ?? null)
     }
   )
+
+  const sorted = (substances ?? [])
+    .filter((s) => s.libelle_parametre?.trim())
+    .sort((a, b) => a.libelle_parametre.localeCompare(b.libelle_parametre))
+
+  const substanceOptions: OptionType<number>[] = [
+    ...sorted.filter((s) => s.has_dep),
+    ...sorted.filter((s) => !s.has_dep && s.max_value > 0),
+    ...sorted.filter((s) => !s.has_dep && s.max_value === 0),
+  ].map((s) => ({
+    value: s.code_parametre,
+    label: s.libelle_parametre,
+    isSelected: s.code_parametre === selectedCode,
+    group: s.has_dep ? 'En dépassement' : s.max_value > 0 ? 'Sans dépassement' : 'Non détectée',
+    iconId: s.has_dep ? 'fr-icon-warning-fill' : undefined,
+  }))
 
   const {
     data: chronique,
@@ -108,7 +89,7 @@ export default function ChroniquesParSubstances({
           <div style={{ maxWidth: 400 }}>
             <SingleSelectMenu
               label="Sélectionnez une substance"
-              options={toSelectOptions(substances ?? [], selectedCode)}
+              options={substanceOptions}
               onChange={(opt) => setSelectedCode(opt.value)}
             />
           </div>
