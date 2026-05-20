@@ -31,9 +31,30 @@ export default function ChroniquesParSubstances({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.',
     (data) => {
-      setSelectedCode(data.length > 0 ? data[0].code_parametre : null)
+      const filtered = data.filter((s) => s.libelle_parametre?.trim())
+      const first =
+        filtered.find((s) => s.has_dep) ??
+        filtered.find((s) => !s.has_dep && s.max_value > 0) ??
+        filtered.find((s) => s.max_value === 0)
+      setSelectedCode(first?.code_parametre ?? null)
     }
   )
+
+  const sorted = (substances ?? [])
+    .filter((s) => s.libelle_parametre?.trim())
+    .sort((a, b) => a.libelle_parametre.localeCompare(b.libelle_parametre))
+
+  const substanceOptions: OptionType<number>[] = [
+    ...sorted.filter((s) => s.has_dep),
+    ...sorted.filter((s) => !s.has_dep && s.max_value > 0),
+    ...sorted.filter((s) => !s.has_dep && s.max_value === 0),
+  ].map((s) => ({
+    value: s.code_parametre,
+    label: s.libelle_parametre,
+    isSelected: s.code_parametre === selectedCode,
+    group: s.has_dep ? 'En dépassement' : s.max_value > 0 ? 'Sans dépassement' : 'Non détectée',
+    iconId: s.has_dep ? 'fr-icon-warning-fill' : undefined,
+  }))
 
   const {
     data: chronique,
@@ -53,15 +74,6 @@ export default function ChroniquesParSubstances({
       </div>
     )
   }
-
-  const substanceOptions: OptionType<number>[] = (substances ?? [])
-    .filter((s) => s.code_parametre !== null)
-    .map((s) => ({
-      value: s.code_parametre,
-      label: s.libelle_parametre,
-      iconId: s.has_dep ? 'fr-icon-warning-line' : undefined,
-      isSelected: s.code_parametre === selectedCode,
-    }))
 
   const substanceSelector = loadingSubstances ? (
     <Loader type="dots" size="sm" />
