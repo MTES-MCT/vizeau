@@ -128,22 +128,22 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
         {/* Stats boxes: 2 on top, 1 bottom-left */}
         <div className="grid grid-cols-2 gap-3 fr-mt-3w">
           <ResumeCard
+            title="Dépassements réglementaires"
+            iconId="fr-icon-error-line"
+            color={fr.colors.decisions.text.default.error.default}
+            value={
+              loadingStats
+                ? null
+                : (stats?.depassements_reglementaires?.toLocaleString('fr-FR') ?? null)
+            }
+            label="au total sur la période"
+          />
+          <ResumeCard
             title="Dépassements d'alerte (80 %)"
             iconId="fr-icon-warning-line"
             color={fr.colors.decisions.text.default.warning.default}
             value={
               loadingStats ? null : (stats?.depassements_alerte?.toLocaleString('fr-FR') ?? null)
-            }
-            label="au total sur la période"
-          />
-          <ResumeCard
-            title="Dépassements réglementaires"
-            iconId="fr-icon-information-line"
-            color={fr.colors.decisions.text.label.blueFrance.default}
-            value={
-              loadingStats
-                ? null
-                : (stats?.depassements_reglementaires?.toLocaleString('fr-FR') ?? null)
             }
             label="au total sur la période"
           />
