@@ -126,3 +126,7 @@ npm run storybook
 ```
 
 Cela lancera Storybook sur `http://localhost:6006`.
+
+# Documentation
+
+La documentation de l'application se trouve dans le dossier `doc` et est écrite en Markdown.
