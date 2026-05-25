@@ -520,7 +520,7 @@ export class AacService {
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     return rows.map((r) => ({
       code_parametre: Number(r.code_parametre),
-      libelle_parametre: String(r.libelle_parametre),
+      libelle_parametre: String(r.libelle_parametre ?? ''),
       code_unite: String(r.code_unite ?? ''),
       has_dep: Boolean(r.has_dep),
       nb_dep_regl: Number(r.nb_dep_regl ?? 0),

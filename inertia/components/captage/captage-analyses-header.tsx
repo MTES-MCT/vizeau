@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
 import ResumeCard from '~/ui/ResumeCard'
@@ -23,16 +23,6 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
   const [activeSection, setActiveSection] = useState<'suivi' | 'chroniques' | 'substances'>('suivi')
   const [chroniquesSubstanceCode, setChroniquesSubstanceCode] = useState<number | null>(null)
   const [scrollTarget, setScrollTarget] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (activeSection === 'substances' && scrollTarget) {
-      const el = document.getElementById(scrollTarget)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        setScrollTarget(null)
-      }
-    }
-  }, [activeSection, scrollTarget])
 
   function goToChronique(code: number) {
     setChroniquesSubstanceCode(code)
@@ -159,12 +149,14 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
                 ? 'cliquer pour voir les substances →'
                 : 'au total sur la période'
             }
-            onClick={() => {
-              if (stats?.depassements_reglementaires) {
-                setActiveSection('substances')
-                setScrollTarget('substances-regl')
-              }
-            }}
+            onClick={
+              stats?.depassements_reglementaires
+                ? () => {
+                    setActiveSection('substances')
+                    setScrollTarget('substances-regl')
+                  }
+                : undefined
+            }
           />
           <ResumeCard
             title="Dépassements d'alerte (80 %)"
@@ -178,12 +170,14 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
                 ? 'cliquer pour voir les substances →'
                 : 'au total sur la période'
             }
-            onClick={() => {
-              if (stats?.depassements_alerte) {
-                setActiveSection('substances')
-                setScrollTarget('substances-alerte')
-              }
-            }}
+            onClick={
+              stats?.depassements_alerte
+                ? () => {
+                    setActiveSection('substances')
+                    setScrollTarget('substances-alerte')
+                  }
+                : undefined
+            }
           />
           <ResumeCard
             title="Analyses"
@@ -240,6 +234,8 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
               yearMin={yearMin}
               yearMax={yearMax}
               onSelectSubstance={goToChronique}
+              scrollToId={scrollTarget}
+              onScrollDone={() => setScrollTarget(null)}
             />
           )}
 

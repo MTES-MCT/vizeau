@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Table } from '@codegouvfr/react-dsfr/Table'
 import Loader from '~/ui/Loader'
@@ -8,6 +9,8 @@ import SectionCard from '~/ui/SectionCard'
 type Props = {
   aacCode: string
   installationCode: string
+  scrollToId?: string | null
+  onScrollDone?: () => void
   yearMin: number
   yearMax: number
   onSelectSubstance: (code: number) => void
@@ -19,6 +22,8 @@ export default function SubstancesARisque({
   yearMin,
   yearMax,
   onSelectSubstance,
+  scrollToId,
+  onScrollDone,
 }: Props) {
   const baseUrl = `/aac/${aacCode}/installations/${installationCode}/analyses`
   const yearParams = `?yearMin=${yearMin}&yearMax=${yearMax}`
@@ -31,6 +36,14 @@ export default function SubstancesARisque({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.'
   )
+
+  useEffect(() => {
+    if (loading || !scrollToId) return
+    const el = document.getElementById(scrollToId)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    onScrollDone?.()
+  }, [loading, scrollToId])
 
   if (error) {
     return (
@@ -114,11 +127,7 @@ type TableProps = {
 function SubstanceTable({ title, titleColor, substances, onSelect, type, id }: TableProps) {
   return (
     <div id={id} className="flex flex-col">
-      <p
-        className="fr-text--lg fr-text--bold fr-mb-0"
-        style={{ color: titleColor }}
-        aria-hidden="true"
-      >
+      <p className="fr-text--lg fr-text--bold fr-mb-0" style={{ color: titleColor }}>
         {title}
       </p>
       <Table

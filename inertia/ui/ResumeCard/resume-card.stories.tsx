@@ -43,7 +43,8 @@ const meta = {
       control: 'text',
     },
     onClick: {
-      control: 'action',
+      action: 'clicked',
+      control: false,
     },
   },
   args: metaArgs,
