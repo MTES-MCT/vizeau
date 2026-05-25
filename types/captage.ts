@@ -16,6 +16,10 @@ export type SubstanceItem = {
   libelle_parametre: string
   code_unite: string
   has_dep: boolean
+  nb_dep_regl: number
+  nb_dep_alerte: number
+  nb_total: number
+  frequence_dep_regl: number
   max_value: number
 }
 

@@ -10,6 +10,7 @@ type Props = {
   installationCode: string
   yearMin: number
   yearMax: number
+  initialSubstanceCode?: number | null
 }
 
 export default function ChroniquesParSubstances({
@@ -17,8 +18,9 @@ export default function ChroniquesParSubstances({
   installationCode,
   yearMin,
   yearMax,
+  initialSubstanceCode,
 }: Props) {
-  const [selectedCode, setSelectedCode] = useState<number | null>(null)
+  const [selectedCode, setSelectedCode] = useState<number | null>(initialSubstanceCode ?? null)
 
   const baseUrl = `/aac/${aacCode}/installations/${installationCode}/analyses`
   const yearParams = `?yearMin=${yearMin}&yearMax=${yearMax}`
@@ -31,6 +33,7 @@ export default function ChroniquesParSubstances({
     `${baseUrl}/substances${yearParams}`,
     'Impossible de charger les substances.',
     (data) => {
+      if (initialSubstanceCode != null) return
       const filtered = data.filter((s) => s.libelle_parametre?.trim())
       const first =
         filtered.find((s) => s.has_dep) ??
