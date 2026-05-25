@@ -49,6 +49,7 @@ export type EmptyPlaceholderProps = {
   actionAriaLabel?: string
   buttonIcon?: string
   handleClick?: () => void
+  isDisabled?: boolean
 }
 export default function EmptyPlaceholder({
   priority = 'primary',
@@ -62,6 +63,7 @@ export default function EmptyPlaceholder({
   actionAriaLabel,
   buttonIcon,
   handleClick,
+  isDisabled,
 }: EmptyPlaceholderProps) {
   return (
     <div
@@ -103,6 +105,7 @@ export default function EmptyPlaceholder({
           onClick={handleClick}
           aria-label={actionAriaLabel || buttonLabel}
           className="fr-mt-2v"
+          disabled={isDisabled}
         >
           {buttonLabel}
         </Button>
