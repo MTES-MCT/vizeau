@@ -2,6 +2,8 @@ import { fr } from '@codegouvfr/react-dsfr'
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 import Loader from '~/ui/Loader'
 
+import './resume-card.css'
+
 export type ResumeCardProps = {
   title: string
   size?: 'sm' | 'md'
@@ -12,6 +14,7 @@ export type ResumeCardProps = {
   iconId?: string
   hint?: string | React.ReactNode
   loading?: boolean
+  onClick?: () => void
 }
 export default function ResumeCard({
   title,
@@ -23,10 +26,13 @@ export default function ResumeCard({
   color = fr.colors.decisions.text.title.blueFrance.default,
   iconId,
   loading = false,
+  onClick,
 }: ResumeCardProps) {
+  const Wrapper = onClick ? 'button' : 'div'
+
   return (
-    <div
-      className={`${size === 'sm' ? 'fr-p-2v gap-3' : 'fr-p-4v gap-4'} w-full h-full flex flex-col`}
+    <Wrapper
+      className={`${size === 'sm' ? 'fr-p-2v gap-3' : 'fr-p-4v gap-4'} w-full h-full flex flex-col ${onClick ? 'button-card' : ''}`}
       style={{
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
         backgroundColor:
@@ -34,6 +40,8 @@ export default function ResumeCard({
             ? fr.colors.decisions.background.default.grey.default
             : fr.colors.decisions.background.alt.blueFrance.default,
       }}
+      onClick={onClick}
+      type={onClick ? 'button' : undefined}
     >
       <div className="flex gap-1 items-start">
         {iconId && (
@@ -72,6 +80,6 @@ export default function ResumeCard({
           </div>
         )}
       </div>
-    </div>
+    </Wrapper>
   )
 }
