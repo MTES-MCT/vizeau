@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { fr } from '@codegouvfr/react-dsfr'
 import SingleSelectMenu, { OptionType } from '~/ui/SingleSelectMenu'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
@@ -76,33 +75,22 @@ export default function ChroniquesParSubstances({
     )
   }
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Substance selector */}
-      <div
-        className="fr-px-3w fr-py-2w"
-        style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
-      >
-        {loadingSubstances ? (
-          <Loader type="dots" size="sm" />
-        ) : (
-          <div style={{ maxWidth: 400 }}>
-            <SingleSelectMenu
-              label="Sélectionnez une substance"
-              options={substanceOptions}
-              onChange={(opt) => setSelectedCode(opt.value)}
-            />
-          </div>
-        )}
-      </div>
-
-      {loadingChronique && (
-        <div className="flex items-center gap-2 fr-py-2w">
-          <Loader type="dots" size="sm" />
-        </div>
-      )}
-
-      {!loadingChronique && chronique && <SubstanceDetail chronique={chronique} />}
+  const substanceSelector = loadingSubstances ? (
+    <Loader type="dots" size="sm" />
+  ) : (
+    <div className="w-[300px]">
+      <SingleSelectMenu
+        options={substanceOptions}
+        onChange={(option) => setSelectedCode(option.value)}
+      />
     </div>
+  )
+
+  return (
+    <SubstanceDetail
+      chronique={chronique ?? null}
+      loading={loadingChronique}
+      headerContent={substanceSelector}
+    />
   )
 }

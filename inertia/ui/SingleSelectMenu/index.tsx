@@ -109,6 +109,9 @@ export default function SingleSelectMenu<T extends string | number>({
               color: selectedOption
                 ? fr.colors.decisions.text.default.grey.default
                 : fr.colors.decisions.text.mention.grey.default,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {selectedOption ? selectedOption.label : placeholder}
