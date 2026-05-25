@@ -17,7 +17,7 @@ const meta = {
       action: 'changed',
       description: 'Fonction appelée à chaque modification du champ de recherche.',
       table: {
-        type: { summary: '(value: string) => void' },
+        type: { summary: '(e: ChangeEvent<HTMLInputElement>) => void' },
       },
     },
     defaultSearchValue: {
