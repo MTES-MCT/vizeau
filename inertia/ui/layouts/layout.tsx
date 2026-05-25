@@ -52,6 +52,11 @@ export default function Layout({
                   isActive: pathname.startsWith('/aac'),
                 },
                 {
+                  linkProps: { href: '/projets' },
+                  text: 'Projets',
+                  isActive: pathname.startsWith('/projets'),
+                },
+                {
                   linkProps: { href: '/visualisation' },
                   text: 'Visualisation',
                   isActive: pathname.startsWith('/visualisation'),
