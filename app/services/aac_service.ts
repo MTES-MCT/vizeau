@@ -498,13 +498,17 @@ export class AacService {
         ANY_VALUE(libelle_parametre) AS libelle_parametre,
         ANY_VALUE(code_unite) AS code_unite,
         BOOL_OR(${SQL_DEP_ANY}) AS has_dep,
-        MAX(resultat_traduction) AS max_value
+        CAST(COUNT(*) FILTER (WHERE ${SQL_DEP_REGL}) AS INTEGER) AS nb_dep_regl,
+        CAST(COUNT(*) FILTER (WHERE ${SQL_DEP_ALERTE}) AS INTEGER) AS nb_dep_alerte,
+        CAST(COUNT(*) AS INTEGER) AS nb_total,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE ${SQL_DEP_REGL}) / NULLIF(COUNT(*), 0), 1) AS frequence_dep_regl,
+        ROUND(MAX(resultat_traduction), 4) AS max_value
       FROM read_parquet($1)
       WHERE code_installation = $2
         AND date_part('year', date_prelevement) BETWEEN $3 AND $4
         AND resultat_traduction IS NOT NULL
       GROUP BY code_parametre
-      ORDER BY libelle_parametre
+      ORDER BY nb_dep_regl DESC, nb_dep_alerte DESC, libelle_parametre
     `
     const stmt = await conn.prepare(sql)
     stmt.bindVarchar(1, getAnalysesRobinetPath())
@@ -516,9 +520,13 @@ export class AacService {
     const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
     return rows.map((r) => ({
       code_parametre: Number(r.code_parametre),
-      libelle_parametre: r.libelle_parametre != null ? String(r.libelle_parametre) : '',
+      libelle_parametre: String(r.libelle_parametre ?? ''),
       code_unite: String(r.code_unite ?? ''),
       has_dep: Boolean(r.has_dep),
+      nb_dep_regl: Number(r.nb_dep_regl ?? 0),
+      nb_dep_alerte: Number(r.nb_dep_alerte ?? 0),
+      nb_total: Number(r.nb_total ?? 0),
+      frequence_dep_regl: Number(r.frequence_dep_regl ?? 0),
       max_value: Number(r.max_value ?? 0),
     }))
   }
