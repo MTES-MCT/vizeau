@@ -64,11 +64,13 @@ export default class ProjectsController {
     if (payload.parcelleIds?.length) {
       const found = await Parcelle.query()
         .whereIn('id', payload.parcelleIds)
-        .whereNull('exploitation_id')
-        .orWhereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.whereHas('territoires', (territoireQuery) => {
-            territoireQuery.whereHas('users', (userQuery) => {
-              userQuery.where('users.id', user.id)
+        .andWhere((query) => {
+          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the currect user
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
+              })
             })
           })
         })
@@ -124,11 +126,13 @@ export default class ProjectsController {
     if (parcelleIds !== undefined && parcelleIds.length > 0) {
       const found = await Parcelle.query()
         .whereIn('id', parcelleIds)
-        .whereNull('exploitation_id')
-        .orWhereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.whereHas('territoires', (territoireQuery) => {
-            territoireQuery.whereHas('users', (userQuery) => {
-              userQuery.where('users.id', user.id)
+        .andWhere((query) => {
+          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the currect user
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
+              })
             })
           })
         })
