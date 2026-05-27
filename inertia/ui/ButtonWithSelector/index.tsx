@@ -57,6 +57,7 @@ export default function ButtonWithSelector<T extends string | number>({
           justifyContent: 'space-between',
           width: '100%',
         }}
+        type="button"
       >
         {label}
       </Button>

@@ -31,6 +31,7 @@ export type ListItemProps = {
   hasBorder?: boolean
   linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
   hideTooltip?: boolean
+  onClick?: () => void
 }
 
 const AdditionnalInfos = ({
@@ -95,10 +96,11 @@ export default function ListItem({
   additionalInfos,
   hasBorder = false,
   linkProps,
-  hideTooltip = true,
+  hideTooltip = false,
+  onClick,
 }: ListItemProps) {
   // Default variant
-  const listItemHref = linkProps?.href
+  const listItemHref = linkProps?.href || onClick
   const Wrapper = listItemHref ? Link : 'div'
   const wrapperProps = listItemHref
     ? {
@@ -110,7 +112,19 @@ export default function ListItem({
 
   if (variant === 'compact') {
     return (
-      <Wrapper {...wrapperProps} className={`${listItemHref ? 'list-item-effect' : ''}`}>
+      <Wrapper
+        {...wrapperProps}
+        className={`${listItemHref ? 'list-item-effect' : ''}${onClick ? ' cursor-pointer' : ''}`}
+        onClick={
+          onClick
+            ? (e: React.MouseEvent) => {
+                e.stopPropagation()
+                e.preventDefault()
+                onClick()
+              }
+            : undefined
+        }
+      >
         <div
           className={`flex flex-col gap-3 w-full ${hasBorder ? 'fr-p-1w' : ''}`}
           style={{

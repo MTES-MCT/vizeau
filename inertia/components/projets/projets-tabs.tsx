@@ -1,8 +1,8 @@
-import { ChangeEvent, useCallback, useMemo, useState } from 'react'
+import { ChangeEvent, useCallback, useState } from 'react'
 import { router } from '@inertiajs/react'
 
 import { ProjectJson } from '../../../types/models'
-import { countBy, debounce, uniq } from 'lodash-es'
+import { debounce } from 'lodash-es'
 
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import Tag from '@codegouvfr/react-dsfr/Tag'
@@ -32,47 +32,53 @@ export type ProjetsMeta = {
 export type ProjetsTabsProps = {
   projets: ProjectJson[]
   meta: ProjetsMeta
-  queryString: any
+  queryString: {
+    projetsRecherche: string
+    projetsPage: string
+    projetsStatut: string
+    projetsTypesActionExclus: string
+    projetsStatutsExclus: string
+    projetsYearFrom: string
+    projetsYearTo: string
+  }
+  availableActionTypes: string[]
+  availableYearRange: { min: number; max: number }
+  statusCounts: { to_be_started: number; current: number; completed: number; abandoned: number }
 }
 
-export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsProps) {
-  const [selectedTab, setSelectedTab] = useState('all')
-  const [deselectedTypesAction, setDeselectedTypesAction] = useState<Set<string>>(new Set())
-  const [deselectedStatuts, setDeselectedStatuts] = useState<Set<string>>(new Set())
-  const [yearFrom, setYearFrom] = useState<number | null>(null)
-  const [yearTo, setYearTo] = useState<number | null>(null)
+export default function ProjetsTabs({
+  projets,
+  meta,
+  queryString,
+  availableActionTypes,
+  availableYearRange,
+  statusCounts,
+}: ProjetsTabsProps) {
+  // selectedTab drives which tab is visually active; initialised from the URL so that
+  // browser back/forward and hard reloads restore the correct tab instantly.
+  const [selectedTab, setSelectedTab] = useState(queryString.projetsStatut || 'all')
 
-  const typesAction = useMemo(
-    () => uniq(projets.map((p) => p.actionType).filter((t): t is string => t !== null)).sort(),
-    [projets]
+  // Derive filter sets from the URL — no local state needed for these.
+  const deselectedTypesAction = new Set(
+    queryString.projetsTypesActionExclus ? queryString.projetsTypesActionExclus.split(',') : []
+  )
+  const deselectedStatuts = new Set(
+    queryString.projetsStatutsExclus ? queryString.projetsStatutsExclus.split(',') : []
   )
 
-  const years = useMemo(
-    () => uniq(projets.map((p) => new Date(p.createdAt).getFullYear())).sort((a, b) => a - b),
-    [projets]
+  // Local year state gives the slider immediate visual feedback while the debounced
+  // reload is in flight.
+  const [yearFrom, setYearFrom] = useState<number | null>(
+    queryString.projetsYearFrom ? Number(queryString.projetsYearFrom) : null
   )
-
-  const minAvailableYear = years[0] ?? new Date().getFullYear()
-  const maxAvailableYear = years[years.length - 1] ?? new Date().getFullYear()
-
-  const toggle = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) => {
-    setter((prev) => {
-      const next = new Set(prev)
-      if (next.has(value)) next.delete(value)
-      else next.add(value)
-      return next
-    })
-  }
+  const [yearTo, setYearTo] = useState<number | null>(
+    queryString.projetsYearTo ? Number(queryString.projetsYearTo) : null
+  )
 
   const handleSearch = useCallback(
     debounce((e: ChangeEvent<HTMLInputElement>) => {
-      /*
-        We refresh the projets with the new search query,
-        the query string so that the pagination doesn't break,
-        and we reset the page to 1.
-       */
       router.reload({
-        only: ['projets', 'meta', 'queryString'],
+        only: ['projets', 'meta', 'queryString', 'statusCounts'],
         data: { projetsRecherche: e.target.value, projetsPage: '1' },
         replace: true,
       })
@@ -80,88 +86,141 @@ export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsP
     []
   )
 
-  const statutCounts = countBy(projets, 'statut')
+  const handleTabChange = useCallback((tab: string) => {
+    setSelectedTab(tab)
+    setYearFrom(null)
+    setYearTo(null)
+    router.reload({
+      only: ['projets', 'meta', 'queryString', 'statusCounts'],
+      data: {
+        projetsStatut: tab,
+        projetsTypesActionExclus: '',
+        projetsStatutsExclus: '',
+        projetsYearFrom: '',
+        projetsYearTo: '',
+        projetsPage: '1',
+      },
+      replace: true,
+    })
+  }, [])
+
+  const handleTypeToggle = useCallback(
+    (type: string) => {
+      const current = queryString.projetsTypesActionExclus
+        ? queryString.projetsTypesActionExclus.split(',')
+        : []
+      const next = current.includes(type) ? current.filter((t) => t !== type) : [...current, type]
+      router.reload({
+        only: ['projets', 'meta', 'queryString', 'statusCounts'],
+        data: { projetsTypesActionExclus: next.join(','), projetsPage: '1' },
+        replace: true,
+      })
+    },
+    [queryString.projetsTypesActionExclus]
+  )
+
+  const handleStatutToggle = useCallback(
+    (statut: string) => {
+      const current = queryString.projetsStatutsExclus
+        ? queryString.projetsStatutsExclus.split(',')
+        : []
+      const next = current.includes(statut)
+        ? current.filter((s) => s !== statut)
+        : [...current, statut]
+      router.reload({
+        only: ['projets', 'meta', 'queryString', 'statusCounts'],
+        data: { projetsStatutsExclus: next.join(','), projetsPage: '1' },
+        replace: true,
+      })
+    },
+    [queryString.projetsStatutsExclus]
+  )
+
+  const handleYearFromChange = useCallback(
+    debounce((value: number) => {
+      router.reload({
+        only: ['projets', 'meta', 'queryString', 'statusCounts'],
+        data: { projetsYearFrom: String(value), projetsPage: '1' },
+        replace: true,
+      })
+    }, 300),
+    []
+  )
+
+  const handleYearToChange = useCallback(
+    debounce((value: number) => {
+      router.reload({
+        only: ['projets', 'meta', 'queryString', 'statusCounts'],
+        data: { projetsYearTo: String(value), projetsPage: '1' },
+        replace: true,
+      })
+    }, 300),
+    []
+  )
 
   const projetStatuts = {
     to_be_started: {
       label: 'À démarrer',
-      count: statutCounts.to_be_started ?? 0,
+      count: statusCounts.to_be_started,
       iconId: 'fr-icon-flag-line',
     },
-    current: { label: 'En cours', count: statutCounts.current ?? 0, iconId: 'fr-icon-play-line' },
+    current: { label: 'En cours', count: statusCounts.current, iconId: 'fr-icon-play-line' },
     completed: {
       label: 'Terminés',
-      count: statutCounts.completed ?? 0,
+      count: statusCounts.completed,
       iconId: 'fr-icon-calendar-check-line',
     },
     abandoned: {
       label: 'Abandonnés',
-      count: statutCounts.abandoned ?? 0,
+      count: statusCounts.abandoned,
       iconId: 'fr-icon-error-line',
     },
   }
 
-  const selectedProjetsList = useMemo(() => {
-    const effectiveYearFrom = yearFrom ?? minAvailableYear
-    const effectiveYearTo = yearTo ?? maxAvailableYear
-    return projets.filter((projet) => {
-      if (selectedTab !== 'all' && projet.status !== selectedTab) return false
-      if (projet.actionType !== null && deselectedTypesAction.has(projet.actionType)) return false
-      if (deselectedStatuts.has(projet.status)) return false
-      const year = new Date(projet.createdAt).getFullYear()
-      if (year < effectiveYearFrom || year > effectiveYearTo) return false
-      return true
-    })
-  }, [
-    projets,
-    selectedTab,
-    deselectedTypesAction,
-    deselectedStatuts,
-    yearFrom,
-    yearTo,
-    minAvailableYear,
-    maxAvailableYear,
-  ])
+  const totalFilteredCount =
+    statusCounts.to_be_started +
+    statusCounts.current +
+    statusCounts.completed +
+    statusCounts.abandoned
 
   const TABS = [
     {
-      label: `Tous (${projets.length})`,
+      label: `Tous (${totalFilteredCount})`,
       tabId: 'all',
     },
     {
-      label: `À démarrer (${projetStatuts.to_be_started.count})`,
+      label: `À démarrer (${statusCounts.to_be_started})`,
       tabId: 'to_be_started',
-      disabled: projetStatuts.to_be_started.count === 0,
+      disabled: statusCounts.to_be_started === 0,
     },
     {
-      label: `En cours (${projetStatuts.current.count})`,
+      label: `En cours (${statusCounts.current})`,
       tabId: 'current',
-      disabled: projetStatuts.current.count === 0,
+      disabled: statusCounts.current === 0,
     },
     {
-      label: `Terminés (${projetStatuts.completed.count})`,
+      label: `Terminés (${statusCounts.completed})`,
       tabId: 'completed',
-      disabled: projetStatuts.completed.count === 0,
+      disabled: statusCounts.completed === 0,
     },
     {
-      label: `Abandonnés (${projetStatuts.abandoned.count})`,
+      label: `Abandonnés (${statusCounts.abandoned})`,
       tabId: 'abandoned',
-      disabled: projetStatuts.abandoned.count === 0,
+      disabled: statusCounts.abandoned === 0,
     },
   ]
 
-  console.log(projets)
+  const effectiveYearFrom = yearFrom ?? availableYearRange.min
+  const effectiveYearTo = yearTo ?? availableYearRange.max
+  const showYearRange = availableYearRange.max > availableYearRange.min
+
   return (
     <div>
       <Tabs
         selectedTabId={selectedTab}
         tabs={TABS}
         onTabChange={(tab) => {
-          setSelectedTab(tab)
-          setDeselectedTypesAction(new Set())
-          setDeselectedStatuts(new Set())
-          setYearFrom(null)
-          setYearTo(null)
+          handleTabChange(tab)
         }}
       >
         <SearchWithFilters
@@ -175,13 +234,13 @@ export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsP
                 <strong>Types d'actions</strong>
               </p>
               <div className="flex flex-wrap gap-1">
-                {typesAction.map((type) => (
+                {availableActionTypes.map((type) => (
                   <Tag
                     key={type}
                     small
                     pressed={!deselectedTypesAction.has(type)}
                     nativeButtonProps={{
-                      onClick: () => toggle(setDeselectedTypesAction, type),
+                      onClick: () => handleTypeToggle(type),
                       style: { opacity: deselectedTypesAction.has(type) ? 0.4 : 1 },
                     }}
                   >
@@ -203,7 +262,7 @@ export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsP
                       small
                       pressed={!deselectedStatuts.has(key)}
                       nativeButtonProps={{
-                        onClick: () => toggle(setDeselectedStatuts, key),
+                        onClick: () => handleStatutToggle(key),
                         style: { opacity: deselectedStatuts.has(key) ? 0.4 : 1 },
                       }}
                     >
@@ -214,21 +273,31 @@ export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsP
               </div>
             )}
 
-            {years.length > 1 && (
+            {showYearRange && (
               <Range
                 double
                 small
                 label=""
-                min={minAvailableYear}
-                max={maxAvailableYear}
+                min={availableYearRange.min}
+                max={availableYearRange.max}
                 nativeInputProps={[
                   {
-                    value: yearFrom ?? minAvailableYear,
-                    onChange: (e) => setYearFrom(Number(e.target.value)),
+                    'aria-label': 'Année de début',
+                    'value': effectiveYearFrom,
+                    'onChange': (e) => {
+                      const val = Number(e.target.value)
+                      setYearFrom(val)
+                      handleYearFromChange(val)
+                    },
                   },
                   {
-                    value: yearTo ?? maxAvailableYear,
-                    onChange: (e) => setYearTo(Number(e.target.value)),
+                    'aria-label': 'Année de fin',
+                    'value': effectiveYearTo,
+                    'onChange': (e) => {
+                      const val = Number(e.target.value)
+                      setYearTo(val)
+                      handleYearToChange(val)
+                    },
                   },
                 ]}
               />
@@ -237,8 +306,8 @@ export default function ProjetsTabs({ projets, meta, queryString }: ProjetsTabsP
         </SearchWithFilters>
 
         <div className="fr-mt-2w">
-          {selectedProjetsList.length > 0 ? (
-            <ProjetsList {...{ projets: selectedProjetsList }} projetStatuts={projetStatuts} />
+          {projets.length > 0 ? (
+            <ProjetsList {...{ projets }} projetStatuts={projetStatuts} />
           ) : (
             <EmptyPlaceholder
               illustrativeIcon="fr-icon-briefcase-line"

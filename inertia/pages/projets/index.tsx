@@ -16,6 +16,9 @@ export default function Projets({
   projetsCount,
   meta,
   queryString,
+  availableActionTypes,
+  availableYearRange,
+  statusCounts,
 }: InferPageProps<ProjectsController, 'index'>) {
   return (
     <Layout>
@@ -52,7 +55,14 @@ export default function Projets({
             isDisabled
           />
         ) : (
-          <ProjetsTabs projets={projets} meta={meta} queryString={queryString} />
+          <ProjetsTabs
+            projets={projets}
+            meta={meta}
+            queryString={queryString}
+            availableActionTypes={availableActionTypes}
+            availableYearRange={availableYearRange}
+            statusCounts={statusCounts}
+          />
         )}
       </div>
     </Layout>

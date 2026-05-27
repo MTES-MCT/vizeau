@@ -10,6 +10,7 @@ const metaArgs: ResumeCardProps = {
   color: fr.colors.decisions.text.label.blueFrance.default,
   iconId: 'fr-icon-information-fill',
   hint: 'Hint text',
+  onClick: undefined,
 }
 
 const meta = {
@@ -40,6 +41,10 @@ const meta = {
     },
     hint: {
       control: 'text',
+    },
+    onClick: {
+      action: 'clicked',
+      control: false,
     },
   },
   args: metaArgs,
@@ -76,5 +81,11 @@ export const AvecHint = {
 export const SansIcone = {
   args: {
     iconId: undefined,
+  },
+}
+
+export const AvecAction = {
+  args: {
+    onClick: () => alert('Card clicked!'),
   },
 }

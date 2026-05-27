@@ -8,6 +8,7 @@ import DualRangeSlider from './dual-range-slider'
 import { useFetch } from '~/hooks/use-fetch'
 import type { AnalysesStats, AnalysesPerYear } from '#types/captage'
 import QualiteSuivi from './qualite-suivi'
+import SubstancesARisque from './substances-risque'
 
 type Props = {
   aacCode: string
@@ -19,7 +20,14 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
   const [sliderMax, setSliderMax] = useState<number | null>(null)
   const [yearMin, setYearMin] = useState<number | null>(null)
   const [yearMax, setYearMax] = useState<number | null>(null)
-  const [activeSection, setActiveSection] = useState<'suivi' | 'chroniques'>('suivi')
+  const [activeSection, setActiveSection] = useState<'suivi' | 'chroniques' | 'substances'>('suivi')
+  const [chroniquesSubstanceCode, setChroniquesSubstanceCode] = useState<number | null>(null)
+  const [scrollTarget, setScrollTarget] = useState<string | null>(null)
+
+  function goToChronique(code: number) {
+    setChroniquesSubstanceCode(code)
+    setActiveSection('chroniques')
+  }
 
   const baseUrl = `/aac/${aacCode}/installations/${installationCode}/analyses`
   const yearParams =
@@ -136,16 +144,40 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
                 ? null
                 : (stats?.depassements_reglementaires?.toLocaleString('fr-FR') ?? null)
             }
-            label="au total sur la période"
+            label={
+              stats?.depassements_reglementaires
+                ? 'cliquer pour voir les substances →'
+                : 'au total sur la période'
+            }
+            onClick={
+              stats?.depassements_reglementaires
+                ? () => {
+                    setActiveSection('substances')
+                    setScrollTarget('substances-regl')
+                  }
+                : undefined
+            }
           />
           <ResumeCard
             title="Dépassements d'alerte (80 %)"
-            iconId="fr-icon-warning-line"
+            iconId="fr-icon-error-warning-line"
             color={fr.colors.decisions.text.default.warning.default}
             value={
               loadingStats ? null : (stats?.depassements_alerte?.toLocaleString('fr-FR') ?? null)
             }
-            label="au total sur la période"
+            label={
+              stats?.depassements_reglementaires
+                ? 'cliquer pour voir les substances →'
+                : 'au total sur la période'
+            }
+            onClick={
+              stats?.depassements_alerte
+                ? () => {
+                    setActiveSection('substances')
+                    setScrollTarget('substances-alerte')
+                  }
+                : undefined
+            }
           />
           <ResumeCard
             title="Analyses"
@@ -158,28 +190,33 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
       </section>
 
       {/* Section tabs */}
-      <div>
-        <div className="fr-py-2w">
-          <SegmentedControl
-            hideLegend
-            segments={[
-              {
-                label: "Suivi de la qualité de l'eau",
-                nativeInputProps: {
-                  checked: activeSection === 'suivi',
-                  onChange: () => setActiveSection('suivi'),
-                },
+      <div className="flex flex-col gap-4 fr-mt-3w">
+        <SegmentedControl
+          hideLegend
+          segments={[
+            {
+              label: 'Substances à risque',
+              nativeInputProps: {
+                checked: activeSection === 'substances',
+                onChange: () => setActiveSection('substances'),
               },
-              {
-                label: 'Chroniques par substances',
-                nativeInputProps: {
-                  checked: activeSection === 'chroniques',
-                  onChange: () => setActiveSection('chroniques'),
-                },
+            },
+            {
+              label: "Suivi de la qualité de l'eau",
+              nativeInputProps: {
+                checked: activeSection === 'suivi',
+                onChange: () => setActiveSection('suivi'),
               },
-            ]}
-          />
-        </div>
+            },
+            {
+              label: 'Chroniques par substances',
+              nativeInputProps: {
+                checked: activeSection === 'chroniques',
+                onChange: () => setActiveSection('chroniques'),
+              },
+            },
+          ]}
+        />
 
         <div>
           {activeSection === 'suivi' && (
@@ -190,12 +227,25 @@ export default function CaptageAnalysesHeader({ aacCode, installationCode }: Pro
             />
           )}
 
+          {activeSection === 'substances' && yearMin !== null && yearMax !== null && (
+            <SubstancesARisque
+              aacCode={aacCode}
+              installationCode={installationCode}
+              yearMin={yearMin}
+              yearMax={yearMax}
+              onSelectSubstance={goToChronique}
+              scrollToId={scrollTarget}
+              onScrollDone={() => setScrollTarget(null)}
+            />
+          )}
+
           {activeSection === 'chroniques' && yearMin !== null && yearMax !== null && (
             <ChroniquesParSubstances
               aacCode={aacCode}
               installationCode={installationCode}
               yearMin={yearMin}
               yearMax={yearMax}
+              initialSubstanceCode={chroniquesSubstanceCode}
             />
           )}
         </div>

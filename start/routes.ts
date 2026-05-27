@@ -18,7 +18,7 @@ const VisualisationController = () => import('#controllers/visualisation_control
 const AacController = () => import('#controllers/aac_controller')
 const ProjectsController = () => import('#controllers/projects_controller')
 
-router.get('/', ({ response }) => response.redirect('login'))
+router.get('/', ({ response }) => response.redirect('login')).as('root')
 
 router.get('login', [SessionController, 'index'])
 router.post('login', [SessionController, 'store'])
