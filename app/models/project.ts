@@ -1,11 +1,19 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import {
+  BaseModel,
+  beforeCreate,
+  belongsTo,
+  column,
+  hasMany,
+  manyToMany,
+} from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
 import Parcelle from '#models/parcelle'
 import Captage from '#models/captage'
 import User from '#models/user'
+import ProjectStep from '#models/project_step'
 
 export const ProjectStatus = {
   TO_BE_STARTED: 'to_be_started',
@@ -61,6 +69,9 @@ export default class Project extends BaseModel {
     pivotTimestamps: true,
   })
   declare captages: ManyToMany<typeof Captage>
+
+  @hasMany(() => ProjectStep)
+  declare steps: HasMany<typeof ProjectStep>
 
   @column.dateTime()
   declare closedAt: DateTime | null
