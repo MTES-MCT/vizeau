@@ -1,6 +1,6 @@
 import ProjectStepTag from '#models/project_step_tag'
-import ProjectStep from '#models/project_step'
 import { errors } from '@adonisjs/auth'
+import ProjectStep from '#models/project_step'
 
 export class ProjectStepTagService {
   async createTagForUser(userId: string, tagName: string) {
@@ -24,14 +24,12 @@ export class ProjectStepTagService {
     return query.exec()
   }
 
-  async getTagsForStep(stepId?: string) {
-    if (!stepId) {
-      return []
-    }
-
-    const step = await ProjectStep.query().where('id', stepId).preload('tags').firstOrFail()
-
-    return step.tags
+  async getTagsForStep(stepId: string) {
+    return ProjectStepTag.query()
+      .whereHas('steps', (query) => {
+        query.where(`${ProjectStep.table}.id`, stepId)
+      })
+      .exec()
   }
 
   async updateTag(tagId: number, tagName: string, userId: string) {

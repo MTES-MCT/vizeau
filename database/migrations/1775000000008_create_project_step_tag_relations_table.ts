@@ -6,6 +6,8 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
+      table.increments('id')
+
       table
         .uuid('project_step_id')
         .notNullable()
@@ -20,7 +22,7 @@ export default class extends BaseSchema {
         .inTable('project_step_tags')
         .onDelete('CASCADE')
 
-      table.primary(['project_step_id', 'project_step_tag_id'])
+      table.unique(['project_step_id', 'project_step_tag_id'])
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

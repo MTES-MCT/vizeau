@@ -91,14 +91,6 @@ test.group('ProjectStepTagService', (group) => {
     assert.deepEqual(stepTags.map((t) => t.id).sort(), tags.map((t) => t.id).sort())
   })
 
-  test('getTagsForStep returns empty array when stepId is undefined', async ({ assert }) => {
-    const service = new ProjectStepTagService()
-
-    const tags = await service.getTagsForStep(undefined)
-
-    assert.deepEqual(tags, [])
-  })
-
   test('I can update a tag', async ({ assert }) => {
     const user = await UserFactory.create()
     const service = new ProjectStepTagService()
