@@ -3,7 +3,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { Table } from '@codegouvfr/react-dsfr/Table'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem } from '#types/captage'
-import { useFetch } from '~/hooks/use-fetch'
+import { useFetch } from '~/hooks/use_fetch'
 import SectionCard from '~/ui/SectionCard'
 
 type Props = {
