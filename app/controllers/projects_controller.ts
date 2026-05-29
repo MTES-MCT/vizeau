@@ -23,7 +23,7 @@ export default class ProjectsController {
     public exploitationService: ExploitationService
   ) {}
 
-  async index({ auth, inertia, request, response }: HttpContext) {
+  async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
     const pageInput = request.input('projetsPage') || '1'
     const recherche: string | undefined = request.input('projetsRecherche') || undefined
@@ -118,18 +118,6 @@ export default class ProjectsController {
       mainQuery.whereNotIn('status', statutsExclus)
     }
     const projects = await mainQuery.paginate(page, PER_PAGE)
-
-    if (request.accepts(['json', 'html']) === 'json') {
-      return response.json({
-        data: projects.all().map(ProjectDto.fromModel),
-        meta: {
-          total: projects.total,
-          perPage: PER_PAGE,
-          currentPage: projects.currentPage,
-          lastPage: projects.lastPage,
-        },
-      })
-    }
 
     return inertia.render('projets/index', {
       projets: projects.all().map(ProjectDto.fromModel),
