@@ -19,7 +19,10 @@ test.group('Projects - Index Route', (group) => {
       await project.related('user').associate(user)
     }
 
-    const response = await client.get(route('projets.index')).loginAs(user)
+    const response = await client
+      .get(route('projets.index'))
+      .accept('application/json')
+      .loginAs(user)
 
     response.assertStatus(200)
 

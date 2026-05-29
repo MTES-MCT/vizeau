@@ -14,6 +14,8 @@ import {
 import { ProjectDto } from '../dto/project_dto.js'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
 
+const PER_PAGE = 20
+
 @inject()
 export default class ProjectsController {
   constructor(
@@ -21,22 +23,133 @@ export default class ProjectsController {
     public exploitationService: ExploitationService
   ) {}
 
-  async index({ auth, response }: HttpContext) {
+  async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
-    const projects = await Project.query().where('userId', user.id).orderBy('createdAt', 'desc')
+    const pageInput = request.input('projetsPage') || '1'
+    const recherche: string | undefined = request.input('projetsRecherche') || undefined
+    const statut: string = request.input('projetsStatut') || 'all'
+    const typesActionExclusStr: string = request.input('projetsTypesActionExclus') || ''
+    const statutsExclusStr: string = request.input('projetsStatutsExclus') || ''
+    const yearFromInput: string | undefined = request.input('projetsYearFrom') || undefined
+    const yearToInput: string | undefined = request.input('projetsYearTo') || undefined
 
-    return response.json({
-      data: projects.map(ProjectDto.fromModel),
+    const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
+    const typesActionExclus = typesActionExclusStr ? typesActionExclusStr.split(',') : []
+    const statutsExclus = statutsExclusStr ? statutsExclusStr.split(',') : []
+    const yearFrom = yearFromInput ? Number.parseInt(yearFromInput, 10) : null
+    const yearTo = yearToInput ? Number.parseInt(yearToInput, 10) : null
+
+    // Total count (unfiltered) — used for the empty-state UI
+    const projetsCount = await Project.query()
+      .where('userId', user.id)
+      .count('* as total')
+      .first()
+      .then((r) => Number(r?.$extras?.total ?? 0))
+
+    // All distinct action types for the user (unfiltered) — stable filter options
+    const availableActionTypesRows = await Project.query()
+      .where('userId', user.id)
+      .whereNotNull('actionType')
+      .distinct('actionType')
+      .select('actionType')
+      .orderBy('actionType', 'asc')
+    const availableActionTypes = availableActionTypesRows.map((p) => p.actionType as string)
+
+    // Global year range (unfiltered) — bounds for the year slider
+    const [oldestProject, newestProject] = await Promise.all([
+      Project.query()
+        .where('userId', user.id)
+        .orderBy('createdAt', 'asc')
+        .select('createdAt')
+        .first(),
+      Project.query()
+        .where('userId', user.id)
+        .orderBy('createdAt', 'desc')
+        .select('createdAt')
+        .first(),
+    ])
+    const currentYear = new Date().getFullYear()
+    const availableYearRange = {
+      min: oldestProject?.createdAt.year ?? currentYear,
+      max: newestProject?.createdAt.year ?? currentYear,
+    }
+
+    // Per-status counts using base filters (search + year + type) but no status filter
+    // These power the tab labels so every tab shows its true count given the active filters.
+    const statusCountsQuery = Project.query()
+      .where('userId', user.id)
+      .select('status')
+      .groupBy('status')
+      .count('* as count')
+    if (recherche) statusCountsQuery.whereILike('name', `%${recherche}%`)
+    if (yearFrom !== null)
+      statusCountsQuery.whereRaw('EXTRACT(YEAR FROM created_at) >= ?', [yearFrom])
+    if (yearTo !== null) statusCountsQuery.whereRaw('EXTRACT(YEAR FROM created_at) <= ?', [yearTo])
+    if (typesActionExclus.length > 0) {
+      statusCountsQuery.where((q) => {
+        q.whereNull('actionType').orWhereNotIn('actionType', typesActionExclus)
+      })
+    }
+    const statusCountsRaw = await statusCountsQuery
+    const statusCountsMap: Record<string, number> = {}
+    for (const row of statusCountsRaw) {
+      statusCountsMap[row.status] = Number(row.$extras.count)
+    }
+    const statusCounts = {
+      to_be_started: statusCountsMap['to_be_started'] ?? 0,
+      current: statusCountsMap['current'] ?? 0,
+      completed: statusCountsMap['completed'] ?? 0,
+      abandoned: statusCountsMap['abandoned'] ?? 0,
+    }
+
+    // Main paginated query — all filters applied
+    const mainQuery = Project.query().where('userId', user.id).orderBy('createdAt', 'desc')
+    if (recherche) mainQuery.whereILike('name', `%${recherche}%`)
+    if (yearFrom !== null) mainQuery.whereRaw('EXTRACT(YEAR FROM created_at) >= ?', [yearFrom])
+    if (yearTo !== null) mainQuery.whereRaw('EXTRACT(YEAR FROM created_at) <= ?', [yearTo])
+    if (typesActionExclus.length > 0) {
+      mainQuery.where((q) => {
+        q.whereNull('actionType').orWhereNotIn('actionType', typesActionExclus)
+      })
+    }
+    if (statut !== 'all') {
+      mainQuery.where('status', statut)
+    } else if (statutsExclus.length > 0) {
+      mainQuery.whereNotIn('status', statutsExclus)
+    }
+    const projects = await mainQuery.paginate(page, PER_PAGE)
+
+    return inertia.render('projets/index', {
+      projets: projects.all().map(ProjectDto.fromModel),
+      projetsCount,
+      availableActionTypes,
+      availableYearRange,
+      statusCounts,
+      meta: {
+        total: projects.total,
+        perPage: PER_PAGE,
+        currentPage: projects.currentPage,
+        lastPage: projects.lastPage,
+      },
+      queryString: {
+        projetsRecherche: recherche ?? '',
+        projetsPage: String(page),
+        projetsStatut: statut,
+        projetsTypesActionExclus: typesActionExclusStr,
+        projetsStatutsExclus: statutsExclusStr,
+        projetsYearFrom: yearFromInput ?? '',
+        projetsYearTo: yearToInput ?? '',
+      },
     })
   }
 
-  async show({ auth, request, response }: HttpContext) {
+  async show({ auth, request, inertia }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
-    return response.json({
-      data: ProjectDto.fromModel(project),
+    return inertia.render('projets/show', {
+      projet: ProjectDto.fromModel(project),
     })
   }
 

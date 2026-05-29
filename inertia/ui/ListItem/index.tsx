@@ -30,6 +30,7 @@ export type ListItemProps = {
   additionalInfos?: AdditionalInfosProps
   hasBorder?: boolean
   linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
+  hideTooltip?: boolean
   onClick?: () => void
 }
 
@@ -95,6 +96,7 @@ export default function ListItem({
   additionalInfos,
   hasBorder = false,
   linkProps,
+  hideTooltip = false,
   onClick,
 }: ListItemProps) {
   // Default variant
@@ -215,7 +217,11 @@ export default function ListItem({
                   ></span>
                 )}
                 {typeof title === 'string' ? (
-                  <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
+                  <TruncatedText
+                    maxLines={1}
+                    className="flex-1 fr-m-0 fr-text--md font-bold"
+                    hideTooltip={hideTooltip}
+                  >
                     {title}
                   </TruncatedText>
                 ) : (
@@ -227,6 +233,7 @@ export default function ListItem({
                   maxLines={1}
                   className="fr-mb-0 fr-text--sm"
                   style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                  hideTooltip={hideTooltip}
                 >
                   {subtitle}
                 </TruncatedText>
