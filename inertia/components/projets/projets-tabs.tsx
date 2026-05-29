@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useState } from 'react'
 import { router } from '@inertiajs/react'
 
-import { ProjectJson } from '../../../types/models'
+import { ProjetsTabsJson } from '#types/models'
 import { debounce } from 'lodash-es'
 
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
@@ -12,40 +12,6 @@ import SearchWithFilters from '~/ui/SearchWithFilters'
 import ProjetsList from './projets-list'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
-export type ProjetEtape = {
-  title: string
-  note: string | null
-  date: string
-  date_maj: string
-  documents: unknown[]
-  tags: string[]
-  is_validated: boolean
-}
-
-export type ProjetsMeta = {
-  total: number
-  perPage: number
-  currentPage: number
-  lastPage: number
-}
-
-export type ProjetsTabsProps = {
-  projets: ProjectJson[]
-  meta: ProjetsMeta
-  queryString: {
-    projetsRecherche: string
-    projetsPage: string
-    projetsStatut: string
-    projetsTypesActionExclus: string
-    projetsStatutsExclus: string
-    projetsYearFrom: string
-    projetsYearTo: string
-  }
-  availableActionTypes: string[]
-  availableYearRange: { min: number; max: number }
-  statusCounts: { to_be_started: number; current: number; completed: number; abandoned: number }
-}
-
 export default function ProjetsTabs({
   projets,
   meta,
@@ -53,7 +19,7 @@ export default function ProjetsTabs({
   availableActionTypes,
   availableYearRange,
   statusCounts,
-}: ProjetsTabsProps) {
+}: ProjetsTabsJson) {
   // selectedTab drives which tab is visually active; initialised from the URL so that
   // browser back/forward and hard reloads restore the correct tab instantly.
   const [selectedTab, setSelectedTab] = useState(queryString.projetsStatut || 'all')
