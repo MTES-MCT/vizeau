@@ -8,6 +8,7 @@ import { ExploitationService } from '#services/exploitation_service'
 import {
   createProjectValidator,
   destroyProjectValidator,
+  indexProjectValidator,
   showProjectValidator,
   updateProjectValidator,
 } from '#validators/project'
@@ -25,19 +26,23 @@ export default class ProjectsController {
 
   async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
-    const pageInput = request.input('projetsPage') || '1'
-    const recherche: string | undefined = request.input('projetsRecherche') || undefined
-    const statut: string = request.input('projetsStatut') || 'all'
-    const typesActionExclusStr: string = request.input('projetsTypesActionExclus') || ''
-    const statutsExclusStr: string = request.input('projetsStatutsExclus') || ''
-    const yearFromInput: string | undefined = request.input('projetsYearFrom') || undefined
-    const yearToInput: string | undefined = request.input('projetsYearTo') || undefined
+    // Query string params arrive as empty strings for absent values (bodyparser's
+    // convertEmptyStringsToNull only applies to POST/PUT/PATCH/DELETE bodies).
+    // We convert them to undefined so VineJS .optional() handles them correctly.
+    const qs = request.qs()
+    const cleanedQs = Object.fromEntries(Object.entries(qs).filter(([_, v]) => v !== ''))
+    const input = await request.validateUsing(indexProjectValidator, { data: cleanedQs })
 
-    const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
+    const page = input.projetsPage ?? 1
+    const recherche = input.projetsRecherche
+    const statut = input.projetsStatut ?? 'all'
+    const typesActionExclusStr = input.projetsTypesActionExclus ?? ''
+    const statutsExclusStr = input.projetsStatutsExclus ?? ''
+    const yearFrom = input.projetsYearFrom ?? null
+    const yearTo = input.projetsYearTo ?? null
+
     const typesActionExclus = typesActionExclusStr ? typesActionExclusStr.split(',') : []
     const statutsExclus = statutsExclusStr ? statutsExclusStr.split(',') : []
-    const yearFrom = yearFromInput ? Number.parseInt(yearFromInput, 10) : null
-    const yearTo = yearToInput ? Number.parseInt(yearToInput, 10) : null
 
     // Total count (unfiltered) — used for the empty-state UI
     const projetsCount = await Project.query()
@@ -133,8 +138,8 @@ export default class ProjectsController {
         projetsStatut: statut,
         projetsTypesActionExclus: typesActionExclusStr,
         projetsStatutsExclus: statutsExclusStr,
-        projetsYearFrom: yearFromInput ?? '',
-        projetsYearTo: yearToInput ?? '',
+        projetsYearFrom: yearFrom !== null ? String(yearFrom) : '',
+        projetsYearTo: yearTo !== null ? String(yearTo) : '',
       },
     })
   }
