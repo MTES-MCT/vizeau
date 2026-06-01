@@ -118,19 +118,15 @@ export default class ProjectsController {
       mainQuery.whereNotIn('status', statutsExclus)
     }
     const projects = await mainQuery.paginate(page, PER_PAGE)
+    const serializedProjects = ProjectDto.fromPaginator(projects)
 
     return inertia.render('projets/index', {
-      projets: projects.all().map(ProjectDto.fromModel),
+      projets: serializedProjects.data,
+      meta: serializedProjects.meta,
       projetsCount,
       availableActionTypes,
       availableYearRange,
       statusCounts,
-      meta: {
-        total: projects.total,
-        perPage: PER_PAGE,
-        currentPage: projects.currentPage,
-        lastPage: projects.lastPage,
-      },
       queryString: {
         projetsRecherche: recherche ?? '',
         projetsPage: String(page),
