@@ -220,6 +220,7 @@ router
           .as('aac.analyses')
 
         router.get('projets', [ProjectsController, 'index']).as('projets.index')
+        router.get('projets/creation', [ProjectsController, 'create']).as('projets.create')
         router.get('projets/:projectId', [ProjectsController, 'show']).as('projets.show')
         router.post('projets', [ProjectsController, 'store']).as('projets.store')
         router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')

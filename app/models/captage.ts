@@ -28,6 +28,15 @@ export default class Captage extends BaseModel {
   @column()
   declare state: string
 
+  @column()
+  declare commune: string | null
+
+  @column()
+  declare type: string | null
+
+  @column()
+  declare prioritaire: boolean
+
   @manyToMany(() => Project, {
     pivotTable: 'project_captage_relations',
     pivotTimestamps: true,

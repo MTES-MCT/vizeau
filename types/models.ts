@@ -70,6 +70,16 @@ export type ParcelleJson = {
   comment: string | null
 }
 
+export type CaptageJson = {
+  id: string
+  code: string
+  name: string
+  bssCode: string
+  state: string
+  type: string | null
+  prioritaire: boolean
+}
+
 export type ProjectJson = {
   id: string
   name: string
@@ -79,6 +89,9 @@ export type ProjectJson = {
   closedAt: string | null
   createdAt: string
   updatedAt: string
+  parcelles: ParcelleJson[]
+  exploitations: ExploitationJson[]
+  captages: CaptageJson[]
 }
 
 export type ProjetsTabsJson = {

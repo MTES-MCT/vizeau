@@ -20,6 +20,23 @@ export const createProjectValidator = vine.compile(
     description: vine.string().maxLength(4000).optional().nullable(),
     actionType: vine.string().maxLength(255).optional().nullable(),
     status: vine.enum(Object.values(ProjectStatus)).optional(),
+    parcelles: vine
+      .array(
+        vine.object({
+          rpgId: vine.string(),
+          surface: vine.number().optional().nullable(),
+          cultureCode: vine.string().optional().nullable(),
+          centroid: vine
+            .object({
+              x: vine.number(),
+              y: vine.number(),
+            })
+            .optional()
+            .nullable(),
+        })
+      )
+      .optional(),
+    millesime: vine.string().maxLength(4).optional(),
     parcelleIds: vine.array(vine.string().uuid()).optional(),
     exploitationIds: vine.array(vine.string().uuid()).optional(),
     captageIds: vine.array(vine.string().uuid()).optional(),
