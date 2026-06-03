@@ -149,7 +149,7 @@ export default class ProjectsController {
     const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
-    return inertia.render('projets/show', {
+    return inertia.render('projets/id', {
       projet: ProjectDto.fromModel(project),
     })
   }
