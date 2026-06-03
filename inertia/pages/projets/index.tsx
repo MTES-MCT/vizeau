@@ -52,7 +52,6 @@ export default function Projets({
             buttonLabel="Créer un premier projet"
             buttonIcon="fr-icon-add-line"
             handleClick={() => router.visit('/projets/creation')}
-            isDisabled
           />
         ) : (
           <ProjetsTabs
