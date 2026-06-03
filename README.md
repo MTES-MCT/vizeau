@@ -119,6 +119,11 @@ node ace migration:run
 node ace db:seed
 ```
 
+### Bucket dev <=> production
+
+Les fichiers en lecture seule du bucket ont deux dossiers pour éviter les problèmes en production (`api-aac` et `api-aac-dev`).
+Lors de la mise en production, il faut vérifier que le fichier dans `api-aac` est bien à jour.
+
 ## Exécution de Storybook
 
 ```shell
