@@ -68,6 +68,15 @@ function createMockAacService(fixture: AacJson | null): AacService {
     getAnalysesRobinet: async (_code: string, year: number) => [
       { date_prelevement: `${year}-03-15`, parametre: 'Nitrates', valeur: 42 },
     ],
+    getAnalysesRobinetForExport: async () => [
+      {
+        code_installation: 'INST1',
+        nom_installation: 'Installation 1',
+        date_prelevement: '2024-03-15',
+        parametre: 'Nitrates',
+        valeur: 42,
+      },
+    ],
   } as unknown as AacService
 }
 
@@ -217,6 +226,7 @@ test.group('AacCsvService - exportQualiteEau', () => {
       getByCode: async () => buildAacFixture() as unknown as Record<string, unknown>,
       getAnalysesRobinetYears: async () => [],
       getAnalysesRobinet: async () => [],
+      getAnalysesRobinetForExport: async () => [],
     } as unknown as AacService
     const service = new AacCsvService(mockService)
     const result = await service.exportQualiteEau('12345')
@@ -231,24 +241,10 @@ test.group('AacCsvService - exportQualiteEau', () => {
     assert.include(csv!, '"42"')
   })
 
-  test('continues gracefully when getAnalysesRobinetYears throws', async ({ assert }) => {
+  test('continues gracefully when getAnalysesRobinetForExport throws', async ({ assert }) => {
     const mockService = {
       getByCode: async () => buildAacFixture() as unknown as Record<string, unknown>,
-      getAnalysesRobinetYears: async () => {
-        throw new Error('S3 error')
-      },
-      getAnalysesRobinet: async () => [],
-    } as unknown as AacService
-    const service = new AacCsvService(mockService)
-    const result = await service.exportQualiteEau('12345')
-    assert.isNull(result)
-  })
-
-  test('continues gracefully when getAnalysesRobinet throws', async ({ assert }) => {
-    const mockService = {
-      getByCode: async () => buildAacFixture() as unknown as Record<string, unknown>,
-      getAnalysesRobinetYears: async () => ['2024'],
-      getAnalysesRobinet: async () => {
+      getAnalysesRobinetForExport: async () => {
         throw new Error('S3 error')
       },
     } as unknown as AacService
