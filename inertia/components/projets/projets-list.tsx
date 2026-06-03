@@ -18,7 +18,6 @@ export default function ProjetsList({ projets, projetStatuts }: ProjetsListProps
           tags={[
             {
               label: actionType || "Type d'action non renseigné",
-              iconId: 'fr-icon-information-line',
             },
           ]}
           subtitle={

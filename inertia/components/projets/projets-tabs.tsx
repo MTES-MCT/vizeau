@@ -132,12 +132,12 @@ export default function ProjetsTabs({
     },
     current: { label: 'En cours', count: statusCounts.current, iconId: 'fr-icon-play-line' },
     completed: {
-      label: 'Terminés',
+      label: 'Terminé',
       count: statusCounts.completed,
       iconId: 'fr-icon-calendar-check-line',
     },
     abandoned: {
-      label: 'Abandonnés',
+      label: 'Abandonné',
       count: statusCounts.abandoned,
       iconId: 'fr-icon-error-line',
     },
