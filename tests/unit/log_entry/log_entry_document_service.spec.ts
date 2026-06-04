@@ -16,12 +16,18 @@ test.group('LogEntryDocumentService', () => {
     /*
      * Generate a fake in-memory PDF file
      */
-    const { contents, mime, name } = await fileGenerator.generatePdf('1mb')
+    const { contents, name, size } = await fileGenerator.generatePdf('1mb')
 
     const service = new LogEntryDocumentService()
-    const key = await service.uploadDocument(contents, name, mime)
+    const key = await service.uploadDocument({
+      clientName: name,
+      size,
+      moveToDisk: async (destination: string) => {
+        await fakeDisk.put(destination, contents)
+      },
+    })
 
-    fakeDisk.assertExists(LogEntryDocumentService.getS3Path(key))
+    fakeDisk.assertExists(service.getS3Path(key))
 
     const url = await service.getDocumentUrl(key)
 
@@ -35,14 +41,20 @@ test.group('LogEntryDocumentService', () => {
     /*
      * Generate a fake in-memory PDF file
      */
-    const { contents, mime, name } = await fileGenerator.generatePdf('1mb')
+    const { contents, name, size } = await fileGenerator.generatePdf('1mb')
 
     const service = new LogEntryDocumentService()
-    const key = await service.uploadDocument(contents, name, mime)
+    const key = await service.uploadDocument({
+      clientName: name,
+      size,
+      moveToDisk: async (destination: string) => {
+        await fakeDisk.put(destination, contents)
+      },
+    })
 
     await service.deleteDocument(key)
 
-    fakeDisk.assertMissing(LogEntryDocumentService.getS3Path(key))
+    fakeDisk.assertMissing(service.getS3Path(key))
   })
 
   test('I can create a document record', async ({ cleanup, assert }) => {
@@ -68,6 +80,6 @@ test.group('LogEntryDocumentService', () => {
 
     assert.equal(document.logEntryId, logEntry.id)
     assert.equal(document.name, name)
-    fakeDisk.assertExists(LogEntryDocumentService.getS3Path(document.s3Key))
+    fakeDisk.assertExists(service.getS3Path(document.s3Key))
   })
 })

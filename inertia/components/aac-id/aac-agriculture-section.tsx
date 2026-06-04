@@ -159,7 +159,7 @@ export default function AacAgricultureSection({
             priority="secondary"
             hasBorder
           >
-            <EvolutiveChartLine chartItems={bioEvolutiveChartData} legendSize="sm" />
+            <EvolutiveChartLine unit="ha" chartItems={bioEvolutiveChartData} legendSize="sm" />
           </SmallSection>
         )}
       </div>

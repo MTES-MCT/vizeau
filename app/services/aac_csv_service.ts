@@ -238,7 +238,12 @@ export class AacCsvService {
     const rows: string[] = []
 
     const codes = installations.map((inst) => inst.code)
-    const analyses = await this.aacService.getAnalysesRobinetForExport(codes)
+    let analyses: Record<string, unknown>[]
+    try {
+      analyses = await this.aacService.getAnalysesRobinetForExport(codes)
+    } catch {
+      return null
+    }
 
     if (analyses.length > 0 && Object.keys(analyses[0]).length > 0) {
       headers.push(...Object.keys(analyses[0]))
