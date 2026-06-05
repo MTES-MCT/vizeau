@@ -10,8 +10,6 @@ export class TerritoireService {
 
     return Territoire.create({
       name: trimmedName,
-      code: null,
-      parentTerritoireId: null,
     })
   }
 }
