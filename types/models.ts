@@ -81,6 +81,28 @@ export type ProjectJson = {
   updatedAt: string
 }
 
+export type ProjetsTabsJson = {
+  projets: ProjectJson[]
+  meta: {
+    total: number
+    perPage: number
+    currentPage: number
+    lastPage: number
+  }
+  queryString: {
+    projetsRecherche: string
+    projetsPage: string
+    projetsStatut: string
+    projetsTypesActionExclus: string
+    projetsStatutsExclus: string
+    projetsYearFrom: string
+    projetsYearTo: string
+  }
+  availableActionTypes: string[]
+  availableYearRange: { min: number; max: number }
+  statusCounts: { to_be_started: number; current: number; completed: number; abandoned: number }
+}
+
 export type ExploitationJson = {
   id: string
   name: string

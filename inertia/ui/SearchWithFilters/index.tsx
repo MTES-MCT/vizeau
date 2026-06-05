@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { ChangeEvent, ReactNode, useState } from 'react'
 
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar'
 import Button from '@codegouvfr/react-dsfr/Button'
@@ -6,7 +6,7 @@ import SmallSection from '~/ui/SmallSection'
 
 export type SearchWithFiltersProps = {
   searchPlaceholder?: string
-  onSearchChange: (value: string) => void
+  onSearchChange: (e: ChangeEvent<HTMLInputElement>) => void
   defaultSearchValue?: string
   children?: ReactNode
 }
@@ -30,7 +30,7 @@ export default function SearchWithFilters({
               id={id}
               placeholder={searchPlaceholder}
               type={type}
-              onChange={(e) => onSearchChange(e.currentTarget.value)}
+              onChange={onSearchChange}
               defaultValue={defaultSearchValue}
             />
           )}
