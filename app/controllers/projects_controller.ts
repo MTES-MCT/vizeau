@@ -1,11 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import Parcelle from '#models/parcelle'
-import Project from '#models/project'
 import Captage from '#models/captage'
 import { ProjectService } from '#services/project_service'
 import { ExploitationService } from '#services/exploitation_service'
-import { AacService } from '#services/aac_service'
 import env from '#start/env'
 import {
   createProjectValidator,
@@ -24,8 +22,7 @@ export default class ProjectsController {
 
   constructor(
     public projectService: ProjectService,
-    public exploitationService: ExploitationService,
-    public aacService: AacService
+    public exploitationService: ExploitationService
   ) {}
 
   async index({ auth, inertia, request }: HttpContext) {
@@ -184,6 +181,14 @@ export default class ProjectsController {
     }
 
     let resolvedParcelleIds: string[] | undefined
+    if (parcellesInput?.length && !millesime) {
+      createErrorFlashMessage(
+        session,
+        'Le millésime est requis lorsque des parcelles sont fournies.'
+      )
+      return response.redirect().back()
+    }
+
     if (parcellesInput?.length && millesime) {
       const year = Number.parseInt(millesime, 10)
       const rpgIds = parcellesInput.map((p) => p.rpgId)
@@ -198,7 +203,7 @@ export default class ProjectsController {
         .whereIn('rpgId', rpgIds)
         .where('year', year)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the currect user
+          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {
@@ -232,6 +237,7 @@ export default class ProjectsController {
             centroid: input.centroid ?? null,
           })
           accessibleParcelles.push(newParcelle)
+          allExistingRpgIds.add(input.rpgId)
         }
       }
 
@@ -242,7 +248,7 @@ export default class ProjectsController {
       const found = await Parcelle.query()
         .whereIn('id', payload.parcelleIds)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the currect user
+          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {
@@ -322,7 +328,7 @@ export default class ProjectsController {
       const found = await Parcelle.query()
         .whereIn('id', parcelleIds)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the currect user
+          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {

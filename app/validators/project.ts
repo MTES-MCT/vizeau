@@ -36,7 +36,11 @@ export const createProjectValidator = vine.compile(
         })
       )
       .optional(),
-    millesime: vine.string().maxLength(4).optional(),
+    millesime: vine
+      .string()
+      .trim()
+      .regex(/^\d{4}$/)
+      .optional(),
     parcelleIds: vine.array(vine.string().uuid()).optional(),
     exploitationIds: vine.array(vine.string().uuid()).optional(),
     captageIds: vine.array(vine.string().uuid()).optional(),

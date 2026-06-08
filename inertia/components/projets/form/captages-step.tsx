@@ -10,9 +10,12 @@ import { stringToColor } from '~/functions/colors'
 import type { ProjetFormData } from './projet-form'
 
 const handleSearch = debounce((value: string) => {
+  const params = new URLSearchParams(window.location.search)
+  const showActifOnly = params.get('showActifOnly') ?? '0'
+
   router.reload({
     only: ['installations', 'installationsMeta', 'installationsQueryString'],
-    data: { installationsRecherche: value.trim(), installationsPage: 1 },
+    data: { installationsRecherche: value.trim(), installationsPage: 1, showActifOnly },
     replace: true,
   })
 }, 300)
@@ -43,7 +46,11 @@ export default function CaptagesStep({ data, setData }: CaptagesStepProps) {
   const handleShowActifOnlyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     router.reload({
       only: ['installations', 'installationsMeta', 'installationsQueryString'],
-      data: { showActifOnly: e.target.checked ? '1' : '0', installationsPage: 1 },
+      data: {
+        showActifOnly: e.target.checked ? '1' : '0',
+        installationsPage: 1,
+        installationsRecherche: installationsQueryString.installationsRecherche ?? '',
+      },
       replace: true,
     })
   }
