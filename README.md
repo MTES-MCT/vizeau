@@ -103,26 +103,26 @@ Le reste dépend de la logique métier et sort du cadre de ce README.
 
 ## Migration en production
 
-Si un déploiement nécessite des modifications du schéma de la base de données, vous devrez exécuter les migrations manuellement après le déploiement.
-À l'avenir, cela sera automatisé dans les pipelines CI/CD.
+La pipeline CI/CD est configurée pour construire le bundle de production et le déployer sur l'environnement distant de développement à chaque mise à jour de la branche `main`.
+Même chose pour la production, mais à partir de la branche `stable`.
 
-Connectez-vous à votre serveur de production via les commandes suivantes :
+Les migrations de schéma de la base de données se font automatiquement. Si pour une raison ou une autre, vous avez besoin d'accéder à un shell sur un des environnements, voici comment faire :
 
 ```bash
 # Remplacez vizeau-dev par le nom de votre application Scalingo, et la région si nécessaire
 scalingo -a vizeau-dev --region osc-fr1 run "NODE_ENV=production bash"
 # Une fois connecté, naviguez jusqu'au répertoire de l'application
 cd build
-node ace migration:run
-# Adonis vous demandera de confirmer l'exécution des migrations en production. Assurez-vous de les avoir testé sur un environnement de préproduction avant de continuer.
-# Si de nouvelles données doivent être seedées, exécutez également la commande suivante :
+
+# Vous pouvez maintenant exécuter n'importe quelle commande de l'application via `ace`, par exemple pour seeder la base de données :
 node ace db:seed
 ```
 
-### Bucket dev <=> production
+### Migration du bucket S3
 
-Les fichiers en lecture seule du bucket ont deux dossiers pour éviter les problèmes en production (`api-aac` et `api-aac-dev`).
-Lors de la mise en production, il faut vérifier que le fichier dans `api-aac` est bien à jour.
+Nous stockons divers fichiers en lecture seule dans un bucket S3 sur Scaleway, notamment les tuiles vectorielles utilisées pour les cartes, ou les fichiers parquet recensant les AACs.
+Les buckets sont suffixés par le nom de l'environnement. Lorsqu'un fichier doit être mis à jour, nous faisons d'abord nos tests sur les bucket `*-dev`.
+Lors de la mise en production, il faut vérifier que le fichier équivalent dans `*-prod` est bien à jour.
 
 ## Exécution de Storybook
 
