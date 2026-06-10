@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { debounce } from 'lodash-es'
 import { router } from '@inertiajs/react'
@@ -25,28 +25,35 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
   const [searchValue, setSearchValue] = useState(queryString?.aacRecherche || '')
   const [communeFilter, setCommuneFilter] = useState(queryString?.aacCommune || '')
 
+  // Keep a stable ref to reloadOnly so the debounced functions never need to
+  // be recreated (and therefore never get cancelled) when the prop identity changes.
+  const reloadOnlyRef = useRef(reloadOnly)
+  useEffect(() => {
+    reloadOnlyRef.current = reloadOnly
+  }, [reloadOnly])
+
   const handleSearch = useMemo(
     () =>
       debounce((value: string) => {
         router.reload({
-          only: reloadOnly,
+          only: reloadOnlyRef.current,
           data: { aacRecherche: value, aacPage: '1' },
           replace: true,
         })
       }, 300),
-    [reloadOnly]
+    [] // stable — uses ref internally
   )
 
   const handleCommuneFilter = useMemo(
     () =>
       debounce((value: string) => {
         router.reload({
-          only: reloadOnly,
+          only: reloadOnlyRef.current,
           data: { aacCommune: value, aacPage: '1' },
           replace: true,
         })
       }, 300),
-    [reloadOnly]
+    [] // stable — uses ref internally
   )
 
   useEffect(() => {
