@@ -15,14 +15,16 @@ import ProjetForm, {
   ProjetFormData,
   ProjetFormErrors,
   defaultFormData,
+} from '~/components/projets/form/projet-form'
+import Toast from '~/ui/Toaster'
+import {
+  ParcellesStep,
+  ExploitationsStep,
+  CaptagesStep,
   GeneralInfosStep,
   ConsolidationsStep,
   FirstEntryStep,
-} from '~/components/projets/form/projet-form'
-import Toast from '~/ui/Toaster'
-import ParcellesStep from '~/components/projets/form/parcelles-step'
-import ExploitationsStep from '~/components/projets/form/exploitations-step'
-import CaptagesStep from '~/components/projets/form/captages-step'
+} from '~/components/projets/form'
 
 const STEPS: Record<
   number,
