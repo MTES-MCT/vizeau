@@ -80,6 +80,15 @@ export type CaptageJson = {
   prioritaire: boolean
 }
 
+export type CaptageFormJson = {
+  code: string
+  nom: string
+  etat: string
+  commune: string | null
+  type: string | null
+  prioritaire: boolean
+}
+
 export type ProjectJson = {
   id: string
   name: string

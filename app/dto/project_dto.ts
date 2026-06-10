@@ -3,6 +3,7 @@ import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 import type { CaptageJson, ProjectJson, PaginatedJson } from '../../types/models.js'
 import { ParcelleDto } from './parcelle_dto.js'
 import { ExploitationDto } from './exploitation_dto.js'
+import { CaptageDto } from './captage_dto.js'
 
 export class ProjectDto {
   static fromModel(project: Project): ProjectJson {
@@ -17,18 +18,7 @@ export class ProjectDto {
       updatedAt: project.updatedAt.toISO() as string,
       parcelles: project.parcelles?.map((p) => ParcelleDto.fromModel(p)) ?? [],
       exploitations: project.exploitations?.map((e) => ExploitationDto.fromModel(e)) ?? [],
-      captages:
-        project.captages?.map(
-          (c): CaptageJson => ({
-            id: c.id,
-            code: c.code,
-            name: c.name,
-            bssCode: c.bssCode,
-            state: c.state,
-            type: c.type,
-            prioritaire: c.prioritaire,
-          })
-        ) ?? [],
+      captages: project.captages?.map((c): CaptageJson => CaptageDto.fromModel(c)) ?? [],
     }
   }
 

@@ -14,6 +14,7 @@ import {
 } from '#validators/project'
 import { ProjectDto } from '../dto/project_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
+import { CaptageDto } from '../dto/captage_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 
 @inject()
@@ -115,14 +116,7 @@ export default class ProjectsController {
           .preload('parcelles')
         return ExploitationDto.toJsonArray(results)
       },
-      installations: captageRows.map((c) => ({
-        code: c.code,
-        nom: c.name,
-        etat: c.state,
-        commune: c.commune,
-        type: c.type,
-        prioritaire: c.prioritaire,
-      })),
+      installations: CaptageDto.toFormJsonArray(captageRows),
       installationsMeta: {
         total,
         perPage: ProjectsController.INSTALLATIONS_PER_PAGE,
