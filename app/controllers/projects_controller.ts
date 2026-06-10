@@ -129,8 +129,6 @@ export default class ProjectsController {
         showActifOnly: showActifOnlyInput,
       },
       pmtilesUrl: env.get('PMTILES_URL', ''),
-      millesime: '2024',
-      captages: async () => Captage.query().select('id', 'code'),
     })
   }
 
