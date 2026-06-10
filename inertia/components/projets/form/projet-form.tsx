@@ -5,6 +5,7 @@ import Input from '@codegouvfr/react-dsfr/Input'
 import { Select } from '@codegouvfr/react-dsfr/Select'
 import SectionCard from '~/ui/SectionCard'
 import CheckboxCard from '~/ui/CheckboxCard'
+import StepRenderer from '~/components/projets/form/step-renderer'
 
 export type ProjetFormErrors = {
   projectName?: string
@@ -130,20 +131,14 @@ export default function ProjetForm({
 
   return (
     <div className="flex flex-col gap-6">
-      {steps[currentStep].component &&
-        (() => {
-          const StepComponent = steps[currentStep].component!
-
-          return (
-            <StepComponent
-              stepsList={stepsList}
-              setStepsList={handleStepsList}
-              data={data}
-              setData={setData}
-              errors={errors}
-            />
-          )
-        })()}
+      <StepRenderer
+        component={steps[currentStep].component}
+        handleStepsList={handleStepsList}
+        stepsList={stepsList}
+        data={data}
+        setData={setData}
+        errors={errors}
+      />
 
       {hasErrors(errors) && (
         <Alert
