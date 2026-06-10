@@ -286,14 +286,7 @@ export default class ProjectsController {
 
     createSuccessFlashMessage(session, `Le projet "${project.name}" a été créé avec succès.`)
 
-    const isInertiaRequest = request.header('x-inertia') === 'true'
-    if (isInertiaRequest) {
-      return response.redirect().toPath('/projets')
-    }
-
-    return response.status(201).json({
-      data: ProjectDto.fromModel(project),
-    })
+    return response.redirect().toPath('/projets')
   }
 
   async update({ auth, request, response, session }: HttpContext) {
