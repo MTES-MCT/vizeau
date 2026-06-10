@@ -51,3 +51,15 @@ Assigne un territoire existant à un utilisateur existant (par leurs UUIDs).
 ```bash
 node ace territoire:assign <userId> <territoireId>
 ```
+
+---
+
+## `user:reset-password`
+
+Réinitialise le mot de passe d'un utilisateur et affiche le nouveau mot de passe généré.
+
+```bash
+node ace user:reset-password <email>
+```
+
+Le nouveau mot de passe est affiché directement dans la sortie standard afin de ne jamais apparaître dans les logs applicatifs.

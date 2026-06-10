@@ -1,6 +1,7 @@
 import User from '#models/user'
 import Territoire from '#models/territoire'
 import Env from '#start/env'
+import { randomBytes } from 'node:crypto'
 
 export type EnvUserSeeds = Array<{
   email: string
@@ -74,5 +75,25 @@ export default class UserService {
         `Assigned ${territoiresIdsToSync.size} territoire(s) to "${email}" based on their ids.`
       )
     }
+  }
+
+  /**
+   * Generates a secure random password, hashes it, and saves it for the given user.
+   * Returns the plain-text generated password so the caller can display it.
+   * The plain-text password is never persisted anywhere in the application.
+   */
+  async resetPassword(email: string): Promise<string> {
+    const user = await User.findBy('email', email.toLowerCase().trim())
+    if (!user) {
+      throw new Error(`User with email "${email}" not found`)
+    }
+
+    // 9 bytes → 12-character base64url string (no padding)
+    const plainPassword = randomBytes(9).toString('base64url')
+
+    user.password = plainPassword
+    await user.save()
+
+    return plainPassword
   }
 }
