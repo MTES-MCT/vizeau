@@ -16,12 +16,12 @@ const projetStatuts = {
     color: '#f5f5fe',
   },
   completed: {
-    label: 'Terminés',
+    label: 'Terminé',
     iconId: 'fr-icon-calendar-check-line',
     color: '#b8fec9',
   },
   abandoned: {
-    label: 'Abandonnés',
+    label: 'Abandonné',
     iconId: 'fr-icon-error-line',
     color: '#ffe9e9',
   },
