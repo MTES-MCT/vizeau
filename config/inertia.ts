@@ -16,7 +16,7 @@ const inertiaConfig = defineConfig({
     user: (ctx) => ctx.inertia.always(() => ctx.auth?.user as User),
     flashMessages: (ctx) =>
       ctx.inertia.always(
-        () => ctx.session.flashMessages.toJSON() as Record<FlashMessageType, FlashMessageValue>
+        () => ctx.session?.flashMessages?.toJSON() as Record<FlashMessageType, FlashMessageValue>
       ),
   },
 
