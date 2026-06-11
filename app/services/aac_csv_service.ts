@@ -1,7 +1,7 @@
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import { inject } from '@adonisjs/core'
-import { InstallationInfo, CultureInfo, AacJson } from '../../types/aac.js'
+import { InstallationInfo, CultureInfo, AacJson } from '#types/aac'
 
 const SEPARATOR = ';'
 const LINE_END = '\r\n'

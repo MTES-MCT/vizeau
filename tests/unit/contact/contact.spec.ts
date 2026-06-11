@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import { ContactFactory } from '#database/factories/contact_factory'
 import testUtils from '@adonisjs/core/services/test_utils'
-import { ContactJson } from '../../../types/models.js'
+import { ContactJson } from '#types/models'
 import { displayContactName } from '../../../inertia/functions/contacts.js'
 const { getMainContact } = await import('../../../inertia/functions/contacts.js')
 

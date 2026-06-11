@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { AacSummaryJson, ExploitationJson, ParcelleJson } from '../../../types/models'
+import { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {

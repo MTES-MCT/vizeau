@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import Notice, { NoticeProps } from '@codegouvfr/react-dsfr/Notice'
-import { FlashMessageType, FlashMessageValue } from '../../types/flash_messages'
+import { FlashMessageType, FlashMessageValue } from '#types/flash_messages'
 
 export function FlashMessage({
   type,
