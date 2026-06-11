@@ -31,7 +31,7 @@ export default function ProjetParcellesList({ parcelles }: ProjetParcellesListPr
             title={`Parcelle RPG ${parcelle.rpgId}`}
             tags={[getCultureByCode(parcelle.cultureCode)]}
             metas={[
-              { content: `${parcelle?.surface || 'N/A'} ha`, iconId: 'fr-icon-ruler-line' },
+              { content: `${parcelle.surface ?? 'N/A'} ha`, iconId: 'fr-icon-ruler-line' },
               { content: parcelle.year.toString(), iconId: 'fr-icon-calendar-line' },
               ...(parcelle.comment
                 ? [

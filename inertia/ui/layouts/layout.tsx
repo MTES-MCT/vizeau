@@ -21,18 +21,21 @@ export default function Layout({
   useEffect(() => {
     const severities = ['success', 'error', 'warning', 'info'] as const
     const alerts = severities
-      .filter((severity) => flashMessages?.[severity]?.message)
+      .filter(
+        (severity) => flashMessages?.[severity]?.message && !flashMessages?.[severity]?.context
+      )
       .map((severity) => ({
         severity,
         message: flashMessages[severity].message,
       }))
 
-    if (alerts.length > 0) {
-      toast(<Toast alerts={alerts} />, {
-        closeButton: false,
-        style: { padding: 0, background: 'transparent', boxShadow: 'none' },
-      })
-    }
+    if (alerts.length === 0) return
+    const toastId = alerts.map((a) => `${a.severity}:${a.message}`).join('|')
+    toast(<Toast alerts={alerts} />, {
+      toastId,
+      closeButton: false,
+      style: { padding: 0, background: 'transparent', boxShadow: 'none' },
+    })
   }, [flashMessages])
 
   return (

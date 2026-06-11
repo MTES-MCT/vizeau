@@ -377,6 +377,7 @@ export default function VisualisationPage({
             exploitations={filteredExploitations}
             selectedExploitation={selectedExploitation}
             selectedParcelle={selectedParcelle}
+            selectedParcelleId={queryString?.parcelleId as string | undefined}
             isMapLoading={isMapLoading}
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}

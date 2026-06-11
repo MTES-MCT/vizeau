@@ -78,7 +78,7 @@ export default function ShowProjet({ projet }: InferPageProps<ProjectsController
             />
 
             <deleteProjetModal.Component
-              title=""
+              title="Confirmer la suppression du projet"
               size="large"
               buttons={[
                 { children: 'Annuler', doClosesModal: true, type: 'button' },

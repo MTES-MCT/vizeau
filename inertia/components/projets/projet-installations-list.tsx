@@ -51,10 +51,17 @@ export default function ProjetInstallationsList({ captages }: ProjetInstallation
             metas={[
               {
                 iconId: 'fr-icon-government-line',
-                content: `${captage.commune} (${captage.departement})`,
+                content:
+                  captage.commune && captage.departement
+                    ? `${captage.commune} (${captage.departement})`
+                    : (captage.commune ?? captage.departement ?? 'Localisation inconnue'),
               },
             ]}
-            linkProps={{ href: `/aac/${captage.aac_code}/installations/${captage.code}` }}
+            linkProps={
+              captage.aac_code
+                ? { href: `/aac/${captage.aac_code}/installations/${captage.code}` }
+                : undefined
+            }
           />
         </li>
       ))}
