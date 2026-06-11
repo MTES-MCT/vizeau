@@ -62,6 +62,7 @@ export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
   centerOnParcelle: (parcelle: ParcelleJson) => void
   centerOnAac: (aac: AacSummaryJson) => void
+  centerOnCoordinates: (coordinates: { x: number; y: number }) => void
 }
 
 const VisualisationMap = forwardRef<
@@ -70,6 +71,7 @@ const VisualisationMap = forwardRef<
     exploitations: ExploitationJson[]
     selectedExploitation?: ExploitationJson
     selectedParcelle?: ParcelleJson
+    selectedParcelleId?: string
     isMapLoading: boolean
     setIsMapLoading: (isMapLoading: boolean) => void
     onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
@@ -99,6 +101,7 @@ const VisualisationMap = forwardRef<
       exploitations,
       selectedExploitation,
       selectedParcelle,
+      selectedParcelleId,
       isMapLoading,
       setIsMapLoading,
       onParcelleClick,
@@ -219,6 +222,17 @@ const VisualisationMap = forwardRef<
             ],
             { padding: 40, essential: true }
           )
+        }
+      },
+      centerOnCoordinates: (coordinates: { x: number; y: number }) => {
+        const map = mapRef.current
+        if (map) {
+          const coords: LngLatLike = [coordinates.x, coordinates.y]
+          map.flyTo({
+            center: coords,
+            zoom: 15,
+            essential: true,
+          })
         }
       },
     }))
@@ -792,6 +806,8 @@ const VisualisationMap = forwardRef<
           } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
             // Si une parcelle spécifique est sélectionnée et que son année correspond au millésime, ne highlighter que celle-ci
             parcelleIds = [selectedParcelle.rpgId]
+          } else if (selectedParcelleId) {
+            parcelleIds = [selectedParcelleId]
           } else if (selectedExploitation?.parcelles) {
             // Sinon, highlighter toutes les parcelles de l'exploitation
             parcelleIds = selectedExploitation.parcelles
@@ -819,6 +835,8 @@ const VisualisationMap = forwardRef<
         parcelleIds = formParcelleIds
       } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
         parcelleIds = [selectedParcelle.rpgId]
+      } else if (selectedParcelleId) {
+        parcelleIds = [selectedParcelleId]
       } else if (selectedExploitation?.parcelles) {
         parcelleIds = selectedExploitation.parcelles
           .filter((parcelle) => parcelle.year.toString() === millesime)
@@ -834,7 +852,15 @@ const VisualisationMap = forwardRef<
           setParcellesHighlight(mapRef.current, parcelleIds, false)
         }
       }
-    }, [editMode, formParcelleIds, selectedExploitation, selectedParcelle, style, millesime])
+    }, [
+      editMode,
+      formParcelleIds,
+      selectedExploitation,
+      selectedParcelle,
+      selectedParcelleId,
+      style,
+      millesime,
+    ])
 
     // Manage unavailable parcelles highlighting
     useEffect(() => {

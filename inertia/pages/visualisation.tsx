@@ -276,6 +276,25 @@ export default function VisualisationPage({
     }
   }, [selectedAac])
 
+  // Center on explicit centroid from URL when provided (e.g. deep-link from project parcelles list)
+  useEffect(() => {
+    const centroidXParam = queryString?.centroidX as string | undefined
+    const centroidYParam = queryString?.centroidY as string | undefined
+
+    if (!centroidXParam || !centroidYParam) {
+      return
+    }
+
+    const x = Number.parseFloat(centroidXParam)
+    const y = Number.parseFloat(centroidYParam)
+
+    if (Number.isNaN(x) || Number.isNaN(y)) {
+      return
+    }
+
+    mapRef.current?.centerOnCoordinates({ x, y })
+  }, [queryString?.centroidX, queryString?.centroidY])
+
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Visualisation" />
