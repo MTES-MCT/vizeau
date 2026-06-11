@@ -1,4 +1,4 @@
-import { ContactJson } from '../../types/models.js'
+import { ContactJson } from '#types/models'
 
 export function displayContactName(contact?: ContactJson) {
   if (!contact) {

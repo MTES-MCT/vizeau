@@ -4,7 +4,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { toast } from 'react-toastify'
 import Loader from '~/ui/Loader'
 import Toast from '~/ui/Toaster'
-import { ExploitationJson } from '../../types/models'
+import { ExploitationJson } from '#types/models'
 
 export type ParcellesManagerProps = {
   editMode: boolean
