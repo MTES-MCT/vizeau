@@ -27,6 +27,12 @@ export type ExploitationTagJson = {
   group: string
 }
 
+export type TerritoireJson = {
+  id: string
+  name: string | null
+  code: string | null
+}
+
 export type LogEntryTagJson = {
   id: number
   name: string
@@ -121,6 +127,7 @@ export type ExploitationJson = {
   tags?: ExploitationTagJson[] | null
   logEntries?: LogEntryJson[] | null
   parcelles?: ParcelleJson[] | null
+  territoires?: TerritoireJson[] | null
 }
 
 export type AacSummaryJson = {

@@ -12,4 +12,22 @@ export class TerritoireService {
       name: trimmedName,
     })
   }
+
+  async getTerritoiresForUser(userId: string, page: number = 1, perPage: number = 20) {
+    return (
+      Territoire.query()
+        .whereHas('users', (usersQuery) => {
+          usersQuery.where('users.id', userId)
+        })
+        /*
+          Order by code as integer if it exists, otherwise by name.
+          This ensures that territoires with numeric codes are sorted in natural numeric order,
+          while those without codes are sorted alphabetically by name and appear after those with codes.
+         */
+        .orderByRaw(
+          'CASE WHEN code IS NULL THEN 1 ELSE 0 END, CASE WHEN code IS NOT NULL THEN code::int END ASC NULLS LAST, name ASC'
+        )
+        .paginate(page, perPage)
+    )
+  }
 }
