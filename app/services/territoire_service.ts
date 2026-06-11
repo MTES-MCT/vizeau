@@ -25,7 +25,9 @@ export class TerritoireService {
           while those without codes are sorted alphabetically by name and appear after those with codes.
          */
         .orderByRaw(
-          'CASE WHEN code IS NULL THEN 1 ELSE 0 END, CASE WHEN code IS NOT NULL THEN code::int END ASC NULLS LAST, name ASC'
+          `CASE WHEN code ~ '^[0-9]+$' THEN code::int END ASC NULLS LAST,
+            code ASC NULLS LAST,
+            name ASC`
         )
         .paginate(page, perPage)
     )
