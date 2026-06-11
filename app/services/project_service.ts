@@ -99,7 +99,12 @@ export class ProjectService {
     }
 
     // Main paginated query — all filters applied
-    const mainQuery = Project.query().where('userId', userId).orderBy('createdAt', 'desc')
+    const mainQuery = Project.query()
+      .where('userId', userId)
+      .preload('parcelles')
+      .preload('exploitations')
+      .preload('captages')
+      .orderBy('createdAt', 'desc')
     if (recherche) mainQuery.whereILike('name', `%${recherche}%`)
     if (yearFrom !== null) mainQuery.whereRaw('EXTRACT(YEAR FROM created_at) >= ?', [yearFrom])
     if (yearTo !== null) mainQuery.whereRaw('EXTRACT(YEAR FROM created_at) <= ?', [yearTo])
@@ -166,6 +171,11 @@ export class ProjectService {
     if (captageIds !== undefined) {
       await project.related('captages').sync(captageIds)
     }
+
+    // Load relations to ensure they are populated when the DTO is used
+    await project.load('parcelles')
+    await project.load('exploitations')
+    await project.load('captages')
 
     return project
   }

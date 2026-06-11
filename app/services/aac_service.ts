@@ -151,6 +151,9 @@ type CaptageSeedRow = {
   name: string
   bssCode: string
   state: string
+  commune: string | null
+  type: string | null
+  prioritaire: boolean
 }
 
 function normalizeString(value: unknown): string | null {
@@ -726,12 +729,19 @@ export class AacService {
 
         if (!code || !name || !bssCode || !state) return []
 
+        const commune = normalizeString(installation.commune)
+        const type = normalizeString(installation.type)
+        const prioritaire = installation.prioritaire === true
+
         return [
           {
             code,
             name,
             bssCode,
             state,
+            commune,
+            type,
+            prioritaire,
           },
         ]
       })
