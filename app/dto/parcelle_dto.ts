@@ -1,4 +1,4 @@
-import { ParcelleJson } from '../../types/models.js'
+import { ParcelleJson } from '#types/models'
 import Parcelle from '#models/parcelle'
 
 export class ParcelleDto {

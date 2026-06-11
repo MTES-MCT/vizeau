@@ -1,6 +1,6 @@
 import { ChangeEvent, RefObject, useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
-import { AacSummaryJson, ExploitationJson, ParcelleJson } from '../../types/models'
+import { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
 import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'

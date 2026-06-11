@@ -1,4 +1,4 @@
-import { LogEntryJson } from '../../types/models'
+import { LogEntryJson } from '#types/models'
 
 import { AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'

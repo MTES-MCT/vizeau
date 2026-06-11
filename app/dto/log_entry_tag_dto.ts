@@ -1,4 +1,4 @@
-import { LogEntryTagJson } from '../../types/models.js'
+import { LogEntryTagJson } from '#types/models'
 import LogEntryTag from '#models/log_entry_tag'
 
 export class LogEntryTagDto {

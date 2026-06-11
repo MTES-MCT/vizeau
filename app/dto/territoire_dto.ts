@@ -1,4 +1,4 @@
-import { TerritoireJson, PaginatedJson } from '../../types/models.js'
+import { TerritoireJson, PaginatedJson } from '#types/models'
 import Territoire from '#models/territoire'
 import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 

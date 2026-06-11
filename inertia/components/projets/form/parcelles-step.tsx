@@ -8,7 +8,7 @@ import ParcellesSelectionMap, {
 } from '~/components/map/parcelles-selection-map'
 import SectionCard from '~/ui/SectionCard'
 import type { ProjetFormData } from './projet-form'
-import type { ExploitationJson } from '../../../../types/models'
+import type { ExploitationJson } from '#types/models'
 import { getCultureByCode } from '~/functions/cultures-group'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
