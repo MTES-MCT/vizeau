@@ -70,23 +70,30 @@ export type ParcelleJson = {
   comment: string | null
 }
 
-export type CaptageJson = {
-  id: string
-  code: string
-  name: string
-  bssCode: string
-  state: string
-  type: string | null
-  prioritaire: boolean
-}
-
 export type CaptageFormJson = {
+  id: string
   code: string
   nom: string
   etat: string
   commune: string | null
   type: string | null
-  prioritaire: boolean
+  prioritaire: boolean | null
+}
+
+export type CaptageJson = {
+  id: string
+  code: string
+  nom: string
+  code_bss: string
+  commune: string | null
+  departement: string | null
+  type: string | null
+  nature: string | null
+  usage: string | null
+  etat: string
+  prioritaire: boolean | null
+  aac_name: string | null
+  aac_code: string | null
 }
 
 export type ProjectJson = {

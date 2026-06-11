@@ -6,20 +6,27 @@ export class CaptageDto {
     return {
       id: captage.id,
       code: captage.code,
-      name: captage.name,
-      bssCode: captage.bssCode,
-      state: captage.state,
+      nom: captage.name,
+      code_bss: captage.bssCode,
+      commune: captage.commune ?? null,
+      departement: null,
       type: captage.type,
+      nature: null,
+      usage: null,
+      etat: captage.state,
       prioritaire: captage.prioritaire,
+      aac_name: null,
+      aac_code: null,
     }
   }
 
   static toFormJson(captage: Captage): CaptageFormJson {
     return {
+      id: captage.id,
       code: captage.code,
       nom: captage.name,
       etat: captage.state,
-      commune: captage.commune,
+      commune: captage.commune ?? null,
       type: captage.type,
       prioritaire: captage.prioritaire,
     }

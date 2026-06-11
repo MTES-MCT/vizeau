@@ -76,9 +76,7 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
       millesime: formData.parcelles.millesime,
       exploitationIds: formData.exploitations || [],
       captageIds: formData.captages.flatMap((code) => {
-        const found = (props.captages as { id: string; code: string }[])?.find(
-          (c) => c.code === code
-        )
+        const found = props.installations?.find((c) => c.code === code)
         return found ? [found.id] : []
       }),
       firstEntry,
