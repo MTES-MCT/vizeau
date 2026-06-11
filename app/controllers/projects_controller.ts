@@ -353,12 +353,13 @@ export default class ProjectsController {
     })
   }
 
-  async destroy({ auth, request, response }: HttpContext) {
+  async destroy({ auth, request, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(destroyProjectValidator)
 
     await this.projectService.deleteProject(params.projectId, user.id)
+    createSuccessFlashMessage(session, `Le projet a été supprimé avec succès.`)
 
-    return response.status(204)
+    return response.redirect().toPath(`/projets`)
   }
 }
