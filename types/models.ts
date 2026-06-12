@@ -29,8 +29,18 @@ export type ExploitationTagJson = {
 
 export type TerritoireJson = {
   id: string
-  name: string | null
+  nom: string
   code: string | null
+  typeLabel: string
+  aacHref: string | null
+  surface: number | null
+  nb_captages_actifs: number | null
+  nb_communes: number | null
+  date_maj: string | null
+  date_creation: string | null
+  bbox: [number, number, number, number] | null
+  communes: Record<string, CommuneInfo> | null
+  nb_parcelles: number | null
 }
 
 export type LogEntryTagJson = {
