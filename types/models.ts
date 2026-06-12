@@ -86,14 +86,9 @@ export type CaptageJson = {
   nom: string
   code_bss: string
   commune: string | null
-  departement: string | null
   type: string | null
-  nature: string | null
-  usage: string | null
   etat: string
-  prioritaire: boolean | null
-  aac_name: string | null
-  aac_code: string | null
+  prioritaire: boolean
 }
 
 export type ProjectJson = {

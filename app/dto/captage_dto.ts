@@ -9,14 +9,9 @@ export class CaptageDto {
       nom: captage.name,
       code_bss: captage.bssCode,
       commune: captage.commune ?? null,
-      departement: null,
       type: captage.type,
-      nature: null,
-      usage: null,
       etat: captage.state,
       prioritaire: captage.prioritaire,
-      aac_name: null,
-      aac_code: null,
     }
   }
 
