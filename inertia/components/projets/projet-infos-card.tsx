@@ -32,11 +32,13 @@ export default function ProjetInfosCard({ projet }: { projet: ProjectJson }) {
 
   return (
     <SectionCard title="Informations générales" icon="fr-icon-pass-pending-line" size="small">
-      <CustomTag
-        iconId={projetStatuts[status].iconId}
-        label={projetStatuts[status].label}
-        color={projetStatuts[status].color}
-      />
+      {projetStatuts[status] ? (
+        <CustomTag
+          iconId={projetStatuts[status].iconId}
+          label={projetStatuts[status].label}
+          color={projetStatuts[status].color}
+        />
+      ) : null}
 
       <div className="flex flex-col gap-1 fr-mt-2v">
         <LabelInfo label="Créé le" info={formatDateFr(createdAt)} />
