@@ -1,42 +1,18 @@
-import { useEffect } from 'react'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { Header } from '@codegouvfr/react-dsfr/Header'
 import { headerFooterDisplayItem } from '@codegouvfr/react-dsfr/Display'
 import { Footer } from '@codegouvfr/react-dsfr/Footer'
 import { fr } from '@codegouvfr/react-dsfr'
-import { toast } from 'react-toastify'
 import { usePage } from '@inertiajs/react'
-import Toast from '~/ui/Toaster'
 
 export default function Layout({
   children,
   hideFooter = false,
   isMapLayout = false,
 }: React.PropsWithChildren<{ hideFooter?: boolean; isMapLayout?: boolean }>) {
-  const { url, props } = usePage<any>()
-  const { flashMessages } = props
+  const { url } = usePage<any>()
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
-
-  useEffect(() => {
-    const severities = ['success', 'error', 'warning', 'info'] as const
-    const alerts = severities
-      .filter(
-        (severity) => flashMessages?.[severity]?.message && !flashMessages?.[severity]?.context
-      )
-      .map((severity) => ({
-        severity,
-        message: flashMessages[severity].message,
-      }))
-
-    if (alerts.length === 0) return
-    const toastId = alerts.map((a) => `${a.severity}:${a.message}`).join('|')
-    toast(<Toast alerts={alerts} />, {
-      toastId,
-      closeButton: false,
-      style: { padding: 0, background: 'transparent', boxShadow: 'none' },
-    })
-  }, [flashMessages])
 
   return (
     <div
