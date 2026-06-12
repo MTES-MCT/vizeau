@@ -62,18 +62,64 @@ export function setParcellesUnavailability(
   }
 }
 
+function getRingCentroid(ring: number[][]): { x: number; y: number; area: number } | undefined {
+  if (ring.length < 3) return undefined
+
+  let twiceArea = 0
+  let centroidX = 0
+  let centroidY = 0
+
+  for (let i = 0; i < ring.length; i++) {
+    const [x1, y1] = ring[i]
+    const [x2, y2] = ring[(i + 1) % ring.length]
+    const cross = x1 * y2 - x2 * y1
+    twiceArea += cross
+    centroidX += (x1 + x2) * cross
+    centroidY += (y1 + y2) * cross
+  }
+
+  if (twiceArea === 0) {
+    const first = ring[0]
+    return first ? { x: first[0], y: first[1], area: 0 } : undefined
+  }
+
+  return {
+    x: centroidX / (3 * twiceArea),
+    y: centroidY / (3 * twiceArea),
+    area: Math.abs(twiceArea / 2),
+  }
+}
+
 export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
   if (geometry.type === 'Polygon') {
-    const coords = geometry.coordinates[0]
-    const n = coords.length
-    let x = 0
-    let y = 0
-    coords.forEach(([lng, lat]) => {
-      x += lng
-      y += lat
-    })
-    x /= n
-    y /= n
-    return { x, y }
+    return getRingCentroid(geometry.coordinates[0])
   }
+
+  if (geometry.type === 'MultiPolygon') {
+    let weightedX = 0
+    let weightedY = 0
+    let totalArea = 0
+
+    for (const polygon of geometry.coordinates) {
+      const centroid = getRingCentroid(polygon[0])
+      if (!centroid) continue
+
+      if (centroid.area === 0) {
+        return { x: centroid.x, y: centroid.y }
+      }
+
+      weightedX += centroid.x * centroid.area
+      weightedY += centroid.y * centroid.area
+      totalArea += centroid.area
+    }
+
+    if (totalArea > 0) {
+      return {
+        x: weightedX / totalArea,
+        y: weightedY / totalArea,
+      }
+    }
+  }
+
+  return undefined
 }

@@ -10,7 +10,7 @@ export default function Layout({
   hideFooter = false,
   isMapLayout = false,
 }: React.PropsWithChildren<{ hideFooter?: boolean; isMapLayout?: boolean }>) {
-  const { url } = usePage()
+  const { url } = usePage<any>()
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
 
