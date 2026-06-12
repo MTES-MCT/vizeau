@@ -17,6 +17,7 @@ const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
 const AacController = () => import('#controllers/aac_controller')
 const ProjectsController = () => import('#controllers/projects_controller')
+const TerritoiresController = () => import('#controllers/territoires_controller')
 
 router.get('/', ({ response }) => response.redirect('login')).as('root')
 
@@ -225,6 +226,8 @@ router
         router.post('projets', [ProjectsController, 'store']).as('projets.store')
         router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
         router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
+
+        router.get('territoires', [TerritoiresController, 'index']).as('territoires.index')
       })
       .use(middleware.territoireAssignation())
   })
