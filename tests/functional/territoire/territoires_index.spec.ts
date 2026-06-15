@@ -4,10 +4,49 @@ import { UserFactory } from '#database/factories/user_factory'
 import { TerritoireFactory } from '#database/factories/territoire_factory'
 import { inertiaApiClient } from '@adonisjs/inertia/plugins/api_client'
 import app from '@adonisjs/core/services/app'
+import { AacService } from '#services/aac_service'
+
+function createMockAacService(): AacService {
+  return {
+    async getAll(
+      _page: number,
+      _perPage: number,
+      _recherche?: string,
+      _commune?: string,
+      aacCodes?: string[]
+    ) {
+      const codes = aacCodes ?? []
+
+      return {
+        data: codes.map((code) => ({
+          code,
+          nom: `AAC ${code}`,
+          surface: code === '12345' ? 150.5 : 0,
+          nb_captages_actifs: code === '12345' ? 3 : 0,
+          communes:
+            code === '12345' ? { nb_communes: 2, communes: {} } : { nb_communes: 0, communes: {} },
+          date_maj: '2024-01-01',
+          date_creation: '2020-01-01',
+          bbox: null,
+          nb_parcelles: 0,
+          surface_agricole_bio: null,
+          surface_agricole_ppe: null,
+          surface_agricole_ppr: null,
+          surface_agricole_utile: null,
+        })),
+        total: codes.length,
+      }
+    },
+  } as unknown as AacService
+}
 
 test.group('Territoires - Index Route', (group) => {
   group.setup(async () => {
     await (inertiaApiClient(app) as () => Promise<void>)()
+  })
+  group.each.setup(() => {
+    app.container.swap(AacService, () => createMockAacService())
+    return () => app.container.restore(AacService)
   })
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
@@ -44,9 +83,15 @@ test.group('Territoires - Index Route', (group) => {
     assert.equal(territoireWithAacLink.code, '12345')
     assert.equal(territoireWithAacLink.aacHref, '/aac/12345')
     assert.equal(territoireWithAacLink.typeLabel, 'AAC Sandre')
+    assert.equal(territoireWithAacLink.surface, 150.5)
+    assert.equal(territoireWithAacLink.nb_communes, 2)
+    assert.equal(territoireWithAacLink.nb_captages_actifs, 3)
     assert.isNull(territoireWithoutAacLink.code)
     assert.isNull(territoireWithoutAacLink.aacHref)
     assert.equal(territoireWithoutAacLink.typeLabel, 'Autre territoire')
+    assert.isNull(territoireWithoutAacLink.surface)
+    assert.isNull(territoireWithoutAacLink.nb_communes)
+    assert.isNull(territoireWithoutAacLink.nb_captages_actifs)
   })
 
   test('user gets paginated territoires', async ({ assert, client, route }) => {

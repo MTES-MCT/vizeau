@@ -37,7 +37,7 @@ export default function TerritoiresIndex({
               {territoires.map((territoire: TerritoireJson, index: number) => {
                 return (
                   <ListItem
-                    key={territoire.code}
+                    key={territoire.id}
                     title={territoire.nom}
                     linkProps={territoire.aacHref ? { href: territoire.aacHref } : undefined}
                     priority={index % 2 === 0 ? 'primary' : 'secondary'}
@@ -60,7 +60,7 @@ export default function TerritoiresIndex({
                         ? [
                             {
                               content: `${territoire.nb_captages_actifs} captage${territoire.nb_captages_actifs > 1 ? 's' : ''} actif${territoire.nb_captages_actifs > 1 ? 's' : ''}`,
-                              iconId: 'fr-icon-water-line',
+                              iconId: 'fr-icon-drop-line',
                             },
                           ]
                         : []),

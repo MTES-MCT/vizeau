@@ -39,7 +39,7 @@ export type TerritoireJson = {
   date_maj: string | null
   date_creation: string | null
   bbox: [number, number, number, number] | null
-  communes: Record<string, CommuneInfo> | null
+  communes: { nb_communes: number; communes: Record<string, CommuneInfo> } | null
   nb_parcelles: number | null
 }
 
