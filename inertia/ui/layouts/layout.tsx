@@ -47,6 +47,11 @@ export default function Layout({
                   isActive: pathname.startsWith('/exploitations'),
                 },
                 {
+                  linkProps: { href: '/territoires' },
+                  text: 'Mes territoires',
+                  isActive: pathname.startsWith('/territoires'),
+                },
+                {
                   linkProps: { href: '/aac' },
                   text: 'AAC',
                   isActive: pathname.startsWith('/aac'),
