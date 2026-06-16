@@ -1,24 +1,28 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
+import { TerritoireService } from '#services/territoire_service'
 import { AacDto, type AacSummaryJson } from '../dto/aac_dto.js'
 
 const PER_PAGE = 20
 
 @inject()
 export default class TerritoiresController {
-  constructor(public aacService: AacService) {}
+  constructor(
+    public aacService: AacService,
+    public territoireService: TerritoireService
+  ) {}
 
   async index({ auth, request, inertia }: HttpContext) {
     const user = auth.getUserOrFail()
     const pageInput = request.input('territoiresPage') || request.input('page') || '1'
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
 
-    const territoiresPaginator = await user
-      .related('territoires')
-      .query()
-      .orderByRaw('name IS NULL, name ASC')
-      .paginate(page, PER_PAGE)
+    const territoiresPaginator = await this.territoireService.getTerritoiresForUser(
+      user.id,
+      page,
+      PER_PAGE
+    )
 
     const rawTerritoires = territoiresPaginator.toJSON().data as any[]
 
