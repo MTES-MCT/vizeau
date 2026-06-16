@@ -258,7 +258,7 @@ test.group('Projects - Update Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertStatus(200)
+    response.assertRedirectsTo(route('projets.show', { projectId: project.id }))
 
     await project.load('parcelles')
     assert.equal(project.parcelles.length, 2)

@@ -77,7 +77,7 @@ export const updateProjectValidator = vine.compile(
     parcelles: vine
       .array(
         vine.object({
-          year: vine.number().withoutDecimals().optional(),
+          year: vine.number().positive().withoutDecimals().optional(),
           rpgId: vine.string(),
           surface: vine.number().optional().nullable(),
           cultureCode: vine.string().optional().nullable(),

@@ -130,7 +130,10 @@ export default function VisualisationPage({
               ...previousData.parcelles,
               {
                 rpgId: newId,
-                surface: properties['surf_parc'] || properties['SURF_PARC'],
+                surface:
+                  properties['surf_parc'] != null
+                    ? properties['surf_parc']
+                    : properties['SURF_PARC'],
                 cultureCode: properties['code_cultu'] || properties['CODE_CULTU'],
                 centroid: getCentroid(parcelleFeature.geometry),
               },
