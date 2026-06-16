@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Head, useForm, usePage, router } from '@inertiajs/react'
-import { toast } from 'react-toastify'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
@@ -16,7 +15,6 @@ import ProjetForm, {
   ProjetFormErrors,
   defaultFormData,
 } from '~/components/projets/form/projet-form'
-import Toast from '~/ui/Toaster'
 import {
   ParcellesStep,
   ExploitationsStep,
@@ -76,9 +74,7 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
       millesime: formData.parcelles.millesime,
       exploitationIds: formData.exploitations || [],
       captageIds: formData.captages.flatMap((code) => {
-        const found = (props.captages as { id: string; code: string }[])?.find(
-          (c) => c.code === code
-        )
+        const found = props.installations?.find((c) => c.code === code)
         return found ? [found.id] : []
       }),
       firstEntry,
@@ -100,18 +96,6 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
 
   const handleSubmit = () => {
     post('/projets', {
-      onSuccess: () => {
-        toast(
-          <Toast
-            alerts={[{ severity: 'success', message: 'Le projet a été créé avec succès.' }]}
-          />,
-          {
-            closeButton: false,
-            style: { padding: 0, background: 'transparent', boxShadow: 'none' },
-          }
-        )
-        router.visit('/projets')
-      },
       onError: (errors) => {
         setError(errors as any)
       },

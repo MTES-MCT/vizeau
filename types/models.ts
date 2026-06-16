@@ -76,22 +76,24 @@ export type ParcelleJson = {
   comment: string | null
 }
 
-export type CaptageJson = {
-  id: string
-  code: string
-  name: string
-  bssCode: string
-  state: string
-  type: string | null
-  prioritaire: boolean
-}
-
 export type CaptageFormJson = {
+  id: string
   code: string
   nom: string
   etat: string
   commune: string | null
   type: string | null
+  prioritaire: boolean | null
+}
+
+export type CaptageJson = {
+  id: string
+  code: string
+  nom: string
+  code_bss: string
+  commune: string | null
+  type: string | null
+  etat: string
   prioritaire: boolean
 }
 
