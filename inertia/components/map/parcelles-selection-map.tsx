@@ -177,7 +177,9 @@ const ParcellesSelectionMap = forwardRef<ParcellesSelectionMapHandle, ParcellesS
 
         onParcelleToggle({
           rpgId: id,
-          surface: feature.properties['surf_parc'] ?? null,
+          surface: feature.properties['surf_parc']
+            ? parseFloat(feature.properties['surf_parc'])
+            : null,
           cultureCode: feature.properties['code_cultu'] ?? null,
           centroid: getCentroid(feature.geometry),
         })

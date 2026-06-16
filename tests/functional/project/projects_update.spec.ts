@@ -33,18 +33,6 @@ test.group('Projects - Update Route', (group) => {
     assert.equal(updatedProject.status, ProjectStatus.CURRENT)
     assert.equal(updatedProject.description, project.description)
     assert.equal(updatedProject.actionType, project.actionType)
-
-    const body = response.body() as {
-      data: {
-        id: string
-        name: string
-        status: string
-      }
-    }
-
-    assert.equal(body.data.id, project.id)
-    assert.equal(body.data.name, 'Updated project name')
-    assert.equal(body.data.status, ProjectStatus.CURRENT)
   })
 
   test('I can nullify nullable fields on one of my projects', async ({ assert, client, route }) => {

@@ -73,6 +73,27 @@ export const updateProjectValidator = vine.compile(
       .optional()
       .nullable()
       .transform((value) => (value ? DateTime.fromJSDate(value) : value)),
+    parcelles: vine
+      .array(
+        vine.object({
+          rpgId: vine.string(),
+          surface: vine.number().optional().nullable(),
+          cultureCode: vine.string().optional().nullable(),
+          centroid: vine
+            .object({
+              x: vine.number(),
+              y: vine.number(),
+            })
+            .optional()
+            .nullable(),
+        })
+      )
+      .optional(),
+    millesime: vine
+      .string()
+      .trim()
+      .regex(/^\d{4}$/)
+      .optional(),
     parcelleIds: vine.array(vine.string().uuid()).optional(),
     exploitationIds: vine.array(vine.string().uuid()).optional(),
     captageIds: vine.array(vine.string().uuid()).optional(),

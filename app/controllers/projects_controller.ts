@@ -289,10 +289,80 @@ export default class ProjectsController {
     return response.redirect().toPath('/projets')
   }
 
+  async getForEdition({ auth, request, inertia }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { params } = await request.validateUsing(showProjectValidator)
+    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    await Promise.all([
+      project.load('parcelles'),
+      project.load('exploitations'),
+      project.load('captages'),
+    ])
+
+    const pageInput = request.input('installationsPage') || '1'
+    const rechercheInput = request.input('installationsRecherche')
+    const showActifOnlyInput = request.input('showActifOnly') || '0'
+
+    const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
+    const recherche = rechercheInput || undefined
+    const showActifOnly = showActifOnlyInput === '1'
+    let captageQuery = Captage.query()
+
+    if (recherche) {
+      captageQuery = captageQuery.where((q) => {
+        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+      })
+    }
+
+    if (showActifOnly) {
+      captageQuery = captageQuery.where('state', 'ACTIF')
+    }
+
+    const totalRow = await captageQuery.clone().count('* as total').first()
+    const total = Number(totalRow?.$extras.total ?? 0)
+    const lastPage = Math.max(1, Math.ceil(total / ProjectsController.INSTALLATIONS_PER_PAGE))
+
+    const captageRows = await captageQuery
+      .orderBy('state', 'asc')
+      .orderBy('code', 'asc')
+      .limit(ProjectsController.INSTALLATIONS_PER_PAGE)
+      .offset((page - 1) * ProjectsController.INSTALLATIONS_PER_PAGE)
+
+    return inertia.render('projets/edition', {
+      projet: ProjectDto.fromModel(project),
+      exploitations: async () => {
+        const results = await this.exploitationService
+          .getAllActiveExploitations('', user.id)
+          .preload('parcelles')
+        return ExploitationDto.toJsonArray(results)
+      },
+      installations: CaptageDto.toFormJsonArray(captageRows),
+      installationsMeta: {
+        total,
+        perPage: ProjectsController.INSTALLATIONS_PER_PAGE,
+        currentPage: page,
+        lastPage,
+      },
+      installationsQueryString: {
+        installationsRecherche: recherche ?? '',
+        installationsPage: String(page),
+        showActifOnly: showActifOnlyInput,
+      },
+      pmtilesUrl: env.get('PMTILES_URL', ''),
+    })
+  }
+
   async update({ auth, request, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { params, parcelleIds, exploitationIds, captageIds, ...payload } =
-      await request.validateUsing(updateProjectValidator)
+    const {
+      params,
+      parcelles: parcellesInput,
+      millesime,
+      parcelleIds: parcelleIdsInput,
+      exploitationIds,
+      captageIds,
+      ...payload
+    } = await request.validateUsing(updateProjectValidator)
 
     if (exploitationIds !== undefined && exploitationIds.length > 0) {
       const found = await this.exploitationService
@@ -309,11 +379,73 @@ export default class ProjectsController {
       }
     }
 
+    // Si parcellesInput est fourni (même vide), on initialise à [] pour que le service vide la relation.
+    // Si parcellesInput est absent (undefined), on laisse undefined pour que le service ne touche pas aux parcelles.
+    let resolvedParcelleIds: string[] | undefined = parcellesInput !== undefined ? [] : undefined
+    if (parcellesInput?.length && !millesime) {
+      createErrorFlashMessage(
+        session,
+        'Le millésime est requis lorsque des parcelles sont fournies.'
+      )
+      return response.redirect().back()
+    }
+
+    if (parcellesInput?.length && millesime) {
+      const year = Number.parseInt(millesime, 10)
+      const rpgIds = parcellesInput.map((p) => p.rpgId)
+
+      const allExistingParcelles = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .where('year', year)
+
+      const accessibleParcelles = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .where('year', year)
+        .andWhere((query) => {
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
+              })
+            })
+          })
+        })
+
+      const accessibleRpgIds = new Set(accessibleParcelles.map((p) => p.rpgId))
+      const hasInaccessible = allExistingParcelles.some((p) => !accessibleRpgIds.has(p.rpgId))
+      if (hasInaccessible) {
+        createErrorFlashMessage(
+          session,
+          "Certaines parcelles désignées appartiennent à des exploitations auxquelles vous n'avez pas accès."
+        )
+        return response.redirect().back()
+      }
+
+      const allExistingRpgIds = new Set(allExistingParcelles.map((p) => p.rpgId))
+      for (const input of parcellesInput) {
+        if (!allExistingRpgIds.has(input.rpgId)) {
+          const newParcelle = await Parcelle.create({
+            exploitationId: null,
+            year,
+            rpgId: input.rpgId,
+            surface: input.surface ?? null,
+            cultureCode: input.cultureCode ?? null,
+            centroid: input.centroid ?? null,
+          })
+          accessibleParcelles.push(newParcelle)
+          allExistingRpgIds.add(input.rpgId)
+        }
+      }
+
+      resolvedParcelleIds = accessibleParcelles.map((p) => p.id)
+    }
+
+    const parcelleIds = resolvedParcelleIds ?? parcelleIdsInput
+
     if (parcelleIds !== undefined && parcelleIds.length > 0) {
       const found = await Parcelle.query()
         .whereIn('id', parcelleIds)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {
@@ -341,16 +473,15 @@ export default class ProjectsController {
       }
     }
 
-    const project = await this.projectService.updateProject(params.projectId, user.id, {
+    await this.projectService.updateProject(params.projectId, user.id, {
       ...payload,
       parcelleIds,
       exploitationIds,
       captageIds,
     })
 
-    return response.json({
-      data: ProjectDto.fromModel(project),
-    })
+    createSuccessFlashMessage(session, `Le projet a été modifié avec succès.`)
+    return response.redirect().toPath(`/projets/${params.projectId}`)
   }
 
   async destroy({ auth, request, response, session }: HttpContext) {

@@ -56,10 +56,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   )
 
   const handleMillesimeChange = (newMillesime: string) => {
-    // Clear selections when millesime changes — parcelle IDs differ across years
+    // Just change millesime without clearing selections
+    // User can explore different years while keeping their selections
     setData((prev) => ({
       ...prev,
-      parcelles: { millesime: newMillesime, items: [] },
+      parcelles: { ...prev.parcelles, millesime: newMillesime },
     }))
   }
 
