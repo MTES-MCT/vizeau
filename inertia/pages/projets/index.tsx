@@ -46,7 +46,6 @@ export default function Projets({
           <EmptyPlaceholder
             priority="primary"
             label="Aucun projet créé"
-            hint="Fonctionnalité à venir"
             size="lg"
             illustrativeIcon="fr-icon-briefcase-line"
             buttonLabel="Créer un premier projet"
