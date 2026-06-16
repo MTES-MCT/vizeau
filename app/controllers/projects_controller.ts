@@ -173,41 +173,65 @@ export default class ProjectsController {
     }
 
     let resolvedParcelleIds: string[] | undefined
-    if (parcellesInput?.length && !millesime) {
+    if (parcellesInput?.length && !millesime && parcellesInput.some((p) => !p.year)) {
       createErrorFlashMessage(
         session,
-        'Le millésime est requis lorsque des parcelles sont fournies.'
+        'Le millésime est requis lorsque des parcelles sans année sont fournies.'
       )
       return response.redirect().back()
     }
 
-    if (parcellesInput?.length && millesime) {
-      const year = Number.parseInt(millesime, 10)
-      const rpgIds = parcellesInput.map((p) => p.rpgId)
+    if (parcellesInput?.length) {
+      const fallbackYear = millesime ? Number.parseInt(millesime, 10) : undefined
+      const normalizedParcelles = parcellesInput.map((p) => ({
+        ...p,
+        year: p.year ?? fallbackYear,
+      }))
 
-      // Find all existing DB parcelles for these rpgIds
-      const allExistingParcelles = await Parcelle.query()
-        .whereIn('rpgId', rpgIds)
-        .where('year', year)
+      if (normalizedParcelles.some((p) => !p.year)) {
+        createErrorFlashMessage(
+          session,
+          'Le millésime est requis lorsque des parcelles sans année sont fournies.'
+        )
+        return response.redirect().back()
+      }
+
+      const uniqueByYearAndRpg = new Map<string, (typeof normalizedParcelles)[number]>()
+      for (const input of normalizedParcelles) {
+        uniqueByYearAndRpg.set(`${input.year}:${input.rpgId}`, input)
+      }
+
+      const requestedParcelles = Array.from(uniqueByYearAndRpg.values())
+      const requestedKeys = new Set(requestedParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const years = Array.from(new Set(requestedParcelles.map((p) => p.year!)))
+      const rpgIds = requestedParcelles.map((p) => p.rpgId)
+
+      // Find all existing DB parcelles for requested year/rpg pairs
+      const allExistingParcelles = (
+        await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
+      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
 
       // Among existing ones, find those accessible by the user (no exploitation or user's exploitation)
-      const accessibleParcelles = await Parcelle.query()
-        .whereIn('rpgId', rpgIds)
-        .where('year', year)
-        .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
-          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
-            exploitationQuery.whereHas('territoires', (territoireQuery) => {
-              territoireQuery.whereHas('users', (userQuery) => {
-                userQuery.where('users.id', user.id)
+      const accessibleParcelles = (
+        await Parcelle.query()
+          .whereIn('rpgId', rpgIds)
+          .whereIn('year', years)
+          .andWhere((query) => {
+            query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+              exploitationQuery.whereHas('territoires', (territoireQuery) => {
+                territoireQuery.whereHas('users', (userQuery) => {
+                  userQuery.where('users.id', user.id)
+                })
               })
             })
           })
-        })
+      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
 
       // If any existing parcelle is inaccessible (exists in DB but not in accessibleParcelles), reject
-      const accessibleRpgIds = new Set(accessibleParcelles.map((p) => p.rpgId))
-      const hasInaccessible = allExistingParcelles.some((p) => !accessibleRpgIds.has(p.rpgId))
+      const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const hasInaccessible = allExistingParcelles.some(
+        (p) => !accessibleYearAndRpg.has(`${p.year}:${p.rpgId}`)
+      )
       if (hasInaccessible) {
         createErrorFlashMessage(
           session,
@@ -216,20 +240,21 @@ export default class ProjectsController {
         return response.redirect().back()
       }
 
-      // Create standalone parcelles for rpgIds not yet in DB
-      const allExistingRpgIds = new Set(allExistingParcelles.map((p) => p.rpgId))
-      for (const input of parcellesInput) {
-        if (!allExistingRpgIds.has(input.rpgId)) {
+      // Create standalone parcelles for year/rpg pairs not yet in DB
+      const allExistingYearAndRpg = new Set(allExistingParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      for (const input of requestedParcelles) {
+        const key = `${input.year}:${input.rpgId}`
+        if (!allExistingYearAndRpg.has(key)) {
           const newParcelle = await Parcelle.create({
             exploitationId: null,
-            year,
+            year: input.year!,
             rpgId: input.rpgId,
             surface: input.surface ?? null,
             cultureCode: input.cultureCode ?? null,
             centroid: input.centroid ?? null,
           })
           accessibleParcelles.push(newParcelle)
-          allExistingRpgIds.add(input.rpgId)
+          allExistingYearAndRpg.add(key)
         }
       }
 
@@ -382,37 +407,62 @@ export default class ProjectsController {
     // Si parcellesInput est fourni (même vide), on initialise à [] pour que le service vide la relation.
     // Si parcellesInput est absent (undefined), on laisse undefined pour que le service ne touche pas aux parcelles.
     let resolvedParcelleIds: string[] | undefined = parcellesInput !== undefined ? [] : undefined
-    if (parcellesInput?.length && !millesime) {
+    if (parcellesInput?.length && !millesime && parcellesInput.some((p) => !p.year)) {
       createErrorFlashMessage(
         session,
-        'Le millésime est requis lorsque des parcelles sont fournies.'
+        'Le millésime est requis lorsque des parcelles sans année sont fournies.'
       )
       return response.redirect().back()
     }
 
-    if (parcellesInput?.length && millesime) {
-      const year = Number.parseInt(millesime, 10)
-      const rpgIds = parcellesInput.map((p) => p.rpgId)
+    if (parcellesInput?.length) {
+      const fallbackYear = millesime ? Number.parseInt(millesime, 10) : undefined
+      const normalizedParcelles = parcellesInput.map((p) => ({
+        ...p,
+        year: p.year ?? fallbackYear,
+      }))
 
-      const allExistingParcelles = await Parcelle.query()
-        .whereIn('rpgId', rpgIds)
-        .where('year', year)
+      if (normalizedParcelles.some((p) => !p.year)) {
+        createErrorFlashMessage(
+          session,
+          'Le millésime est requis lorsque des parcelles sans année sont fournies.'
+        )
+        return response.redirect().back()
+      }
 
-      const accessibleParcelles = await Parcelle.query()
-        .whereIn('rpgId', rpgIds)
-        .where('year', year)
-        .andWhere((query) => {
-          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
-            exploitationQuery.whereHas('territoires', (territoireQuery) => {
-              territoireQuery.whereHas('users', (userQuery) => {
-                userQuery.where('users.id', user.id)
+      const uniqueByYearAndRpg = new Map<string, (typeof normalizedParcelles)[number]>()
+      for (const input of normalizedParcelles) {
+        uniqueByYearAndRpg.set(`${input.year}:${input.rpgId}`, input)
+      }
+
+      const requestedParcelles = Array.from(uniqueByYearAndRpg.values())
+      const requestedKeys = new Set(requestedParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const years = Array.from(new Set(requestedParcelles.map((p) => p.year!)))
+      const rpgIds = requestedParcelles.map((p) => p.rpgId)
+
+      const allExistingParcelles = (
+        await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
+      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
+
+      const accessibleParcelles = (
+        await Parcelle.query()
+          .whereIn('rpgId', rpgIds)
+          .whereIn('year', years)
+          .andWhere((query) => {
+            query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+              exploitationQuery.whereHas('territoires', (territoireQuery) => {
+                territoireQuery.whereHas('users', (userQuery) => {
+                  userQuery.where('users.id', user.id)
+                })
               })
             })
           })
-        })
+      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
 
-      const accessibleRpgIds = new Set(accessibleParcelles.map((p) => p.rpgId))
-      const hasInaccessible = allExistingParcelles.some((p) => !accessibleRpgIds.has(p.rpgId))
+      const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const hasInaccessible = allExistingParcelles.some(
+        (p) => !accessibleYearAndRpg.has(`${p.year}:${p.rpgId}`)
+      )
       if (hasInaccessible) {
         createErrorFlashMessage(
           session,
@@ -421,19 +471,20 @@ export default class ProjectsController {
         return response.redirect().back()
       }
 
-      const allExistingRpgIds = new Set(allExistingParcelles.map((p) => p.rpgId))
-      for (const input of parcellesInput) {
-        if (!allExistingRpgIds.has(input.rpgId)) {
+      const allExistingYearAndRpg = new Set(allExistingParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      for (const input of requestedParcelles) {
+        const key = `${input.year}:${input.rpgId}`
+        if (!allExistingYearAndRpg.has(key)) {
           const newParcelle = await Parcelle.create({
             exploitationId: null,
-            year,
+            year: input.year!,
             rpgId: input.rpgId,
             surface: input.surface ?? null,
             cultureCode: input.cultureCode ?? null,
             centroid: input.centroid ?? null,
           })
           accessibleParcelles.push(newParcelle)
-          allExistingRpgIds.add(input.rpgId)
+          allExistingYearAndRpg.add(key)
         }
       }
 

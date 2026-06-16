@@ -237,4 +237,32 @@ test.group('Projects - Update Route', (group) => {
     assert.equal(project.captages.length, 1)
     assert.equal(project.captages[0].id, captageB.id)
   })
+
+  test('I can update a project with parcelles across multiple RPG years', async ({
+    assert,
+    client,
+    route,
+  }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+
+    const response = await client
+      .patch(route('projets.update', { projectId: project.id }))
+      .loginAs(user)
+      .json({
+        parcelles: [
+          { year: 2024, rpgId: 'RPGMUL024', surface: 1.2 },
+          { year: 2023, rpgId: 'RPGMUL023', surface: 2.4 },
+        ],
+      })
+      .withCsrfToken()
+
+    response.assertStatus(200)
+
+    await project.load('parcelles')
+    assert.equal(project.parcelles.length, 2)
+    const years = project.parcelles.map((p) => p.year).sort()
+    assert.deepEqual(years, [2023, 2024])
+  })
 })

@@ -9,6 +9,7 @@ export type ProjetFormErrors = {
 
 export type SelectedParcelleFormData = {
   id?: string
+  year: number
   rpgId: string
   surface: number | null
   cultureCode: string | null

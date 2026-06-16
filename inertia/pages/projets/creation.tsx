@@ -66,6 +66,7 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
       actionType: formData.generalInfos.type_action || null,
       status: formData.generalInfos.statut,
       parcelles: formData.parcelles.items.map((p) => ({
+        year: p.year,
         rpgId: p.rpgId,
         surface: p.surface,
         cultureCode: p.cultureCode,
