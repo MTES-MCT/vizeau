@@ -207,25 +207,28 @@ export default class ProjectsController {
       const rpgIds = requestedParcelles.map((p) => p.rpgId)
 
       // Find all existing DB parcelles for requested year/rpg pairs
-      const allExistingParcelles = (
-        await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
-      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
+      const parcelles = await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
+      const allExistingParcelles = parcelles.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
 
       // Among existing ones, find those accessible by the user (no exploitation or user's exploitation)
-      const accessibleParcelles = (
-        await Parcelle.query()
-          .whereIn('rpgId', rpgIds)
-          .whereIn('year', years)
-          .andWhere((query) => {
-            query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
-              exploitationQuery.whereHas('territoires', (territoireQuery) => {
-                territoireQuery.whereHas('users', (userQuery) => {
-                  userQuery.where('users.id', user.id)
-                })
+      const accessibleParcellesQueryResult = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .whereIn('year', years)
+        .andWhere((query) => {
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
               })
             })
           })
-      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
+        })
+
+      const accessibleParcelles = accessibleParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
 
       // If any existing parcelle is inaccessible (exists in DB but not in accessibleParcelles), reject
       const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
@@ -440,24 +443,28 @@ export default class ProjectsController {
       const years = Array.from(new Set(requestedParcelles.map((p) => p.year!)))
       const rpgIds = requestedParcelles.map((p) => p.rpgId)
 
-      const allExistingParcelles = (
-        await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
-      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
+      const allExistingParcellesQueryResult = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .whereIn('year', years)
+      const allExistingParcelles = allExistingParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
 
-      const accessibleParcelles = (
-        await Parcelle.query()
-          .whereIn('rpgId', rpgIds)
-          .whereIn('year', years)
-          .andWhere((query) => {
-            query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
-              exploitationQuery.whereHas('territoires', (territoireQuery) => {
-                territoireQuery.whereHas('users', (userQuery) => {
-                  userQuery.where('users.id', user.id)
-                })
+      const accessibleParcellesQueryResult = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .whereIn('year', years)
+        .andWhere((query) => {
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
               })
             })
           })
-      ).filter((p) => requestedKeys.has(`${p.year}:${p.rpgId}`))
+        })
+      const accessibleParcelles = accessibleParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
 
       const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
       const hasInaccessible = allExistingParcelles.some(
