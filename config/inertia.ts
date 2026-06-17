@@ -1,6 +1,6 @@
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
-import { FlashMessageValue, FlashMessageType } from '../types/flash_messages.js'
+import { FlashMessageValue, FlashMessageType } from '#types/flash_messages'
 import User from '#models/user'
 
 const inertiaConfig = defineConfig({

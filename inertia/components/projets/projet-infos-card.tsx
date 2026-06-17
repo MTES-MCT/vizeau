@@ -1,6 +1,6 @@
 import SectionCard from '~/ui/SectionCard'
 import LabelInfo from '~/ui/LabelInfo'
-import { ProjectJson } from '../../../types/models'
+import { ProjectJson } from '#types/models'
 import { formatDateFr } from '~/functions/date'
 import CustomTag from '~/ui/CustomTag'
 

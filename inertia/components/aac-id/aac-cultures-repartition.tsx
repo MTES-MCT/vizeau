@@ -4,7 +4,7 @@ import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import Doughnut from '~/ui/Charts/Doughnut'
 import { orderBy } from 'lodash-es'
 import { getCultureCategoryColor } from '~/functions/cultures-group'
-import { AacJson } from '../../../types/aac'
+import { AacJson } from '#types/aac'
 
 type SurfaceAgricole =
   | AacJson['surface_agricole_utile']

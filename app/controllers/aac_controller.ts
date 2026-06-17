@@ -3,7 +3,7 @@ import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
-import type { AacAnalysesSummaryJson } from '../../types/aac.js'
+import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
 import router from '@adonisjs/core/services/router'
 

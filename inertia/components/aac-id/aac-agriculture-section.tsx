@@ -10,7 +10,7 @@ import SmallSection from '~/ui/SmallSection'
 import { getCultureColorByLabel } from '~/functions/cultures-group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
-import { AacJson } from '../../../types/aac'
+import { AacJson } from '#types/aac'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export type AacAgricultureSectionProps = Pick<
