@@ -22,7 +22,12 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const mapRef = useRef<ParcellesSelectionMapHandle>(null)
   const { pmtilesUrl, exploitations } =
     usePage<InferPageProps<ProjectsController, 'create'>>().props
-  const { millesime, items: selectedParcelles } = data.parcelles
+  const { millesime, items: allSelectedParcelles } = data.parcelles
+
+  const selectedParcelles = useMemo(
+    () => allSelectedParcelles.filter((p) => String(p.year) === millesime),
+    [allSelectedParcelles, millesime]
+  )
 
   const selectedParcelleIds = useMemo(
     () => selectedParcelles.map((p) => p.rpgId),
@@ -38,13 +43,18 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         (p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId
       )
       setData((prev) => {
-        const exists = prev.parcelles.items.some((p) => p.rpgId === parcelle.rpgId)
+        const exists = prev.parcelles.items.some(
+          (p) => p.rpgId === parcelle.rpgId && String(p.year) === millesime
+        )
         const items = exists
-          ? prev.parcelles.items.filter((p) => p.rpgId !== parcelle.rpgId)
+          ? prev.parcelles.items.filter(
+              (p) => !(p.rpgId === parcelle.rpgId && String(p.year) === millesime)
+            )
           : [
               ...prev.parcelles.items,
               {
                 id: linkedParcelle?.id,
+                year: Number(millesime),
                 ...parcelle,
                 exploitationName: linkedExploitation?.name ?? null,
               },
@@ -56,10 +66,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   )
 
   const handleMillesimeChange = (newMillesime: string) => {
-    // Clear selections when millesime changes — parcelle IDs differ across years
+    // Just change millesime without clearing selections
+    // User can explore different years while keeping their selections
     setData((prev) => ({
       ...prev,
-      parcelles: { millesime: newMillesime, items: [] },
+      parcelles: { ...prev.parcelles, millesime: newMillesime },
     }))
   }
 

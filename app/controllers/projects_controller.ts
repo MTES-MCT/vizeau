@@ -173,29 +173,50 @@ export default class ProjectsController {
     }
 
     let resolvedParcelleIds: string[] | undefined
-    if (parcellesInput?.length && !millesime) {
+    if (parcellesInput?.length && !millesime && parcellesInput.some((p) => !p.year)) {
       createErrorFlashMessage(
         session,
-        'Le millésime est requis lorsque des parcelles sont fournies.'
+        'Le millésime est requis lorsque des parcelles sans année sont fournies.'
       )
       return response.redirect().back()
     }
 
-    if (parcellesInput?.length && millesime) {
-      const year = Number.parseInt(millesime, 10)
-      const rpgIds = parcellesInput.map((p) => p.rpgId)
+    if (parcellesInput?.length) {
+      const fallbackYear = millesime ? Number.parseInt(millesime, 10) : undefined
+      const normalizedParcelles = parcellesInput.map((p) => ({
+        ...p,
+        year: p.year ?? fallbackYear,
+      }))
 
-      // Find all existing DB parcelles for these rpgIds
-      const allExistingParcelles = await Parcelle.query()
-        .whereIn('rpgId', rpgIds)
-        .where('year', year)
+      if (normalizedParcelles.some((p) => !p.year)) {
+        createErrorFlashMessage(
+          session,
+          'Le millésime est requis lorsque des parcelles sans année sont fournies.'
+        )
+        return response.redirect().back()
+      }
+
+      const uniqueByYearAndRpg = new Map<string, (typeof normalizedParcelles)[number]>()
+      for (const input of normalizedParcelles) {
+        uniqueByYearAndRpg.set(`${input.year}:${input.rpgId}`, input)
+      }
+
+      const requestedParcelles = Array.from(uniqueByYearAndRpg.values())
+      const requestedKeys = new Set(requestedParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const years = Array.from(new Set(requestedParcelles.map((p) => p.year!)))
+      const rpgIds = requestedParcelles.map((p) => p.rpgId)
+
+      // Find all existing DB parcelles for requested year/rpg pairs
+      const parcelles = await Parcelle.query().whereIn('rpgId', rpgIds).whereIn('year', years)
+      const allExistingParcelles = parcelles.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
 
       // Among existing ones, find those accessible by the user (no exploitation or user's exploitation)
-      const accessibleParcelles = await Parcelle.query()
+      const accessibleParcellesQueryResult = await Parcelle.query()
         .whereIn('rpgId', rpgIds)
-        .where('year', year)
+        .whereIn('year', years)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {
@@ -205,9 +226,15 @@ export default class ProjectsController {
           })
         })
 
+      const accessibleParcelles = accessibleParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
+
       // If any existing parcelle is inaccessible (exists in DB but not in accessibleParcelles), reject
-      const accessibleRpgIds = new Set(accessibleParcelles.map((p) => p.rpgId))
-      const hasInaccessible = allExistingParcelles.some((p) => !accessibleRpgIds.has(p.rpgId))
+      const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const hasInaccessible = allExistingParcelles.some(
+        (p) => !accessibleYearAndRpg.has(`${p.year}:${p.rpgId}`)
+      )
       if (hasInaccessible) {
         createErrorFlashMessage(
           session,
@@ -216,20 +243,21 @@ export default class ProjectsController {
         return response.redirect().back()
       }
 
-      // Create standalone parcelles for rpgIds not yet in DB
-      const allExistingRpgIds = new Set(allExistingParcelles.map((p) => p.rpgId))
-      for (const input of parcellesInput) {
-        if (!allExistingRpgIds.has(input.rpgId)) {
+      // Create standalone parcelles for year/rpg pairs not yet in DB
+      const allExistingYearAndRpg = new Set(allExistingParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      for (const input of requestedParcelles) {
+        const key = `${input.year}:${input.rpgId}`
+        if (!allExistingYearAndRpg.has(key)) {
           const newParcelle = await Parcelle.create({
             exploitationId: null,
-            year,
+            year: input.year!,
             rpgId: input.rpgId,
             surface: input.surface ?? null,
             cultureCode: input.cultureCode ?? null,
             centroid: input.centroid ?? null,
           })
           accessibleParcelles.push(newParcelle)
-          allExistingRpgIds.add(input.rpgId)
+          allExistingYearAndRpg.add(key)
         }
       }
 
@@ -289,10 +317,80 @@ export default class ProjectsController {
     return response.redirect().toPath('/projets')
   }
 
+  async getForEdition({ auth, request, inertia }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { params } = await request.validateUsing(showProjectValidator)
+    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    await Promise.all([
+      project.load('parcelles'),
+      project.load('exploitations'),
+      project.load('captages'),
+    ])
+
+    const pageInput = request.input('installationsPage') || '1'
+    const rechercheInput = request.input('installationsRecherche')
+    const showActifOnlyInput = request.input('showActifOnly') || '0'
+
+    const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
+    const recherche = rechercheInput || undefined
+    const showActifOnly = showActifOnlyInput === '1'
+    let captageQuery = Captage.query()
+
+    if (recherche) {
+      captageQuery = captageQuery.where((q) => {
+        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+      })
+    }
+
+    if (showActifOnly) {
+      captageQuery = captageQuery.where('state', 'ACTIF')
+    }
+
+    const totalRow = await captageQuery.clone().count('* as total').first()
+    const total = Number(totalRow?.$extras.total ?? 0)
+    const lastPage = Math.max(1, Math.ceil(total / ProjectsController.INSTALLATIONS_PER_PAGE))
+
+    const captageRows = await captageQuery
+      .orderBy('state', 'asc')
+      .orderBy('code', 'asc')
+      .limit(ProjectsController.INSTALLATIONS_PER_PAGE)
+      .offset((page - 1) * ProjectsController.INSTALLATIONS_PER_PAGE)
+
+    return inertia.render('projets/edition', {
+      projet: ProjectDto.fromModel(project),
+      exploitations: async () => {
+        const results = await this.exploitationService
+          .getAllActiveExploitations('', user.id)
+          .preload('parcelles')
+        return ExploitationDto.toJsonArray(results)
+      },
+      installations: CaptageDto.toFormJsonArray(captageRows),
+      installationsMeta: {
+        total,
+        perPage: ProjectsController.INSTALLATIONS_PER_PAGE,
+        currentPage: page,
+        lastPage,
+      },
+      installationsQueryString: {
+        installationsRecherche: recherche ?? '',
+        installationsPage: String(page),
+        showActifOnly: showActifOnlyInput,
+      },
+      pmtilesUrl: env.get('PMTILES_URL', ''),
+    })
+  }
+
   async update({ auth, request, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { params, parcelleIds, exploitationIds, captageIds, ...payload } =
-      await request.validateUsing(updateProjectValidator)
+    const {
+      params,
+      parcelles: parcellesInput,
+      millesime,
+      parcelleIds: parcelleIdsInput,
+      exploitationIds,
+      captageIds,
+      ...payload
+    } = await request.validateUsing(updateProjectValidator)
 
     if (exploitationIds !== undefined && exploitationIds.length > 0) {
       const found = await this.exploitationService
@@ -309,11 +407,103 @@ export default class ProjectsController {
       }
     }
 
+    // Si parcellesInput est fourni (même vide), on initialise à [] pour que le service vide la relation.
+    // Si parcellesInput est absent (undefined), on laisse undefined pour que le service ne touche pas aux parcelles.
+    let resolvedParcelleIds: string[] | undefined = parcellesInput !== undefined ? [] : undefined
+    if (parcellesInput?.length && !millesime && parcellesInput.some((p) => !p.year)) {
+      createErrorFlashMessage(
+        session,
+        'Le millésime est requis lorsque des parcelles sans année sont fournies.'
+      )
+      return response.redirect().back()
+    }
+
+    if (parcellesInput?.length) {
+      const fallbackYear = millesime ? Number.parseInt(millesime, 10) : undefined
+      const normalizedParcelles = parcellesInput.map((p) => ({
+        ...p,
+        year: p.year ?? fallbackYear,
+      }))
+
+      if (normalizedParcelles.some((p) => !p.year)) {
+        createErrorFlashMessage(
+          session,
+          'Le millésime est requis lorsque des parcelles sans année sont fournies.'
+        )
+        return response.redirect().back()
+      }
+
+      const uniqueByYearAndRpg = new Map<string, (typeof normalizedParcelles)[number]>()
+      for (const input of normalizedParcelles) {
+        uniqueByYearAndRpg.set(`${input.year}:${input.rpgId}`, input)
+      }
+
+      const requestedParcelles = Array.from(uniqueByYearAndRpg.values())
+      const requestedKeys = new Set(requestedParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const years = Array.from(new Set(requestedParcelles.map((p) => p.year!)))
+      const rpgIds = requestedParcelles.map((p) => p.rpgId)
+
+      const allExistingParcellesQueryResult = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .whereIn('year', years)
+      const allExistingParcelles = allExistingParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
+
+      const accessibleParcellesQueryResult = await Parcelle.query()
+        .whereIn('rpgId', rpgIds)
+        .whereIn('year', years)
+        .andWhere((query) => {
+          query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
+            exploitationQuery.whereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', user.id)
+              })
+            })
+          })
+        })
+      const accessibleParcelles = accessibleParcellesQueryResult.filter((p) =>
+        requestedKeys.has(`${p.year}:${p.rpgId}`)
+      )
+
+      const accessibleYearAndRpg = new Set(accessibleParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      const hasInaccessible = allExistingParcelles.some(
+        (p) => !accessibleYearAndRpg.has(`${p.year}:${p.rpgId}`)
+      )
+      if (hasInaccessible) {
+        createErrorFlashMessage(
+          session,
+          "Certaines parcelles désignées appartiennent à des exploitations auxquelles vous n'avez pas accès."
+        )
+        return response.redirect().back()
+      }
+
+      const allExistingYearAndRpg = new Set(allExistingParcelles.map((p) => `${p.year}:${p.rpgId}`))
+      for (const input of requestedParcelles) {
+        const key = `${input.year}:${input.rpgId}`
+        if (!allExistingYearAndRpg.has(key)) {
+          const newParcelle = await Parcelle.create({
+            exploitationId: null,
+            year: input.year!,
+            rpgId: input.rpgId,
+            surface: input.surface ?? null,
+            cultureCode: input.cultureCode ?? null,
+            centroid: input.centroid ?? null,
+          })
+          accessibleParcelles.push(newParcelle)
+          allExistingYearAndRpg.add(key)
+        }
+      }
+
+      resolvedParcelleIds = accessibleParcelles.map((p) => p.id)
+    }
+
+    const parcelleIds = resolvedParcelleIds ?? parcelleIdsInput
+
     if (parcelleIds !== undefined && parcelleIds.length > 0) {
       const found = await Parcelle.query()
         .whereIn('id', parcelleIds)
         .andWhere((query) => {
-          // We want to find parcelles that have no exploitation or that have an exploitation that belongs to the current user
           query.whereNull('exploitation_id').orWhereHas('exploitation', (exploitationQuery) => {
             exploitationQuery.whereHas('territoires', (territoireQuery) => {
               territoireQuery.whereHas('users', (userQuery) => {
@@ -341,16 +531,15 @@ export default class ProjectsController {
       }
     }
 
-    const project = await this.projectService.updateProject(params.projectId, user.id, {
+    await this.projectService.updateProject(params.projectId, user.id, {
       ...payload,
       parcelleIds,
       exploitationIds,
       captageIds,
     })
 
-    return response.json({
-      data: ProjectDto.fromModel(project),
-    })
+    createSuccessFlashMessage(session, `Le projet a été modifié avec succès.`)
+    return response.redirect().toPath(`/projets/${params.projectId}`)
   }
 
   async destroy({ auth, request, response, session }: HttpContext) {

@@ -19,6 +19,7 @@ import { router } from '@inertiajs/react'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import Input from '@codegouvfr/react-dsfr/Input'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { Button } from '@codegouvfr/react-dsfr/Button'
 
 const deleteProjetModal = createModal({
   id: 'delete-projet-modal',
@@ -66,7 +67,16 @@ export default function ShowProjet({ projet }: InferPageProps<ProjectsController
         </div>
       </div>
       <div className="fr-container fr-mt-4w fr-mb-4w">
-        <h2 className="fr-h3 fr-mb-1w">{projet.name}</h2>
+        <div className="flex items-center justify-between fr-mb-2w">
+          <h2 className="fr-h3 fr-mb-0">{projet.name}</h2>
+          <Button
+            priority="secondary"
+            iconId="fr-icon-edit-line"
+            linkProps={{ href: `/projets/edition/${projet.id}` }}
+          >
+            Modifier le projet
+          </Button>
+        </div>
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
             <ProjetInfosCard projet={projet} />
