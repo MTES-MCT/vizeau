@@ -1,5 +1,5 @@
 import ListItem from '~/ui/ListItem'
-import { ParcelleJson } from '../../../types/models'
+import { ParcelleJson } from '#types/models'
 import { getCultureByCode } from '~/functions/cultures-group'
 
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
