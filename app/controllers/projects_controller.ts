@@ -23,9 +23,11 @@ import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/f
 import { ProjectStepDto } from '../dto/project_step_dto.js'
 import {
   completeProjectStepValidator,
+  createProjectStepPayloadValidator,
   destroyProjectStepDocumentValidator,
   downloadProjectStepDocumentValidator,
   showProjectStepValidator,
+  updateProjectStepPayloadValidator,
 } from '#validators/project_step'
 import router from '@adonisjs/core/services/router'
 
@@ -39,6 +41,28 @@ export default class ProjectsController {
     public projectStepService: ProjectStepService,
     public projectStepDocumentService: ProjectStepDocumentService
   ) {}
+
+  private normalizeStepPayload(input: {
+    title?: string
+    note?: string | null
+    date?: string | null
+    tags?: unknown[]
+  }) {
+    const title = String(input.title ?? '').trim()
+    const note = String(input.note ?? '').trim() || null
+    const dateInput = input.date ?? undefined
+    const tags = Array.isArray(input.tags)
+      ? input.tags.map((value) => Number(value)).filter((value) => Number.isInteger(value))
+      : undefined
+
+    return { title, note, dateInput, tags }
+  }
+
+  private normalizeRemovedDocumentIds(input?: unknown[]) {
+    return Array.isArray(input)
+      ? input.map((value) => Number(value)).filter((value) => Number.isInteger(value))
+      : []
+  }
 
   async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
@@ -416,13 +440,8 @@ export default class ProjectsController {
     const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
-    const title = String(request.input('title') ?? '').trim()
-    const note = String(request.input('note') ?? request.input('notes') ?? '').trim() || null
-    const dateInput = request.input('date') as string | undefined
-    const tagsInput = request.input('tags')
-    const tags = Array.isArray(tagsInput)
-      ? tagsInput.map((value) => Number(value)).filter((value) => Number.isInteger(value))
-      : undefined
+    const data = await request.validateUsing(createProjectStepPayloadValidator)
+    const { title, note, dateInput, tags } = this.normalizeStepPayload(data)
 
     if (!title && !note && !dateInput) {
       createErrorFlashMessage(session, "Veuillez renseigner au moins un champ pour créer l'étape.")
@@ -444,7 +463,7 @@ export default class ProjectsController {
     }
 
     createSuccessFlashMessage(session, "L'étape a été créée avec succès.")
-    return response.redirect().toPath(`/projets/${project.id}`)
+    return response.redirect().toRoute('projets.show', { projectId: project.id })
   }
 
   async getStep({ auth, request, inertia }: HttpContext) {
@@ -485,19 +504,9 @@ export default class ProjectsController {
     const stepId = params.stepId
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
-    const title = String(request.input('title') ?? '').trim()
-    const note = String(request.input('note') ?? request.input('notes') ?? '').trim() || null
-    const dateInput = request.input('date') as string | undefined
-    const tagsInput = request.input('tags')
-    const tags = Array.isArray(tagsInput)
-      ? tagsInput.map((value) => Number(value)).filter((value) => Number.isInteger(value))
-      : undefined
-    const removedDocumentIdsInput = request.input('removedDocumentIds')
-    const removedDocumentIds = Array.isArray(removedDocumentIdsInput)
-      ? removedDocumentIdsInput
-          .map((value) => Number(value))
-          .filter((value) => Number.isInteger(value))
-      : []
+    const data = await request.validateUsing(updateProjectStepPayloadValidator)
+    const { title, note, dateInput, tags } = this.normalizeStepPayload(data)
+    const removedDocumentIds = this.normalizeRemovedDocumentIds(data.removedDocumentIds)
 
     if (!title && !note && !dateInput) {
       createErrorFlashMessage(

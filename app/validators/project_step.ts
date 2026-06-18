@@ -73,3 +73,22 @@ export const destroyProjectStepDocumentValidator = vine.compile(
     documentId: vine.number().positive().withoutDecimals(),
   })
 )
+
+export const createProjectStepPayloadValidator = vine.compile(
+  vine.object({
+    title: vine.string().maxLength(255).optional(),
+    note: vine.string().maxLength(4000).optional().nullable(),
+    date: vine.string().optional().nullable(),
+    tags: vine.array(vine.any()).optional(),
+  })
+)
+
+export const updateProjectStepPayloadValidator = vine.compile(
+  vine.object({
+    title: vine.string().maxLength(255).optional(),
+    note: vine.string().maxLength(4000).optional().nullable(),
+    date: vine.string().optional().nullable(),
+    tags: vine.array(vine.any()).optional(),
+    removedDocumentIds: vine.array(vine.any()).optional(),
+  })
+)
