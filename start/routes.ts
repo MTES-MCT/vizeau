@@ -229,6 +229,36 @@ router
         router.post('projets', [ProjectsController, 'store']).as('projets.store')
         router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
         router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
+        router
+          .get('projets/:projectId/etapes/creation', [ProjectsController, 'createStepForm'])
+          .as('projets.steps.create.form')
+        router
+          .get('projets/:projectId/etapes/:stepId', [ProjectsController, 'getStep'])
+          .as('projets.steps.get')
+        router
+          .get('projets/:projectId/etapes/:stepId/edition', [
+            ProjectsController,
+            'getStepForEdition',
+          ])
+          .as('projets.steps.edition')
+        router
+          .post('projets/:projectId/etapes', [ProjectsController, 'createStep'])
+          .as('projets.steps.create')
+        router
+          .post('projets/:projectId/etapes/complete', [ProjectsController, 'completeStep'])
+          .as('projets.steps.complete')
+        router
+          .patch('projets/:projectId/etapes/:stepId', [ProjectsController, 'editStep'])
+          .as('projets.steps.edit')
+        router
+          .delete('projets/:projectId/etapes/:stepId', [ProjectsController, 'destroyStep'])
+          .as('projets.steps.destroy')
+        router
+          .delete('projets/:projectId/etapes/:stepId/documents', [
+            ProjectsController,
+            'destroyDocument',
+          ])
+          .as('projets.steps.documents.destroy')
 
         router.get('territoires', [TerritoiresController, 'index']).as('territoires.index')
       })

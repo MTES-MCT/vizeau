@@ -26,6 +26,15 @@ export class ProjectStepService {
       .orderBy('createdAt', 'desc')
   }
 
+  async getStepForProject(stepId: string, project: Project) {
+    return ProjectStep.query()
+      .where('id', stepId)
+      .andWhere('projectId', project.id)
+      .preload('tags')
+      .preload('documents')
+      .firstOrFail()
+  }
+
   async updateStep(
     stepId: string,
     project: Project,

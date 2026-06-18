@@ -119,6 +119,7 @@ export type ProjectJson = {
   parcelles: ParcelleJson[]
   exploitations: ExploitationJson[]
   captages: CaptageJson[]
+  steps: ProjectStepJson[]
 }
 
 export type ProjetsTabsJson = {
@@ -141,6 +142,30 @@ export type ProjetsTabsJson = {
   availableActionTypes: string[]
   availableYearRange: { min: number; max: number }
   statusCounts: { to_be_started: number; current: number; completed: number; abandoned: number }
+}
+
+export type ProjectStepTagJson = {
+  id: number
+  name: string
+}
+
+export type ProjectStepDocumentJson = {
+  id: number
+  name: string
+  sizeInBytes: number
+  href: string
+}
+
+export type ProjectStepJson = {
+  id: string
+  title: string
+  note: string | null
+  date: string | null
+  isValidated: boolean
+  tags: ProjectStepTagJson[]
+  documents: ProjectStepDocumentJson[]
+  createdAt: string
+  updatedAt: string
 }
 
 export type ExploitationJson = {

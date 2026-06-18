@@ -45,6 +45,16 @@ export const createProjectValidator = vine.compile(
     parcelleIds: vine.array(vine.string().uuid()).optional(),
     exploitationIds: vine.array(vine.string().uuid()).optional(),
     captageIds: vine.array(vine.string().uuid()).optional(),
+    steps: vine
+      .array(
+        vine.object({
+          title: vine.string().maxLength(255).optional(),
+          notes: vine.string().maxLength(4000).optional(),
+          date: vine.string().optional().nullable(),
+          tags: vine.array(vine.number()).optional(),
+        })
+      )
+      .optional(),
   })
 )
 
@@ -99,6 +109,16 @@ export const updateProjectValidator = vine.compile(
     parcelleIds: vine.array(vine.string().uuid()).optional(),
     exploitationIds: vine.array(vine.string().uuid()).optional(),
     captageIds: vine.array(vine.string().uuid()).optional(),
+    steps: vine
+      .array(
+        vine.object({
+          title: vine.string().maxLength(255).optional(),
+          notes: vine.string().maxLength(4000).optional(),
+          date: vine.string().optional().nullable(),
+          tags: vine.array(vine.number()).optional(),
+        })
+      )
+      .optional(),
     params: vine.object({
       projectId: vine.string().uuid(),
     }),
