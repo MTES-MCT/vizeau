@@ -113,7 +113,7 @@ export const updateProjectValidator = vine.compile(
       .array(
         vine.object({
           title: vine.string().maxLength(255).optional(),
-          notes: vine.string().maxLength(4000).optional(),
+          note: vine.string().maxLength(4000).optional(),
           date: vine.string().optional().nullable(),
           tags: vine.array(vine.number()).optional(),
         })

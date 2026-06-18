@@ -30,8 +30,8 @@ export const updateProjectStepValidator = vine.compile(
   vine.object({
     params: vine.object({
       projectId: vine.string().uuid(),
+      stepId: vine.string().uuid(),
     }),
-    id: vine.string().uuid(),
     ...stepPayloadSchema,
   })
 )
@@ -49,8 +49,18 @@ export const destroyProjectStepValidator = vine.compile(
   vine.object({
     params: vine.object({
       projectId: vine.string().uuid(),
+      stepId: vine.string().uuid(),
     }),
-    id: vine.string().uuid(),
+  })
+)
+
+export const downloadProjectStepDocumentValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      projectId: vine.string().uuid(),
+      stepId: vine.string().uuid(),
+      documentId: vine.number().positive().withoutDecimals(),
+    }),
   })
 )
 

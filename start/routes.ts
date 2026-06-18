@@ -254,6 +254,12 @@ router
           .delete('projets/:projectId/etapes/:stepId', [ProjectsController, 'destroyStep'])
           .as('projets.steps.destroy')
         router
+          .get('projets/:projectId/etapes/:stepId/documents/:documentId', [
+            ProjectsController,
+            'downloadStepDocument',
+          ])
+          .as('projets.steps.documents.download')
+        router
           .delete('projets/:projectId/etapes/:stepId/documents', [
             ProjectsController,
             'destroyDocument',

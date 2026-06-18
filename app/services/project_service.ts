@@ -153,13 +153,16 @@ export class ProjectService {
     // Create project steps if provided
     if (payload.steps?.length) {
       for (const step of payload.steps) {
-        await ProjectStep.create({
+        const createdStep = await ProjectStep.create({
           projectId: project.id,
           title: step.title ?? '',
           note: step.notes ?? null,
           date: step.date ? DateTime.fromISO(step.date) : null,
           isValidated: false,
         })
+        if (step.tags?.length) {
+          await createdStep.related('tags').attach(step.tags)
+        }
       }
     }
 
@@ -196,18 +199,30 @@ export class ProjectService {
     // Handle project steps - replace all existing steps with new ones
     if (steps !== undefined) {
       // Delete all existing steps for this project
-      await ProjectStep.query().where('projectId', project.id).delete()
+      const existingSteps = await ProjectStep.query()
+        .where('projectId', project.id)
+        .preload('documents')
+      for (const existingStep of existingSteps) {
+        for (const document of existingStep.documents ?? []) {
+          await document.delete()
+        }
+        await existingStep.delete()
+      }
 
       // Create new steps if provided
       if (steps.length) {
         for (const step of steps) {
-          await ProjectStep.create({
+          const createdStep = await ProjectStep.create({
             projectId: project.id,
             title: step.title ?? '',
             note: step.notes ?? null,
             date: step.date ? DateTime.fromISO(step.date) : null,
             isValidated: false,
           })
+
+          if (step.tags?.length) {
+            await createdStep.related('tags').attach(step.tags)
+          }
         }
       }
     }

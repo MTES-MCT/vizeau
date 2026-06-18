@@ -3,7 +3,6 @@ import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 import Parcelle from '#models/parcelle'
 import Captage from '#models/captage'
-import ProjectStep from '#models/project_step'
 import ProjectStepDocument from '#models/project_step_document'
 import { ProjectService } from '#services/project_service'
 import { ExploitationService } from '#services/exploitation_service'
@@ -25,6 +24,7 @@ import { ProjectStepDto } from '../dto/project_step_dto.js'
 import {
   completeProjectStepValidator,
   destroyProjectStepDocumentValidator,
+  downloadProjectStepDocumentValidator,
   showProjectStepValidator,
 } from '#validators/project_step'
 import router from '@adonisjs/core/services/router'
@@ -154,7 +154,9 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('steps'),
+      project.load('steps', (query) =>
+        query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
+      ),
     ])
 
     return inertia.render('projets/id', {
@@ -325,7 +327,9 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('steps'),
+      project.load('steps', (query) =>
+        query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
+      ),
     ])
 
     createSuccessFlashMessage(session, `Le projet "${project.name}" a été créé avec succès.`)
@@ -445,16 +449,10 @@ export default class ProjectsController {
 
   async getStep({ auth, request, inertia }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { params } = await request.validateUsing(showProjectValidator)
-    const stepId = String(request.param('stepId'))
+    const { params } = await request.validateUsing(showProjectStepValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
-    const step = await ProjectStep.query()
-      .where('id', stepId)
-      .andWhere('projectId', project.id)
-      .preload('tags')
-      .preload('documents')
-      .firstOrFail()
+    const step = await this.projectStepService.getStepForProject(params.stepId, project)
 
     return inertia.render('projets/etapes/id', {
       projet: {
@@ -483,8 +481,8 @@ export default class ProjectsController {
 
   async editStep({ auth, request, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { params } = await request.validateUsing(showProjectValidator)
-    const stepId = String(request.param('stepId'))
+    const { params } = await request.validateUsing(showProjectStepValidator)
+    const stepId = params.stepId
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
     const title = String(request.input('title') ?? '').trim()
@@ -540,14 +538,52 @@ export default class ProjectsController {
 
   async destroyStep({ auth, request, response, session }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { params } = await request.validateUsing(showProjectValidator)
-    const stepId = String(request.param('stepId'))
+    const { params } = await request.validateUsing(showProjectStepValidator)
+    const stepId = params.stepId
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
+    const documents = await ProjectStepDocument.query().where('projectStepId', stepId)
+    for (const document of documents) {
+      await document.delete()
+    }
     await this.projectStepService.deleteStep(stepId, project)
 
     createSuccessFlashMessage(session, "L'étape a été supprimée.")
     return response.redirect().toPath(`/projets/${project.id}`)
+  }
+
+  async downloadStepDocument({ auth, request, response, logger, session, inertia }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { params } = await request.validateUsing(downloadProjectStepDocumentValidator)
+
+    try {
+      const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+      await this.projectStepService.getStepForProject(params.stepId, project)
+
+      const document = await ProjectStepDocument.query()
+        .where('projectStepId', params.stepId)
+        .andWhere('id', params.documentId)
+        .first()
+
+      if (!document) {
+        logger.error(
+          `Document with ID ${params.documentId} not found for user ${user.id} in step ${params.stepId}`
+        )
+        createErrorFlashMessage(session, 'Impossible de trouver le document.')
+        return response.redirect().back()
+      }
+
+      const url = await this.projectStepDocumentService.getDocumentUrl(document.s3Key)
+
+      return inertia.location(url)
+    } catch (error) {
+      logger.error(error, 'Error downloading project step document:')
+      createErrorFlashMessage(
+        session,
+        'Une erreur est survenue lors du téléchargement du document.'
+      )
+      return response.redirect().back()
+    }
   }
 
   async destroyDocument({ auth, request, response, session }: HttpContext) {

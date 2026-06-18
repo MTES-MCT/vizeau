@@ -1,5 +1,6 @@
 import ProjectStep from '#models/project_step'
 import type { ProjectStepJson, ProjectStepDocumentJson } from '../../types/models.js'
+import router from '@adonisjs/core/services/router'
 
 export class ProjectStepDto {
   static fromModel(projectStep: ProjectStep | null): ProjectStepJson | null {
@@ -24,7 +25,10 @@ export class ProjectStepDto {
             id: doc.id,
             name: doc.name,
             sizeInBytes: doc.sizeInBytes,
-            href: `/projects/${projectStep.projectId}/steps/${projectStep.id}/documents/${doc.id}`,
+            href: router
+              .builder()
+              .params([projectStep.projectId, projectStep.id, doc.id])
+              .make('projets.steps.documents.download'),
           })
         ) ?? [],
       createdAt: projectStep.createdAt.toISO() as string,
