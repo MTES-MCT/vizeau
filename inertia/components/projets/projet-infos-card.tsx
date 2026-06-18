@@ -44,7 +44,10 @@ export default function ProjetInfosCard({ projet }: { projet: ProjectJson }) {
         <LabelInfo label="Créé le" info={formatDateFr(createdAt)} />
         <LabelInfo label="Mis à jour le" info={formatDateFr(updatedAt)} />
         {closedAt && <LabelInfo label="Clôturé le" info={formatDateFr(closedAt)} />}
-        <LabelInfo label="Type d'action" info={actionType} />
+        <LabelInfo
+          label="Type d'action"
+          info={<CustomTag label={actionType || 'Non renseigné'} color="rgb(186, 217, 247)" />}
+        />
       </div>
     </SectionCard>
   )
