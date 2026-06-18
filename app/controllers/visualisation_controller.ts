@@ -30,7 +30,9 @@ export default class VisualisationController {
   async index({ request, response, inertia, auth }: HttpContext) {
     // Ensure millesime is present in query string
     if (!request.qs().millesime) {
-      return response.redirect().withQs('millesime', '2024').toPath(request.url())
+      const qs = request.qs()
+      qs.millesime = '2024'
+      return response.redirect().toPath(`/visualisation?${new URLSearchParams(qs).toString()}`)
     }
 
     const user = auth.getUserOrFail()
