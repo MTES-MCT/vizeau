@@ -1,11 +1,11 @@
 import vine from '@vinejs/vine'
 
 const stepPayloadSchema = {
-  title: vine.string().maxLength(255).optional(),
-  note: vine.string().maxLength(4000).optional(),
+  title: vine.string().maxLength(255).trim().optional(),
+  note: vine.string().maxLength(4000).trim().optional().nullable(),
   date: vine.string().optional().nullable(),
-  tags: vine.array(vine.number()).optional(),
-  documents: vine.array(vine.file({ extnames: ['pdf'] })).optional(),
+  tags: vine.array(vine.number().withoutDecimals().positive()).optional(),
+  removedDocumentIds: vine.array(vine.number().withoutDecimals().positive()).optional(),
 }
 
 export const showProjectStepValidator = vine.compile(
@@ -76,19 +76,19 @@ export const destroyProjectStepDocumentValidator = vine.compile(
 
 export const createProjectStepPayloadValidator = vine.compile(
   vine.object({
-    title: vine.string().maxLength(255).optional(),
-    note: vine.string().maxLength(4000).optional().nullable(),
+    title: vine.string().maxLength(255).trim().optional(),
+    note: vine.string().maxLength(4000).trim().optional().nullable(),
     date: vine.string().optional().nullable(),
-    tags: vine.array(vine.any()).optional(),
+    tags: vine.array(vine.number().withoutDecimals().positive()).optional(),
   })
 )
 
 export const updateProjectStepPayloadValidator = vine.compile(
   vine.object({
-    title: vine.string().maxLength(255).optional(),
-    note: vine.string().maxLength(4000).optional().nullable(),
+    title: vine.string().maxLength(255).trim().optional(),
+    note: vine.string().maxLength(4000).trim().optional().nullable(),
     date: vine.string().optional().nullable(),
-    tags: vine.array(vine.any()).optional(),
-    removedDocumentIds: vine.array(vine.any()).optional(),
+    tags: vine.array(vine.number().withoutDecimals().positive()).optional(),
+    removedDocumentIds: vine.array(vine.number().withoutDecimals().positive()).optional(),
   })
 )

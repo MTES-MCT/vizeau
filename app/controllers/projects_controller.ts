@@ -42,28 +42,6 @@ export default class ProjectsController {
     public projectStepDocumentService: ProjectStepDocumentService
   ) {}
 
-  private normalizeStepPayload(input: {
-    title?: string
-    note?: string | null
-    date?: string | null
-    tags?: unknown[]
-  }) {
-    const title = String(input.title ?? '').trim()
-    const note = String(input.note ?? '').trim() || null
-    const dateInput = input.date ?? undefined
-    const tags = Array.isArray(input.tags)
-      ? input.tags.map((value) => Number(value)).filter((value) => Number.isInteger(value))
-      : undefined
-
-    return { title, note, dateInput, tags }
-  }
-
-  private normalizeRemovedDocumentIds(input?: unknown[]) {
-    return Array.isArray(input)
-      ? input.map((value) => Number(value)).filter((value) => Number.isInteger(value))
-      : []
-  }
-
   async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
     // Query string params arrive as empty strings for absent values (bodyparser's
@@ -441,7 +419,7 @@ export default class ProjectsController {
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
     const data = await request.validateUsing(createProjectStepPayloadValidator)
-    const { title, note, dateInput, tags } = this.normalizeStepPayload(data)
+    const { title, note, date: dateInput, tags } = data
 
     if (!title && !note && !dateInput) {
       createErrorFlashMessage(session, "Veuillez renseigner au moins un champ pour créer l'étape.")
@@ -505,8 +483,7 @@ export default class ProjectsController {
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
 
     const data = await request.validateUsing(updateProjectStepPayloadValidator)
-    const { title, note, dateInput, tags } = this.normalizeStepPayload(data)
-    const removedDocumentIds = this.normalizeRemovedDocumentIds(data.removedDocumentIds)
+    const { title, note, date: dateInput, tags, removedDocumentIds = [] } = data
 
     if (!title && !note && !dateInput) {
       createErrorFlashMessage(
