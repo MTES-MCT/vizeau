@@ -1,7 +1,7 @@
 import { Input } from '@codegouvfr/react-dsfr/Input'
 import { SetDataAction } from '@inertiajs/react'
 import SectionCard from '~/ui/SectionCard'
-import { ProjectStepFormData } from '~/pages/projets/etapes/creation'
+import type { ProjectStepFormData } from '~/pages/projets/etapes/creation'
 
 type ProjectStepFormProps = {
   data: ProjectStepFormData
@@ -22,7 +22,7 @@ export default function ProjectStepForm({ data, setData }: ProjectStepFormProps)
       />
 
       <Input
-        label="Date de la première étape"
+        label="Date de l'étape"
         nativeInputProps={{
           name: 'date',
           type: 'date',

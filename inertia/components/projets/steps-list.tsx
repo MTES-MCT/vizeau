@@ -8,7 +8,7 @@ import Timeline, { TimelineItem } from '~/ui/Timeline'
 import ListItem from '~/ui/ListItem'
 import AlertDrawer from '~/ui/AlertDrawer'
 import { MoreButtonProps } from '~/ui/MoreButton'
-import { ProjectStepJson } from '../../../types/models'
+import type { ProjectStepJson } from '#types/models'
 import {
   getProjectStepAdditionalInfos,
   getProjectStepTitle,

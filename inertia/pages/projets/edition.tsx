@@ -129,7 +129,7 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
         const existing = projet.captages.find((c) => c.code === code)
         return existing ? [existing.id] : []
       }),
-      steps: stepDraft ? [stepDraft] : [],
+      ...(projet.steps.length === 0 ? { steps: stepDraft ? [stepDraft] : [] } : {}),
     }
   })
 

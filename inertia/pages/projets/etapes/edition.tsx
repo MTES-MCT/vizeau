@@ -8,7 +8,7 @@ import TruncatedText from '~/ui/TruncatedText'
 import ProjectsController from '#controllers/projects_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import ProjectStepForm from '~/components/projets/form/project-step-form'
-import { ProjectStepFormData } from '~/pages/projets/etapes/creation'
+import type { ProjectStepFormData } from '~/pages/projets/etapes/creation'
 import { getProjectStepTitle } from '~/functions/project_steps'
 
 export default function ProjectStepEditionPage({

@@ -1,7 +1,7 @@
 import SectionCard from '~/ui/SectionCard'
 import { formatDateFr } from '~/functions/date'
 import { getProjectStepAdditionalInfos, severityColorMap } from '~/functions/project_steps'
-import { ProjectStepJson } from '#types/models'
+import type { ProjectStepJson } from '#types/models'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router } from '@inertiajs/react'
 import LabelInfo from '~/ui/LabelInfo'

@@ -9,7 +9,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
 import { getProjectStepTitle } from '~/functions/project_steps'
-import { ProjectStepJson } from '../../../../types/models'
+import type { ProjectStepJson } from '#types/models'
 import StepInfoCard from '~/components/projets/step-info-card'
 
 type SingleProjectStepProps = {

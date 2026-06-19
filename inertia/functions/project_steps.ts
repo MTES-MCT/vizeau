@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ProjectStepJson } from '../../types/models'
+import type { ProjectStepJson } from '#types/models'
 import { AdditionalInfosProps } from '~/ui/ListItem'
 import { severityColorMap } from '~/functions/log_entries'
 
