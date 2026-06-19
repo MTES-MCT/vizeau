@@ -1,7 +1,8 @@
 import Project from '#models/project'
 import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
-import type { CaptageJson, ProjectJson, PaginatedJson } from '#types/models'
+import type { CaptageJson, ProjectJson, PaginatedJson } from '../../types/models.js'
 import { ParcelleDto } from './parcelle_dto.js'
+import { ProjectStepDto } from './project_step_dto.js'
 import { ExploitationDto } from './exploitation_dto.js'
 import { CaptageDto } from './captage_dto.js'
 
@@ -19,13 +20,15 @@ export class ProjectDto {
       parcelles: project.parcelles?.map((p) => ParcelleDto.fromModel(p)) ?? [],
       exploitations: project.exploitations?.map((e) => ExploitationDto.fromModel(e)) ?? [],
       captages: project.captages?.map((c): CaptageJson => CaptageDto.fromModel(c)) ?? [],
+      steps: ProjectStepDto.toJsonArray(project.steps ?? []),
     }
   }
 
   static fromPaginator(
     paginatedProjects: ModelPaginatorContract<Project>
   ): PaginatedJson<ProjectJson> {
-    const transformedData = (paginatedProjects.toJSON().data as Project[]).map(ProjectDto.fromModel)
+    // Use Lucid model instances from the paginator so DateTime fields keep .toISO().
+    const transformedData = paginatedProjects.all().map(ProjectDto.fromModel)
     return {
       meta: paginatedProjects.getMeta(),
       data: transformedData,
