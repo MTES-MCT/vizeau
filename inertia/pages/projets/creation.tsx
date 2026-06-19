@@ -52,13 +52,15 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
     useForm<ProjetFormData>(defaultFormData)
 
   transform((formData) => {
-    const firstEntry =
-      formData.firstEntry.title.trim() || formData.firstEntry.notes.trim()
-        ? {
-            ...formData.firstEntry,
-            date: formData.firstEntry.date || new Date().toISOString().slice(0, 10),
-          }
-        : null
+    const step = formData.steps[0]
+    const hasStepContent = step && (step.title.trim() || step.notes.trim())
+
+    const stepDraft = hasStepContent
+      ? {
+          ...step,
+          date: step.date || new Date().toISOString().slice(0, 10),
+        }
+      : null
 
     return {
       name: formData.generalInfos.projectName,
@@ -78,7 +80,7 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
         const found = props.installations?.find((c) => c.code === code)
         return found ? [found.id] : []
       }),
-      firstEntry,
+      steps: stepDraft ? [stepDraft] : [],
     }
   })
 

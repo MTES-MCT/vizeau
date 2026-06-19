@@ -19,19 +19,21 @@ import {
   CaptagesStep,
   GeneralInfosStep,
   ConsolidationsStep,
+  FirstEntryStep,
 } from '~/components/projets/form'
 
 // Use the same step keys as creation (4, 5, 6 for optional steps) so ConsolidationsStep works unchanged.
-// Step 2 (FirstEntry) is skipped for edition.
+// Step 2 (FirstEntry) is included if projet.steps is empty.
 const STEPS: Record<
   number,
   { title: string; nextTitle?: string; component?: React.ComponentType<any> }
 > = {
   1: {
     title: 'Informations générales',
-    nextTitle: 'Rattachements',
+    nextTitle: 'Première étape de suivi',
     component: GeneralInfosStep,
   },
+  2: { title: 'Première étape de suivi', nextTitle: 'Rattachements', component: FirstEntryStep },
   3: { title: 'Rattachements', nextTitle: 'Parcelles', component: ConsolidationsStep },
   4: { title: 'Parcelles', nextTitle: 'Exploitations', component: ParcellesStep },
   5: { title: 'Exploitations', nextTitle: 'Points de prélèvements', component: ExploitationsStep },
@@ -45,12 +47,14 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
   const urlParams = new URLSearchParams(url.split('?')[1] || '')
   const stepFromUrl = parseInt(urlParams.get('step') || '1', 10)
 
-  const initialOptionalSteps: number[] = []
-  if (projet.parcelles.length > 0) initialOptionalSteps.push(4)
-  if (projet.exploitations.length > 0) initialOptionalSteps.push(5)
-  if (projet.captages.length > 0) initialOptionalSteps.push(6)
+  const stepsList_items: number[] = [1]
+  if (projet.steps.length === 0) stepsList_items.push(2)
+  stepsList_items.push(3)
+  if (projet.parcelles.length > 0) stepsList_items.push(4)
+  if (projet.exploitations.length > 0) stepsList_items.push(5)
+  if (projet.captages.length > 0) stepsList_items.push(6)
 
-  const [stepsList, setStepsList] = useState<number[]>([1, 3, ...initialOptionalSteps])
+  const [stepsList, setStepsList] = useState<number[]>(stepsList_items)
 
   const currentStep = (stepsList.includes(stepFromUrl) ? stepFromUrl : 1) as keyof typeof STEPS
 
@@ -62,13 +66,19 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
       type_action: projet.actionType ?? '',
       statut: projet.status,
     },
-    firstEntry: {
-      title: '',
-      notes: '',
-      tags: [],
-      date: '',
-      documents: [],
-    },
+    steps:
+      projet.steps.length > 0
+        ? [
+            {
+              title: projet.steps[0].title || '',
+              notes: projet.steps[0].note || '',
+              tags: (projet.steps[0].tags?.map((tag: any) => tag.id ?? 0) ?? []).filter(
+                (id: number) => id !== 0
+              ),
+              date: projet.steps[0].date ? projet.steps[0].date.split('T')[0] : '',
+            },
+          ]
+        : [{ title: '', notes: '', tags: [], date: '' }],
     parcelles: {
       millesime: projet.parcelles.length > 0 ? String(projet.parcelles[0].year) : '2024',
       items: projet.parcelles.map((p) => ({
@@ -90,6 +100,14 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
     useForm<ProjetFormData>(initialFormData)
 
   transform((formData) => {
+    const stepDraft =
+      formData.steps[0].title.trim() || formData.steps[0].notes.trim()
+        ? {
+            ...formData.steps[0],
+            date: formData.steps[0].date || new Date().toISOString().slice(0, 10),
+          }
+        : null
+
     return {
       name: formData.generalInfos.projectName,
       description: formData.generalInfos.description || null,
@@ -111,6 +129,7 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
         const existing = projet.captages.find((c) => c.code === code)
         return existing ? [existing.id] : []
       }),
+      steps: stepDraft ? [stepDraft] : [],
     }
   })
 
