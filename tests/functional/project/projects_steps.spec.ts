@@ -67,6 +67,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .post(route('projets.steps.create', { projectId: project.id }))
       .loginAs(user)
       .json({
+        title: 'Étape avec note',
         note: 'Une note sans titre',
       })
       .withCsrfToken()
@@ -75,7 +76,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
     const step = await ProjectStep.query().where('note', 'Une note sans titre').firstOrFail()
     assert.equal(step.projectId, project.id)
-    assert.isEmpty(step.title)
+    assert.equal(step.title, 'Étape avec note')
   })
 
   test('I can create a step with only a date', async ({ assert, client, route }) => {
@@ -88,6 +89,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .post(route('projets.steps.create', { projectId: project.id }))
       .loginAs(user)
       .json({
+        title: 'Étape avec date',
         date,
       })
       .withCsrfToken()
