@@ -39,7 +39,7 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
       <div className="flex flex-col gap-4">
         <EmptyPlaceholder
           illustrativeIcon="fr-icon-booklet-line"
-          label="Votre tableau de bord est vide."
+          label="Ce projet n'a pas encore d'étape définie."
           hint="Ajoutez une étape pour commencer à suivre vos informations."
           buttonLabel="Ajouter une première étape"
           buttonIcon="fr-icon-add-line"
