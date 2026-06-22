@@ -157,7 +157,7 @@ export default function ListItem({
                       ></span>
                     )}
                     {typeof title === 'string' ? (
-                      <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex-1 min-w-0">
                         <TruncatedText maxLines={1} className="fr-m-0 fr-text--md font-bold">
                           {title}
                         </TruncatedText>
@@ -219,7 +219,7 @@ export default function ListItem({
                   ></span>
                 )}
                 {typeof title === 'string' ? (
-                  <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className="flex-1 min-w-0">
                     <TruncatedText
                       maxLines={1}
                       className="fr-m-0 fr-text--md font-bold"
