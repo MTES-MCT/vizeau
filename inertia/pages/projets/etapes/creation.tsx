@@ -5,7 +5,6 @@ import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
-import { FlashMessages } from '~/components/flash-message'
 import TruncatedText from '~/ui/TruncatedText'
 import ProjectsController from '#controllers/projects_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
@@ -21,7 +20,6 @@ export type ProjectStepFormData = {
 export default function ProjectStepCreationPage({
   projet,
   createStepUrl,
-  flashMessages,
 }: InferPageProps<ProjectsController, 'createStepForm'>) {
   const { data, setData, post, resetAndClearErrors } = useForm<ProjectStepFormData>({
     title: '',
@@ -66,8 +64,6 @@ export default function ProjectStepCreationPage({
         />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <FlashMessages flashMessages={flashMessages} />
-
           <ProjectStepForm data={data} setData={setData} />
 
           <div className="flex w-full items-center justify-end gap-3">
