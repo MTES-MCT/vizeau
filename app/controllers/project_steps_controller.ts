@@ -84,6 +84,10 @@ export default class ProjectStepsController {
       step: ProjectStepDto.fromModel(step)!,
       deleteStepUrl: router.builder().params([project.id, step.id]).make('projets.steps.destroy'),
       completeStepUrl: router.builder().params([project.id]).make('projets.steps.complete'),
+      deleteDocumentUrl: router
+        .builder()
+        .params([project.id, step.id])
+        .make('projets.steps.documents.destroy'),
     })
   }
 
@@ -98,6 +102,10 @@ export default class ProjectStepsController {
       projet: ProjectDto.fromModel(project),
       step: ProjectStepDto.fromModel(step)!,
       editStepUrl: router.builder().params([project.id, step.id]).make('projets.steps.edit'),
+      deleteDocumentUrl: router
+        .builder()
+        .params([project.id, step.id])
+        .make('projets.steps.documents.destroy'),
     })
   }
 

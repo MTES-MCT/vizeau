@@ -98,6 +98,14 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
             content: `Créée le ${new Date(step.createdAt).toLocaleDateString()}`,
             iconId: 'fr-icon-calendar-event-line',
           },
+          ...(step.documents && step.documents.length > 0
+            ? [
+                {
+                  content: `${step.documents.length} fichier${step.documents.length > 1 ? 's' : ''}`,
+                  iconId: 'fr-icon-attachment-line',
+                },
+              ]
+            : []),
         ]}
         actions={actions}
       />

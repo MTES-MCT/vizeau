@@ -11,6 +11,7 @@ import SectionCard from '~/ui/SectionCard'
 import { getProjectStepTitle } from '~/functions/project_steps'
 import type { ProjectStepJson } from '#types/models'
 import StepInfoCard from '~/components/projets/step-info-card'
+import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
 
 type SingleProjectStepProps = {
   projet: {
@@ -20,6 +21,7 @@ type SingleProjectStepProps = {
   step: ProjectStepJson
   deleteStepUrl: string
   completeStepUrl: string
+  deleteDocumentUrl: string
 }
 
 export default function SingleProjectStep({
@@ -27,6 +29,7 @@ export default function SingleProjectStep({
   step,
   deleteStepUrl,
   completeStepUrl,
+  deleteDocumentUrl,
 }: SingleProjectStepProps) {
   const deleteStepModal = createModal({
     id: 'delete-project-step-page-modal',
@@ -77,6 +80,7 @@ export default function SingleProjectStep({
       </div>
 
       <div className="fr-container fr-mt-4w fr-mb-4w">
+        <h2>{stepTitle}</h2>
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
             <StepInfoCard step={step} completeStepUrl={completeStepUrl} />
@@ -111,18 +115,20 @@ export default function SingleProjectStep({
             </deleteStepModal.Component>
           </aside>
 
-          <SectionCard title={stepTitle} hideLongTitleTooltip>
-            <div className="flex flex-col gap-10">
-              <SectionCard
-                size="small"
-                background="secondary"
-                icon="fr-icon-draft-line"
-                title="Notes"
-              >
-                <p>{step.note || <i>Aucune note enregistrée.</i>}</p>
+          <div className="flex flex-col gap-4">
+            <SectionCard size="small" icon="fr-icon-draft-line" title="Description">
+              <p>{step.note || <i>Aucune note enregistrée.</i>}</p>
+            </SectionCard>
+
+            {step.documents && step.documents.length > 0 && (
+              <SectionCard size="small" icon="fr-icon-attachment-line" title="Documents">
+                <ProjectStepDocumentList
+                  documents={step.documents}
+                  deleteDocumentUrl={deleteDocumentUrl}
+                />
               </SectionCard>
-            </div>
-          </SectionCard>
+            )}
+          </div>
         </section>
       </div>
     </Layout>
