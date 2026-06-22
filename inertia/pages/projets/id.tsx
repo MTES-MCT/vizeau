@@ -20,6 +20,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 import Input from '@codegouvfr/react-dsfr/Input'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { Button } from '@codegouvfr/react-dsfr/Button'
+import StepsList from '~/components/projets/steps-list'
 
 const deleteProjetModal = createModal({
   id: 'delete-projet-modal',
@@ -141,6 +142,11 @@ export default function ShowProjet({ projet }: InferPageProps<ProjectsController
               label="Détails du projet"
               onTabChange={function noRefCheck() {}}
               tabs={[
+                {
+                  content: <StepsList steps={projet.steps} projectId={projet.id} />,
+                  iconId: 'fr-icon-booklet-line',
+                  label: 'Étapes du projet',
+                },
                 {
                   content: <ProjetParcellesList parcelles={projet.parcelles} />,
                   iconId: 'fr-icon-collage-line',
