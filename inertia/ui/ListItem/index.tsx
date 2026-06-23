@@ -147,8 +147,8 @@ export default function ListItem({
             )}
             <div>
               <div className="items-center flex gap-2">
-                <div className="flex flex-1 items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-1 items-center gap-2 flex-wrap min-w-0">
+                  <div className="flex items-center gap-1 min-w-0">
                     {iconId && (
                       <span
                         className={`${iconId} fr-icon--md`}
@@ -157,9 +157,11 @@ export default function ListItem({
                       ></span>
                     )}
                     {typeof title === 'string' ? (
-                      <TruncatedText maxLines={1} className="flex-1 fr-m-0 fr-text--md font-bold">
-                        {title}
-                      </TruncatedText>
+                      <div className="flex-1 min-w-0">
+                        <TruncatedText maxLines={1} className="fr-m-0 fr-text--md font-bold">
+                          {title}
+                        </TruncatedText>
+                      </div>
                     ) : (
                       <div className="flex-1">{title}</div>
                     )}
@@ -207,8 +209,8 @@ export default function ListItem({
           {tags && tags.length > 0 && <TagsList tags={tags} size="sm" limit={5} />}
 
           <div className="flex items-start">
-            <div className="flex flex-1 flex-col">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-1 flex-col min-w-0">
+              <div className="flex items-center gap-1 min-w-0">
                 {iconId && (
                   <span
                     className={`${iconId} fr-icon--md`}
@@ -217,13 +219,15 @@ export default function ListItem({
                   ></span>
                 )}
                 {typeof title === 'string' ? (
-                  <TruncatedText
-                    maxLines={1}
-                    className="flex-1 fr-m-0 fr-text--md font-bold"
-                    hideTooltip={hideTooltip}
-                  >
-                    {title}
-                  </TruncatedText>
+                  <div className="flex-1 min-w-0">
+                    <TruncatedText
+                      maxLines={1}
+                      className="fr-m-0 fr-text--md font-bold"
+                      hideTooltip={hideTooltip}
+                    >
+                      {title}
+                    </TruncatedText>
+                  </div>
                 ) : (
                   title
                 )}

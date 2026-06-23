@@ -122,7 +122,7 @@ export default function ShowProjet({ projet }: InferPageProps<ProjectsController
             </deleteProjetModal.Component>
           </aside>
 
-          <div>
+          <div className="min-w-0">
             <CallOut
               title="Description du projet"
               {...(projet.description &&
