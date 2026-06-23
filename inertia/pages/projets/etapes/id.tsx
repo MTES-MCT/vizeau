@@ -12,6 +12,7 @@ import { getProjectStepTitle } from '~/functions/project_steps'
 import type { ProjectStepJson } from '#types/models'
 import StepInfoCard from '~/components/projets/step-info-card'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 type SingleProjectStepProps = {
   projet: {
@@ -120,14 +121,19 @@ export default function SingleProjectStep({
               <p>{step.note || <i>Aucune note enregistrée.</i>}</p>
             </SectionCard>
 
-            {step.documents && step.documents.length > 0 && (
-              <SectionCard size="small" icon="fr-icon-attachment-line" title="Documents">
+            <SectionCard size="small" icon="fr-icon-attachment-line" title="Documents">
+              {step.documents && step.documents.length > 0 ? (
                 <ProjectStepDocumentList
                   documents={step.documents}
                   deleteDocumentUrl={deleteDocumentUrl}
                 />
-              </SectionCard>
-            )}
+              ) : (
+                <EmptyPlaceholder
+                  illustrativeIcon="fr-icon-attachment-line"
+                  label="Aucun document associé à cette étape."
+                />
+              )}
+            </SectionCard>
           </div>
         </section>
       </div>
