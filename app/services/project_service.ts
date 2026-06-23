@@ -197,7 +197,7 @@ export class ProjectService {
     }
 
     // Handle project steps - replace all existing steps with new ones
-    if (steps !== undefined) {
+    if (steps !== undefined && steps?.length > 0) {
       // Delete all existing steps for this project
       const existingSteps = await ProjectStep.query()
         .where('projectId', project.id)
