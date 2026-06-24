@@ -48,6 +48,7 @@ export type ProjetFormData = {
     notes: string
     tags: number[]
     date: string
+    documents: File[]
   }[]
   parcelles: {
     millesime: string
@@ -65,7 +66,7 @@ export const defaultFormData: ProjetFormData = {
     type_action: '',
     statut: 'to_be_started',
   },
-  steps: [{ title: '', notes: '', tags: [], date: '' }],
+  steps: [{ title: '', notes: '', tags: [], date: '', documents: [] }],
   parcelles: {
     millesime: '2024',
     items: [],
