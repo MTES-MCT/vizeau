@@ -1,26 +1,11 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import CheckboxCard from '~/ui/CheckboxCard'
+import { STEPS, STEP_KEYS } from '~/components/projets/form/steps_config'
 
-const OPTIONAL_STEPS: { key: number; title: string; description?: string; iconId?: string }[] = [
-  {
-    key: 4,
-    title: 'Parcelles',
-    description: 'Associer les parcelles agricoles concernées par ce projet. Sélection via carte.',
-    iconId: 'fr-icon-collage-line',
-  },
-  {
-    key: 5,
-    title: 'Exploitations',
-    description:
-      'Liez une ou plusieurs exploitations agricoles. Utile pour les projets collectifs.',
-    iconId: 'fr-icon-map-pin-user-line',
-  },
-  {
-    key: 6,
-    title: 'Points de prélèvements',
-    description: 'Associer des points de prélèvements concernés par ce projet.',
-    iconId: 'fr-icon-drop-line',
-  },
+const OPTIONAL_STEPS = [
+  STEPS[STEP_KEYS.PARCELLES],
+  STEPS[STEP_KEYS.EXPLOITATIONS],
+  STEPS[STEP_KEYS.CAPTAGES],
 ]
 
 type ConsolidationsStepProps = {
@@ -31,8 +16,8 @@ type ConsolidationsStepProps = {
 export default function ConsolidationsStep({ stepsList, setStepsList }: ConsolidationsStepProps) {
   const handleToggle = (stepKey: number, checked: boolean) => {
     setStepsList((prev) => {
-      const baseSteps = prev.filter((step) => step <= 3)
-      const currentOptionalSteps = prev.filter((step) => step > 3)
+      const baseSteps = prev.filter((step) => step <= STEP_KEYS.CONSOLIDATIONS)
+      const currentOptionalSteps = prev.filter((step) => step > STEP_KEYS.CONSOLIDATIONS)
       const newOptional = checked
         ? [...currentOptionalSteps.filter((step) => step !== stepKey), stepKey].sort(
             (a, b) => a - b
@@ -60,12 +45,12 @@ export default function ConsolidationsStep({ stepsList, setStepsList }: Consolid
         {OPTIONAL_STEPS.map(({ key, title, description, iconId }) => (
           <CheckboxCard
             key={key}
-            value={String(key)}
+            value={String(STEP_KEYS[key])}
             title={title}
             subtitle={description}
             iconId={iconId}
-            isSelected={stepsList.includes(key)}
-            onCheck={(_, checked) => handleToggle(key, checked)}
+            isSelected={stepsList.includes(STEP_KEYS[key])}
+            onCheck={(_, checked) => handleToggle(STEP_KEYS[key], checked)}
           />
         ))}
       </div>

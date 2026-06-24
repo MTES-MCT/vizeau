@@ -2,6 +2,9 @@ import Project, { ProjectStatus } from '#models/project'
 import { ModelAttributes, ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 import { DateTime } from 'luxon'
 import ProjectStep from '#models/project_step'
+import { MultipartFile } from '@adonisjs/core/bodyparser'
+import { inject } from '@adonisjs/core'
+import { ProjectStepDocumentService } from '#services/project_step_document_service'
 
 export interface ProjectPayload extends Partial<ModelAttributes<Project>> {
   parcelleIds?: string[]
@@ -12,6 +15,7 @@ export interface ProjectPayload extends Partial<ModelAttributes<Project>> {
     notes?: string
     date?: string | null
     tags?: number[]
+    documents?: MultipartFile[]
   }>
 }
 
@@ -40,7 +44,9 @@ export interface ProjectIndexResult {
 
 const PER_PAGE = 20
 
+@inject()
 export class ProjectService {
+  constructor(public projectStepDocumentService: ProjectStepDocumentService) {}
   async listProjects(userId: string, filters: ProjectIndexFilters): Promise<ProjectIndexResult> {
     const { recherche, statut, typesActionExclus, statutsExclus, yearFrom, yearTo, page } = filters
 
@@ -163,6 +169,11 @@ export class ProjectService {
         if (step.tags?.length) {
           await createdStep.related('tags').attach(step.tags)
         }
+        if (step.documents?.length) {
+          for (const document of step.documents) {
+            await this.projectStepDocumentService.createDocument(createdStep.id, document)
+          }
+        }
       }
     }
 
@@ -181,7 +192,7 @@ export class ProjectService {
 
   async updateProject(projectId: string, userId: string, payload: ProjectPayload) {
     const project = await this.findOwnedProjectOrFail(projectId, userId)
-    const { parcelleIds, exploitationIds, captageIds, steps, ...projectPayload } = payload
+    const { parcelleIds, exploitationIds, captageIds, ...projectPayload } = payload
 
     project.merge(projectPayload)
     await project.save()
@@ -194,37 +205,6 @@ export class ProjectService {
     }
     if (captageIds !== undefined) {
       await project.related('captages').sync(captageIds)
-    }
-
-    // Handle project steps - replace all existing steps with new ones
-    if (steps !== undefined) {
-      // Delete all existing steps for this project
-      const existingSteps = await ProjectStep.query()
-        .where('projectId', project.id)
-        .preload('documents')
-      for (const existingStep of existingSteps) {
-        for (const document of existingStep.documents ?? []) {
-          await document.delete()
-        }
-        await existingStep.delete()
-      }
-
-      // Create new steps if provided
-      if (steps.length) {
-        for (const step of steps) {
-          const createdStep = await ProjectStep.create({
-            projectId: project.id,
-            title: step.title ?? '',
-            note: step.notes ?? null,
-            date: step.date ? DateTime.fromISO(step.date) : null,
-            isValidated: false,
-          })
-
-          if (step.tags?.length) {
-            await createdStep.related('tags').attach(step.tags)
-          }
-        }
-      }
     }
 
     // Load relations to ensure they are populated when the DTO is used

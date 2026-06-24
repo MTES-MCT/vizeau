@@ -9,36 +9,9 @@ import Layout from '~/ui/layouts/layout'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import ProjectsController from '#controllers/projects_controller'
 
-import { Stepper } from '@codegouvfr/react-dsfr/Stepper'
-
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
 import Toast from '~/ui/Toaster'
-import {
-  ParcellesStep,
-  ExploitationsStep,
-  CaptagesStep,
-  GeneralInfosStep,
-  ConsolidationsStep,
-  FirstEntryStep,
-} from '~/components/projets/form'
-
-// Use the same step keys as creation (4, 5, 6 for optional steps) so ConsolidationsStep works unchanged.
-// Step 2 (FirstEntry) is included if projet.steps is empty.
-const STEPS: Record<
-  number,
-  { title: string; nextTitle?: string; component?: React.ComponentType<any> }
-> = {
-  1: {
-    title: 'Informations générales',
-    nextTitle: 'Première étape de suivi',
-    component: GeneralInfosStep,
-  },
-  2: { title: 'Première étape de suivi', nextTitle: 'Rattachements', component: FirstEntryStep },
-  3: { title: 'Rattachements', nextTitle: 'Parcelles', component: ConsolidationsStep },
-  4: { title: 'Parcelles', nextTitle: 'Exploitations', component: ParcellesStep },
-  5: { title: 'Exploitations', nextTitle: 'Points de prélèvements', component: ExploitationsStep },
-  6: { title: 'Points de prélèvements', component: CaptagesStep },
-}
+import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 
 export default function ProjetEditionPage({}: InferPageProps<ProjectsController, 'getForEdition'>) {
   const { url, props } = usePage<InferPageProps<ProjectsController, 'getForEdition'>>()
@@ -47,16 +20,18 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
   const urlParams = new URLSearchParams(url.split('?')[1] || '')
   const stepFromUrl = parseInt(urlParams.get('step') || '1', 10)
 
-  const stepsList_items: number[] = [1]
-  if (projet.steps.length === 0) stepsList_items.push(2)
-  stepsList_items.push(3)
-  if (projet.parcelles.length > 0) stepsList_items.push(4)
-  if (projet.exploitations.length > 0) stepsList_items.push(5)
-  if (projet.captages.length > 0) stepsList_items.push(6)
+  const [stepsList, setStepsList] = useState<number[]>(() => {
+    const stepIndexes: number[] = [STEP_KEYS.GENERAL_INFOS, STEP_KEYS.CONSOLIDATIONS]
+    if (projet.parcelles.length > 0) stepIndexes.push(STEP_KEYS.PARCELLES)
+    if (projet.exploitations.length > 0) stepIndexes.push(STEP_KEYS.EXPLOITATIONS)
+    if (projet.captages.length > 0) stepIndexes.push(STEP_KEYS.CAPTAGES)
 
-  const [stepsList, setStepsList] = useState<number[]>(stepsList_items)
+    return stepIndexes
+  })
 
-  const currentStep = (stepsList.includes(stepFromUrl) ? stepFromUrl : 1) as keyof typeof STEPS
+  const currentStep = (
+    stepsList.includes(stepFromUrl) ? stepFromUrl : STEP_KEYS.GENERAL_INFOS
+  ) as keyof typeof STEPS
 
   const initialFormData: ProjetFormData = {
     generalInfos: {
@@ -142,10 +117,6 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
   const visitStep = (step: number) =>
     router.visit(`/projets/edition/${projet.id}?step=${step}`, { preserveState: true })
 
-  const currentStepIndex = stepsList.indexOf(currentStep) + 1
-  const nextStepKey = stepsList[stepsList.indexOf(currentStep) + 1]
-  const nextTitle = nextStepKey ? STEPS[nextStepKey].title : undefined
-
   const handleSubmit = () => {
     patch(`/projets/${projet.id}`, {
       onSuccess: () => {
@@ -169,11 +140,7 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
   return (
     <Layout>
       <Head title={`Modifier ${projet.name}`} />
-      <div
-        style={{
-          backgroundColor: fr.colors.decisions.background.alt.blueFrance.default,
-        }}
-      >
+      <div style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}>
         <div className="fr-container">
           <Breadcrumb
             className="fr-my-1w fr-py-1w"
@@ -188,21 +155,11 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
       </div>
 
       <div className="fr-container fr-my-4w">
-        <div className="min-h-[120px] fr-mb-4w">
-          <Stepper
-            currentStep={currentStepIndex}
-            nextTitle={nextTitle}
-            stepCount={stepsList.length}
-            title={STEPS[currentStep].title}
-          />
-        </div>
-
         <ProjetForm
           handleStepsList={setStepsList}
           setCurrentStep={visitStep}
           currentStep={currentStep}
           stepsList={stepsList}
-          steps={STEPS}
           data={data}
           setData={setData}
           errors={errors as ProjetFormErrors}

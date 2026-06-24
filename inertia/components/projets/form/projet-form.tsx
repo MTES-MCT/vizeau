@@ -1,7 +1,25 @@
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
+import { Stepper } from '@codegouvfr/react-dsfr/Stepper'
 import { SetDataAction } from '@inertiajs/react'
 import StepRenderer from '~/components/projets/form/step-renderer'
+import {
+  ParcellesStep,
+  ExploitationsStep,
+  CaptagesStep,
+  GeneralInfosStep,
+  ConsolidationsStep,
+  FirstEntryStep,
+} from '~/components/projets/form'
+import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
+
+// Attach components to steps (done here to avoid circular imports)
+STEPS[STEP_KEYS.GENERAL_INFOS].component = GeneralInfosStep
+STEPS[STEP_KEYS.FIRST_ENTRY].component = FirstEntryStep
+STEPS[STEP_KEYS.CONSOLIDATIONS].component = ConsolidationsStep
+STEPS[STEP_KEYS.PARCELLES].component = ParcellesStep
+STEPS[STEP_KEYS.EXPLOITATIONS].component = ExploitationsStep
+STEPS[STEP_KEYS.CAPTAGES].component = CaptagesStep
 
 export type ProjetFormErrors = {
   projectName?: string
@@ -17,11 +35,6 @@ export type SelectedParcelleFormData = {
   exploitationName: string | null
 }
 
-export type SelectedExploitationFormData = {
-  id: string
-  name: string
-}
-
 export type ProjetFormData = {
   generalInfos: {
     projectName: string
@@ -35,6 +48,7 @@ export type ProjetFormData = {
     notes: string
     tags: number[]
     date: string
+    documents: File[]
   }[]
   parcelles: {
     millesime: string
@@ -52,7 +66,7 @@ export const defaultFormData: ProjetFormData = {
     type_action: '',
     statut: 'to_be_started',
   },
-  steps: [{ title: '', notes: '', tags: [], date: '' }],
+  steps: [{ title: '', notes: '', tags: [], date: '', documents: [] }],
   parcelles: {
     millesime: '2024',
     items: [],
@@ -66,7 +80,6 @@ export type ProjetFormProps = {
   setCurrentStep: (step: number) => void
   currentStep: number
   stepsList: number[]
-  steps: Record<number, { title: string; nextTitle?: string; component?: React.ComponentType<any> }>
   data: ProjetFormData
   setData: SetDataAction<ProjetFormData>
   errors: ProjetFormErrors
@@ -92,7 +105,6 @@ export default function ProjetForm({
   setCurrentStep,
   currentStep,
   stepsList,
-  steps,
   data,
   setData,
   errors,
@@ -102,6 +114,9 @@ export default function ProjetForm({
   const currentIndex = stepsList.indexOf(currentStep)
   const prevStep = currentIndex > 0 ? stepsList[currentIndex - 1] : null
   const nextStep = currentIndex < stepsList.length - 1 ? stepsList[currentIndex + 1] : null
+
+  const nextStepKey = stepsList[currentIndex + 1]
+  const nextTitle = nextStepKey ? STEPS[nextStepKey].title : undefined
 
   const handleNext = () => {
     const newErrors = validate(currentStep, data)
@@ -121,8 +136,17 @@ export default function ProjetForm({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="min-h-[120px] fr-mb-4w">
+        <Stepper
+          currentStep={currentIndex + 1}
+          nextTitle={nextTitle}
+          stepCount={stepsList.length}
+          title={STEPS[currentStep].title}
+        />
+      </div>
+
       <StepRenderer
-        component={steps[currentStep].component}
+        component={STEPS[currentStep].component}
         handleStepsList={handleStepsList}
         stepsList={stepsList}
         data={data}

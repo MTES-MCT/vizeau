@@ -17,6 +17,7 @@ const LogEntriesController = () => import('#controllers/log_entries_controller')
 const VisualisationController = () => import('#controllers/visualisation_controller')
 const AacController = () => import('#controllers/aac_controller')
 const ProjectsController = () => import('#controllers/projects_controller')
+const ProjectStepsController = () => import('#controllers/project_steps_controller')
 const TerritoiresController = () => import('#controllers/territoires_controller')
 
 router.get('/', ({ response }) => response.redirect('login')).as('root')
@@ -230,38 +231,38 @@ router
         router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
         router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
         router
-          .get('projets/:projectId/etapes/creation', [ProjectsController, 'createStepForm'])
+          .get('projets/:projectId/etapes/creation', [ProjectStepsController, 'createStepForm'])
           .as('projets.steps.create.form')
         router
-          .get('projets/:projectId/etapes/:stepId', [ProjectsController, 'getStep'])
+          .get('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'getStep'])
           .as('projets.steps.get')
         router
           .get('projets/:projectId/etapes/:stepId/edition', [
-            ProjectsController,
+            ProjectStepsController,
             'getStepForEdition',
           ])
           .as('projets.steps.edition')
         router
-          .post('projets/:projectId/etapes', [ProjectsController, 'createStep'])
+          .post('projets/:projectId/etapes', [ProjectStepsController, 'createStep'])
           .as('projets.steps.create')
         router
-          .post('projets/:projectId/etapes/complete', [ProjectsController, 'completeStep'])
+          .post('projets/:projectId/etapes/complete', [ProjectStepsController, 'completeStep'])
           .as('projets.steps.complete')
         router
-          .patch('projets/:projectId/etapes/:stepId', [ProjectsController, 'editStep'])
+          .patch('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'editStep'])
           .as('projets.steps.edit')
         router
-          .delete('projets/:projectId/etapes/:stepId', [ProjectsController, 'destroyStep'])
+          .delete('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'destroyStep'])
           .as('projets.steps.destroy')
         router
           .get('projets/:projectId/etapes/:stepId/documents/:documentId', [
-            ProjectsController,
+            ProjectStepsController,
             'downloadStepDocument',
           ])
           .as('projets.steps.documents.download')
         router
           .delete('projets/:projectId/etapes/:stepId/documents', [
-            ProjectsController,
+            ProjectStepsController,
             'destroyDocument',
           ])
           .as('projets.steps.documents.destroy')
