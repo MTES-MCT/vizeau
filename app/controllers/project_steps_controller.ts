@@ -5,9 +5,12 @@ import ProjectStepDocument from '#models/project_step_document'
 import { ProjectService } from '#services/project_service'
 import { ProjectStepService } from '#services/project_step_service'
 import { ProjectStepDocumentService } from '#services/project_step_document_service'
+import { ProjectStepTagService } from '#services/project_step_tag_service'
 import {
   completeProjectStepValidator,
   createProjectStepPayloadValidator,
+  createProjectStepTagValidator,
+  deleteProjectStepTagValidator,
   destroyProjectStepDocumentValidator,
   downloadProjectStepDocumentValidator,
   showProjectStepValidator,
@@ -16,6 +19,7 @@ import {
 import { showProjectValidator } from '#validators/project'
 import { ProjectDto } from '../dto/project_dto.js'
 import { ProjectStepDto } from '../dto/project_step_dto.js'
+import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import router from '@adonisjs/core/services/router'
 
@@ -24,7 +28,8 @@ export default class ProjectStepsController {
   constructor(
     public projectService: ProjectService,
     public projectStepService: ProjectStepService,
-    public projectStepDocumentService: ProjectStepDocumentService
+    public projectStepDocumentService: ProjectStepDocumentService,
+    public projectStepTagService: ProjectStepTagService
   ) {}
 
   async createStepForm({ auth, request, inertia }: HttpContext) {
@@ -35,6 +40,20 @@ export default class ProjectStepsController {
     return inertia.render('projets/etapes/creation', {
       projet: ProjectDto.fromModel(project),
       createStepUrl: router.builder().params([project.id]).make('projets.steps.create'),
+      filteredProjectStepTags: async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(
+          user.id,
+          request.qs().tagSearch,
+          5
+        )
+        return ProjectStepTagDto.fromArray(tags)
+      },
+      lastCreatedProjectStepTag: inertia.optional(async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
+        return ProjectStepTagDto.fromArray(tags)
+      }),
+      createTagUrl: router.makeUrl('projets.steps.tags.create'),
+      deleteTagUrl: router.makeUrl('projets.steps.tags.destroy'),
     })
   }
 
@@ -106,6 +125,20 @@ export default class ProjectStepsController {
         .builder()
         .params([project.id, step.id])
         .make('projets.steps.documents.destroy'),
+      filteredProjectStepTags: async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(
+          user.id,
+          request.qs().tagSearch,
+          5
+        )
+        return ProjectStepTagDto.fromArray(tags)
+      },
+      lastCreatedProjectStepTag: inertia.optional(async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
+        return ProjectStepTagDto.fromArray(tags)
+      }),
+      createTagUrl: router.makeUrl('projets.steps.tags.create'),
+      deleteTagUrl: router.makeUrl('projets.steps.tags.destroy'),
     })
   }
 
@@ -243,5 +276,39 @@ export default class ProjectStepsController {
 
     createSuccessFlashMessage(session, "L'étape a été marquée comme effectuée.")
     return response.redirect().toPath(`/projets/${project.id}`)
+  }
+
+  async createTag({ auth, request, response, session, logger }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { name } = await request.validateUsing(createProjectStepTagValidator)
+
+    try {
+      await this.projectStepTagService.createTagForUser(user.id, name)
+    } catch (error) {
+      logger.error(error, 'Error creating tag for project step:')
+      createErrorFlashMessage(
+        session,
+        "Une erreur est survenue lors de la création de l'étiquette."
+      )
+    }
+
+    return response.redirect().back()
+  }
+
+  async destroyTag({ auth, request, response, session, logger }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { tagId } = await request.validateUsing(deleteProjectStepTagValidator)
+
+    try {
+      await this.projectStepTagService.deleteTag(tagId, user.id)
+    } catch (error) {
+      logger.error(error, 'Error deleting tag for project step:')
+      createErrorFlashMessage(
+        session,
+        "Une erreur est survenue lors de la suppression de l'étiquette."
+      )
+    }
+
+    return response.redirect().back()
   }
 }

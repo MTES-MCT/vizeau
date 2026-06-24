@@ -41,19 +41,9 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
       type_action: projet.actionType ?? '',
       statut: projet.status,
     },
-    steps:
-      projet.steps.length > 0
-        ? [
-            {
-              title: projet.steps[0].title || '',
-              notes: projet.steps[0].note || '',
-              tags: (projet.steps[0].tags?.map((tag: any) => tag.id ?? 0) ?? []).filter(
-                (id: number) => id !== 0
-              ),
-              date: projet.steps[0].date ? projet.steps[0].date.split('T')[0] : '',
-            },
-          ]
-        : [{ title: '', notes: '', tags: [], date: '' }],
+    // We never send new steps in the project edit form, and it won't be sent to the back-end
+    // But the rest of the form is simpler by assuming there's something here at all times
+    steps: [],
     parcelles: {
       millesime: projet.parcelles.length > 0 ? String(projet.parcelles[0].year) : '2024',
       items: projet.parcelles.map((p) => ({
@@ -75,14 +65,6 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
     useForm<ProjetFormData>(initialFormData)
 
   transform((formData) => {
-    const stepDraft =
-      formData.steps[0].title.trim() || formData.steps[0].notes.trim()
-        ? {
-            ...formData.steps[0],
-            date: formData.steps[0].date || new Date().toISOString().slice(0, 10),
-          }
-        : null
-
     return {
       name: formData.generalInfos.projectName,
       description: formData.generalInfos.description || null,
@@ -104,7 +86,6 @@ export default function ProjetEditionPage({}: InferPageProps<ProjectsController,
         const existing = projet.captages.find((c) => c.code === code)
         return existing ? [existing.id] : []
       }),
-      ...(projet.steps.length === 0 ? { steps: stepDraft ? [stepDraft] : [] } : {}),
     }
   })
 

@@ -12,6 +12,7 @@ import { getProjectStepTitle } from '~/functions/project_steps'
 import type { ProjectStepJson } from '#types/models'
 import StepInfoCard from '~/components/projets/step-info-card'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
+import ProjectStepTagsCard from '~/components/projets/ProjectStepTagsCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 type SingleProjectStepProps = {
@@ -85,6 +86,8 @@ export default function SingleProjectStep({
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
             <StepInfoCard step={step} completeStepUrl={completeStepUrl} />
+
+            <ProjectStepTagsCard tags={step.tags} />
 
             <DeleteAlert
               title="Supprimer la tâche"

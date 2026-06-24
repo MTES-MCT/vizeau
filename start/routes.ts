@@ -266,6 +266,12 @@ router
             'destroyDocument',
           ])
           .as('projets.steps.documents.destroy')
+        router
+          .post('projet-tags', [ProjectStepsController, 'createTag'])
+          .as('projets.steps.tags.create')
+        router
+          .delete('projet-tags', [ProjectStepsController, 'destroyTag'])
+          .as('projets.steps.tags.destroy')
 
         router.get('territoires', [TerritoiresController, 'index']).as('territoires.index')
       })

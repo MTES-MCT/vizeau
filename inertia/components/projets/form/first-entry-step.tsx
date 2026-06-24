@@ -5,7 +5,8 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { Upload } from '@codegouvfr/react-dsfr/Upload'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import SmallSection from '~/ui/SmallSection'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
 
 type FirstEntryStepProps = {
   data: ProjetFormData
@@ -15,6 +16,7 @@ type FirstEntryStepProps = {
 export default function FirstEntryStep({ data, setData }: FirstEntryStepProps) {
   const values = data.steps[0]
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [tagInputValue, setTagInputValue] = useState('')
 
   const handleChange = (key: keyof ProjetFormData['steps'][number], value: string | File[]) => {
     setData((prev) => ({
@@ -26,6 +28,20 @@ export default function FirstEntryStep({ data, setData }: FirstEntryStepProps) {
   return (
     <div className="grid grid-cols-[320px_1fr] gap-4">
       <aside className="flex flex-col gap-4">
+        <SmallSection title="Étiquettes" iconId="fr-icon-star-line" hasBorder priority="secondary">
+          <ProjectStepTagSelector
+            inputValue={tagInputValue}
+            setInputValue={setTagInputValue}
+            values={values.tags}
+            onChange={(tags) =>
+              setData((prev) => ({
+                ...prev,
+                steps: prev.steps.map((step, i) => (i === 0 ? { ...step, tags } : step)),
+              }))
+            }
+          />
+        </SmallSection>
+
         <SmallSection
           title="Documents"
           iconId="fr-icon-attachment-line"
