@@ -46,7 +46,7 @@ export const createProjectStepTagValidator = vine.compile(
 
 export const deleteProjectStepTagValidator = vine.compile(
   vine.object({
-    tagId: vine.number().min(1),
+    tagId: vine.number().positive().withoutDecimals(),
   })
 )
 
