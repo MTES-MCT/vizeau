@@ -1,5 +1,5 @@
 import Layout from '~/ui/layouts/layout'
-import { FormEvent, useRef } from 'react'
+import { FormEvent, useRef, useState } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Button } from '@codegouvfr/react-dsfr/Button'
@@ -9,6 +9,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload'
 import TruncatedText from '~/ui/TruncatedText'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import ProjectStepForm from '~/components/projets/form/project-step-form'
+import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
 import ProjectStepsController from '#controllers/project_steps_controller'
 import SmallSection from '~/ui/SmallSection'
 
@@ -17,6 +18,7 @@ export type ProjectStepFormData = {
   title: string
   note: string
   date: string
+  tags: number[]
   documents?: File[]
 }
 
@@ -25,10 +27,12 @@ export default function ProjectStepCreationPage({
   createStepUrl,
 }: InferPageProps<ProjectStepsController, 'createStepForm'>) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<ProjectStepFormData>({
     title: '',
     note: '',
     date: '',
+    tags: [],
     documents: [],
   })
 
@@ -37,6 +41,7 @@ export default function ProjectStepCreationPage({
 
     post(createStepUrl, {
       onSuccess: () => {
+        setTagInputValue('')
         resetAndClearErrors()
       },
     })
@@ -71,6 +76,20 @@ export default function ProjectStepCreationPage({
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="grid grid-cols-[320px_1fr] gap-4">
             <aside className="flex flex-col gap-4">
+              <SmallSection
+                title="Étiquettes"
+                iconId="fr-icon-star-line"
+                hasBorder
+                priority="secondary"
+              >
+                <ProjectStepTagSelector
+                  inputValue={tagInputValue}
+                  setInputValue={setTagInputValue}
+                  values={data.tags}
+                  onChange={(tags) => setData('tags', tags)}
+                />
+              </SmallSection>
+
               <SmallSection
                 title="Documents"
                 iconId="fr-icon-attachment-line"

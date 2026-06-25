@@ -11,7 +11,7 @@ export const createLogEntryTagValidator = vine.compile(
 
 export const deleteLogEntryTagValidator = vine.compile(
   vine.object({
-    tagId: vine.number().min(1),
+    tagId: vine.number().positive().withoutDecimals(),
     params: vine.object({
       exploitationId: vine.string().uuid(),
     }),

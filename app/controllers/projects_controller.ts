@@ -15,7 +15,10 @@ import {
 import { ProjectDto } from '../dto/project_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { CaptageDto } from '../dto/captage_dto.js'
+import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
+import { ProjectStepTagService } from '#services/project_step_tag_service'
+import router from '@adonisjs/core/services/router'
 
 @inject()
 export default class ProjectsController {
@@ -23,7 +26,8 @@ export default class ProjectsController {
 
   constructor(
     public projectService: ProjectService,
-    public exploitationService: ExploitationService
+    public exploitationService: ExploitationService,
+    public projectStepTagService: ProjectStepTagService
   ) {}
 
   async index({ auth, inertia, request }: HttpContext) {
@@ -129,6 +133,20 @@ export default class ProjectsController {
         showActifOnly: showActifOnlyInput,
       },
       pmtilesUrl: env.get('PMTILES_URL', ''),
+      filteredProjectStepTags: async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(
+          user.id,
+          request.qs().tagSearch,
+          5
+        )
+        return ProjectStepTagDto.fromArray(tags)
+      },
+      lastCreatedProjectStepTag: inertia.optional(async () => {
+        const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
+        return ProjectStepTagDto.fromArray(tags)
+      }),
+      createTagUrl: router.makeUrl('projets.steps.tags.create'),
+      deleteTagUrl: router.makeUrl('projets.steps.tags.destroy'),
     })
   }
 

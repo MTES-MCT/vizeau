@@ -35,7 +35,8 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
   transform((formData) => {
     const step = formData.steps[0]
     const hasStepContent =
-      step && (step.title.trim() || step.notes.trim() || step.documents.length > 0)
+      step &&
+      (step.title.trim() || step.notes.trim() || step.documents.length > 0 || step.tags.length > 0)
 
     const firstStepArray = hasStepContent
       ? [
@@ -43,6 +44,7 @@ export default function ProjetCreationPage({}: InferPageProps<ProjectsController
             ...step,
             date: step.date || new Date().toISOString().slice(0, 10),
             documents: step.documents ?? [],
+            tags: step.tags ?? [],
           },
         ]
       : []
