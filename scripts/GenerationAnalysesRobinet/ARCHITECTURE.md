@@ -288,7 +288,7 @@ Embarqué dans `orchestrator.mjs`, le script Python :
 
 **Coercion par colonne** : Fonctions `safe_int()`, `safe_float()`, `safe_date()`, etc.
 
-**Batch size** : 100k lignes/batch, 1M bytes/row group
+**Batch size** : 100k lignes/batch, 1 048 576 lignes/row group
 
 ---
 
@@ -380,7 +380,7 @@ Fusionne sur `code_installation` avec `ref_cap_*.csv` pour lon/lat manquantes.
 ┌───────────────────────────────────────────┐
 │         SCHEMA PARQUET FINAL              │
 ├───────────────────────────────────────────┤
-│ code_insee: int64 (nullable)              │
+│ code_insee: string                        │
 │ nom_commune: string                       │
 │ code_installation: string                 │
 │ nom_installation: string                  │

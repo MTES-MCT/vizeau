@@ -19,6 +19,12 @@ Un script Node.js pour traiter et normaliser la génération des données de qua
 
 ## 🚀 Utilisation
 
+### Prérequis
+
+- Node.js (ESM)
+- `python3` avec PyArrow (ex: `pip install pyarrow`)
+- La commande `sort` disponible (coreutils)
+
 ```bash
 npm install
 node orchestrator.mjs <répertoire_d'entrée> [fichier_sortie.parquet]
