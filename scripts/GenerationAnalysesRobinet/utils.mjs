@@ -33,7 +33,21 @@ export function normalizeString(value) {
  */
 export async function detectDelimiter(filePath) {
   try {
-    const firstLine = await fsp.readFile(filePath, 'utf8').then((content) => content.split('\n')[0])
+    const sampleSize = 64 * 1024
+    const fileHandle = await fsp.open(filePath, 'r')
+    let firstLine = ''
+
+    try {
+      const buffer = Buffer.alloc(sampleSize)
+      const { bytesRead } = await fileHandle.read(buffer, 0, sampleSize, 0)
+      const sample = buffer.subarray(0, bytesRead).toString('utf8')
+      const lineBreakIndex = sample.indexOf('\n')
+
+      firstLine = lineBreakIndex === -1 ? sample : sample.slice(0, lineBreakIndex)
+      firstLine = firstLine.replace(/\r$/, '')
+    } finally {
+      await fileHandle.close()
+    }
 
     const commaCount = (firstLine.match(/,/g) || []).length
     const semicolonCount = (firstLine.match(/;/g) || []).length
