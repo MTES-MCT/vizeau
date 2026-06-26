@@ -80,10 +80,7 @@ const findReferenceValue = (map, value) => {
   for (const [refKey, refValue] of map.entries()) {
     if (refKey.length < 3) continue
 
-    const escapedRefKey = refKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const containsRefRegex = new RegExp(`(^|[^a-z0-9])${escapedRefKey}([^a-z0-9]|$)`)
-
-    if (containsRefRegex.test(key) || key.includes(refKey) || refKey.includes(key)) {
+    if (key.includes(refKey) || refKey.includes(key)) {
       return refValue
     }
   }
