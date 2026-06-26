@@ -75,32 +75,6 @@ Auto-détecte le délimiteur CSV (`,` ou `;`).
 const delim = await detectDelimiter('data.csv') // → ";" ou ","
 ```
 
-#### `deriveOutputPath(inputFile, suffix)`
-
-Génère chemin de sortie avec suffixe.
-
-```js
-deriveOutputPath('data.csv', 'cleaned') // → "data_cleaned.csv"
-```
-
-#### `runPipeline(opts)`
-
-Exécute pipeline CSV : lecture → parse → transform → écriture.
-
-```js
-await runPipeline({
-  inputFile: 'input.csv',
-  outputFile: 'output.csv',
-  transform: async function* (source) {
-    for await (const row of source) {
-      row.processed = true
-      yield row
-    }
-  },
-  parseOptions: { delimiter: ';' },
-})
-```
-
 ### `config.mjs` (Configuration)
 
 #### Patterns de fichiers
@@ -156,7 +130,7 @@ COLUMN_RENAME_MAP = {
 
 ```js
 PARQUET_FIELD_TYPES = {
-  code_insee: { type: "INT64" },
+  code_insee: { type: "UTF8" },
   nom_commune: { type: "UTF8" },
   date_prelevement: { type: "DATE" },
   longitude: { type: "DOUBLE" },
@@ -215,7 +189,7 @@ formatReferenceQualite('100-500 ppm') // → ">=100 et <=500 ppm"
 
 | Source                   | Description                   | Sortie                        |
 | ------------------------ | ----------------------------- | ----------------------------- |
-| inseecommune             | Code INSEE commune            | code_insee (INT64)            |
+| inseecommune             | Code INSEE commune            | code_insee (UTF8)             |
 | nomcommune               | Libellé commune               | nom_commune (UTF8)            |
 | cdreseau                 | Identifiant de l'installation | code_installation (UTF8)      |
 | nomreseau                | Nom de l'installation         | nom_installation (UTF8)       |
@@ -224,7 +198,7 @@ formatReferenceQualite('100-500 ppm') // → ">=100 et <=500 ppm"
 | dateprel                 | Date prélèvement              | date_prelevement (DATE)       |
 | heureprel                | Heure prélèvement             | heure_prelevement (UTF8)      |
 | plvconformiterefbacterio | Conformité bactériologique    | conformite_bacterio (UTF8)    |
-| plvconformiterefchimique | Confformité chimique          | conformite_chimique (UTF8)    |
+| plvconformiterefchimique | Conformité chimique           | conformite_chimique (UTF8)    |
 | codebrgm                 | Code BRGM                     | code_brgm (UTF8)              |
 | codebss                  | Code BSS                      | code_bss (UTF8)               |
 | coord_x                  | Longitude                     | longitude (DOUBLE)            |

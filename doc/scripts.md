@@ -15,4 +15,4 @@ node flatten_json.js USERS_TO_SEED_1.json
 ## Dossier `GenerationAnalysesRobinet`
 
 Transforme les données d'analyses de l'eau
-Cf [README.md](scripts/GenerationAnalysesRobinet/README.md)
+Cf [README.md](../scripts/GenerationAnalysesRobinet/README.md)
