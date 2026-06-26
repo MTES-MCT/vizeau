@@ -371,6 +371,7 @@ async function filterAndSort(inputFile, columnsToKeep, outputFile) {
     new Promise((resolve, reject) => {
       const output = fs.createWriteStream(outputPath)
       const sortProcess = spawn('sort', ['-t', '\t', '-k1,1', inputPath], {
+        env: { ...process.env, LC_ALL: 'C' },
         stdio: ['ignore', 'pipe', 'pipe'],
       })
 
@@ -482,19 +483,6 @@ async function mergeJoin(plvSortedFile, resSortedFile, outputFile) {
   let totalMerged = 0
   const allColumns = new Set([...COLUMNS_TO_KEEP_PLV, ...COLUMNS_TO_KEEP_RES])
 
-  const resGroups = new Map()
-  await new Promise((resolve, reject) => {
-    fs.createReadStream(resSortedFile)
-      .pipe(parse(getParseOptions()))
-      .on('data', (row) => {
-        const ref = row.referenceprel
-        if (!resGroups.has(ref)) resGroups.set(ref, [])
-        resGroups.get(ref).push(row)
-      })
-      .on('end', resolve)
-      .on('error', reject)
-  })
-
   const columns = Array.from(allColumns).sort()
   const stringifier = stringify({
     header: true,
@@ -504,23 +492,69 @@ async function mergeJoin(plvSortedFile, resSortedFile, outputFile) {
   const outputStream = fs.createWriteStream(outputFile)
   stringifier.pipe(outputStream)
 
-  const plvParser = fs.createReadStream(plvSortedFile).pipe(parse(getParseOptions()))
-
-  for await (const plvRow of plvParser) {
-    const ref = plvRow.referenceprel
-    const resRows = resGroups.get(ref) || []
-
-    for (const resRow of resRows) {
-      const merged = {}
-      for (const col of columns) {
-        merged[col] = (col in plvRow ? plvRow[col] : '') || (col in resRow ? resRow[col] : '') || ''
-      }
-
-      if (!stringifier.write(merged)) {
-        await new Promise((resolve) => stringifier.once('drain', resolve))
-      }
-      totalMerged++
+  const keyOf = (row) => String(row?.referenceprel ?? '')
+  const compareRefs = (a, b) => Buffer.from(a).compare(Buffer.from(b))
+  const collectGroup = async (iterator, firstRow, ref) => {
+    const rows = [firstRow]
+    let next = await iterator.next()
+    while (!next.done && keyOf(next.value) === ref) {
+      rows.push(next.value)
+      next = await iterator.next()
     }
+    return { rows, next }
+  }
+
+  const plvParser = fs.createReadStream(plvSortedFile).pipe(parse(getParseOptions()))
+  const resParser = fs.createReadStream(resSortedFile).pipe(parse(getParseOptions()))
+  const plvIterator = plvParser[Symbol.asyncIterator]()
+  const resIterator = resParser[Symbol.asyncIterator]()
+
+  let plvStep = await plvIterator.next()
+  let resStep = await resIterator.next()
+
+  while (!plvStep.done && !resStep.done) {
+    const plvRef = keyOf(plvStep.value)
+    const resRef = keyOf(resStep.value)
+    const comparison = compareRefs(plvRef, resRef)
+
+    if (comparison < 0) {
+      plvStep = await plvIterator.next()
+      continue
+    }
+    if (comparison > 0) {
+      resStep = await resIterator.next()
+      continue
+    }
+
+    const matchedRef = plvRef
+    const { rows: plvRows, next: nextPlv } = await collectGroup(
+      plvIterator,
+      plvStep.value,
+      matchedRef
+    )
+    const { rows: resRows, next: nextRes } = await collectGroup(
+      resIterator,
+      resStep.value,
+      matchedRef
+    )
+
+    for (const plvRow of plvRows) {
+      for (const resRow of resRows) {
+        const merged = {}
+        for (const col of columns) {
+          merged[col] =
+            (col in plvRow ? plvRow[col] : '') || (col in resRow ? resRow[col] : '') || ''
+        }
+
+        if (!stringifier.write(merged)) {
+          await new Promise((resolve) => stringifier.once('drain', resolve))
+        }
+        totalMerged++
+      }
+    }
+
+    plvStep = nextPlv
+    resStep = nextRes
   }
 
   stringifier.end()
