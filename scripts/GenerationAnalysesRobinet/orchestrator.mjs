@@ -256,7 +256,12 @@ async function collectPreparedInputFiles(files, inputDir, sourcePattern) {
 
   const prepared = new Map()
   const generatedCsvPaths = []
-  const sortedPeriods = Array.from(byPeriod.keys()).sort()
+  const sortedPeriods = Array.from(byPeriod.keys()).sort((a, b) => {
+    const aNum = Number(a)
+    const bNum = Number(b)
+    if (Number.isNaN(aNum) || Number.isNaN(bNum)) return String(a).localeCompare(String(b))
+    return aNum - bNum
+  })
 
   for (const period of sortedPeriods) {
     const { csv, txt } = byPeriod.get(period)
@@ -961,7 +966,12 @@ async function csvToParquet(csvFile, parquetFile) {
 // Enchaîne les phases métier: découverte, préparation, fusion, enrichissement
 // puis export Parquet, avec nettoyage garanti des fichiers temporaires.
 async function processFiles(plvFiles, resFiles, referentiels, outputFile, generatedCsvPaths = []) {
-  const sortedPeriods = Array.from(plvFiles.keys()).sort()
+  const sortedPeriods = Array.from(plvFiles.keys()).sort((a, b) => {
+    const aNum = Number(a)
+    const bNum = Number(b)
+    if (Number.isNaN(aNum) || Number.isNaN(bNum)) return String(a).localeCompare(String(b))
+    return aNum - bNum
+  })
 
   for (const period of sortedPeriods) {
     if (!resFiles.has(period)) {
