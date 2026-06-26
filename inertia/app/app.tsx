@@ -12,6 +12,7 @@ import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
 import { fr } from '@codegouvfr/react-dsfr'
 import { toast } from 'react-toastify'
 import Toast, { Toaster } from '../ui/Toaster'
+import { MatomoTrackerInjector } from '~/components/matomo-tracker-injector'
 
 startReactDsfr({ defaultColorScheme: 'system', Link })
 declare module '@codegouvfr/react-dsfr/spa' {
@@ -78,6 +79,7 @@ createInertiaApp({
       <>
         <App {...props} />
         <Toaster />
+        <MatomoTrackerInjector />
       </>
     )
   },
