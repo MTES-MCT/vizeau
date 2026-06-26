@@ -13,6 +13,7 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
+import readline from 'readline'
 import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
 import { parse } from 'csv-parse'
@@ -358,23 +359,116 @@ async function filterAndSort(inputFile, columnsToKeep, outputFile) {
   console.log(`  Filtrage et tri : ${path.basename(inputFile)}`)
 
   const delimiter = await detectDelimiter(inputFile)
-  const records = []
+  const tempKeyedFile = `${outputFile}.keyed.tmp`
+  const tempSortedKeyedFile = `${outputFile}.keyed.sorted.tmp`
 
-  await new Promise((resolve, reject) => {
-    fs.createReadStream(inputFile)
-      .pipe(parse(getParseOptions(delimiter)))
-      .on('data', (row) => records.push(filterColumns(row, columnsToKeep)))
-      .on('end', resolve)
-      .on('error', reject)
-  })
+  const sortKey = (value) =>
+    String(value ?? '')
+      .replace(/\t/g, ' ')
+      .replace(/\r?\n/g, ' ')
 
-  records.sort((a, b) => String(a.referenceprel || '').localeCompare(String(b.referenceprel || '')))
+  const runDiskSort = (inputPath, outputPath) =>
+    new Promise((resolve, reject) => {
+      const output = fs.createWriteStream(outputPath)
+      const sortProcess = spawn('sort', ['-t', '\t', '-k1,1', inputPath], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
 
-  const gen = (async function* () {
-    for (const record of records) yield record
-  })()
+      let stderr = ''
+      let sortExited = false
+      let outputFinished = false
+      let sortExitCode = 0
+      const maybeResolve = () => {
+        if (!sortExited || !outputFinished) return
+        if (sortExitCode !== 0) {
+          reject(
+            new Error(
+              `sort a échoué avec le code ${sortExitCode}${stderr ? `: ${stderr.trim()}` : ''}`
+            )
+          )
+          return
+        }
+        resolve()
+      }
 
-  await pipeline(gen, stringify({ header: true, quoted: true }), fs.createWriteStream(outputFile))
+      sortProcess.stderr.on('data', (chunk) => {
+        stderr += chunk.toString()
+      })
+
+      output.on('error', reject)
+      output.on('finish', () => {
+        outputFinished = true
+        maybeResolve()
+      })
+      sortProcess.on('error', (err) => {
+        reject(new Error(`Impossible d'exécuter sort : ${err.message}`))
+      })
+
+      sortProcess.stdout.pipe(output)
+      sortProcess.on('close', (code) => {
+        sortExited = true
+        sortExitCode = code
+        maybeResolve()
+      })
+    })
+
+  try {
+    await new Promise((resolve, reject) => {
+      const keyedOutput = fs.createWriteStream(tempKeyedFile)
+      keyedOutput.on('error', reject)
+
+      const parser = fs
+        .createReadStream(inputFile)
+        .pipe(parse(getParseOptions(delimiter)))
+        .on('error', reject)
+        .on('data', (row) => {
+          const filtered = filterColumns(row, columnsToKeep)
+          const line = `${sortKey(filtered.referenceprel)}\t${JSON.stringify(filtered)}\n`
+
+          if (!keyedOutput.write(line)) {
+            parser.pause()
+            keyedOutput.once('drain', () => parser.resume())
+          }
+        })
+        .on('end', () => keyedOutput.end())
+
+      keyedOutput.on('finish', resolve)
+    })
+
+    await runDiskSort(tempKeyedFile, tempSortedKeyedFile)
+
+    const stringifier = stringify({ header: true, quoted: true })
+    const outputStream = fs.createWriteStream(outputFile)
+    stringifier.pipe(outputStream)
+
+    const sortedLines = readline.createInterface({
+      input: fs.createReadStream(tempSortedKeyedFile),
+      crlfDelay: Infinity,
+    })
+
+    for await (const line of sortedLines) {
+      const separatorIndex = line.indexOf('\t')
+      if (separatorIndex === -1) continue
+      const record = JSON.parse(line.slice(separatorIndex + 1))
+
+      if (!stringifier.write(record)) {
+        await new Promise((resolve) => stringifier.once('drain', resolve))
+      }
+    }
+
+    stringifier.end()
+    await new Promise((resolve, reject) => {
+      outputStream.on('finish', resolve)
+      outputStream.on('error', reject)
+      stringifier.on('error', reject)
+    })
+  } finally {
+    for (const tempFile of [tempKeyedFile, tempSortedKeyedFile]) {
+      if (fs.existsSync(tempFile)) {
+        await fsp.unlink(tempFile)
+      }
+    }
+  }
 }
 
 // Fusion par merge ordonnée
