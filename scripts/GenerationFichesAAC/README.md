@@ -19,7 +19,7 @@ Chaque fiche AAC contient : nom, code, surface, emprise (bbox), communes recouve
 
 ## Prérequis
 
-- Node.js ≥ 18
+- Node.js ≥ 22
 - Accès S3 (Scaleway par défaut, configurable)
 
 ## Installation
@@ -42,7 +42,7 @@ S3_PREFIX=                    # Préfixe des fichiers source (optionnel)
 S3_BIO_DIR=bio                # Répertoire S3 des fichiers rpg_bio_YYYY.parquet
 S3_RPG_DIR=RPG                # Répertoire S3 des RPG annuels RPG_YYYY.parquet
 S3_OUTPUT_BUCKET=             # Bucket de destination (défaut : S3_BUCKET)
-S3_OUTPUT_KEY=aac_test.parquet # Clé du fichier de sortie (défaut : aac_test.parquet)
+S3_OUTPUT_KEY=aac.parquet     # Clé du fichier de sortie (défaut : aac.parquet)
 ```
 
 ## Utilisation
@@ -68,7 +68,7 @@ node --env-file=.env generate_aac_infos.js
 
 ## Sortie
 
-Fichier `aac_test.parquet` (configurable via `S3_OUTPUT_KEY`) poussé sur S3, contenant une ligne par AAC avec les champs suivants :
+Fichier `aac.parquet` (configurable via `S3_OUTPUT_KEY`) poussé sur S3, contenant une ligne par AAC avec les champs suivants :
 
 - `nom`, `code`, `prioritaire`, `date_creation`, `date_maj`, `bbox`, `surface`
 - `nb_captages_actifs`, `nb_installations`

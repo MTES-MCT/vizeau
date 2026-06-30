@@ -5,7 +5,7 @@
  *   2. Génère les fiches AAC (5 phases DuckDB + assemblage JS)
  *   3. Pousse le fichier aac.parquet résultant sur S3
  *
- * Usage : node --env-file=.env pipeline.js
+ * Usage : node --env-file=.env generate_aac_infos.js
  *
  * Variables d'environnement :
  *   S3_BUCKET        Bucket source (fichiers input) — requis
@@ -24,6 +24,7 @@ import { DuckDBInstance } from '@duckdb/node-api'
 import { existsSync, mkdirSync, createWriteStream, unlinkSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { once } from 'events'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA = join(__dirname, 'data')
@@ -49,6 +50,7 @@ if (!S3_BUCKET || !S3_ACCESS || !S3_SECRET) {
 
 const s3src = (name) => `s3://${S3_BUCKET}/${S3_PREFIX ? `${S3_PREFIX}/${name}` : name}`
 const s3dest = `s3://${S3_OUTPUT_BUCKET}/${S3_OUTPUT_KEY}`
+const sqlEscape = (value) => value.replace(/'/g, "''")
 
 // ─── DuckDB ───────────────────────────────────────────────────────────────────
 
@@ -63,10 +65,10 @@ const q = (sql) => conn.runAndReadAll(sql).then((r) => r.getRowObjects())
 for (const stmt of [
   'INSTALL httpfs',
   'LOAD httpfs',
-  `SET s3_endpoint='${S3_ENDPOINT}'`,
-  `SET s3_region='${S3_REGION}'`,
-  `SET s3_access_key_id='${S3_ACCESS}'`,
-  `SET s3_secret_access_key='${S3_SECRET}'`,
+  `SET s3_endpoint='${sqlEscape(S3_ENDPOINT)}'`,
+  `SET s3_region='${sqlEscape(S3_REGION)}'`,
+  `SET s3_access_key_id='${sqlEscape(S3_ACCESS)}'`,
+  `SET s3_secret_access_key='${sqlEscape(S3_SECRET)}'`,
   "SET s3_url_style='vhost'",
   'INSTALL spatial',
   'LOAD spatial',
@@ -228,7 +230,7 @@ function buildSauResult(rows, surfKey, nbKey, totalM2) {
     result[GROUPES_CULTURES_EVOLUTION[r.code_group] || `Groupe ${r.code_group}`] = {
       nb_parcelles: r[nbKey],
       surface: Math.round(r[surfKey] / 100) / 100,
-      SAU: Math.round((r[surfKey] / totalM2) * 1000) / 10,
+      SAU: totalM2 > 0 ? Math.round((r[surfKey] / totalM2) * 1000) / 10 : 0,
     }
   }
 
@@ -303,7 +305,18 @@ const captagesRows = await q(`
          COALESCE(cap.t2_code_ppi, '') AS t2_code_ppi
   FROM read_parquet('${localPath('aac_pp_zones.parquet')}') pp
   JOIN (
-    SELECT *, ROW_NUMBER() OVER (PARTITION BY t1_code_ins) AS rn
+    SELECT *,
+           ROW_NUMBER() OVER (
+             PARTITION BY t1_code_ins
+             ORDER BY
+               (t1_ins_cap_ref IS NOT NULL) DESC,
+               (t1_ins_code_bss IS NOT NULL) DESC,
+               (COALESCE(t2_code_ppe, '') <> '') DESC,
+               (COALESCE(t2_code_ppr, '') <> '') DESC,
+               (COALESCE(t2_code_ppi, '') <> '') DESC,
+               t1_ins_nom ASC,
+               t1_code_ins ASC
+           ) AS rn
     FROM read_parquet('${localPath('captages.parquet')}')
   ) cap ON rn = 1 AND (
     (pp.ppe_codes IS NOT NULL AND list_contains(pp.ppe_codes, cap.t2_code_ppe)) OR
@@ -499,7 +512,7 @@ for (const [cdaac, aac] of aacMap) {
   const installations = buildInstallations(captages, bssPrioritaires)
   const estPrioritaire = installations.some((i) => i.prioritaire === true)
 
-  ndjsonStream.write(
+  const line =
     JSON.stringify({
       nom: aac.nom,
       code: String(cdaac),
@@ -541,7 +554,9 @@ for (const [cdaac, aac] of aacMap) {
       cultures_evolution: buildCulturesEvolutionOutput(cdaac, aac.nom, culturesEvolution),
       installations,
     }) + '\n'
-  )
+  if (!ndjsonStream.write(line)) {
+    await once(ndjsonStream, 'drain')
+  }
   nbFiches++
 }
 
