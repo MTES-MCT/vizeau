@@ -7,7 +7,6 @@ import Layout from '~/ui/layouts/layout'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
-import { FlashMessages } from '~/components/flash-message'
 import { LogEntryFormData } from '~/pages/journal/creation'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
@@ -16,7 +15,6 @@ export default function TaskEditionPage({
   logEntry,
   editEntryLogUrl,
   exploitation,
-  flashMessages,
   isCreator,
   deleteDocumentUrl,
 }: InferPageProps<LogEntriesController, 'getForEdition'>) {
@@ -70,8 +68,6 @@ export default function TaskEditionPage({
         </div>
       </div>
       <div className="fr-container fr-my-4w flex flex-col gap-10">
-        <FlashMessages flashMessages={flashMessages} />
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <LogEntryForm
             data={data}

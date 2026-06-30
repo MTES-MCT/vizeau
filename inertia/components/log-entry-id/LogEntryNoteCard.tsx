@@ -9,7 +9,7 @@ export default function LogEntryNoteCard({ notes }: LogEntryNoteCardProps) {
   return (
     <SectionCard
       title="Note"
-      size={'small'}
+      size="small"
       icon="fr-icon-draft-line"
       background="secondary"
       hideLongTitleTooltip

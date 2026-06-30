@@ -8,6 +8,9 @@ import TruncatedText from '~/ui/TruncatedText'
 import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
 import CaptageAnalysesHeader from '~/components/captage/captage-analyses-header'
+import SignalErrorContact from '~/components/signal-error-contact'
+import { Tag } from '@codegouvfr/react-dsfr/Tag'
+import CustomTag from '~/ui/CustomTag'
 
 export default function CaptageShow({
   aac,
@@ -49,13 +52,28 @@ export default function CaptageShow({
         <h2 className="fr-h3 fr-mb-1w">{installation.nom}</h2>
 
         <section className="grid grid-cols-[350px_1fr] gap-4">
-          <aside>
+          <aside className="flex flex-col gap-4">
             <SmallSection
               title="Informations générales"
-              iconId="fr-icon-drop-line"
+              iconId="fr-icon-pass-pending-line"
               priority="secondary"
               hasBorder
             >
+              {installation.etat === 'ACTIF' && (
+                <Tag
+                  iconId="fr-icon-success-fill"
+                  nativeButtonProps={{
+                    style: {
+                      color: fr.colors.decisions.text.inverted.grey.default,
+                      backgroundColor: fr.colors.decisions.background.flat.success.default,
+                      marginBottom: '1rem',
+                    },
+                  }}
+                >
+                  Actif
+                </Tag>
+              )}
+
               <div className="flex flex-col gap-2">
                 <LabelInfo label="Code BSS" info={installation.code_bss || 'Non renseigné'} />
                 <LabelInfo
@@ -66,12 +84,22 @@ export default function CaptageShow({
                       : 'Non renseignée'
                   }
                 />
-                <LabelInfo label="Type" info={installation.type || 'Non renseigné'} />
+                <LabelInfo
+                  label="Type"
+                  info={<CustomTag label={installation.type || 'Non renseigné'} />}
+                />
                 <LabelInfo label="Nature" info={installation.nature || 'Non renseignée'} />
                 <LabelInfo label="Usage" info={installation.usage || 'Non renseigné'} />
                 <LabelInfo label="État" info={installation.etat || 'Non renseigné'} />
                 {installation.code_ppe && (
                   <LabelInfo label="Code PPE" info={installation.code_ppe} />
+                )}
+
+                {installation.captages_rattaches && installation.captages_rattaches.length > 0 && (
+                  <LabelInfo
+                    label="Captages rattachés"
+                    info={String(installation.captages_rattaches.length)}
+                  />
                 )}
                 <LabelInfo
                   label="Prioritaire"
@@ -83,14 +111,9 @@ export default function CaptageShow({
                         : 'Non renseigné'
                   }
                 />
-                {installation.captages_rattaches && installation.captages_rattaches.length > 0 && (
-                  <LabelInfo
-                    label="Captages rattachés"
-                    info={String(installation.captages_rattaches.length)}
-                  />
-                )}
               </div>
             </SmallSection>
+            <SignalErrorContact />
           </aside>
 
           <div>
