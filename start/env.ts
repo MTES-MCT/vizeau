@@ -77,4 +77,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   S3_REGION: Env.schema.string(),
   S3_BUCKET: Env.schema.string(),
   S3_ENDPOINT: Env.schema.string(),
+
+  // If true, DuckDB will write logs in the standard output
+  DUCKDB_DEBUG: Env.schema.boolean.optional(),
 })
