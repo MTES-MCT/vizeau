@@ -11,3 +11,8 @@ Lit un fichier JSON et génère une version sans espaces ni retours à la ligne,
 node flatten_json.js USERS_TO_SEED_1.json
 # → génère USERS_TO_SEED_1_flattened.json
 ```
+
+## Dossier `GenerationAnalysesRobinet`
+
+Transforme les données d'analyses de l'eau
+Cf [README.md](../scripts/GenerationAnalysesRobinet/README.md)
