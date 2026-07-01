@@ -21,6 +21,11 @@ async function getConnection(): Promise<DuckDBConnection> {
     try {
       const instance = await DuckDBInstance.create(':memory:')
       const conn = await instance.connect()
+
+      if (env.get('DUCKDB_DEBUG') === true) {
+        await conn.run("CALL enable_logging(storage = 'stdout');")
+      }
+
       await conn.run('INSTALL httpfs;')
       await conn.run('LOAD httpfs;')
       await conn.run(`
@@ -217,21 +222,18 @@ export class AacService {
 
     const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
 
-    const bindAll = (stmt: { bindVarchar: (i: number, v: string) => void }) => {
-      stmt.bindVarchar(1, path)
-      filterParams.forEach((v, i) => stmt.bindVarchar(i + 2, v))
-    }
-
-    const countStmt = await conn.prepare('SELECT COUNT(*) AS total FROM read_parquet($1) ' + where)
-    bindAll(countStmt)
-    const countResult = await countStmt.run()
-    const countRows = (await countResult.getRowObjects()) as Array<Record<string, unknown>>
-    const total = Number(countRows[0].total)
-
     const limitIdx = paramIdx
     const offsetIdx = paramIdx + 1
-    const dataStmt = await conn.prepare(
-      'SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles, surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile, bbox ' +
+
+    /*
+     * Single-pass query: COUNT(*) OVER () is computed in the same scan as the
+     * projected columns, avoiding a second full read of the Parquet file.
+     * DuckDB evaluates the window aggregate before the ORDER BY + LIMIT/OFFSET,
+     * so the total always reflects the full filtered set.
+     */
+    const stmt = await conn.prepare(
+      'SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles, surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile, bbox, ' +
+        'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($1) ' +
         where +
         ' ORDER BY nom LIMIT $' +
@@ -239,13 +241,26 @@ export class AacService {
         ' OFFSET $' +
         offsetIdx
     )
-    bindAll(dataStmt)
-    dataStmt.bindInteger(limitIdx, perPage)
-    dataStmt.bindInteger(offsetIdx, (page - 1) * perPage)
-    const dataResult = await dataStmt.run()
-    const rows = (await dataResult.getRowObjects()) as Array<Record<string, unknown>>
 
-    return { data: rows.map((r) => normalizeValue(r) as Record<string, unknown>), total }
+    stmt.bindVarchar(1, path)
+    filterParams.forEach((v, i) => stmt.bindVarchar(i + 2, v))
+    stmt.bindInteger(limitIdx, perPage)
+    stmt.bindInteger(offsetIdx, (page - 1) * perPage)
+
+    const result = await stmt.run()
+    const rows = (await result.getRowObjects()) as Array<Record<string, unknown>>
+
+    // The total is embedded in every row; fall back to 0 when the page is empty.
+    const total = rows.length > 0 ? Number(rows[0].total_count) : 0
+
+    return {
+      data: rows.map((r) => {
+        const { total_count: totalCount, ...rest } = r
+        void totalCount
+        return normalizeValue(rest) as Record<string, unknown>
+      }),
+      total,
+    }
   }
 
   /**
