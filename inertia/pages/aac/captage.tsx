@@ -62,12 +62,10 @@ export default function CaptageShow({
               {installation.etat === 'ACTIF' && (
                 <Tag
                   iconId="fr-icon-success-fill"
-                  nativeButtonProps={{
-                    style: {
-                      color: fr.colors.decisions.text.inverted.grey.default,
-                      backgroundColor: fr.colors.decisions.background.flat.success.default,
-                      marginBottom: '1rem',
-                    },
+                  style={{
+                    color: fr.colors.decisions.text.inverted.grey.default,
+                    backgroundColor: fr.colors.decisions.background.flat.success.default,
+                    marginBottom: '1rem',
                   }}
                 >
                   Actif

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
-import EmpptyPlaceholder from '~/ui/EmptyPlaceholder'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import Doughnut from '~/ui/Charts/Doughnut'
 import DataVisualization from '@codegouvfr/react-dsfr/picto/DataVisualization'
 import { orderBy } from 'lodash-es'
@@ -120,7 +120,7 @@ export default function AacCulturesRepartition({
           </div>
         </div>
       ) : (
-        <EmpptyPlaceholder
+        <EmptyPlaceholder
           label="Aucune donnée renseignée pour cette surface agricole."
           pictogram={DataVisualization}
         />
