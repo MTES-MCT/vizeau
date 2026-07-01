@@ -120,7 +120,7 @@ export default function SingleProjectStep({
           </aside>
 
           <div className="flex flex-col gap-4">
-            <SectionCard size="small" icon="fr-icon-draft-line" title="Description">
+            <SectionCard size="small" icon="fr-icon-booklet-line" title="Description">
               <p>{step.note || <i>Aucune note enregistrée.</i>}</p>
             </SectionCard>
 

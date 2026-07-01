@@ -27,6 +27,9 @@ const Illustration = ({
       <span
         className={`${illustrativeIcon} custom-size${isLarge ? '-large' : ''}`}
         aria-hidden="true"
+        style={{
+          color: fr.colors.decisions.text.actionHigh.blueFrance.default,
+        }}
       ></span>
     )
   }
