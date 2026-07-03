@@ -10,6 +10,8 @@ import { createErrorFlashMessage } from '../helpers/flash_message.js'
 import router from '@adonisjs/core/services/router'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
+import Project from '#models/project'
+import { ProjectDto } from '../dto/project_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -105,6 +107,17 @@ export default class VisualisationController {
           })
 
         return ExploitationDto.toJsonArray(results)
+      },
+      projects: async () => {
+        const projects = await Project.query()
+          .where('userId', user.id)
+          .orderBy('createdAt', 'desc')
+          .preload('parcelles', (parcelleQuery) => {
+            parcelleQuery.where('year', request.qs().millesime).orderBy('rpgId', 'asc')
+          })
+          .limit(5)
+
+        return ProjectDto.toJsonArray(projects)
       },
       // Get the IDs of parcelles that are already assigned to other exploitations for the given year
       unavailableParcellesIds: inertia.optional(async () => {
