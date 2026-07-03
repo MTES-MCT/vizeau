@@ -106,13 +106,14 @@ export default function PopupParcelle({
         <div className="fr-mt-2w">
           <Divider label="Projets" />
           <ul>
-            {projectsWithThisParcelle?.map((p) => (
+            {projectsWithThisParcelle.slice(0, 5).map((p) => (
               <li key={p.id}>
                 <TruncatedText maxStringLength={40} hideTooltip>
                   {p.name}
                 </TruncatedText>
               </li>
             ))}
+            {projectsWithThisParcelle?.length > 5 && <li>...</li>}
           </ul>
         </div>
       )}
@@ -126,10 +127,10 @@ export function renderPopupParcelle(
   millesime: string,
   comment: string | undefined,
   isParcelleUnavailable: boolean,
-  projectsWithThisParcelle?: ProjectJson[],
   isBio?: boolean,
   isEditMode?: boolean,
-  isOwnParcelle?: boolean
+  isOwnParcelle?: boolean,
+  projectsWithThisParcelle?: ProjectJson[]
 ): HTMLDivElement {
   const container = document.createElement('div')
   const root = createRoot(container)

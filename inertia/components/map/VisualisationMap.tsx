@@ -286,10 +286,10 @@ const VisualisationMap = forwardRef<
             millesime,
             comment,
             isUnavailable,
-            projectsWithThisParcelle,
             isBio,
             editMode,
-            selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id
+            selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id,
+            projectsWithThisParcelle
           )
 
           parcellePopupRef.current

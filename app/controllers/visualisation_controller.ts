@@ -115,7 +115,6 @@ export default class VisualisationController {
           .preload('parcelles', (parcelleQuery) => {
             parcelleQuery.where('year', request.qs().millesime).orderBy('rpgId', 'asc')
           })
-          .limit(5)
 
         return ProjectDto.toJsonArray(projects)
       },
