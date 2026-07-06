@@ -127,14 +127,14 @@ export default function ParcelleLeftSidebar({
                 label="Année de déclaration"
                 size="sm"
                 icon="fr-icon-calendar-line"
-                info={`${parcelle.year || 'N/A'}`}
+                info={`${parcelle.year || 'Non renseigné'}`}
               />
 
               <LabelInfo
                 label="Surface admissible PAC"
                 size="sm"
                 icon="fr-icon-ruler-line"
-                info={`${parcelle?.surface || 'N/A'} ha`}
+                info={`${parcelle?.surface || 'Non renseigné'} ha`}
               />
             </div>
           </SmallSection>

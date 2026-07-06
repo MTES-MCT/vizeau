@@ -8,12 +8,14 @@ export type CommentFormProps = {
   parcelle: ParcelleJson | null
   exploitationId: string
   handleCommentModal: ReturnType<typeof createModal>
+  reloadProp?: string
 }
 
 export default function CommentForm({
   parcelle,
   exploitationId,
   handleCommentModal,
+  reloadProp = 'filteredExploitations',
 }: CommentFormProps) {
   const [comment, setComment] = useState(parcelle?.comment)
 
@@ -30,7 +32,7 @@ export default function CommentForm({
       {
         preserveState: true,
         preserveScroll: true,
-        only: ['filteredExploitations', 'flashMessages'],
+        only: [reloadProp, 'flashMessages'],
         onSuccess: () => {
           handleCommentModal.close()
         },

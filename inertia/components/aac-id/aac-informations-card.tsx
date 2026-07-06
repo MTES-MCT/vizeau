@@ -45,7 +45,7 @@ export default function AacInformationsCard({
   return (
     <SmallSection
       title="Informations générales"
-      iconId="fr-icon-passport-line"
+      iconId="fr-icon-pass-pending-line"
       priority="secondary"
       hasBorder
     >
@@ -70,7 +70,7 @@ export default function AacInformationsCard({
             title="Surface totale"
             iconId="fr-icon-ruler-line"
             label="hectares"
-            value={surface ?? 'N/A'}
+            value={surface ?? 'Non renseigné'}
             priority="secondary"
             size="sm"
           />
@@ -78,7 +78,7 @@ export default function AacInformationsCard({
             title="Captages actifs"
             iconId="fr-icon-drop-line"
             label="unités"
-            value={nb_captages_actifs ?? 'N/A'}
+            value={nb_captages_actifs ?? 'Non renseigné'}
             priority="secondary"
             size="sm"
           />
@@ -86,7 +86,7 @@ export default function AacInformationsCard({
             title="Parcelles agricoles"
             iconId="fr-icon-collage-line"
             label="unités"
-            value={nb_parcelles ?? 'N/A'}
+            value={nb_parcelles ?? 'Non renseigné'}
             priority="secondary"
             size="sm"
           />

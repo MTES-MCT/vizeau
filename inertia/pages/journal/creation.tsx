@@ -8,7 +8,6 @@ import { fr } from '@codegouvfr/react-dsfr'
 import LogEntriesController from '#controllers/log_entries_controller'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
-import { FlashMessages } from '~/components/flash-message'
 import TruncatedText from '~/ui/TruncatedText'
 
 export type LogEntryFormData = {
@@ -26,7 +25,6 @@ export type LogEntryFormData = {
 export default function TaskCreationPage({
   exploitation,
   createEntryLogUrl,
-  flashMessages,
 }: InferPageProps<LogEntriesController, 'index'>) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<LogEntryFormData>({
@@ -70,7 +68,7 @@ export default function TaskCreationPage({
           />
         </div>
       </div>
-      <div className="fr-container fr-my-4w flex flex-col gap-10">
+      <div className="fr-container fr-my-4w flex flex-col">
         <Alert
           small
           severity="info"
@@ -78,7 +76,6 @@ export default function TaskCreationPage({
         />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <FlashMessages flashMessages={flashMessages} />
           <LogEntryForm
             data={data}
             setData={setData}

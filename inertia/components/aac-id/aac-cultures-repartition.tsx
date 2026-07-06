@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
+import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import Doughnut from '~/ui/Charts/Doughnut'
+import DataVisualization from '@codegouvfr/react-dsfr/picto/DataVisualization'
 import { orderBy } from 'lodash-es'
 import { getCultureCategoryColor } from '~/functions/cultures-group'
 import { AacJson } from '#types/aac'
@@ -96,26 +98,33 @@ export default function AacCulturesRepartition({
         ]}
       />
 
-      <div className="flex w-full flex-wrap items-center gap-2">
-        <div className="min-w-0 sm:min-w-[300px] flex-1">
-          {cultureItems.map((item) => (
-            <div key={item.label} className="w-full">
-              <LabeledProgressBar
-                label={item.label}
-                size="sm"
-                progressBarValues={{
-                  value: item.data,
-                  total: 100,
-                  progressColor: item.progressColor,
-                }}
-              />
-            </div>
-          ))}
+      {cultureItems.length > 0 ? (
+        <div className="flex w-full flex-wrap items-center gap-2">
+          <div className="min-w-0 sm:min-w-[300px] flex-1">
+            {cultureItems.map((item) => (
+              <div key={item.label} className="w-full">
+                <LabeledProgressBar
+                  label={item.label}
+                  size="sm"
+                  progressBarValues={{
+                    value: item.data,
+                    total: 100,
+                    progressColor: item.progressColor,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
+            <Doughnut chartItems={cultureItems} unit="hectares" hideLegend />
+          </div>
         </div>
-        <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
-          <Doughnut chartItems={cultureItems} unit="hectares" hideLegend />
-        </div>
-      </div>
+      ) : (
+        <EmptyPlaceholder
+          label="Aucune donnée renseignée pour cette surface agricole."
+          pictogram={DataVisualization}
+        />
+      )}
     </div>
   )
 }
