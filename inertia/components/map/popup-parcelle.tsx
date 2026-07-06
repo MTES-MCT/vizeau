@@ -4,9 +4,10 @@ import { fr } from '@codegouvfr/react-dsfr'
 import Divider from '~/ui/Divider'
 import LabelInfo from '~/ui/LabelInfo'
 import CustomTag from '~/ui/CustomTag'
-import { ReactNode } from 'react'
 import Tag from '@codegouvfr/react-dsfr/Tag'
 import { getCultureByCode } from '~/functions/cultures-group'
+import { ProjectJson } from '#types/models'
+import TruncatedText from '~/ui/TruncatedText'
 
 interface PopupParcelleProps {
   cultureCode?: string
@@ -17,6 +18,7 @@ interface PopupParcelleProps {
   isBio?: boolean
   isEditMode?: boolean
   isOwnParcelle?: boolean
+  projectsWithThisParcelle?: ProjectJson[]
 }
 
 function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
@@ -28,34 +30,14 @@ function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
       }
     : {
         icon: 'fr-icon-warning-fill',
-        text: 'Parcelle déjà attribuée',
+        text: 'Rattachée à une exploitation',
         color: fr.colors.decisions.text.default.warning.default,
       }
 
   return (
-    <div className="text-sm fr-mt-1w">
-      <span
-        className={`${config.icon} fr-mr-1w`}
-        aria-hidden="true"
-        style={{ color: config.color }}
-      />
+    <div className="text-sm fr-mt-1w" style={{ color: config.color }}>
+      <span className={`${config.icon} fr-mr-1w`} aria-hidden="true" />
       {config.text}
-    </div>
-  )
-}
-
-function ExploitationInfo({ name }: { name: string }) {
-  return (
-    <div
-      className="flex fr-mt-2w fr-p-1w"
-      style={{ backgroundColor: fr.colors.decisions.background.alt.grey.default }}
-    >
-      <span
-        className="fr-icon-building-line"
-        aria-hidden="true"
-        style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
-      />
-      <div className="fr-pl-2w">{name}</div>
     </div>
   )
 }
@@ -66,25 +48,19 @@ export default function PopupParcelle({
   millesime,
   comment,
   isBio,
+  projectsWithThisParcelle = [],
   isParcelleUnavailable = false,
   isEditMode = false,
   isOwnParcelle = false,
 }: PopupParcelleProps) {
   const { label: cultureLabel, color: cultureColor } = getCultureByCode(cultureCode)
-  const ownershipInfo: ReactNode[] = []
-
-  if (isOwnParcelle) {
-    ownershipInfo.push(<ExploitationInfo name={'Cette exploitation possède cette parcelle'} />)
-  }
-  if (isEditMode && !isOwnParcelle) {
-    ownershipInfo.push(<StatusBadge isAvailable={!isParcelleUnavailable} />)
-  }
 
   return (
     <div
       style={{
         minWidth: '200px',
         backgroundColor: fr.colors.decisions.background.default.grey.default,
+        fontFamily: 'Marianne, arial, sans-serif',
       }}
     >
       <div className="flex items-center gap-2 flex-wrap">
@@ -102,7 +78,6 @@ export default function PopupParcelle({
           </Tag>
         )}
       </div>
-
       <div className="flex flex-col gap-1 fr-mt-1w">
         <LabelInfo
           label="Surface"
@@ -111,7 +86,7 @@ export default function PopupParcelle({
           info={`${parseFloat(surfParc).toFixed(2)} Ha`}
         />
         <LabelInfo label="Millésime" icon="fr-icon-calendar-line" size="sm" info={millesime} />
-
+        {isEditMode && !isOwnParcelle && <StatusBadge isAvailable={!isParcelleUnavailable} />}
         {isBio && (
           <div className="fr-mt-1w">
             <b
@@ -127,11 +102,19 @@ export default function PopupParcelle({
           </div>
         )}
       </div>
-
-      {ownershipInfo.length > 0 && (
+      {projectsWithThisParcelle?.length > 0 && (
         <div className="fr-mt-2w">
-          <Divider label="Exploitation" />
-          {...ownershipInfo}
+          <Divider label="Projets" />
+          <ul>
+            {projectsWithThisParcelle.slice(0, 5).map((p) => (
+              <li key={p.id}>
+                <TruncatedText maxStringLength={40} hideTooltip>
+                  {p.name}
+                </TruncatedText>
+              </li>
+            ))}
+            {projectsWithThisParcelle?.length > 5 && <li>...</li>}
+          </ul>
         </div>
       )}
     </div>
@@ -146,7 +129,8 @@ export function renderPopupParcelle(
   isParcelleUnavailable: boolean,
   isBio?: boolean,
   isEditMode?: boolean,
-  isOwnParcelle?: boolean
+  isOwnParcelle?: boolean,
+  projectsWithThisParcelle?: ProjectJson[]
 ): HTMLDivElement {
   const container = document.createElement('div')
   const root = createRoot(container)
@@ -160,6 +144,7 @@ export function renderPopupParcelle(
       isEditMode={isEditMode}
       isOwnParcelle={isOwnParcelle}
       isParcelleUnavailable={isParcelleUnavailable}
+      projectsWithThisParcelle={projectsWithThisParcelle}
     />
   )
   return container

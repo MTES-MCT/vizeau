@@ -126,7 +126,8 @@ const VisualisationMap = forwardRef<
     },
     ref
   ) => {
-    const { pmtilesUrl } = usePage<InferPageProps<VisualisationController, 'index'>>().props
+    const { pmtilesUrl, projects } =
+      usePage<InferPageProps<VisualisationController, 'index'>>().props
     const mapContainerRef = useRef<HTMLDivElement | null>(null)
     const mapRef = useRef<maplibre.Map | null>(null)
     const markersRef = useRef<maplibre.Marker[]>([])
@@ -275,6 +276,10 @@ const VisualisationMap = forwardRef<
             exp.parcelles?.some((p) => p.rpgId === id)
           )
 
+          const projectsWithThisParcelle = projects.filter((project) => {
+            return project.parcelles.some((p) => p.rpgId === id)
+          })
+
           const popupContent = renderPopupParcelle(
             cultureCode,
             surfParc,
@@ -283,7 +288,8 @@ const VisualisationMap = forwardRef<
             isUnavailable,
             isBio,
             editMode,
-            selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id
+            selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id,
+            projectsWithThisParcelle
           )
 
           parcellePopupRef.current
