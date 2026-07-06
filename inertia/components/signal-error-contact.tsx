@@ -4,7 +4,7 @@ export default function SignalErrorContact() {
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL
 
   if (!supportEmail) {
-    console.warn('VITE_SUPPORT_EMAIL is not set in the environment variables')
+    console.warn('Support e-mail address configuration is missing')
     return null
   }
 
