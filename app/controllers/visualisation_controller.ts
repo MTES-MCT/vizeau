@@ -94,9 +94,9 @@ export default class VisualisationController {
         aacPage: String(aacPage),
       }),
       selectedAac: async () => {
-        if (!aacCode || !userTerritoireCodes.includes(aacCode.toString())) return null
+        if (!aacCode || !userTerritoireCodes.includes(aacCode.toString())) return undefined
         const raw = await this.aacService.getByCode(aacCode)
-        if (!raw) return null
+        if (!raw) return undefined
         return AacDto.fromRawSummary(raw)
       },
       filteredExploitations: async () => {
@@ -129,7 +129,6 @@ export default class VisualisationController {
           request.qs().exploitationId
         )
       }),
-      user,
       queryString: request.qs(),
       pmtilesUrl: env.get('PMTILES_URL', ''),
       assignParcellesToExploitationUrl: router

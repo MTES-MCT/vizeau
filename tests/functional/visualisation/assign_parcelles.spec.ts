@@ -7,7 +7,7 @@ import Exploitation from '#models/exploitation'
 test.group('Visualisation - Assign parcelles to an exploitation', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('I can assign parcelles to an exploitation', async ({ assert, client, route }) => {
+  test('I can assign parcelles to an exploitation', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const fakeExploitation = await ExploitationFactory.create()
     const exploitationPayload = {
@@ -20,7 +20,7 @@ test.group('Visualisation - Assign parcelles to an exploitation', (group) => {
     }
 
     const response = await client
-      .post(route('visualisation.assignParcellesToExploitation'))
+      .post('visualisation/parcelles')
       .loginAs(user)
       .json(exploitationPayload)
       .header('Accept', 'application/json')
@@ -37,6 +37,6 @@ test.group('Visualisation - Assign parcelles to an exploitation', (group) => {
       assert.isNotNull(matchingParcelle)
     }
 
-    response.assertRedirectsTo(route('/'))
+    response.assertRedirectsTo('/')
   })
 })

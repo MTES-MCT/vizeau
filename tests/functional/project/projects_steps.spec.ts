@@ -15,13 +15,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   // CREATE STEP TESTS
   // ============================================================
 
-  test('I can create a step for one of my projects', async ({ assert, client, route }) => {
+  test('I can create a step for one of my projects', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
         title: 'Phase de diagnostic',
@@ -38,13 +38,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isFalse(step.isValidated)
   })
 
-  test('I can create a step with only a title', async ({ assert, client, route }) => {
+  test('I can create a step with only a title', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
         title: 'Étape simple',
@@ -58,13 +58,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isNull(step.date)
   })
 
-  test('I can create a step with only a note', async ({ assert, client, route }) => {
+  test('I can create a step with only a note', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
         title: 'Étape avec note',
@@ -79,14 +79,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.equal(step.title, 'Étape avec note')
   })
 
-  test('I can create a step with only a date', async ({ assert, client, route }) => {
+  test('I can create a step with only a date', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const date = DateTime.now().toISODate()
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
         title: 'Étape avec date',
@@ -103,7 +103,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isNotNull(step.date)
   })
 
-  test('I can create a step with tags', async ({ assert, client, route }) => {
+  test('I can create a step with tags', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
@@ -112,7 +112,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     const tag2 = await ProjectStepTagFactory.merge({ userId: user.id }).create()
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
         title: 'Étape avec tags',
@@ -132,14 +132,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
   test("I can't create a step without at least one field (title, note, or date)", async ({
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({})
       .withCsrfToken()
@@ -147,14 +146,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(200)
   })
 
-  test("I can't create a step for a project I don't own", async ({ client, route }) => {
+  test("I can't create a step for a project I don't own", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(otherUser)
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -165,11 +164,11 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(404)
   })
 
-  test("I can't create a step with an invalid project id", async ({ client, route }) => {
+  test("I can't create a step with an invalid project id", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.steps.create', { projectId: 'invalid-id' }))
+      .post(`projets/invalid-id/etapes`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -184,14 +183,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   // EDIT STEP TESTS
   // ============================================================
 
-  test('I can edit a step I created', async ({ assert, client, route }) => {
+  test('I can edit a step I created', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .patch(route('projets.steps.edit', { projectId: project.id, stepId: step.id }))
+      .patch(`projets/${project.id}/etapes/${step.id}`)
       .loginAs(user)
       .json({
         title: 'Modified title',
@@ -206,7 +205,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.equal(step.note, 'Modified note')
   })
 
-  test('I can add tags when editing a step', async ({ assert, client, route }) => {
+  test('I can add tags when editing a step', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
@@ -215,7 +214,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     const tag = await ProjectStepTagFactory.merge({ userId: user.id }).create()
 
     const response = await client
-      .patch(route('projets.steps.edit', { projectId: project.id, stepId: step.id }))
+      .patch(`projets/${project.id}/etapes/${step.id}`)
       .loginAs(user)
       .json({
         title: step.title,
@@ -233,7 +232,6 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   test('I can remove tags when editing a step (replace with empty list)', async ({
     assert,
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
@@ -243,7 +241,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     await step.related('tags').attach([tag.id])
 
     const response = await client
-      .patch(route('projets.steps.edit', { projectId: project.id, stepId: step.id }))
+      .patch(`projets/${project.id}/etapes/${step.id}`)
       .loginAs(user)
       .json({
         title: step.title,
@@ -257,7 +255,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.lengthOf(step.tags, 0)
   })
 
-  test("I can't edit a step for a project I don't own", async ({ client, route }) => {
+  test("I can't edit a step for a project I don't own", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
@@ -265,7 +263,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .patch(route('projets.steps.edit', { projectId: project.id, stepId: step.id }))
+      .patch(`projets/${project.id}/etapes/${step.id}`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -276,13 +274,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(404)
   })
 
-  test("I can't edit a step with an invalid step id", async ({ client, route }) => {
+  test("I can't edit a step with an invalid step id", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .patch(route('projets.steps.edit', { projectId: project.id, stepId: 'invalid-id' }))
+      .patch(`projets/${project.id}/etapes/invalid-id`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -297,14 +295,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   // COMPLETE STEP TESTS
   // ============================================================
 
-  test('I can mark a step as completed', async ({ assert, client, route }) => {
+  test('I can mark a step as completed', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .post(route('projets.steps.complete', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes/complete`)
       .loginAs(user)
       .json({
         id: step.id,
@@ -317,7 +315,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isTrue(step.isValidated)
   })
 
-  test("I can't complete a step for a project I don't own", async ({ client, route }) => {
+  test("I can't complete a step for a project I don't own", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
@@ -325,7 +323,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .post(route('projets.steps.complete', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes/complete`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -336,13 +334,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(404)
   })
 
-  test("I can't complete a step with an invalid step id", async ({ client, route }) => {
+  test("I can't complete a step with an invalid step id", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .post(route('projets.steps.complete', { projectId: project.id }))
+      .post(`projets/${project.id}/etapes/complete`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -357,14 +355,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   // DESTROY STEP TESTS
   // ============================================================
 
-  test('I can delete a step I created', async ({ assert, client, route }) => {
+  test('I can delete a step I created', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .delete(route('projets.steps.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}`)
       .loginAs(user)
       .withCsrfToken()
 
@@ -374,7 +372,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isNull(deletedStep)
   })
 
-  test('Deleting a step also deletes associated documents', async ({ assert, client, route }) => {
+  test('Deleting a step also deletes associated documents', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
@@ -396,7 +394,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     })
 
     const response = await client
-      .delete(route('projets.steps.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}`)
       .loginAs(user)
       .withCsrfToken()
 
@@ -406,7 +404,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.lengthOf(documents, 0)
   })
 
-  test("I can't delete a step for a project I don't own", async ({ client, route }) => {
+  test("I can't delete a step for a project I don't own", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
@@ -414,7 +412,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .delete(route('projets.steps.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .withCsrfToken()
@@ -422,13 +420,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(404)
   })
 
-  test("I can't delete a step with an invalid step id", async ({ client, route }) => {
+  test("I can't delete a step with an invalid step id", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .delete(route('projets.steps.destroy', { projectId: project.id, stepId: 'invalid-id' }))
+      .delete(`projets/${project.id}/etapes/invalid-id`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .withCsrfToken()
@@ -440,7 +438,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
   // DESTROY DOCUMENT TESTS
   // ============================================================
 
-  test('I can delete a document from a step', async ({ assert, client, route }) => {
+  test('I can delete a document from a step', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
@@ -454,7 +452,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     })
 
     const response = await client
-      .delete(route('projets.steps.documents.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}/documents`)
       .loginAs(user)
       .json({
         documentId: document.id,
@@ -467,10 +465,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isNull(deletedDocument)
   })
 
-  test("I can't delete a document from a step of a project I don't own", async ({
-    client,
-    route,
-  }) => {
+  test("I can't delete a document from a step of a project I don't own", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
@@ -485,7 +480,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     })
 
     const response = await client
-      .delete(route('projets.steps.documents.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}/documents`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -496,14 +491,14 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(404)
   })
 
-  test("I can't delete a non-existent document", async ({ client, route }) => {
+  test("I can't delete a non-existent document", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
     const step = await ProjectStepFactory.merge({ projectId: project.id }).create()
 
     const response = await client
-      .delete(route('projets.steps.documents.destroy', { projectId: project.id, stepId: step.id }))
+      .delete(`projets/${project.id}/etapes/${step.id}/documents`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -514,15 +509,13 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     response.assertStatus(200)
   })
 
-  test("I can't delete a document with an invalid step id", async ({ client, route }) => {
+  test("I can't delete a document with an invalid step id", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
     const response = await client
-      .delete(
-        route('projets.steps.documents.destroy', { projectId: project.id, stepId: 'invalid-id' })
-      )
+      .delete(`projets/${project.id}/etapes/invalid-id/documents`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -539,7 +532,6 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
   test('Invalid project IDs are rejected with 422 status in all step endpoints', async ({
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
@@ -547,7 +539,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
     // Test create
     let response = await client
-      .post(route('projets.steps.create', { projectId: invalidId }))
+      .post(`projets/${invalidId}/etapes`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({ title: 'Test' })
@@ -556,7 +548,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
     // Test edit
     response = await client
-      .patch(route('projets.steps.edit', { projectId: invalidId, stepId: 'also-invalid' }))
+      .patch(`projets/${invalidId}/etapes/also-invalid`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({ title: 'Test' })
@@ -565,7 +557,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
     // Test destroy
     response = await client
-      .delete(route('projets.steps.destroy', { projectId: invalidId, stepId: 'also-invalid' }))
+      .delete(`projets/${invalidId}/etapes/also-invalid`)
       .header('Accept', 'application/json')
       .loginAs(user)
       .withCsrfToken()
