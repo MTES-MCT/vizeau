@@ -6,8 +6,6 @@ import { router } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
-import { InferPageProps } from '@adonisjs/inertia/types'
-import ProjectsController from '#controllers/projects_controller'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import ProjetsTabs from '~/components/projets/projets-tabs'
 
@@ -19,7 +17,7 @@ export default function Projets({
   availableActionTypes,
   availableYearRange,
   statusCounts,
-}: InferPageProps<ProjectsController, 'index'>) {
+}: any) {
   return (
     <Layout>
       <Head title="Projets" />

@@ -1,6 +1,6 @@
 import { has } from 'lodash-es'
 import { groupColors } from '~/utils/group-colors'
-import cultures from '../../database/data/cultures.json'
+import cultures from '../data/cultures.json'
 
 export type GroupeCulturauxItem = {
   label: string

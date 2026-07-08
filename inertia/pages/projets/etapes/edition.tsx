@@ -7,12 +7,10 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { Upload } from '@codegouvfr/react-dsfr/Upload'
 import { FlashMessages } from '~/components/flash-message'
 import TruncatedText from '~/ui/TruncatedText'
-import { InferPageProps } from '@adonisjs/inertia/types'
 import ProjectStepForm from '~/components/projets/form/project-step-form'
 import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
 import type { ProjectStepFormData } from '~/pages/projets/etapes/creation'
 import { getProjectStepTitle } from '~/functions/project_steps'
-import ProjectStepsController from '#controllers/project_steps_controller'
 import SmallSection from '~/ui/SmallSection'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
 import { useRef } from 'react'
@@ -23,7 +21,7 @@ export default function ProjectStepEditionPage({
   editStepUrl,
   deleteDocumentUrl,
   flashMessages,
-}: InferPageProps<ProjectStepsController, 'getStepForEdition'>) {
+}: any) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<ProjectStepFormData>({

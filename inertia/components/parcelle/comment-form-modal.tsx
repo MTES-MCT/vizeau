@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
-import { ParcelleJson } from '#types/models'
+import type { ParcelleJson } from '#types/models'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import Input from '@codegouvfr/react-dsfr/Input'
 

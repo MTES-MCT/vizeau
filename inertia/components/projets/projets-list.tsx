@@ -1,5 +1,5 @@
 import ListItem from '~/ui/ListItem'
-import { ProjectJson } from '#types/models'
+import type { ProjectJson } from '#types/models'
 import { formatDateFr } from '~/functions/date'
 
 export type ProjetsListProps = {

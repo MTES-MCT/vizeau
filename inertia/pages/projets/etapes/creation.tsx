@@ -7,10 +7,8 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { Upload } from '@codegouvfr/react-dsfr/Upload'
 import TruncatedText from '~/ui/TruncatedText'
-import { InferPageProps } from '@adonisjs/inertia/types'
 import ProjectStepForm from '~/components/projets/form/project-step-form'
 import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
-import ProjectStepsController from '#controllers/project_steps_controller'
 import SmallSection from '~/ui/SmallSection'
 
 export type ProjectStepFormData = {
@@ -22,10 +20,7 @@ export type ProjectStepFormData = {
   documents?: File[]
 }
 
-export default function ProjectStepCreationPage({
-  projet,
-  createStepUrl,
-}: InferPageProps<ProjectStepsController, 'createStepForm'>) {
+export default function ProjectStepCreationPage({ projet, createStepUrl }: any) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<ProjectStepFormData>({

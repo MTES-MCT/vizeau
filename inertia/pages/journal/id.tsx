@@ -1,5 +1,3 @@
-import { InferPageProps } from '@adonisjs/inertia/types'
-import LogEntriesController from '#controllers/log_entries_controller'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import Layout from '~/ui/layouts/layout'
 import { Head } from '@inertiajs/react'
@@ -26,7 +24,7 @@ export default function SingleTask({
   deleteEntryLogUrl,
   completeEntryLogUrl,
   deleteDocumentUrl,
-}: InferPageProps<LogEntriesController, 'get'>) {
+}: any) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
     isOpenedByDefault: false,

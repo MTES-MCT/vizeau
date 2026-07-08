@@ -1,8 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
 import { Head, router } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import AccueilController from '#controllers/accueil_controller'
+
 import ExploitationsList from '~/components/exploitations/exploitations-list'
 import ListItem from '~/ui/ListItem'
 
@@ -15,7 +14,7 @@ export default function Accueil({
   latestExploitations,
   latestLogEntries,
   createExploitationUrl,
-}: InferPageProps<AccueilController, 'index'>) {
+}: any) {
   const hasLogEntries = latestLogEntries?.length > 0
   const hasExploitations = latestExploitations?.length > 0
 

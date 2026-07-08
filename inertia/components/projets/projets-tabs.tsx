@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useState } from 'react'
 import { router } from '@inertiajs/react'
 
-import { ProjetsTabsJson } from '#types/models'
+import type { ProjetsTabsJson } from '#types/models'
 import { debounce } from 'lodash-es'
 
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'

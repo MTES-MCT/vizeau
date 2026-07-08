@@ -1,20 +1,15 @@
 import { Head } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
+
 import { fr } from '@codegouvfr/react-dsfr'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
-import AacController from '#controllers/aac_controller'
 import { formatDateFr } from '~/functions/date'
 import AacsSearch from '~/components/aacs/aacs-search'
 import Layout from '~/ui/layouts/layout'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import ListItem from '~/ui/ListItem'
 
-export default function AacIndex({
-  aacs,
-  meta,
-  queryString,
-}: InferPageProps<AacController, 'index'>) {
+export default function AacIndex({ aacs, meta, queryString }: any) {
   return (
     <Layout>
       <Head title="Aires d'Alimentation de Captage" />

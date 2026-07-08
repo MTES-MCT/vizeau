@@ -1,8 +1,7 @@
 import { Head, usePage } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
-import { InferPageProps } from '@adonisjs/inertia/types'
+
 import Layout from '~/ui/layouts/layout'
-import AacController from '#controllers/aac_controller'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import TruncatedText from '~/ui/TruncatedText'
@@ -16,7 +15,7 @@ import AacCaptages from '~/components/aac-id/aac-captages'
 import { AacActionCard } from '~/components/aac-id/AacActionCard'
 import SignalErrorContact from '~/components/signal-error-contact'
 
-export default function AacShow({ aac, exportUrls }: InferPageProps<AacController, 'show'>) {
+export default function AacShow({ aac, exportUrls }: any) {
   const communeArray = map(aac.communes?.communes ?? {}, (info, nom) => ({ nom, ...info }))
 
   const { url } = usePage()

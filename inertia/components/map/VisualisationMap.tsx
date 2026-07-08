@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
+import type { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import {
@@ -33,8 +33,7 @@ import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
 import { usePage } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import VisualisationController from '#controllers/visualisation_controller'
+
 import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
 import Loader from '~/ui/Loader'
 
