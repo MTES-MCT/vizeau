@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import type { ProjectStepJson } from '#types/models'
-import { AdditionalInfosProps } from '~/ui/ListItem'
+import { type AdditionalInfosProps } from '~/ui/ListItem'
 import { severityColorMap } from '~/functions/log_entries'
 
 export { severityColorMap }

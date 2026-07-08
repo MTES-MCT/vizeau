@@ -1,4 +1,4 @@
-import { CommuneInfo, CultureInfo } from './aac.js'
+import { type CommuneInfo, type CultureInfo } from './aac.js'
 export type { CommuneInfo }
 
 // Used for frontend forms and requests where id may be missing or null

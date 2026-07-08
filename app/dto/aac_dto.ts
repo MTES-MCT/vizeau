@@ -1,4 +1,4 @@
-import { AacJson, CultureInfo, InstallationInfo } from '#types/aac'
+import { type AacJson, type CultureInfo, type InstallationInfo } from '#types/aac'
 
 export type AacSummaryJson = {
   code: string

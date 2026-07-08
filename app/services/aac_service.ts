@@ -1,4 +1,4 @@
-import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api'
+import { DuckDBInstance, type DuckDBConnection } from '@duckdb/node-api'
 import env from '#start/env'
 import type { AnalysesStats, AnalysesPerYear, SubstanceItem, ChroniqueData } from '#types/captage'
 

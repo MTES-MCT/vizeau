@@ -1,4 +1,4 @@
-import maplibre from 'maplibre-gl'
+import type maplibre from 'maplibre-gl'
 
 export function setParcellesHighlight(
   map: maplibre.Map | null,

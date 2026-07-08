@@ -1,4 +1,4 @@
-import LogEntry from '#models/log_entry'
+import type LogEntry from '#models/log_entry'
 import { BaseCsvService } from '#services/base_csv_service'
 
 export class LogEntryCsvService extends BaseCsvService<LogEntry> {

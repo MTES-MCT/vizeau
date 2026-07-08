@@ -1,7 +1,7 @@
-import { ModelAttributes } from '@adonisjs/lucid/types/model'
+import { type ModelAttributes } from '@adonisjs/lucid/types/model'
 import ProjectStep from '#models/project_step'
 import ProjectStepDocument from '#models/project_step_document'
-import Project from '#models/project'
+import type Project from '#models/project'
 
 export class ProjectStepService {
   async createStep(

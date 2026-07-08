@@ -1,5 +1,5 @@
-import Project from '#models/project'
-import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
+import type Project from '#models/project'
+import { type ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 import type { CaptageJson, ProjectJson, PaginatedJson } from '../../types/models.js'
 import { ParcelleDto } from './parcelle_dto.js'
 import { ProjectStepDto } from './project_step_dto.js'

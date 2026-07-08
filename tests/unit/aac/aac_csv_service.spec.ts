@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import { AacCsvService } from '#services/aac_csv_service'
-import { AacService } from '#services/aac_service'
-import { AacJson } from '#types/aac'
+import { type AacService } from '#services/aac_service'
+import { type AacJson } from '#types/aac'
 
 const BOM = '\uFEFF'
 

@@ -1,5 +1,5 @@
-import { LogEntryTagJson } from '#types/models'
-import LogEntryTag from '#models/log_entry_tag'
+import { type LogEntryTagJson } from '#types/models'
+import type LogEntryTag from '#models/log_entry_tag'
 
 export class LogEntryTagDto {
   static fromModel(tag: LogEntryTag): LogEntryTagJson {

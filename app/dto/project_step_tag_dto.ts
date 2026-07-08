@@ -1,5 +1,5 @@
-import { ProjectStepTagJson } from '#types/models'
-import ProjectStepTag from '#models/project_step_tag'
+import { type ProjectStepTagJson } from '#types/models'
+import type ProjectStepTag from '#models/project_step_tag'
 
 export class ProjectStepTagDto {
   static fromModel(tag: ProjectStepTag): ProjectStepTagJson {

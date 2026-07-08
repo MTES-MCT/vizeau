@@ -1,4 +1,4 @@
-import Parcelle from '#models/parcelle'
+import type Parcelle from '#models/parcelle'
 import { BaseCsvService } from '#services/base_csv_service'
 
 export class ParcelleCsvService extends BaseCsvService<Parcelle> {

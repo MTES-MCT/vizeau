@@ -1,6 +1,6 @@
-import { TerritoireJson, PaginatedJson } from '#types/models'
-import Territoire from '#models/territoire'
-import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
+import { type TerritoireJson, type PaginatedJson } from '#types/models'
+import type Territoire from '#models/territoire'
+import { type ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 
 export class TerritoireDto {
   static fromModel(territoire: Territoire | any): TerritoireJson {

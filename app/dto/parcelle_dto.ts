@@ -1,5 +1,5 @@
-import { ParcelleJson } from '#types/models'
-import Parcelle from '#models/parcelle'
+import { type ParcelleJson } from '#types/models'
+import type Parcelle from '#models/parcelle'
 
 export class ParcelleDto {
   static fromModel(parcelle: Parcelle): ParcelleJson {

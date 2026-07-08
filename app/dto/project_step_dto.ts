@@ -1,4 +1,4 @@
-import ProjectStep from '#models/project_step'
+import type ProjectStep from '#models/project_step'
 import type { ProjectStepJson, ProjectStepDocumentJson } from '../../types/models.js'
 import router from '@adonisjs/core/services/router'
 

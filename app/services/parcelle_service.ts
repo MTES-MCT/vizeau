@@ -1,7 +1,7 @@
 import Parcelle from '#models/parcelle'
-import { ModelAttributes } from '@adonisjs/lucid/types/model'
+import { type ModelAttributes } from '@adonisjs/lucid/types/model'
 import db from '@adonisjs/lucid/services/db'
-import { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import { type TransactionClientContract } from '@adonisjs/lucid/types/database'
 
 export class ParcelleService {
   /*
