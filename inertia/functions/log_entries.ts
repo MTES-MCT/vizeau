@@ -1,6 +1,6 @@
-import { LogEntryJson } from '#types/models'
+import type { LogEntryJson } from '#types/models'
 
-import { AdditionalInfosProps } from '~/ui/ListItem'
+import { type AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'
 import { fr } from '@codegouvfr/react-dsfr'
 

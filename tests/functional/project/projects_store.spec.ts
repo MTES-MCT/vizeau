@@ -11,11 +11,11 @@ import { TerritoireFactory } from '#database/factories/territoire_factory'
 test.group('Projects - Store Route', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('I can create a project for the authenticated user', async ({ assert, client, route }) => {
+  test('I can create a project for the authenticated user', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Protect groundwater catchments',
@@ -34,16 +34,12 @@ test.group('Projects - Store Route', (group) => {
     assert.equal(savedProject.actionType, 'study')
   })
 
-  test('The authenticated user is always used as the project owner', async ({
-    assert,
-    client,
-    route,
-  }) => {
+  test('The authenticated user is always used as the project owner', async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const otherUser = await UserFactory.create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Ownership is derived from auth',
@@ -60,11 +56,11 @@ test.group('Projects - Store Route', (group) => {
     assert.equal(savedProject.status, ProjectStatus.CURRENT)
   })
 
-  test("I can't create a project without a name", async ({ client, route }) => {
+  test("I can't create a project without a name", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .header('Accept', 'application/json')
       .loginAs(user)
       .json({
@@ -75,7 +71,7 @@ test.group('Projects - Store Route', (group) => {
     response.assertStatus(422)
   })
 
-  test('I can create a project with accessible exploitations', async ({ client, route }) => {
+  test('I can create a project with accessible exploitations', async ({ client }) => {
     const territoire = await TerritoireFactory.create()
     const user = await UserFactory.create()
     await user.related('territoires').attach([territoire.id])
@@ -84,7 +80,7 @@ test.group('Projects - Store Route', (group) => {
     await exploitation.related('territoires').attach([territoire.id])
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with exploitations',
@@ -97,14 +93,13 @@ test.group('Projects - Store Route', (group) => {
 
   test("I can't create a project with exploitations not accessible to the user", async ({
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const exploitation = await ExploitationFactory.create()
     // No shared territoire between user and exploitation
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with inaccessible exploitations',
@@ -112,10 +107,10 @@ test.group('Projects - Store Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertRedirectsTo(route('root'))
+    response.assertRedirectsTo('/')
   })
 
-  test('I can create a project with accessible parcelles', async ({ client, route }) => {
+  test('I can create a project with accessible parcelles', async ({ client }) => {
     const territoire = await TerritoireFactory.create()
     const user = await UserFactory.create()
     await user.related('territoires').attach([territoire.id])
@@ -126,7 +121,7 @@ test.group('Projects - Store Route', (group) => {
     const parcelle = await ParcelleFactory.merge({ exploitationId: exploitation.id }).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with parcelles',
@@ -140,12 +135,11 @@ test.group('Projects - Store Route', (group) => {
   test('I can create a project with new standalone parcelles via millesime', async ({
     assert,
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with new standalone parcelles',
@@ -171,7 +165,6 @@ test.group('Projects - Store Route', (group) => {
   test('Creating a project via millesime reuses existing accessible parcelles without duplicating them', async ({
     assert,
     client,
-    route,
   }) => {
     const territoire = await TerritoireFactory.create()
     const user = await UserFactory.create()
@@ -181,7 +174,7 @@ test.group('Projects - Store Route', (group) => {
     await exploitation.related('territoires').attach([territoire.id])
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project reusing existing parcelle',
@@ -199,14 +192,11 @@ test.group('Projects - Store Route', (group) => {
     assert.lengthOf(allMatchingParcelles, 1)
   })
 
-  test("I can't create a project with parcelles but without a millesime", async ({
-    client,
-    route,
-  }) => {
+  test("I can't create a project with parcelles but without a millesime", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project missing millesime',
@@ -215,12 +205,11 @@ test.group('Projects - Store Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertRedirectsTo(route('root'))
+    response.assertRedirectsTo('/')
   })
 
   test("I can't create a project via millesime when an existing parcelle belongs to an inaccessible exploitation", async ({
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
@@ -233,7 +222,7 @@ test.group('Projects - Store Route', (group) => {
     }).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with inaccessible millesime parcelle',
@@ -242,19 +231,18 @@ test.group('Projects - Store Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertRedirectsTo(route('root'))
+    response.assertRedirectsTo('/')
   })
 
   test('Duplicate parcelles input with same rpgId creates only one parcelle', async ({
     assert,
     client,
-    route,
   }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const rpgId = 'RPGDUP001'
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with duplicated parcelles input',
@@ -272,17 +260,14 @@ test.group('Projects - Store Route', (group) => {
     assert.lengthOf(createdParcelles, 1)
   })
 
-  test("I can't create a project with parcelles not accessible to the user", async ({
-    client,
-    route,
-  }) => {
+  test("I can't create a project with parcelles not accessible to the user", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     // Exploitation without shared territoire with the user
     const exploitation = await ExploitationFactory.create()
     const parcelle = await ParcelleFactory.merge({ exploitationId: exploitation.id }).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with inaccessible parcelles',
@@ -290,15 +275,15 @@ test.group('Projects - Store Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertRedirectsTo(route('root'))
+    response.assertRedirectsTo('/')
   })
 
-  test('I can create a project with existing captages', async ({ client, route }) => {
+  test('I can create a project with existing captages', async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const captage = await CaptageFactory.create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with captages',
@@ -309,11 +294,11 @@ test.group('Projects - Store Route', (group) => {
     response.assertStatus(200)
   })
 
-  test("I can't create a project with nonexistent captage ids", async ({ client, route }) => {
+  test("I can't create a project with nonexistent captage ids", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
 
     const response = await client
-      .post(route('projets.store'))
+      .post('projets')
       .loginAs(user)
       .json({
         name: 'Project with bad captages',
@@ -321,6 +306,6 @@ test.group('Projects - Store Route', (group) => {
       })
       .withCsrfToken()
 
-    response.assertRedirectsTo(route('root'))
+    response.assertRedirectsTo('/')
   })
 })

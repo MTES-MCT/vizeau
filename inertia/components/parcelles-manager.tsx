@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
-import { ExploitationJson } from '#types/models'
+import type { ExploitationJson } from '#types/models'
 
 export type ParcellesManagerProps = {
   editMode: boolean

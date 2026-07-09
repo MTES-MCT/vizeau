@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link } from '@adonisjs/inertia/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import './list-item.css'

@@ -1,6 +1,6 @@
 import LogEntry from '#models/log_entry'
 import { errors } from '@adonisjs/auth'
-import { ModelAttributes } from '@adonisjs/lucid/types/model'
+import { type ModelAttributes } from '@adonisjs/lucid/types/model'
 import LogEntryDocument from '#models/log_entry_document'
 
 export class LogEntryService {

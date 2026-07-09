@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { usePage } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import ProjectsController from '#controllers/projects_controller'
+
 import ParcellesSelectionMap, {
   SelectedParcelle,
   ParcellesSelectionMapHandle,

@@ -1,11 +1,9 @@
 import { Head } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import AccueilController from '#controllers/accueil_controller'
 
 import Layout from '~/ui/layouts/layout'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 
-export default function NoTerritoire({}: InferPageProps<AccueilController, 'noTerritoire'>) {
+export default function NoTerritoire() {
   return (
     <Layout>
       <Head title="Aucune zone de captage n'est attachée à votre compte" />

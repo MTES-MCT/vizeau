@@ -5,9 +5,6 @@ import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
 import Layout from '~/ui/layouts/layout'
 
-import { InferPageProps } from '@adonisjs/inertia/types'
-import ProjectsController from '#controllers/projects_controller'
-
 import ProjetForm, {
   ProjetFormData,
   ProjetFormErrors,
@@ -15,14 +12,14 @@ import ProjetForm, {
 } from '~/components/projets/form/projet-form'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 
-export default function ProjetCreationPage({}: InferPageProps<ProjectsController, 'create'>) {
+export default function ProjetCreationPage({}: any) {
   const [stepsList, setStepsList] = useState<number[]>([
     STEP_KEYS.GENERAL_INFOS,
     STEP_KEYS.FIRST_ENTRY,
     STEP_KEYS.CONSOLIDATIONS,
   ])
 
-  const { url, props } = usePage<InferPageProps<ProjectsController, 'create'>>()
+  const { url, props } = usePage()
   const urlParams = new URLSearchParams(url.split('?')[1] || '')
   const stepFromUrl = parseInt(urlParams.get('step') || '1', 10)
   const currentStep = (

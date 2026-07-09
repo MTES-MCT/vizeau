@@ -1,16 +1,18 @@
-import { Form, Link, usePage } from '@inertiajs/react'
+import { usePage } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 import { Input } from '@codegouvfr/react-dsfr/Input'
 import { fr } from '@codegouvfr/react-dsfr'
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar'
+import { Form } from '@adonisjs/inertia/react'
 
 export default function AuthentificationBloc() {
   const borderColor = fr.colors.decisions.border.default.grey.default
   const linkColor = fr.colors.decisions.text.actionHigh.blueFrance.default
 
   const { errors } = usePage().props
+  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL
 
   return (
     <div className="flex justify-center items-center w-full">
@@ -37,7 +39,7 @@ export default function AuthentificationBloc() {
             />
           )}
         </div>
-        <Form className="w-full fr-mt-1w" action="/login" method="post">
+        <Form className="w-full fr-mt-1w" route={'session.store'}>
           <Input
             label="Adresse e-mail"
             nativeInputProps={{
@@ -73,12 +75,14 @@ export default function AuthentificationBloc() {
             S'authentifier
           </Button>
         </Form>
-        <p className="fr-mt-3w">
-          Des difficultés à vous connecter ?{' '}
-          <Link href="#" style={{ color: linkColor }}>
-            Contactez un administrateur
-          </Link>
-        </p>
+        {supportEmail && (
+          <p className="fr-mt-3w">
+            Des difficultés à vous connecter ?
+            <a href={`mailto:${supportEmail}`} style={{ color: linkColor }} className="fr-ml-1w">
+              Contactez un administrateur
+            </a>
+          </p>
+        )}
       </div>
     </div>
   )

@@ -27,7 +27,7 @@ export default class SessionController {
     } catch (error) {
       // If authentication fails, just render the login view
       if (error.code === errors.E_UNAUTHORIZED_ACCESS.code) {
-        return inertia.render('login')
+        return inertia.render('login', {})
       }
 
       // Other errors must be thrown

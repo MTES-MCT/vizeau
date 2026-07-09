@@ -1,6 +1,4 @@
 import { Head } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import TerritoiresController from '#controllers/territoires_controller'
 import { fr } from '@codegouvfr/react-dsfr'
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
 import Layout from '~/ui/layouts/layout'
@@ -9,10 +7,7 @@ import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
 import ListItem from '~/ui/ListItem'
 import type { TerritoireJson } from '#types/models'
 
-export default function TerritoiresIndex({
-  territoires,
-  meta,
-}: InferPageProps<TerritoiresController, 'index'>) {
+export default function TerritoiresIndex({ territoires, meta }: any) {
   return (
     <Layout>
       <Head title="Mes territoires" />

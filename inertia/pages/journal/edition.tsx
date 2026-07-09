@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import LogEntriesController from '#controllers/log_entries_controller'
 import { Head, useForm, router } from '@inertiajs/react'
 import { LogEntryForm } from '~/components/exploitation-id/LogEntryForm'
 import Layout from '~/ui/layouts/layout'
@@ -17,7 +15,7 @@ export default function TaskEditionPage({
   exploitation,
   isCreator,
   deleteDocumentUrl,
-}: InferPageProps<LogEntriesController, 'getForEdition'>) {
+}: any) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<LogEntryFormData>({
     id: logEntry.id,

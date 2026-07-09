@@ -2,7 +2,7 @@ import { debounce } from 'lodash-es'
 import InputWithSelector, { OptionType } from '~/ui/InputWithSelector'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router, usePage } from '@inertiajs/react'
-import { ProjectStepTagJson } from '#types/models'
+import type { ProjectStepTagJson } from '#types/models'
 import { Tag } from '@codegouvfr/react-dsfr/Tag'
 
 const debouncedFetchTags = debounce((newInput?: string) => {

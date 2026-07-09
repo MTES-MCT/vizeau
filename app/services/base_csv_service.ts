@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { type DateTime } from 'luxon'
 
 const SEPARATOR = ';'
 const LINE_END = '\r\n'

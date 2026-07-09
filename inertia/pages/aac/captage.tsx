@@ -1,8 +1,7 @@
 import { Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
-import { InferPageProps } from '@adonisjs/inertia/types'
+
 import Layout from '~/ui/layouts/layout'
-import AacController from '#controllers/aac_controller'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import TruncatedText from '~/ui/TruncatedText'
 import SmallSection from '~/ui/SmallSection'
@@ -12,10 +11,7 @@ import SignalErrorContact from '~/components/signal-error-contact'
 import { Tag } from '@codegouvfr/react-dsfr/Tag'
 import CustomTag from '~/ui/CustomTag'
 
-export default function CaptageShow({
-  aac,
-  installation,
-}: InferPageProps<AacController, 'showInstallation'>) {
+export default function CaptageShow({ aac, installation }: any) {
   return (
     <Layout>
       <Head title={`${installation.nom} — Captage`} />

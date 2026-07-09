@@ -1,6 +1,6 @@
 import FileItemsList from '~/ui/FileItemList'
 import { router } from '@inertiajs/react'
-import { ProjectStepDocumentJson } from '#types/models'
+import type { ProjectStepDocumentJson } from '#types/models'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { useState } from 'react'

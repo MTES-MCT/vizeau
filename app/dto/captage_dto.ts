@@ -1,5 +1,5 @@
-import Captage from '#models/captage'
-import { CaptageFormJson, CaptageJson } from '#types/models'
+import type Captage from '#models/captage'
+import { type CaptageFormJson, type CaptageJson } from '#types/models'
 
 export class CaptageDto {
   static fromModel(captage: Captage): CaptageJson {

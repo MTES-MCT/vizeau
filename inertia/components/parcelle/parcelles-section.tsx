@@ -1,7 +1,7 @@
 import SmallSection from '~/ui/SmallSection'
 import ExploitationParcellesList from './exploitations-parcelles-list'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import { ParcelleJson } from '#types/models'
+import type { ParcelleJson } from '#types/models'
 
 export type ParcellesSectionProps = {
   parcelles: ParcelleJson[]

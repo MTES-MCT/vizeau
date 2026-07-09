@@ -1,7 +1,7 @@
-import LogEntry from '#models/log_entry'
-import { LogEntryJson, PaginatedJson } from '#types/models'
+import type LogEntry from '#models/log_entry'
+import { type LogEntryJson, type PaginatedJson } from '#types/models'
 import { LogEntryTagDto } from './log_entry_tag_dto.js'
-import { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
+import { type ModelPaginatorContract } from '@adonisjs/lucid/types/model'
 import { LogEntryDocumentDto } from './log_entry_document_dto.js'
 import { ExploitationDto } from './exploitation_dto.js'
 

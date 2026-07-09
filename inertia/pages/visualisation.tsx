@@ -5,10 +5,9 @@ import VisualisationMap, { VisualisationMapRef } from '~/components/map/Visualis
 import Layout from '~/ui/layouts/layout'
 import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
-import VisualisationController from '#controllers/visualisation_controller'
-import { InferPageProps } from '@adonisjs/inertia/types'
+
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
-import { ExploitationJson } from '#types/models'
+import type { ExploitationJson } from '#types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import { MapGeoJSONFeature } from 'maplibre-gl'
@@ -40,7 +39,7 @@ export default function VisualisationPage({
   aacMeta,
   aacQueryString,
   selectedAac,
-}: InferPageProps<VisualisationController, 'index'>) {
+}: any) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [mapZoom, setMapZoom] = useState<number | null>(null)
   const [showParcelles, setShowParcelles] = useState(true)

@@ -18,6 +18,7 @@ import Exploitation from '#models/exploitation'
 import LogEntry from '#models/log_entry'
 import User from '#models/user'
 import router from '@adonisjs/core/services/router'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryDto } from '../dto/log_entry_dto.js'
@@ -149,7 +150,7 @@ export default class LogEntriesController {
         .params([exploitationId, params.logEntryId])
         .make('log_entries.destroy'),
       completeEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.complete'),
-      deleteDocumentUrl: router.makeUrl('log_entries.destroyDocument'),
+      deleteDocumentUrl: urlFor('log_entries.destroyDocument'),
     })
   }
 
@@ -210,7 +211,7 @@ export default class LogEntriesController {
         .params([params.exploitationId])
         .make('log_entries.destroyTagForExploitation'),
       editEntryLogUrl: router.builder().params([params.exploitationId]).make('log_entries.edit'),
-      deleteDocumentUrl: router.makeUrl('log_entries.destroyDocument'),
+      deleteDocumentUrl: urlFor('log_entries.destroyDocument'),
     })
   }
 

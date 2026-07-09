@@ -6,12 +6,12 @@ import { ProjectFactory } from '#database/factories/project_factory'
 test.group('Projects - Show Route', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test("I can't fetch another user's project", async ({ client, route }) => {
+  test("I can't fetch another user's project", async ({ client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
 
     const response = await client
-      .get(route('projets.show', { projectId: project.id }))
+      .get(`projets/${project.id}`)
       .header('Accept', 'application/json')
       .loginAs(user)
 

@@ -1,4 +1,4 @@
-import ProjectStep from '#models/project_step'
+import type ProjectStep from '#models/project_step'
 import type { ProjectStepJson, ProjectStepDocumentJson } from '../../types/models.js'
 import router from '@adonisjs/core/services/router'
 
@@ -20,17 +20,15 @@ export class ProjectStepDto {
           name: tag.name,
         })) ?? [],
       documents:
-        projectStep.documents?.map(
-          (doc): ProjectStepDocumentJson => ({
-            id: doc.id,
-            name: doc.name,
-            sizeInBytes: doc.sizeInBytes,
-            href: router
-              .builder()
-              .params([projectStep.projectId, projectStep.id, doc.id])
-              .make('projets.steps.documents.download'),
-          })
-        ) ?? [],
+        projectStep.documents?.map((doc): ProjectStepDocumentJson => ({
+          id: doc.id,
+          name: doc.name,
+          sizeInBytes: doc.sizeInBytes,
+          href: router
+            .builder()
+            .params([projectStep.projectId, projectStep.id, doc.id])
+            .make('projets.steps.documents.download'),
+        })) ?? [],
       createdAt: projectStep.createdAt.toISO() as string,
       updatedAt: projectStep.updatedAt.toISO() as string,
     }

@@ -6,7 +6,7 @@ import LabelInfo from '~/ui/LabelInfo'
 import CustomTag from '~/ui/CustomTag'
 import Tag from '@codegouvfr/react-dsfr/Tag'
 import { getCultureByCode } from '~/functions/cultures-group'
-import { ProjectJson } from '#types/models'
+import type { ProjectJson } from '#types/models'
 import TruncatedText from '~/ui/TruncatedText'
 
 interface PopupParcelleProps {

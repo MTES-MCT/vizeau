@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Head } from '@inertiajs/react'
-import { InferPageProps } from '@adonisjs/inertia/types'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
-import ProjectsController from '#controllers/projects_controller'
 
 import Layout from '~/ui/layouts/layout'
 import TruncatedText from '~/ui/TruncatedText'
@@ -27,7 +25,7 @@ const deleteProjetModal = createModal({
   isOpenedByDefault: false,
 })
 
-export default function ShowProjet({ projet }: InferPageProps<ProjectsController, 'show'>) {
+export default function ShowProjet({ projet }: any) {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false)
   const [isDeleteButtonDisabled, setIsDeleteButtonDisabled] = useState(true)
   const toggleDescription = () => {

@@ -1,5 +1,5 @@
-import { LogEntryDocumentJson } from '#types/models'
-import LogEntryDocument from '#models/log_entry_document'
+import { type LogEntryDocumentJson } from '#types/models'
+import type LogEntryDocument from '#models/log_entry_document'
 import router from '@adonisjs/core/services/router'
 
 export class LogEntryDocumentDto {

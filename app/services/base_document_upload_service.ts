@@ -1,4 +1,4 @@
-import { cuid } from '@adonisjs/core/helpers'
+import { randomUUID } from 'node:crypto'
 import drive from '@adonisjs/drive/services/main'
 import path from 'node:path'
 
@@ -17,7 +17,7 @@ export abstract class BaseDocumentUploadService {
    */
   static getKey(filename: string | undefined): string {
     if (!filename) {
-      return `${cuid()}-document`
+      return `${randomUUID()}-document`
     }
 
     const base = path.basename(filename)
@@ -36,7 +36,9 @@ export abstract class BaseDocumentUploadService {
       .slice(0, 10)
 
     const finalName = safeName || 'document'
-    return safeExtension ? `${cuid()}-${finalName}.${safeExtension}` : `${cuid()}-${finalName}`
+    return safeExtension
+      ? `${randomUUID()}-${finalName}.${safeExtension}`
+      : `${randomUUID()}-${finalName}`
   }
 
   /*

@@ -1,7 +1,6 @@
 import { usePage, router } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
-import { InferPageProps } from '@adonisjs/inertia/types'
-import ProjectsController from '#controllers/projects_controller'
+
 import { Pagination, addPaginationTranslations } from '@codegouvfr/react-dsfr/Pagination'
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox'
 import SearchWithFilters from '~/ui/SearchWithFilters'

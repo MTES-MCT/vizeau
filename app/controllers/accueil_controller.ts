@@ -45,6 +45,6 @@ export default class AccueilController {
       return response.redirect('/')
     }
 
-    return inertia.render('no_territoire')
+    return inertia.render('no_territoire', {})
   }
 }

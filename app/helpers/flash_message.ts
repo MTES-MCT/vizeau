@@ -1,4 +1,4 @@
-import { Session } from '@adonisjs/session'
+import { type Session } from '@adonisjs/session'
 
 export function createSuccessFlashMessage(
   session: Session,

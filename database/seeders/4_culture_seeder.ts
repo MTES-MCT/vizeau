@@ -6,7 +6,7 @@ import path from 'node:path'
 export default class CultureSeeder extends BaseSeeder {
   public async run() {
     const cultures = JSON.parse(
-      readFileSync(path.join('database', 'data', 'cultures.json'), 'utf-8')
+      readFileSync(path.join('inertia', 'data', 'cultures.json'), 'utf-8')
     )
 
     await Culture.updateOrCreateMany('code', cultures)

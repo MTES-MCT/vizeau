@@ -6,16 +6,12 @@ import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
 import Layout from '~/ui/layouts/layout'
 
-import { InferPageProps } from '@adonisjs/inertia/types'
-import ProjectsController from '#controllers/projects_controller'
-
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
 import Toast from '~/ui/Toaster'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 
-export default function ProjetEditionPage({}: InferPageProps<ProjectsController, 'getForEdition'>) {
-  const { url, props } = usePage<InferPageProps<ProjectsController, 'getForEdition'>>()
-  const { projet } = props
+export default function ProjetEditionPage({ projet }: any) {
+  const { url, props } = usePage()
 
   const urlParams = new URLSearchParams(url.split('?')[1] || '')
   const stepFromUrl = parseInt(urlParams.get('step') || '1', 10)

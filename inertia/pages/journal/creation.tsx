@@ -5,8 +5,6 @@ import { LogEntryForm } from '~/components/exploitation-id/LogEntryForm'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { fr } from '@codegouvfr/react-dsfr'
-import LogEntriesController from '#controllers/log_entries_controller'
-import { InferPageProps } from '@adonisjs/inertia/types'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import TruncatedText from '~/ui/TruncatedText'
 
@@ -22,10 +20,7 @@ export type LogEntryFormData = {
   }>
 }
 
-export default function TaskCreationPage({
-  exploitation,
-  createEntryLogUrl,
-}: InferPageProps<LogEntriesController, 'index'>) {
+export default function TaskCreationPage({ exploitation, createEntryLogUrl }: any) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<LogEntryFormData>({
     title: '',
