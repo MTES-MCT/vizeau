@@ -115,7 +115,11 @@ export class ProjectService {
     // Main paginated query — all filters applied
     const mainQuery = Project.query()
       .where('userId', userId)
-      .preload('parcelles')
+      .preload('parcelles', (parcelleQuery) => {
+        parcelleQuery.preload('comments', (commentQuery) => {
+          commentQuery.where('userId', userId)
+        })
+      })
       .preload('exploitations')
       .preload('captages')
       .orderBy('createdAt', 'desc')

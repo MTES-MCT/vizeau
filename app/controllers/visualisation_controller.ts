@@ -103,7 +103,12 @@ export default class VisualisationController {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)
           .preload('parcelles', (parcelleQuery) => {
-            parcelleQuery.where('year', request.qs().millesime).orderBy('rpgId', 'asc')
+            parcelleQuery
+              .where('year', request.qs().millesime)
+              .orderBy('rpgId', 'asc')
+              .preload('comments', (commentQuery) => {
+                commentQuery.where('userId', user.id)
+              })
           })
 
         return ExploitationDto.toJsonArray(results)
@@ -113,7 +118,12 @@ export default class VisualisationController {
           .where('userId', user.id)
           .orderBy('createdAt', 'desc')
           .preload('parcelles', (parcelleQuery) => {
-            parcelleQuery.where('year', request.qs().millesime).orderBy('rpgId', 'asc')
+            parcelleQuery
+              .where('year', request.qs().millesime)
+              .orderBy('rpgId', 'asc')
+              .preload('comments', (commentQuery) => {
+                commentQuery.where('userId', user.id)
+              })
           })
 
         return ProjectDto.toJsonArray(projects)

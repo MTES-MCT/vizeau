@@ -22,7 +22,7 @@ export class ParcelleCsvService extends BaseCsvService<Parcelle> {
       parcelle.surface?.toString() ?? null,
       parcelle.cultureCode,
       parcelle.culture?.label ?? null,
-      parcelle.comment,
+      parcelle.$preloaded.comments ? (parcelle.comments[0]?.comment ?? null) : null,
       this.formatDateTime(parcelle.createdAt),
       this.formatDateTime(parcelle.updatedAt),
     ])

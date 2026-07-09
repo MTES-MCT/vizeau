@@ -117,7 +117,11 @@ export default class ProjectsController {
       exploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations('', user.id)
-          .preload('parcelles')
+          .preload('parcelles', (parcelleQuery) => {
+            parcelleQuery.preload('comments', (commentQuery) => {
+              commentQuery.where('userId', user.id)
+            })
+          })
         return ExploitationDto.toJsonArray(results)
       },
       installations: CaptageDto.toFormJsonArray(captageRows),
@@ -155,7 +159,11 @@ export default class ProjectsController {
     const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
     await Promise.all([
-      project.load('parcelles'),
+      project.load('parcelles', (query) =>
+        query.preload('comments', (commentQuery) => {
+          commentQuery.where('userId', user.id)
+        })
+      ),
       project.load('exploitations'),
       project.load('captages'),
       project.load('steps', (query) =>
@@ -385,7 +393,11 @@ export default class ProjectsController {
       exploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations('', user.id)
-          .preload('parcelles')
+          .preload('parcelles', (parcelleQuery) => {
+            parcelleQuery.preload('comments', (commentQuery) => {
+              commentQuery.where('userId', user.id)
+            })
+          })
         return ExploitationDto.toJsonArray(results)
       },
       installations: CaptageDto.toFormJsonArray(captageRows),
