@@ -64,9 +64,16 @@ test.group('ParcelleCsvService', (group) => {
     assert.equal(fields[2], '""')
   })
 
-  test('outputs empty field when comment is null', async ({ assert }) => {
+  test('outputs empty field when user has no comment', async ({ assert }) => {
+    const user = await UserFactory.create()
     const parcelle = await ParcelleFactory.with('exploitation').create()
-    const csv = new ParcelleCsvService().generateCsv([parcelle])
+
+    const reloaded = await Parcelle.query()
+      .where('id', parcelle.id)
+      .preload('comments', (q) => q.where('userId', user.id))
+      .firstOrFail()
+
+    const csv = new ParcelleCsvService().generateCsv([reloaded])
     const fields = parseFields(parseRows(csv)[1])
     // Commentaire is at index 5
     assert.equal(fields[5], '""')
