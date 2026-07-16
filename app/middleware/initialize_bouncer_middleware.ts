@@ -1,5 +1,4 @@
-import { policies } from '#policies/main'
-
+import { policies } from '#generated/policies'
 import { Bouncer } from '@adonisjs/bouncer'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'

@@ -10,186 +10,181 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 
-const AccueilController = () => import('#controllers/accueil_controller')
-const ExploitationsController = () => import('#controllers/exploitations_controller')
-const SessionController = () => import('#controllers/session_controller')
-const LogEntriesController = () => import('#controllers/log_entries_controller')
-const VisualisationController = () => import('#controllers/visualisation_controller')
-const AacController = () => import('#controllers/aac_controller')
-const ProjectsController = () => import('#controllers/projects_controller')
-const ProjectStepsController = () => import('#controllers/project_steps_controller')
-const TerritoiresController = () => import('#controllers/territoires_controller')
+import { controllers } from '#generated/controllers'
 
 router.get('/', ({ response }) => response.redirect('login')).as('root')
 
-router.get('login', [SessionController, 'index'])
-router.post('login', [SessionController, 'store'])
+router.get('login', [controllers.Session, 'index'])
+router.post('login', [controllers.Session, 'store'])
 
 // Protected routes
 router
   .group(() => {
-    router.get('logout', [SessionController, 'delete'])
-    router.get('pas-de-territoire', [AccueilController, 'noTerritoire']).as('noTerritoire')
+    router.get('logout', [controllers.Session, 'delete'])
+    router.get('pas-de-territoire', [controllers.Accueil, 'noTerritoire']).as('noTerritoire')
 
     // Routes in this group will redirect to an error page if no territoire is assigned to the user
     router
       .group(() => {
-        router.get('accueil', [AccueilController, 'index'])
-        router.get('visualisation', [VisualisationController, 'index'])
+        router.get('accueil', [controllers.Accueil, 'index'])
+        router.get('visualisation', [controllers.Visualisation, 'index'])
         router
           .post('visualisation/parcelles', [
-            VisualisationController,
+            controllers.Visualisation,
             'assignParcellesToExploitation',
           ])
           .as('visualisation.assignParcellesToExploitation')
 
-        router.get('exploitations', [ExploitationsController, 'index']).as('exploitations.index')
+        router.get('exploitations', [controllers.Exploitations, 'index']).as('exploitations.index')
         router
-          .get('exploitations/creation', [ExploitationsController, 'create'])
+          .get('exploitations/creation', [controllers.Exploitations, 'create'])
           .as('exploitations.create')
 
         router
-          .get('exploitations/edition/:id', [ExploitationsController, 'getForEdition'])
+          .get('exploitations/edition/:id', [controllers.Exploitations, 'getForEdition'])
           .as('exploitations.edition')
         router
-          .get('exploitations/siret/:siret', [ExploitationsController, 'getBySiret'])
+          .get('exploitations/siret/:siret', [controllers.Exploitations, 'getBySiret'])
           .as('exploitations.getBySiret')
 
-        router.get('exploitations/:id', [ExploitationsController, 'get']).as('exploitations.get')
+        router.get('exploitations/:id', [controllers.Exploitations, 'get']).as('exploitations.get')
 
         router
-          .post('exploitations/creation', [ExploitationsController, 'store'])
+          .post('exploitations/creation', [controllers.Exploitations, 'store'])
           .as('exploitations.store')
         router
-          .patch('exploitations/:id', [ExploitationsController, 'edit'])
+          .patch('exploitations/:id', [controllers.Exploitations, 'edit'])
           .as('exploitations.edit')
         router
-          .delete('exploitations/:id', [ExploitationsController, 'destroy'])
+          .delete('exploitations/:id', [controllers.Exploitations, 'destroy'])
           .as('exploitations.destroy')
 
         router
           .delete('exploitations/:exploitationId/parcelles/:rpgId/detach', [
-            ExploitationsController,
+            controllers.Exploitations,
             'detachParcelle',
           ])
           .as('exploitations.detachParcelle')
 
         router
           .patch('exploitations/:exploitationId/parcelles/:rpgId/note', [
-            ExploitationsController,
+            controllers.Exploitations,
             'updateParcelleNote',
           ])
           .as('parcelles.note.update')
 
         router
           .get('exploitations/:exploitationId/parcelles/export', [
-            ExploitationsController,
+            controllers.Exploitations,
             'exportParcellesCsv',
           ])
           .as('parcelles.export')
 
         router
           .get('exploitations/:exploitationId/export', [
-            ExploitationsController,
+            controllers.Exploitations,
             'exportExploitationCsv',
           ])
           .as('exploitations.export')
 
         router
-          .get('exploitations/:exploitationId/journal', [LogEntriesController, 'index'])
+          .get('exploitations/:exploitationId/journal', [controllers.LogEntries, 'index'])
           .as('log_entries.index')
 
         router
-          .get('exploitations/:exploitationId/journal/export', [LogEntriesController, 'exportCsv'])
+          .get('exploitations/:exploitationId/journal/export', [
+            controllers.LogEntries,
+            'exportCsv',
+          ])
           .as('log_entries.export')
 
         router
-          .get('exploitations/:exploitationId/journal/:logEntryId', [LogEntriesController, 'get'])
+          .get('exploitations/:exploitationId/journal/:logEntryId', [controllers.LogEntries, 'get'])
           .as('log_entries.get')
 
         router
           .get('exploitations/:exploitationId/journal/:logEntryId/edition', [
-            LogEntriesController,
+            controllers.LogEntries,
             'getForEdition',
           ])
           .as('log_entries.edition')
 
         router
-          .post('exploitations/:exploitationId/journal', [LogEntriesController, 'create'])
+          .post('exploitations/:exploitationId/journal', [controllers.LogEntries, 'create'])
           .as('log_entries.create')
         router
           .post('exploitations/:exploitationId/journal/complete', [
-            LogEntriesController,
+            controllers.LogEntries,
             'complete',
           ])
           .as('log_entries.complete')
         router
-          .patch('exploitations/:exploitationId/journal', [LogEntriesController, 'edit'])
+          .patch('exploitations/:exploitationId/journal', [controllers.LogEntries, 'edit'])
           .as('log_entries.edit')
         router
-          .delete('exploitations/:exploitationId/journal', [LogEntriesController, 'destroy'])
+          .delete('exploitations/:exploitationId/journal', [controllers.LogEntries, 'destroy'])
           .as('log_entries.destroy')
 
         router
           .post('exploitations/:exploitationId/tags', [
-            LogEntriesController,
+            controllers.LogEntries,
             'createTagForExploitation',
           ])
           .as('log_entries.createTagForExploitation')
         router
           .delete('exploitations/:exploitationId/tags', [
-            LogEntriesController,
+            controllers.LogEntries,
             'destroyTagForExploitation',
           ])
           .as('log_entries.destroyTagForExploitation')
 
         router
-          .get('journal-document/:documentId', [LogEntriesController, 'downloadDocument'])
+          .get('journal-document/:documentId', [controllers.LogEntries, 'downloadDocument'])
           .as('log_entries.downloadDocument')
         router
-          .delete('journal-document', [LogEntriesController, 'destroyDocument'])
+          .delete('journal-document', [controllers.LogEntries, 'destroyDocument'])
           .as('log_entries.destroyDocument')
 
-        router.get('aac', [AacController, 'index']).as('aac.index')
-        router.get('aac/:code', [AacController, 'show']).where('code', /^\d+$/).as('aac.show')
+        router.get('aac', [controllers.Aac, 'index']).as('aac.index')
+        router.get('aac/:code', [controllers.Aac, 'show']).where('code', /^\d+$/).as('aac.show')
         router
-          .get('aac/:code/analyses/summary', [AacController, 'analysesSummary'])
+          .get('aac/:code/analyses/summary', [controllers.Aac, 'analysesSummary'])
           .where('code', /^\d+$/)
           .as('aac.analysesSummary')
         router
-          .get('aac/:code/export/general', [AacController, 'exportInfoGenerale'])
+          .get('aac/:code/export/general', [controllers.Aac, 'exportInfoGenerale'])
           .where('code', /^\d+$/)
           .as('aac.export.infoGenerale')
         router
-          .get('aac/:code/export/captages', [AacController, 'exportCaptages'])
+          .get('aac/:code/export/captages', [controllers.Aac, 'exportCaptages'])
           .where('code', /^\d+$/)
           .as('aac.export.captages')
         router
-          .get('aac/:code/export/assolement', [AacController, 'exportAssolement'])
+          .get('aac/:code/export/assolement', [controllers.Aac, 'exportAssolement'])
           .where('code', /^\d+$/)
           .as('aac.export.assolement')
         router
-          .get('aac/:code/export/culture-evolution', [AacController, 'exportCultureEvolution'])
+          .get('aac/:code/export/culture-evolution', [controllers.Aac, 'exportCultureEvolution'])
           .where('code', /^\d+$/)
           .as('aac.export.cultureEvolution')
         router
-          .get('aac/:code/export/qualite', [AacController, 'exportQualiteEau'])
+          .get('aac/:code/export/qualite', [controllers.Aac, 'exportQualiteEau'])
           .where('code', /^\d+$/)
           .as('aac.export.qualite')
         router
-          .get('aac/:code/installations/:installationCode', [AacController, 'showInstallation'])
+          .get('aac/:code/installations/:installationCode', [controllers.Aac, 'showInstallation'])
           .where('code', /^\d+$/)
           .as('aac.showInstallation')
         router
           .get('aac/:code/installations/:installationCode/analyses/substances', [
-            AacController,
+            controllers.Aac,
             'substances',
           ])
           .where('code', /^\d+$/)
           .as('aac.substances')
         router
           .get('aac/:code/installations/:installationCode/analyses/substances/:codeParametre', [
-            AacController,
+            controllers.Aac,
             'substanceChronique',
           ])
           .where('code', /^\d+$/)
@@ -197,83 +192,83 @@ router
           .as('aac.substanceChronique')
         router
           .get('aac/:code/installations/:installationCode/analyses/per-year', [
-            AacController,
+            controllers.Aac,
             'analysesPerYear',
           ])
           .where('code', /^\d+$/)
           .as('aac.analysesPerYear')
         router
           .get('aac/:code/installations/:installationCode/analyses/years', [
-            AacController,
+            controllers.Aac,
             'analysesYears',
           ])
           .where('code', /^\d+$/)
           .as('aac.analysesYears')
         router
           .get('aac/:code/installations/:installationCode/analyses/stats', [
-            AacController,
+            controllers.Aac,
             'analysesStats',
           ])
           .where('code', /^\d+$/)
           .as('aac.analysesStats')
         router
-          .get('aac/:code/installations/:installationCode/analyses', [AacController, 'analyses'])
+          .get('aac/:code/installations/:installationCode/analyses', [controllers.Aac, 'analyses'])
           .where('code', /^\d+$/)
           .as('aac.analyses')
 
-        router.get('projets', [ProjectsController, 'index']).as('projets.index')
-        router.get('projets/creation', [ProjectsController, 'create']).as('projets.create')
+        router.get('projets', [controllers.Projects, 'index']).as('projets.index')
+        router.get('projets/creation', [controllers.Projects, 'create']).as('projets.create')
         router
-          .get('projets/edition/:projectId', [ProjectsController, 'getForEdition'])
+          .get('projets/edition/:projectId', [controllers.Projects, 'getForEdition'])
           .as('projets.edition')
-        router.get('projets/:projectId', [ProjectsController, 'show']).as('projets.show')
-        router.post('projets', [ProjectsController, 'store']).as('projets.store')
-        router.patch('projets/:projectId', [ProjectsController, 'update']).as('projets.update')
-        router.delete('projets/:projectId', [ProjectsController, 'destroy']).as('projets.destroy')
+        router.get('projets/:projectId', [controllers.Projects, 'show']).as('projets.show')
+        router.post('projets', [controllers.Projects, 'store']).as('projets.store')
+        router.patch('projets/:projectId', [controllers.Projects, 'update']).as('projets.update')
+        router.delete('projets/:projectId', [controllers.Projects, 'destroy']).as('projets.destroy')
         router
-          .get('projets/:projectId/etapes/creation', [ProjectStepsController, 'createStepForm'])
+          .get('projets/:projectId/etapes/creation', [controllers.ProjectSteps, 'createStepForm'])
           .as('projets.steps.create.form')
         router
-          .get('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'getStep'])
+          .get('projets/:projectId/etapes/:stepId', [controllers.ProjectSteps, 'getStep'])
           .as('projets.steps.get')
         router
           .get('projets/:projectId/etapes/:stepId/edition', [
-            ProjectStepsController,
+            controllers.ProjectSteps,
             'getStepForEdition',
           ])
           .as('projets.steps.edition')
         router
-          .post('projets/:projectId/etapes', [ProjectStepsController, 'createStep'])
+          .post('projets/:projectId/etapes', [controllers.ProjectSteps, 'createStep'])
           .as('projets.steps.create')
         router
-          .post('projets/:projectId/etapes/complete', [ProjectStepsController, 'completeStep'])
+          .post('projets/:projectId/etapes/complete', [controllers.ProjectSteps, 'completeStep'])
           .as('projets.steps.complete')
         router
-          .patch('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'editStep'])
+          .patch('projets/:projectId/etapes/:stepId', [controllers.ProjectSteps, 'editStep'])
           .as('projets.steps.edit')
         router
-          .delete('projets/:projectId/etapes/:stepId', [ProjectStepsController, 'destroyStep'])
+          .delete('projets/:projectId/etapes/:stepId', [controllers.ProjectSteps, 'destroyStep'])
           .as('projets.steps.destroy')
         router
           .get('projets/:projectId/etapes/:stepId/documents/:documentId', [
-            ProjectStepsController,
+            controllers.ProjectSteps,
             'downloadStepDocument',
           ])
           .as('projets.steps.documents.download')
         router
           .delete('projets/:projectId/etapes/:stepId/documents', [
-            ProjectStepsController,
+            controllers.ProjectSteps,
             'destroyDocument',
           ])
           .as('projets.steps.documents.destroy')
         router
-          .post('projet-tags', [ProjectStepsController, 'createTag'])
+          .post('projet-tags', [controllers.ProjectSteps, 'createTag'])
           .as('projets.steps.tags.create')
         router
-          .delete('projet-tags', [ProjectStepsController, 'destroyTag'])
+          .delete('projet-tags', [controllers.ProjectSteps, 'destroyTag'])
           .as('projets.steps.tags.destroy')
 
-        router.get('territoires', [TerritoiresController, 'index']).as('territoires.index')
+        router.get('territoires', [controllers.Territoires, 'index']).as('territoires.index')
       })
       .use(middleware.territoireAssignation())
   })
