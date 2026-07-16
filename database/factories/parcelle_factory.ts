@@ -10,7 +10,6 @@ export const ParcelleFactory = factory
       rpgId: faker.string.numeric(10),
       surface: faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 }),
       cultureCode: null,
-      comment: null,
       centroid: null,
     }
   })

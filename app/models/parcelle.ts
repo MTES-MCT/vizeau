@@ -1,10 +1,18 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import {
+  BaseModel,
+  beforeCreate,
+  belongsTo,
+  column,
+  hasMany,
+  manyToMany,
+} from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Culture from '#models/culture'
 import Project from '#models/project'
+import ParcelleComment from '#models/parcelle_comment'
 
 export default class Parcelle extends BaseModel {
   static table = 'parcelles'
@@ -38,8 +46,8 @@ export default class Parcelle extends BaseModel {
   @column()
   declare cultureCode: string | null
 
-  @column()
-  declare comment: string | null
+  @hasMany(() => ParcelleComment)
+  declare comments: HasMany<typeof ParcelleComment>
 
   /*
     Stored as "POINT(lng,lat)" in database
