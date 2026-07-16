@@ -4,6 +4,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router, usePage } from '@inertiajs/react'
 import type { ProjectStepTagJson } from '#types/models'
 import { Tag } from '@codegouvfr/react-dsfr/Tag'
+import { urlFor } from '~/client'
 
 const debouncedFetchTags = debounce((newInput?: string) => {
   router.reload({
@@ -23,8 +24,6 @@ type ProjectStepTagSelectorProps = {
 type ProjectStepTagPageProps = {
   filteredProjectStepTags: ProjectStepTagJson[]
   lastCreatedProjectStepTag?: ProjectStepTagJson[]
-  createTagUrl: string
-  deleteTagUrl: string
 }
 
 // Every tag fetched is cached for later retrieval
@@ -36,8 +35,7 @@ export function ProjectStepTagSelector({
   values,
   onChange,
 }: ProjectStepTagSelectorProps) {
-  const { filteredProjectStepTags, createTagUrl, deleteTagUrl } = usePage()
-    .props as unknown as ProjectStepTagPageProps
+  const { filteredProjectStepTags } = usePage().props as unknown as ProjectStepTagPageProps
 
   // Cache the currently filtered tags
   for (const tag of filteredProjectStepTags ?? []) {
@@ -55,7 +53,7 @@ export function ProjectStepTagSelector({
         iconId: 'fr-icon-delete-bin-line',
         isCritical: true,
         onClick: (value: number) => {
-          router.delete(deleteTagUrl, {
+          router.delete(urlFor('projets.steps.tags.destroy'), {
             data: { tagId: value },
             only: ['filteredProjectStepTags'],
             replace: true,
@@ -114,7 +112,7 @@ export function ProjectStepTagSelector({
               style={{ width: '100%' }}
               onClick={() => {
                 router.post(
-                  createTagUrl,
+                  urlFor('projets.steps.tags.create'),
                   { name: normalizedInput },
                   {
                     only: ['filteredProjectStepTags', 'lastCreatedProjectStepTag'],

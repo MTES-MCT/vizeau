@@ -14,6 +14,7 @@ import StepInfoCard from '~/components/projets/step-info-card'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
 import ProjectStepTagsCard from '~/components/projets/ProjectStepTagsCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { urlFor } from '~/client'
 
 type SingleProjectStepProps = {
   projet: {
@@ -21,18 +22,9 @@ type SingleProjectStepProps = {
     name: string
   }
   step: ProjectStepJson
-  deleteStepUrl: string
-  completeStepUrl: string
-  deleteDocumentUrl: string
 }
 
-export default function SingleProjectStep({
-  projet,
-  step,
-  deleteStepUrl,
-  completeStepUrl,
-  deleteDocumentUrl,
-}: SingleProjectStepProps) {
+export default function SingleProjectStep({ projet, step }: SingleProjectStepProps) {
   const deleteStepModal = createModal({
     id: 'delete-project-step-page-modal',
     isOpenedByDefault: false,
@@ -85,7 +77,7 @@ export default function SingleProjectStep({
         <h2>{stepTitle}</h2>
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
-            <StepInfoCard step={step} completeStepUrl={completeStepUrl} />
+            <StepInfoCard step={step} projectId={projet.id} />
 
             <ProjectStepTagsCard tags={step.tags} />
 
@@ -104,9 +96,12 @@ export default function SingleProjectStep({
                 {
                   children: 'Supprimer la tâche',
                   onClick: () => {
-                    router.delete(deleteStepUrl, {
-                      data: { id: step.id },
-                    })
+                    router.delete(
+                      urlFor('projets.steps.destroy', { projectId: projet.id, stepId: step.id }),
+                      {
+                        data: { id: step.id },
+                      }
+                    )
                   },
                 },
               ]}
@@ -128,7 +123,10 @@ export default function SingleProjectStep({
               {step.documents && step.documents.length > 0 ? (
                 <ProjectStepDocumentList
                   documents={step.documents}
-                  deleteDocumentUrl={deleteDocumentUrl}
+                  deleteDocumentUrl={urlFor('projets.steps.documents.destroy', {
+                    projectId: projet.id,
+                    stepId: step.id,
+                  })}
                 />
               ) : (
                 <EmptyPlaceholder

@@ -10,6 +10,8 @@ import TruncatedText from '~/ui/TruncatedText'
 import ProjectStepForm from '~/components/projets/form/project-step-form'
 import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
 import SmallSection from '~/ui/SmallSection'
+import { urlFor } from '~/client'
+import type { ProjectJson } from '#types/models'
 
 export type ProjectStepFormData = {
   id?: string
@@ -20,7 +22,7 @@ export type ProjectStepFormData = {
   documents?: File[]
 }
 
-export default function ProjectStepCreationPage({ projet, createStepUrl }: any) {
+export default function ProjectStepCreationPage({ projet }: { projet: ProjectJson }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<ProjectStepFormData>({
@@ -34,7 +36,7 @@ export default function ProjectStepCreationPage({ projet, createStepUrl }: any) 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
 
-    post(createStepUrl, {
+    post(urlFor('projets.steps.create', { projectId: projet.id }), {
       onSuccess: () => {
         setTagInputValue('')
         resetAndClearErrors()

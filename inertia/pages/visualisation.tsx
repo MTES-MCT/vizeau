@@ -7,11 +7,12 @@ import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
-import type { ExploitationJson } from '#types/models'
+import type { AacSummaryJson, ExploitationJson } from '#types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 import { getCentroid } from '~/functions/map'
+import { urlFor } from '~/client'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -30,16 +31,30 @@ export type ParcelleFormData = {
   }[]
 }
 
+export type VisualisationPageProps = {
+  filteredExploitations: ExploitationJson[]
+  queryString: Record<string, string | undefined>
+  unavailableParcellesIds: string[]
+  aacs: AacSummaryJson[]
+  aacMeta: {
+    total: number
+    perPage: number
+    currentPage: number
+    lastPage: number
+  }
+  aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
+  selectedAac?: AacSummaryJson
+}
+
 export default function VisualisationPage({
   filteredExploitations,
   queryString,
-  assignParcellesToExploitationUrl,
   unavailableParcellesIds,
   aacs,
   aacMeta,
   aacQueryString,
   selectedAac,
-}: any) {
+}: VisualisationPageProps) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [mapZoom, setMapZoom] = useState<number | null>(null)
   const [showParcelles, setShowParcelles] = useState(true)
@@ -98,7 +113,7 @@ export default function VisualisationPage({
   }))
 
   const sendFormAndResetState = (onAfterSuccess?: () => void) => {
-    post(assignParcellesToExploitationUrl, {
+    post(urlFor('visualisation.assignParcellesToExploitation'), {
       preserveState: true,
       onSuccess: () => {
         setEditMode(false)

@@ -15,16 +15,9 @@ import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
 import { LogEntryDocumentList } from '~/components/log-entry-id/LogEntryDocumentList'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { urlFor } from '~/client'
 
-export default function SingleTask({
-  logEntry,
-  isCreator,
-  exploitation,
-  user,
-  deleteEntryLogUrl,
-  completeEntryLogUrl,
-  deleteDocumentUrl,
-}: any) {
+export default function SingleTask({ logEntry, isCreator, exploitation, user }: any) {
   const deleteEntryLogModal = createModal({
     id: 'delete-entry-log-modal',
     isOpenedByDefault: false,
@@ -88,7 +81,7 @@ export default function SingleTask({
             <LogEntryInformationCard
               userName={user?.fullName}
               logEntry={logEntry}
-              completeEntryLogUrl={completeEntryLogUrl}
+              exploitationId={exploitation.id}
             />
             <LogEntryTagsCard tags={logEntry.tags} />
             <DeleteAlert
@@ -105,9 +98,12 @@ export default function SingleTask({
                 {
                   children: "Supprimer l'entrée de journal de bord",
                   onClick: () => {
-                    router.delete(deleteEntryLogUrl, {
-                      data: { id: logEntry.id },
-                    })
+                    router.delete(
+                      urlFor('log_entries.destroy', { exploitationId: exploitation.id }),
+                      {
+                        data: { id: logEntry.id },
+                      }
+                    )
                   },
                 },
               ]}
@@ -131,7 +127,7 @@ export default function SingleTask({
                 {logEntry.documents && logEntry.documents.length > 0 ? (
                   <LogEntryDocumentList
                     documents={logEntry.documents}
-                    deleteDocumentUrl={deleteDocumentUrl}
+                    deleteDocumentUrl={urlFor('log_entries.destroyDocument')}
                   />
                 ) : (
                   <EmptyPlaceholder

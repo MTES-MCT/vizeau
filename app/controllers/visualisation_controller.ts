@@ -7,7 +7,6 @@ import { EventLoggerService } from '#services/event_logger_service'
 import { assignParcellesToExploitationValidator } from '#validators/parcelle'
 import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
-import router from '@adonisjs/core/services/router'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import Project from '#models/project'
@@ -141,9 +140,6 @@ export default class VisualisationController {
       }),
       queryString: request.qs(),
       pmtilesUrl: env.get('PMTILES_URL', ''),
-      assignParcellesToExploitationUrl: router
-        .builder()
-        .make('visualisation.assignParcellesToExploitation'),
     })
   }
 
