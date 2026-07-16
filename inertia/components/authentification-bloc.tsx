@@ -6,14 +6,14 @@ import { Input } from '@codegouvfr/react-dsfr/Input'
 import { fr } from '@codegouvfr/react-dsfr'
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar'
 import { Form } from '@adonisjs/inertia/react'
+import type { SharedProps } from '@adonisjs/inertia/types'
 
 export default function AuthentificationBloc() {
   const borderColor = fr.colors.decisions.border.default.grey.default
   const linkColor = fr.colors.decisions.text.actionHigh.blueFrance.default
 
-  const { errors } = usePage().props
+  const { flashMessages } = usePage<SharedProps>().props
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL
-
   return (
     <div className="flex justify-center items-center w-full">
       <div
@@ -27,18 +27,16 @@ export default function AuthentificationBloc() {
           <h4 className="text-center fr-mb-1w">Authentification</h4>
           <p>Entrez votre email pour accéder à l'application</p>
         </div>
-        <div className="fr-p-3w">
-          {errors && errors.E_INVALID_CREDENTIALS && (
-            <Alert
-              description={
-                "Les informations d'identification fournies sont incorrectes. Veuillez vérifier votre adresse e-mail et votre mot de passe, puis réessayer."
-              }
-              severity="error"
-              title="Erreur d'authentification"
-              className="fr-my-3w"
-            />
-          )}
-        </div>
+        {flashMessages?.error?.code === 'E_INVALID_CREDENTIALS' && (
+          <Alert
+            description={
+              "Les informations d'identification fournies sont incorrectes. Veuillez vérifier votre adresse e-mail et votre mot de passe, puis réessayer."
+            }
+            severity="error"
+            title="Erreur d'authentification"
+            className="fr-my-3w"
+          />
+        )}
         <Form className="w-full fr-mt-1w" route={'session.store'}>
           <Input
             label="Adresse e-mail"
