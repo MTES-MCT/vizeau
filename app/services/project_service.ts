@@ -81,8 +81,8 @@ export class ProjectService {
     ])
     const currentYear = new Date().getFullYear()
     const availableYearRange = {
-      min: oldestProject?.createdAt.year ?? currentYear,
-      max: newestProject?.createdAt.year ?? currentYear,
+      min: oldestProject?.createdAt?.year ?? currentYear,
+      max: newestProject?.createdAt?.year ?? currentYear,
     }
 
     // Per-status counts using base filters (search + year + type) but no status filter

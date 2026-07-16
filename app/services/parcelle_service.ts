@@ -48,7 +48,7 @@ export class ParcelleService {
                 exploitationId,
                 year,
                 rpgId: parcelle.rpgId,
-                surface: parcelle.surface,
+                surface: parcelle.surface?.toString(),
                 cultureCode: parcelle.cultureCode,
                 centroid: parcelle.centroid,
               },
@@ -86,9 +86,10 @@ export class ParcelleService {
     const parcelles = await Parcelle.query()
       .where('year', year)
       .andWhere('exploitationId', '!=', exploitationId)
+      .andWhereNotNull('rpgId')
       .select('rpgId')
 
-    return parcelles.map((parcelle) => parcelle.rpgId)
+    return parcelles.map((parcelle) => parcelle.rpgId!)
   }
 
   async getAllParcellesForExploitation(

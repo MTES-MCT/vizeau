@@ -1,40 +1,20 @@
-import { DateTime } from 'luxon'
-import {
-  BaseModel,
-  beforeCreate,
-  belongsTo,
-  column,
-  hasMany,
-  manyToMany,
-} from '@adonisjs/lucid/orm'
+import { beforeCreate, belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Exploitation from '#models/exploitation'
+import { TerritoireSchema } from '#database/schema'
 
-export default class Territoire extends BaseModel {
+export default class Territoire extends TerritoireSchema {
   static table = 'territoires'
   // Disable primary key generation by the DB
   static selfAssignPrimaryKey = true
-
-  @column({ isPrimary: true })
-  declare id: string
 
   // Auto-generate UUID before DB insertion
   @beforeCreate()
   static assignUuid(territoire: Territoire) {
     territoire.id = randomUUID()
   }
-
-  @column()
-  declare name: string | null
-
-  // For now, territoires are strictly AACs, so code corresponds to the official AAC code.
-  @column()
-  declare code: string | null
-
-  @column()
-  declare parentTerritoireId: string | null
 
   @belongsTo(() => Territoire)
   declare parentTerritoire: BelongsTo<typeof Territoire>
@@ -53,10 +33,4 @@ export default class Territoire extends BaseModel {
     pivotTimestamps: true,
   })
   declare users: ManyToMany<typeof User>
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
 }

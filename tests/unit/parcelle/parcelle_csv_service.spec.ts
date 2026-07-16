@@ -44,7 +44,7 @@ test.group('ParcelleCsvService', (group) => {
     const parcelle = await ParcelleFactory.merge({
       year: 2025,
       rpgId: '1234567890',
-      surface: 12.5,
+      surface: '12.5',
     })
       .with('exploitation')
       .create()

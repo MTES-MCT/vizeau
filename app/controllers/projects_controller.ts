@@ -281,7 +281,7 @@ export default class ProjectsController {
             exploitationId: null,
             year: input.year!,
             rpgId: input.rpgId,
-            surface: input.surface ?? null,
+            surface: input.surface?.toString() ?? null,
             cultureCode: input.cultureCode ?? null,
             centroid: input.centroid ?? null,
           })
@@ -522,7 +522,7 @@ export default class ProjectsController {
             exploitationId: null,
             year: input.year!,
             rpgId: input.rpgId,
-            surface: input.surface ?? null,
+            surface: input.surface?.toString() ?? null,
             cultureCode: input.cultureCode ?? null,
             centroid: input.centroid ?? null,
           })
