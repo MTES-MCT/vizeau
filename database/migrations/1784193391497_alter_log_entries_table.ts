@@ -5,6 +5,10 @@ export default class extends BaseSchema {
   protected tableName = LogEntry.table
 
   async up() {
+    this.defer(async () => {
+      await LogEntry.query().whereNull('is_completed').update({ is_completed: false })
+    })
+
     this.schema.alterTable(this.tableName, (table) => {
       table.boolean('is_completed').notNullable().defaultTo(false).alter()
     })
