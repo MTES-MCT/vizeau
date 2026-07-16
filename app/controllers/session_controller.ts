@@ -26,7 +26,10 @@ export default class SessionController {
       return response.redirect(redirectAfterLogin)
     } catch (error) {
       // If authentication fails, just render the login view
-      if (error instanceof errors.E_UNAUTHORIZED_ACCESS) {
+      if (
+        error instanceof errors.E_UNAUTHORIZED_ACCESS ||
+        (error as { code?: string }).code === errors.E_UNAUTHORIZED_ACCESS.code
+      ) {
         return inertia.render('login', {})
       }
 
@@ -43,12 +46,12 @@ export default class SessionController {
       this.eventLogger.logEvent({ userId: user.id, ...EVENTS.LOGIN })
       await auth.use('web').login(user, !!request.input('remember_me'))
 
-      response.redirect(redirectAfterLogin)
+      return response.redirect(redirectAfterLogin)
     } catch (error) {
       if (error instanceof errors.E_INVALID_CREDENTIALS) {
         session.flash('error', {
           message: error.message,
-          code: 'E_INVALID_CREDENTIALS',
+          code: error.code,
           context: 'login',
         })
         return response.redirect().back()
