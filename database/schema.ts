@@ -266,13 +266,28 @@ export class LogEntryTagSchema extends BaseModel {
   declare userId: string
 }
 
+export class ParcelleCommentSchema extends BaseModel {
+  static $columns = ['comment', 'createdAt', 'id', 'parcelleId', 'updatedAt', 'userId'] as const
+  $columns = ParcelleCommentSchema.$columns
+  @column()
+  declare comment: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare parcelleId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: string
+}
+
 export class ParcelleSchema extends BaseModel {
-  static $columns = ['centroid', 'comment', 'createdAt', 'cultureCode', 'exploitationId', 'id', 'rpgId', 'surface', 'updatedAt', 'year'] as const
+  static $columns = ['centroid', 'createdAt', 'cultureCode', 'exploitationId', 'id', 'rpgId', 'surface', 'updatedAt', 'year'] as const
   $columns = ParcelleSchema.$columns
   @column()
   declare centroid: string | null
-  @column()
-  declare comment: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column()
