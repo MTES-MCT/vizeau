@@ -67,7 +67,13 @@ export class LogEntryService {
       .where('id', documentId)
       .andWhereHas('logEntry', (logEntryQuery) => {
         logEntryQuery.whereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.where('userId', userId).andWhere('isDeleted', false)
+          exploitationQuery
+            .where('isDeleted', false)
+            .andWhereHas('territoires', (territoireQuery) => {
+              territoireQuery.whereHas('users', (userQuery) => {
+                userQuery.where('users.id', userId)
+              })
+            })
         })
       })
       .first()
