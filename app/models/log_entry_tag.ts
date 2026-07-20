@@ -1,33 +1,15 @@
-import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { belongsTo } from '@adonisjs/lucid/orm'
 import User from '#models/user'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Exploitation from '#models/exploitation'
+import { LogEntryTagSchema } from '#database/schema'
 
-export default class LogEntryTag extends BaseModel {
+export default class LogEntryTag extends LogEntryTagSchema {
   static table = 'log_entry_tags'
-
-  @column({ isPrimary: true })
-  declare id: number
-
-  @column()
-  declare name: string
-
-  @column()
-  declare userId: string
 
   @belongsTo(() => User)
   declare owner: BelongsTo<typeof User>
 
-  @column()
-  declare exploitationId: string
-
   @belongsTo(() => Exploitation)
   declare exploitation: BelongsTo<typeof Exploitation>
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
 }

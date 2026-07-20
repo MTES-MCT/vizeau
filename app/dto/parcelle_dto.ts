@@ -12,7 +12,7 @@ export class ParcelleDto {
       exploitationId: parcelle.exploitationId,
       year: parcelle.year,
       rpgId: parcelle.rpgId,
-      surface: parcelle.surface,
+      surface: parcelle.surface !== null ? Number.parseFloat(parcelle.surface) : null,
       cultureCode: parcelle.cultureCode,
       centroid: parcelle.centroid,
       comment: parcelle.comments?.[0]?.comment ?? null,

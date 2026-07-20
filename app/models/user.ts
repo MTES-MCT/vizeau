@@ -1,26 +1,23 @@
-import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, beforeCreate, column, manyToMany } from '@adonisjs/lucid/orm'
+import { beforeCreate, manyToMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { randomUUID } from 'node:crypto'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Territoire from '#models/territoire'
+import { UserSchema } from '#database/schema'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
   passwordColumnName: 'password',
 })
 
-export default class User extends compose(BaseModel, AuthFinder) {
+export default class User extends compose(UserSchema, AuthFinder) {
   static table = 'users'
   static rememberMeTokens = DbRememberMeTokensProvider.forModel(User)
   // Disable primary key generation by the DB
   static selfAssignPrimaryKey = true
-
-  @column({ isPrimary: true })
-  declare id: string
 
   // Auto-generate UUID before DB insertion
   @beforeCreate()
@@ -28,24 +25,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
     user.id = randomUUID()
   }
 
-  @column()
-  declare fullName: string | null
-
-  @column()
-  declare email: string
-
-  @column({ serializeAs: null })
-  declare password: string
-
   @manyToMany(() => Territoire, {
     pivotTable: 'territoire_user_relations',
     pivotTimestamps: true,
   })
   declare territoires: ManyToMany<typeof Territoire>
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
 }

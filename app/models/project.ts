@@ -1,12 +1,4 @@
-import { DateTime } from 'luxon'
-import {
-  BaseModel,
-  beforeCreate,
-  belongsTo,
-  column,
-  hasMany,
-  manyToMany,
-} from '@adonisjs/lucid/orm'
+import { beforeCreate, belongsTo, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
@@ -14,6 +6,7 @@ import Parcelle from '#models/parcelle'
 import Captage from '#models/captage'
 import User from '#models/user'
 import ProjectStep from '#models/project_step'
+import { ProjectSchema } from '#database/schema'
 
 export const ProjectStatus = {
   TO_BE_STARTED: 'to_be_started',
@@ -22,29 +15,14 @@ export const ProjectStatus = {
   ABANDONED: 'abandoned',
 } as const
 
-export default class Project extends BaseModel {
+export default class Project extends ProjectSchema {
   static table = 'projects'
   static selfAssignPrimaryKey = true
-
-  @column({ isPrimary: true })
-  declare id: string
 
   @beforeCreate()
   static assignUuid(project: Project) {
     project.id = randomUUID()
   }
-
-  @column()
-  declare name: string
-
-  @column()
-  declare description: string | null
-
-  @column()
-  declare actionType: string | null
-
-  @column()
-  declare userId: string
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
@@ -72,13 +50,4 @@ export default class Project extends BaseModel {
 
   @hasMany(() => ProjectStep)
   declare steps: HasMany<typeof ProjectStep>
-
-  @column.dateTime()
-  declare closedAt: DateTime | null
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
 }

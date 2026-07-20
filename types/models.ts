@@ -78,7 +78,7 @@ export type LogEntryJson = {
 export type ParcelleJson = {
   id: string
   year: number
-  rpgId: string
+  rpgId: string | null
   exploitationId: string | null
   surface: number | null
   cultureCode: string | null

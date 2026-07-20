@@ -1,21 +1,9 @@
-import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { hasMany } from '@adonisjs/lucid/orm'
 import Culture from '#models/culture'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { CultureGroupSchema } from '#database/schema'
 
-export default class CultureGroup extends BaseModel {
-  @column({ isPrimary: true })
-  declare code: string
-
-  @column()
-  declare label: string
-
+export default class CultureGroup extends CultureGroupSchema {
   @hasMany(() => Culture)
   declare cultures: HasMany<typeof Culture>
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
 }

@@ -1,26 +1,16 @@
-import { DateTime } from 'luxon'
-import {
-  BaseModel,
-  beforeCreate,
-  belongsTo,
-  column,
-  hasMany,
-  manyToMany,
-} from '@adonisjs/lucid/orm'
+import { beforeCreate, belongsTo, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import Exploitation from '#models/exploitation'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Culture from '#models/culture'
 import Project from '#models/project'
+import { ParcelleSchema } from '#database/schema'
 import ParcelleComment from '#models/parcelle_comment'
 
-export default class Parcelle extends BaseModel {
+export default class Parcelle extends ParcelleSchema {
   static table = 'parcelles'
   // Disable primary key generation by the DB
   static selfAssignPrimaryKey = true
-
-  @column({ isPrimary: true })
-  declare id: string
 
   // Auto-generate UUID before DB insertion
   @beforeCreate()
@@ -28,23 +18,8 @@ export default class Parcelle extends BaseModel {
     parcelle.id = randomUUID()
   }
 
-  @column()
-  declare exploitationId: string | null
-
   @belongsTo(() => Exploitation)
   declare exploitation: BelongsTo<typeof Exploitation>
-
-  @column()
-  declare year: number
-
-  @column()
-  declare rpgId: string
-
-  @column()
-  declare surface: number | null
-
-  @column()
-  declare cultureCode: string | null
 
   @hasMany(() => ParcelleComment)
   declare comments: HasMany<typeof ParcelleComment>
@@ -61,6 +36,7 @@ export default class Parcelle extends BaseModel {
       return `(${value.x},${value.y})`
     },
   })
+  // @ts-expect-error the schema exposes the raw DB string, this narrows it to the parsed object
   declare centroid: { x: number; y: number } | null
 
   @belongsTo(() => Culture, { localKey: 'code', foreignKey: 'cultureCode' })
@@ -71,10 +47,4 @@ export default class Parcelle extends BaseModel {
     pivotTimestamps: true,
   })
   declare projects: ManyToMany<typeof Project>
-
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
 }

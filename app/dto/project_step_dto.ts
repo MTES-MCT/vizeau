@@ -29,8 +29,8 @@ export class ProjectStepDto {
             .params([projectStep.projectId, projectStep.id, doc.id])
             .make('projets.steps.documents.download'),
         })) ?? [],
-      createdAt: projectStep.createdAt.toISO() as string,
-      updatedAt: projectStep.updatedAt.toISO() as string,
+      createdAt: projectStep.createdAt!.toISO() as string,
+      updatedAt: projectStep.updatedAt!.toISO() as string,
     }
   }
 

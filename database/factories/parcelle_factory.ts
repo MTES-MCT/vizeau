@@ -8,7 +8,7 @@ export const ParcelleFactory = factory
     return {
       year: faker.number.int({ min: 2020, max: 2026 }),
       rpgId: faker.string.numeric(10),
-      surface: faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 }),
+      surface: faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 }).toString(),
       cultureCode: null,
       centroid: null,
     }

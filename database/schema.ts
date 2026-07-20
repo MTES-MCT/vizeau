@@ -8,18 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class CaptageSchema extends BaseModel {
-  static $columns = [
-    'bssCode',
-    'code',
-    'commune',
-    'createdAt',
-    'id',
-    'name',
-    'prioritaire',
-    'state',
-    'type',
-    'updatedAt',
-  ] as const
+  static $columns = ['bssCode', 'code', 'commune', 'createdAt', 'id', 'name', 'prioritaire', 'state', 'type', 'updatedAt'] as const
   $columns = CaptageSchema.$columns
   @column()
   declare bssCode: string
@@ -44,18 +33,7 @@ export class CaptageSchema extends BaseModel {
 }
 
 export class ContactSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'email',
-    'exploitationId',
-    'firstName',
-    'id',
-    'isPrimaryContact',
-    'lastName',
-    'phoneNumber',
-    'role',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'email', 'exploitationId', 'firstName', 'id', 'isPrimaryContact', 'lastName', 'phoneNumber', 'role', 'updatedAt'] as const
   $columns = ContactSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -68,7 +46,7 @@ export class ContactSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: string
   @column()
-  declare isPrimaryContact: boolean | null
+  declare isPrimaryContact: boolean
   @column()
   declare lastName: string | null
   @column()
@@ -93,15 +71,7 @@ export class CultureGroupSchema extends BaseModel {
 }
 
 export class CultureSchema extends BaseModel {
-  static $columns = [
-    'code',
-    'createdAt',
-    'endingYear',
-    'groupCode',
-    'label',
-    'startingYear',
-    'updatedAt',
-  ] as const
+  static $columns = ['code', 'createdAt', 'endingYear', 'groupCode', 'label', 'startingYear', 'updatedAt'] as const
   $columns = CultureSchema.$columns
   @column({ isPrimary: true })
   declare code: string
@@ -184,25 +154,7 @@ export class ExploitationTerritoireRelationSchema extends BaseModel {
 }
 
 export class ExploitationSchema extends BaseModel {
-  static $columns = [
-    'activite',
-    'addressLine1',
-    'addressLine2',
-    'commune',
-    'createdAt',
-    'denominationLegale',
-    'formeJuridique',
-    'id',
-    'isDeleted',
-    'location',
-    'name',
-    'notes',
-    'postalBox',
-    'postalCode',
-    'siret',
-    'updatedAt',
-    'userId',
-  ] as const
+  static $columns = ['activite', 'addressLine1', 'addressLine2', 'commune', 'createdAt', 'denominationLegale', 'formeJuridique', 'id', 'isDeleted', 'location', 'name', 'notes', 'postalBox', 'postalCode', 'siret', 'updatedAt', 'userId'] as const
   $columns = ExploitationSchema.$columns
   @column()
   declare activite: string | null
@@ -241,17 +193,7 @@ export class ExploitationSchema extends BaseModel {
 }
 
 export class LogEntrySchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'date',
-    'exploitationId',
-    'id',
-    'isCompleted',
-    'notes',
-    'title',
-    'updatedAt',
-    'userId',
-  ] as const
+  static $columns = ['createdAt', 'date', 'exploitationId', 'id', 'isCompleted', 'notes', 'title', 'updatedAt', 'userId'] as const
   $columns = LogEntrySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -262,7 +204,7 @@ export class LogEntrySchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: string
   @column()
-  declare isCompleted: boolean | null
+  declare isCompleted: boolean
   @column()
   declare notes: string | null
   @column()
@@ -274,15 +216,7 @@ export class LogEntrySchema extends BaseModel {
 }
 
 export class LogEntryDocumentSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'id',
-    'logEntryId',
-    'name',
-    's3Key',
-    'sizeInBytes',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'id', 'logEntryId', 'name', 's3Key', 'sizeInBytes', 'updatedAt'] as const
   $columns = LogEntryDocumentSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -350,17 +284,7 @@ export class ParcelleCommentSchema extends BaseModel {
 }
 
 export class ParcelleSchema extends BaseModel {
-  static $columns = [
-    'centroid',
-    'createdAt',
-    'cultureCode',
-    'exploitationId',
-    'id',
-    'rpgId',
-    'surface',
-    'updatedAt',
-    'year',
-  ] as const
+  static $columns = ['centroid', 'createdAt', 'cultureCode', 'exploitationId', 'id', 'rpgId', 'surface', 'updatedAt', 'year'] as const
   $columns = ParcelleSchema.$columns
   @column()
   declare centroid: string | null
@@ -428,15 +352,7 @@ export class ProjectParcelleRelationSchema extends BaseModel {
 }
 
 export class ProjectStepDocumentSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'id',
-    'name',
-    'projectStepId',
-    's3Key',
-    'sizeInBytes',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'id', 'name', 'projectStepId', 's3Key', 'sizeInBytes', 'updatedAt'] as const
   $columns = ProjectStepDocumentSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -485,16 +401,7 @@ export class ProjectStepTagSchema extends BaseModel {
 }
 
 export class ProjectStepSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'date',
-    'id',
-    'isValidated',
-    'note',
-    'projectId',
-    'title',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'date', 'id', 'isValidated', 'note', 'projectId', 'title', 'updatedAt'] as const
   $columns = ProjectStepSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -515,17 +422,7 @@ export class ProjectStepSchema extends BaseModel {
 }
 
 export class ProjectSchema extends BaseModel {
-  static $columns = [
-    'actionType',
-    'closedAt',
-    'createdAt',
-    'description',
-    'id',
-    'name',
-    'status',
-    'updatedAt',
-    'userId',
-  ] as const
+  static $columns = ['actionType', 'closedAt', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt', 'userId'] as const
   $columns = ProjectSchema.$columns
   @column()
   declare actionType: string | null
