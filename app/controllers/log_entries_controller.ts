@@ -17,8 +17,6 @@ import { EventLoggerService } from '#services/event_logger_service'
 import Exploitation from '#models/exploitation'
 import LogEntry from '#models/log_entry'
 import User from '#models/user'
-import router from '@adonisjs/core/services/router'
-import { urlFor } from '@adonisjs/core/services/url_builder'
 import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryDto } from '../dto/log_entry_dto.js'
@@ -58,7 +56,7 @@ export default class LogEntriesController {
     const exploitation = await Exploitation.findOrFail(exploitationId)
 
     return inertia.render('journal/creation', {
-      exploitation: exploitation,
+      exploitation: ExploitationDto.fromModel(exploitation),
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
           exploitationId,
@@ -82,15 +80,6 @@ export default class LogEntriesController {
 
         return LogEntryTagDto.fromArray(tags)
       }),
-      createTagForExploitationUrl: router
-        .builder()
-        .params([exploitationId])
-        .make('log_entries.createTagForExploitation'),
-      deleteTagForExploitationUrl: router
-        .builder()
-        .params([exploitationId])
-        .make('log_entries.destroyTagForExploitation'),
-      createEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.create'),
     })
   }
 
@@ -144,12 +133,6 @@ export default class LogEntriesController {
       isCreator: logEntry.userId === user.id,
       exploitation: ExploitationDto.fromModel(exploitation),
       user: logEntryAuthor?.serialize(),
-      deleteEntryLogUrl: router
-        .builder()
-        .params([exploitationId, params.logEntryId])
-        .make('log_entries.destroy'),
-      completeEntryLogUrl: router.builder().params([exploitationId]).make('log_entries.complete'),
-      deleteDocumentUrl: urlFor('log_entries.destroyDocument'),
     })
   }
 
@@ -201,16 +184,6 @@ export default class LogEntriesController {
 
         return LogEntryTagDto.fromArray(tags)
       }),
-      createTagForExploitationUrl: router
-        .builder()
-        .params([params.exploitationId])
-        .make('log_entries.createTagForExploitation'),
-      deleteTagForExploitationUrl: router
-        .builder()
-        .params([params.exploitationId])
-        .make('log_entries.destroyTagForExploitation'),
-      editEntryLogUrl: router.builder().params([params.exploitationId]).make('log_entries.edit'),
-      deleteDocumentUrl: urlFor('log_entries.destroyDocument'),
     })
   }
 

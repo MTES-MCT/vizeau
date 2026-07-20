@@ -7,6 +7,8 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import TruncatedText from '~/ui/TruncatedText'
+import { urlFor } from '~/client'
+import type { ExploitationJson } from '#types/models'
 
 export type LogEntryFormData = {
   id?: string
@@ -20,7 +22,7 @@ export type LogEntryFormData = {
   }>
 }
 
-export default function TaskCreationPage({ exploitation, createEntryLogUrl }: any) {
+export default function TaskCreationPage({ exploitation }: { exploitation: ExploitationJson }) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<LogEntryFormData>({
     title: '',
@@ -33,7 +35,7 @@ export default function TaskCreationPage({ exploitation, createEntryLogUrl }: an
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
 
-    post(createEntryLogUrl, {
+    post(urlFor('log_entries.create', { exploitationId: exploitation.id }), {
       onSuccess: () => {
         setInputValue('')
         resetAndClearErrors()
@@ -77,6 +79,7 @@ export default function TaskCreationPage({ exploitation, createEntryLogUrl }: an
             inputValue={inputValue}
             setInputValue={setInputValue}
             existingDocuments={[]}
+            exploitationId={exploitation.id}
           />
 
           <div className="flex w-full items-center justify-end gap-3">

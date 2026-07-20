@@ -15,7 +15,7 @@ export function ProjectStepDocumentList({
   deleteDocumentUrl,
 }: {
   documents: ProjectStepDocumentJson[]
-  deleteDocumentUrl?: string
+  deleteDocumentUrl: string
 }) {
   const [documentIdToDelete, setDocumentIdToDelete] = useState<number | null>(null)
 
@@ -27,11 +27,9 @@ export function ProjectStepDocumentList({
           href: document.href,
           size: document.sizeInBytes,
           format: 'PDF',
-          deletable: deleteDocumentUrl !== undefined,
+          deletable: true,
         }))}
         onDelete={(_, index) => {
-          if (!deleteDocumentUrl) return
-
           setDocumentIdToDelete(documents[index].id)
           deleteDocumentModal.open()
         }}
@@ -44,8 +42,6 @@ export function ProjectStepDocumentList({
           {
             children: 'Supprimer le document',
             onClick: () => {
-              if (!deleteDocumentUrl) return
-
               router.delete(deleteDocumentUrl, {
                 data: { documentId: documentIdToDelete },
                 onSuccess: () => {

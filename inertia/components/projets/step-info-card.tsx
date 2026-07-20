@@ -6,13 +6,14 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router } from '@inertiajs/react'
 import LabelInfo from '~/ui/LabelInfo'
 import { fr } from '@codegouvfr/react-dsfr'
+import { urlFor } from '~/client'
 
 export type StepInfoCardProps = {
   step: ProjectStepJson
-  completeStepUrl: string
+  projectId: string
 }
 
-export default function StepInfoCard({ step, completeStepUrl }: StepInfoCardProps) {
+export default function StepInfoCard({ step, projectId }: StepInfoCardProps) {
   const additionalInfos = getProjectStepAdditionalInfos(step)
 
   return (
@@ -59,7 +60,7 @@ export default function StepInfoCard({ step, completeStepUrl }: StepInfoCardProp
           <Button
             iconId="fr-icon-check-line"
             onClick={() => {
-              router.post(completeStepUrl, { id: step.id })
+              router.post(urlFor('projets.steps.complete', { projectId }), { id: step.id })
             }}
           >
             Marquer comme effectuée

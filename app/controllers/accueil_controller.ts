@@ -3,7 +3,6 @@ import { inject } from '@adonisjs/core'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
 import { EventLoggerService } from '#services/event_logger_service'
-import router from '@adonisjs/core/services/router'
 import { LogEntryDto } from '../dto/log_entry_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
 
@@ -32,7 +31,6 @@ export default class AccueilController {
         ExploitationDto.fromModel(exploitation)
       ),
       latestLogEntries: latestLogEntries.map((log) => LogEntryDto.fromModel(log)),
-      createExploitationUrl: router.builder().make('exploitations.create'),
     })
   }
 

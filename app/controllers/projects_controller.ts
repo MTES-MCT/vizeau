@@ -18,7 +18,6 @@ import { CaptageDto } from '../dto/captage_dto.js'
 import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { ProjectStepTagService } from '#services/project_step_tag_service'
-import { urlFor } from '@adonisjs/core/services/url_builder'
 
 @inject()
 export default class ProjectsController {
@@ -149,8 +148,6 @@ export default class ProjectsController {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
         return ProjectStepTagDto.fromArray(tags)
       }),
-      createTagUrl: urlFor('projets.steps.tags.create'),
-      deleteTagUrl: urlFor('projets.steps.tags.destroy'),
     })
   }
 

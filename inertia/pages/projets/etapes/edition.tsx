@@ -14,14 +14,9 @@ import { getProjectStepTitle } from '~/functions/project_steps'
 import SmallSection from '~/ui/SmallSection'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
 import { useRef } from 'react'
+import { urlFor } from '~/client'
 
-export default function ProjectStepEditionPage({
-  projet,
-  step,
-  editStepUrl,
-  deleteDocumentUrl,
-  flashMessages,
-}: any) {
+export default function ProjectStepEditionPage({ projet, step, flashMessages }: any) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<ProjectStepFormData>({
@@ -35,7 +30,7 @@ export default function ProjectStepEditionPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    patch(editStepUrl, {
+    patch(urlFor('projets.steps.edit', { projectId: projet.id, stepId: step.id }), {
       onSuccess: () => {
         setTagInputValue('')
         resetAndClearErrors()
@@ -138,7 +133,10 @@ export default function ProjectStepEditionPage({
                     </div>
                     <ProjectStepDocumentList
                       documents={step.documents}
-                      deleteDocumentUrl={deleteDocumentUrl}
+                      deleteDocumentUrl={urlFor('projets.steps.documents.destroy', {
+                        projectId: projet.id,
+                        stepId: step.id,
+                      })}
                     />
                   </div>
                 )}

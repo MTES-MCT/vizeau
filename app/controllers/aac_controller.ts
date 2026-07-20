@@ -5,7 +5,6 @@ import { AacDto } from '../dto/aac_dto.js'
 import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
-import router from '@adonisjs/core/services/router'
 
 const PER_PAGE = 20
 
@@ -49,16 +48,6 @@ export default class AacController {
 
     return inertia.render('aac/id', {
       aac: AacDto.fromRaw(raw),
-      exportUrls: {
-        infoGenerale: router.builder().params([params.code]).make('aac.export.infoGenerale'),
-        captages: router.builder().params([params.code]).make('aac.export.captages'),
-        assolement: router.builder().params([params.code]).make('aac.export.assolement'),
-        cultureEvolution: router
-          .builder()
-          .params([params.code])
-          .make('aac.export.cultureEvolution'),
-        qualiteEau: router.builder().params([params.code]).make('aac.export.qualite'),
-      },
     })
   }
 

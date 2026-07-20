@@ -9,14 +9,12 @@ import Layout from '~/ui/layouts/layout'
 import Timeline from '~/ui/Timeline'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { getLogEntryTitle } from '~/functions/log_entries'
+import { urlFor } from '~/client'
 
-export default function Accueil({
-  latestExploitations,
-  latestLogEntries,
-  createExploitationUrl,
-}: any) {
+export default function Accueil({ latestExploitations, latestLogEntries }: any) {
   const hasLogEntries = latestLogEntries?.length > 0
   const hasExploitations = latestExploitations?.length > 0
+  const createExploitationUrl = urlFor('exploitations.create')
 
   return (
     <Layout>

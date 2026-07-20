@@ -8,14 +8,9 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { LogEntryFormData } from '~/pages/journal/creation'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
+import { urlFor } from '~/client'
 
-export default function TaskEditionPage({
-  logEntry,
-  editEntryLogUrl,
-  exploitation,
-  isCreator,
-  deleteDocumentUrl,
-}: any) {
+export default function TaskEditionPage({ logEntry, exploitation, isCreator }: any) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<LogEntryFormData>({
     id: logEntry.id,
@@ -29,7 +24,7 @@ export default function TaskEditionPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    patch(editEntryLogUrl, {
+    patch(urlFor('log_entries.edit', { exploitationId: exploitation.id }), {
       onSuccess: () => {
         setInputValue('')
         resetAndClearErrors()
@@ -73,7 +68,8 @@ export default function TaskEditionPage({
             inputValue={inputValue}
             setInputValue={setInputValue}
             existingDocuments={logEntry.documents || []}
-            deleteDocumentUrl={deleteDocumentUrl}
+            deleteDocumentUrl={urlFor('log_entries.destroyDocument')}
+            exploitationId={exploitation.id}
             disabled={!isCreator}
           />
           <div className="flex w-full items-center justify-end gap-3">

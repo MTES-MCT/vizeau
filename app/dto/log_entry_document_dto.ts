@@ -1,6 +1,6 @@
 import { type LogEntryDocumentJson } from '#types/models'
 import type LogEntryDocument from '#models/log_entry_document'
-import router from '@adonisjs/core/services/router'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 export class LogEntryDocumentDto {
   static fromModel(document: LogEntryDocument): LogEntryDocumentJson {
@@ -9,7 +9,7 @@ export class LogEntryDocumentDto {
       name: document.name,
       logEntryId: document.logEntryId,
       sizeInBytes: document.sizeInBytes,
-      href: router.builder().params([document.id]).make('log_entries.downloadDocument'),
+      href: urlFor('log_entries.downloadDocument', { documentId: document.id }),
     }
   }
 

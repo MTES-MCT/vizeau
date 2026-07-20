@@ -8,17 +8,18 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
+import { urlFor } from '~/client'
 
 export type LogEntryInformationCardProps = {
   userName?: string
   logEntry: LogEntryJson
-  completeEntryLogUrl: string
+  exploitationId: string
 }
 
 export default function LogEntryInformationCard({
   userName,
   logEntry,
-  completeEntryLogUrl,
+  exploitationId,
 }: LogEntryInformationCardProps) {
   const completeEntryLogModal = createModal({
     id: 'complete-entry-log-modal',
@@ -89,7 +90,9 @@ export default function LogEntryInformationCard({
               {
                 children: 'Marquer comme effectuée',
                 onClick: () => {
-                  router.post(completeEntryLogUrl, { id: logEntry.id })
+                  router.post(urlFor('log_entries.complete', { exploitationId }), {
+                    id: logEntry.id,
+                  })
                 },
               },
             ]}

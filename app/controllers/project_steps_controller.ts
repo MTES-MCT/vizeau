@@ -21,8 +21,6 @@ import { ProjectDto } from '../dto/project_dto.js'
 import { ProjectStepDto } from '../dto/project_step_dto.js'
 import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
-import router from '@adonisjs/core/services/router'
-import { urlFor } from '@adonisjs/core/services/url_builder'
 
 @inject()
 export default class ProjectStepsController {
@@ -40,7 +38,6 @@ export default class ProjectStepsController {
 
     return inertia.render('projets/etapes/creation', {
       projet: ProjectDto.fromModel(project),
-      createStepUrl: router.builder().params([project.id]).make('projets.steps.create'),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
           user.id,
@@ -53,8 +50,6 @@ export default class ProjectStepsController {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
         return ProjectStepTagDto.fromArray(tags)
       }),
-      createTagUrl: urlFor('projets.steps.tags.create'),
-      deleteTagUrl: urlFor('projets.steps.tags.destroy'),
     })
   }
 
@@ -102,12 +97,6 @@ export default class ProjectStepsController {
         name: project.name,
       },
       step: ProjectStepDto.fromModel(step)!,
-      deleteStepUrl: router.builder().params([project.id, step.id]).make('projets.steps.destroy'),
-      completeStepUrl: router.builder().params([project.id]).make('projets.steps.complete'),
-      deleteDocumentUrl: router
-        .builder()
-        .params([project.id, step.id])
-        .make('projets.steps.documents.destroy'),
     })
   }
 
@@ -121,11 +110,6 @@ export default class ProjectStepsController {
     return inertia.render('projets/etapes/edition', {
       projet: ProjectDto.fromModel(project),
       step: ProjectStepDto.fromModel(step)!,
-      editStepUrl: router.builder().params([project.id, step.id]).make('projets.steps.edit'),
-      deleteDocumentUrl: router
-        .builder()
-        .params([project.id, step.id])
-        .make('projets.steps.documents.destroy'),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
           user.id,
@@ -138,8 +122,6 @@ export default class ProjectStepsController {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
         return ProjectStepTagDto.fromArray(tags)
       }),
-      createTagUrl: urlFor('projets.steps.tags.create'),
-      deleteTagUrl: urlFor('projets.steps.tags.destroy'),
     })
   }
 

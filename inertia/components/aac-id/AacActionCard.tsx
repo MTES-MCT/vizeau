@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Loader from '~/ui/Loader'
+import { urlFor } from '~/client'
 
 type ExportUrls = {
   infoGenerale: string
@@ -50,9 +51,17 @@ async function downloadCsv(url: string) {
   }, 1000)
 }
 
-export function AacActionCard({ exportUrls }: { exportUrls: ExportUrls }) {
+export function AacActionCard({ code }: { code: string }) {
   const [exportUrl, setExportUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const exportUrls: ExportUrls = {
+    infoGenerale: urlFor('aac.export.infoGenerale', { code }),
+    captages: urlFor('aac.export.captages', { code }),
+    assolement: urlFor('aac.export.assolement', { code }),
+    cultureEvolution: urlFor('aac.export.cultureEvolution', { code }),
+    qualiteEau: urlFor('aac.export.qualite', { code }),
+  }
 
   return (
     <SmallSection title="Actions" priority="secondary" hasBorder>

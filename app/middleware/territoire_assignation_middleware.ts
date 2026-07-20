@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
-import router from '@adonisjs/core/services/router'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 export default class TerritoireAssignationMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
@@ -13,7 +13,7 @@ export default class TerritoireAssignationMiddleware {
     await user.loadOnce('territoires')
 
     if (user.territoires.length === 0) {
-      return ctx.response.redirect(router.builder().make('noTerritoire'))
+      return ctx.response.redirect(urlFor('noTerritoire'))
     }
 
     /**
