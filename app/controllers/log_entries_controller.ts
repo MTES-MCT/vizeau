@@ -25,7 +25,6 @@ import { LogEntryDto } from '../dto/log_entry_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { LogEntryDocumentService } from '#services/log_entry_document_service'
 import { LogEntryCsvService } from '#services/log_entry_csv_service'
-import ExploitationPolicy from '#policies/exploitation_policy'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -99,7 +98,7 @@ export default class LogEntriesController {
     const exploitationId = params.exploitationId
     const exploitation = await Exploitation.findOrFail(exploitationId)
 
-    if (await bouncer.with(ExploitationPolicy).denies('write', exploitation)) {
+    if (await bouncer.with('ExploitationPolicy').denies('write', exploitation)) {
       return response.forbidden("Impossible d'exporter les données de l'exploitation")
     }
 
