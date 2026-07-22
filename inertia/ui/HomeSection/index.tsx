@@ -1,11 +1,13 @@
 import { fr } from '@codegouvfr/react-dsfr'
 
 export type HomeSectionProps = {
-  background?: string
+  background?: 'primary' | 'secondary' | 'default'
   title?: string
   subtitle?: string
-  illustration?: React.ReactNode
+  illustration?: string
+  illustrationAlt?: string
   illustrationSide?: 'left' | 'right'
+
   children?: React.ReactNode
 }
 
@@ -37,7 +39,8 @@ export default function HomeSection({
   title,
   subtitle,
   illustration,
-  illustrationSide = 'right',
+  illustrationAlt = '',
+  illustrationSide = 'left',
   children,
 }: HomeSectionProps) {
   let backgroundColor: string
@@ -62,7 +65,7 @@ export default function HomeSection({
         <div
           className={`flex flex-col gap-8 md:flex-row ${illustrationSide === 'right' ? 'md:flex-row-reverse' : ''}`}
         >
-          <img src={illustration as string} alt="" className="w-full flex-1 min-w-[370px]" />
+          <img src={illustration} alt={illustrationAlt} className="w-full flex-1 min-w-[370px]" />
           <div className="flex-2 h-full flex flex-col justify-start items-start gap-2">
             <SectionTitle title={title} subtitle={subtitle} isSided={true} />
 

@@ -12,6 +12,7 @@ const meta = {
     title: { control: 'text' },
     subtitle: { control: 'text' },
     illustration: { control: 'text' },
+    illustrationAlt: { control: 'text' },
     illustrationSide: {
       control: { type: 'select' },
       options: ['left', 'right'],
@@ -23,10 +24,11 @@ const meta = {
     title: 'Titre de la section',
     subtitle: 'Sous-titre de la section',
     illustration: '/placeholder-illustrations/exploitations.png',
-    illustrationSide: 'left',
+    illustrationSide: 'right',
+    illustrationAlt: "Description de l'illustration",
     children: 'Contenu de la section',
-  },
-} as HomeSectionProps
+  } as HomeSectionProps,
+}
 
 export default meta
 
@@ -41,7 +43,7 @@ export const SansIllustration = {
 export const AvecIllustrationÀGauche = {
   args: {
     illustration: '/placeholder-illustrations/exploitations.png',
-    illustrationSide: 'right',
+    illustrationSide: 'left',
   },
 }
 
