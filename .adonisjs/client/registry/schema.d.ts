@@ -15,8 +15,8 @@ export interface Registry {
       paramsTuple: []
       params: {}
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['publicIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['publicIndex']>>>
     }
   }
   'session.index': {
@@ -67,7 +67,7 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['noTerritoire']>>>
     }
   }
-  'accueil.index': {
+  'accueil': {
     methods: ["GET","HEAD"]
     pattern: '/accueil'
     types: {

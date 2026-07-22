@@ -18,6 +18,16 @@ export default class AccueilController {
     public logEntryService: LogEntryService,
     public eventLogger: EventLoggerService
   ) {}
+  async publicIndex({ inertia, auth, response }: HttpContext) {
+    const isAuthenticated = await auth.check()
+
+    if (isAuthenticated) {
+      return response.redirect().toRoute('accueil')
+    }
+
+    return inertia.render('accueil', { isPublic: true })
+  }
+
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
 
@@ -27,6 +37,7 @@ export default class AccueilController {
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
 
     return inertia.render('accueil', {
+      isPublic: false,
       latestExploitations: latestExploitations.map((exploitation) =>
         ExploitationDto.fromModel(exploitation)
       ),

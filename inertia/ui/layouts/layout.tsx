@@ -9,7 +9,12 @@ export default function Layout({
   children,
   hideFooter = false,
   isMapLayout = false,
-}: React.PropsWithChildren<{ hideFooter?: boolean; isMapLayout?: boolean }>) {
+  isPublicPage = false,
+}: React.PropsWithChildren<{
+  hideFooter?: boolean
+  isMapLayout?: boolean
+  isPublicPage?: boolean
+}>) {
   const { url } = usePage<any>()
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
@@ -28,12 +33,12 @@ export default function Layout({
           </>
         }
         homeLinkProps={{
-          href: '/accueil',
-          title: 'Viz’Eau',
+          href: '/',
+          title: "Viz'Eau",
         }}
-        serviceTitle="Viz’Eau"
+        serviceTitle="Viz'Eau"
         navigation={
-          isLoginPage
+          isLoginPage || isPublicPage
             ? []
             : [
                 {
@@ -71,18 +76,31 @@ export default function Layout({
         quickAccessItems={
           isLoginPage
             ? []
-            : [
-                <Button
-                  iconId="fr-icon-account-circle-fill"
-                  className="fr-text--sm fr-m-0"
-                  priority="tertiary no outline"
-                  linkProps={{
-                    href: '/logout',
-                  }}
-                >
-                  Déconnexion
-                </Button>,
-              ]
+            : isPublicPage
+              ? [
+                  <Button
+                    iconId="fr-icon-account-circle-fill"
+                    className="fr-text--sm fr-m-0"
+                    priority="tertiary no outline"
+                    linkProps={{
+                      href: '/login',
+                    }}
+                  >
+                    Connexion
+                  </Button>,
+                ]
+              : [
+                  <Button
+                    iconId="fr-icon-account-circle-fill"
+                    className="fr-text--sm fr-m-0"
+                    priority="tertiary no outline"
+                    linkProps={{
+                      href: '/logout',
+                    }}
+                  >
+                    Déconnexion
+                  </Button>,
+                ]
         }
       />
       <main className={`flex flex-col flex-1 ${isMapLayout ? 'overflow-hidden' : ''}`}>
