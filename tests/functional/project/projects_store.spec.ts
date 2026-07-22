@@ -21,6 +21,7 @@ test.group('Projects - Store Route', (group) => {
         name: 'Protect groundwater catchments',
         description: 'Initial scoping and planning',
         actionType: 'study',
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -45,6 +46,7 @@ test.group('Projects - Store Route', (group) => {
         name: 'Ownership is derived from auth',
         userId: otherUser.id,
         status: ProjectStatus.CURRENT,
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -71,6 +73,62 @@ test.group('Projects - Store Route', (group) => {
     response.assertStatus(422)
   })
 
+  test("I can't create a project without a territoire", async ({ client }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+
+    const response = await client
+      .post('projets')
+      .header('Accept', 'application/json')
+      .loginAs(user)
+      .json({
+        name: 'Missing required territoire',
+      })
+      .withCsrfToken()
+
+    response.assertStatus(422)
+  })
+
+  test("I can't create a project with a territoire that doesn't belong to me", async ({
+    client,
+  }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const territoire = await TerritoireFactory.create()
+    // territoire not attached to the user
+
+    const response = await client
+      .post('projets')
+      .loginAs(user)
+      .json({
+        name: 'Project with foreign territoire',
+        territoireIds: [territoire.id],
+      })
+      .withCsrfToken()
+
+    response.assertRedirectsTo('/')
+  })
+
+  test('I can create a project with multiple territoires', async ({ assert, client }) => {
+    const territoire1 = await TerritoireFactory.create()
+    const territoire2 = await TerritoireFactory.create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([territoire1.id, territoire2.id])
+
+    const response = await client
+      .post('projets')
+      .loginAs(user)
+      .json({
+        name: 'Project with multiple territoires',
+        territoireIds: [territoire1.id, territoire2.id],
+      })
+      .withCsrfToken()
+
+    response.assertStatus(200)
+
+    const savedProject = await Project.findByOrFail('name', 'Project with multiple territoires')
+    await savedProject.load('territoires')
+    assert.equal(savedProject.territoires.length, 2)
+  })
+
   test('I can create a project with accessible exploitations', async ({ client }) => {
     const territoire = await TerritoireFactory.create()
     const user = await UserFactory.create()
@@ -85,6 +143,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with exploitations',
         exploitationIds: [exploitation.id],
+        territoireIds: [territoire.id],
       })
       .withCsrfToken()
 
@@ -104,6 +163,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with inaccessible exploitations',
         exploitationIds: [exploitation.id],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -126,6 +186,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with parcelles',
         parcelleIds: [parcelle.id],
+        territoireIds: [territoire.id],
       })
       .withCsrfToken()
 
@@ -148,6 +209,7 @@ test.group('Projects - Store Route', (group) => {
           { rpgId: 'RPGNEW001', surface: 2.5 },
           { rpgId: 'RPGNEW002', surface: 1.0 },
         ],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -180,6 +242,7 @@ test.group('Projects - Store Route', (group) => {
         name: 'Project reusing existing parcelle',
         millesime: '2024',
         parcelles: [{ rpgId: 'RPGEXST01', surface: 3.0 }],
+        territoireIds: [territoire.id],
       })
       .withCsrfToken()
 
@@ -202,6 +265,7 @@ test.group('Projects - Store Route', (group) => {
         name: 'Project missing millesime',
         parcelles: [{ rpgId: 'RPGNOMILL', surface: 1.5 }],
         // millesime intentionally omitted
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -228,6 +292,7 @@ test.group('Projects - Store Route', (group) => {
         name: 'Project with inaccessible millesime parcelle',
         millesime: '2024',
         parcelles: [{ rpgId: 'RPGINACC01', surface: 2.0 }],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -251,6 +316,7 @@ test.group('Projects - Store Route', (group) => {
           { rpgId, surface: 1.23 },
           { rpgId, surface: 4.56 },
         ],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -272,6 +338,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with inaccessible parcelles',
         parcelleIds: [parcelle.id],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -288,6 +355,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with captages',
         captageIds: [captage.id],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 
@@ -303,6 +371,7 @@ test.group('Projects - Store Route', (group) => {
       .json({
         name: 'Project with bad captages',
         captageIds: ['00000000-0000-0000-0000-000000000000'],
+        territoireIds: [user.territoires[0].id],
       })
       .withCsrfToken()
 

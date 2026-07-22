@@ -4,6 +4,7 @@ import Parcelle from '#models/parcelle'
 import Captage from '#models/captage'
 import { ProjectService } from '#services/project_service'
 import { ExploitationService } from '#services/exploitation_service'
+import { TerritoireService } from '#services/territoire_service'
 import env from '#start/env'
 import {
   createProjectValidator,
@@ -16,6 +17,7 @@ import { ProjectDto } from '../dto/project_dto.js'
 import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { CaptageDto } from '../dto/captage_dto.js'
 import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
+import { TerritoireDto } from '../dto/territoire_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { ProjectStepTagService } from '#services/project_step_tag_service'
 
@@ -26,7 +28,8 @@ export default class ProjectsController {
   constructor(
     public projectService: ProjectService,
     public exploitationService: ExploitationService,
-    public projectStepTagService: ProjectStepTagService
+    public projectStepTagService: ProjectStepTagService,
+    public territoireService: TerritoireService
   ) {}
 
   async index({ auth, inertia, request }: HttpContext) {
@@ -112,6 +115,13 @@ export default class ProjectsController {
       .limit(ProjectsController.INSTALLATIONS_PER_PAGE)
       .offset((page - 1) * ProjectsController.INSTALLATIONS_PER_PAGE)
 
+    const territoiresPageInput = request.input('territoiresPage', '1')
+    const territoiresPage = Math.max(1, Number.parseInt(String(territoiresPageInput), 10) || 1)
+    const paginatedTerritoires = await this.territoireService.getTerritoiresForUser(
+      user.id,
+      territoiresPage
+    )
+
     return inertia.render('projets/creation', {
       exploitations: async () => {
         const results = await this.exploitationService
@@ -135,6 +145,7 @@ export default class ProjectsController {
         installationsPage: String(page),
         showActifOnly: showActifOnlyInput,
       },
+      territoires: TerritoireDto.fromPaginator(paginatedTerritoires),
       pmtilesUrl: env.get('PMTILES_URL', ''),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
@@ -151,10 +162,15 @@ export default class ProjectsController {
     })
   }
 
-  async show({ auth, request, inertia }: HttpContext) {
+  async show({ auth, request, inertia, bouncer, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(showProjectValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
+
     await Promise.all([
       project.load('parcelles', (query) =>
         query.preload('comments', (commentQuery) => {
@@ -163,6 +179,7 @@ export default class ProjectsController {
       ),
       project.load('exploitations'),
       project.load('captages'),
+      project.load('territoires'),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
@@ -180,6 +197,17 @@ export default class ProjectsController {
       millesime,
       ...payload
     } = await request.validateUsing(createProjectValidator)
+
+    // We check if the user can assign these territoires (AAC) to the project
+    await user.loadOnce('territoires')
+    const userTerritoireIds = new Set(user.territoires.map((territoire) => territoire.id))
+    if (!payload.territoireIds.every((territoireId) => userTerritoireIds.has(territoireId))) {
+      createErrorFlashMessage(
+        session,
+        "L'un des territoires sélectionnés n'existe pas ou ne vous appartient pas."
+      )
+      return response.redirect().back()
+    }
 
     // We check if the user has authorization to attach these exploitations (same AAC)
     if (payload.exploitationIds?.length) {
@@ -336,6 +364,7 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
+      project.load('territoires'),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
@@ -346,14 +375,20 @@ export default class ProjectsController {
     return response.redirect().toPath('/projets')
   }
 
-  async getForEdition({ auth, request, inertia }: HttpContext) {
+  async getForEdition({ auth, request, inertia, bouncer, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(showProjectValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
+
     await Promise.all([
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
+      project.load('territoires'),
     ])
 
     const pageInput = request.input('installationsPage') || '1'
@@ -385,6 +420,13 @@ export default class ProjectsController {
       .limit(ProjectsController.INSTALLATIONS_PER_PAGE)
       .offset((page - 1) * ProjectsController.INSTALLATIONS_PER_PAGE)
 
+    const territoiresPageInput = request.input('territoiresPage', '1')
+    const territoiresPage = Math.max(1, Number.parseInt(String(territoiresPageInput), 10) || 1)
+    const paginatedTerritoires = await this.territoireService.getTerritoiresForUser(
+      user.id,
+      territoiresPage
+    )
+
     return inertia.render('projets/edition', {
       projet: ProjectDto.fromModel(project),
       exploitations: async () => {
@@ -409,11 +451,12 @@ export default class ProjectsController {
         installationsPage: String(page),
         showActifOnly: showActifOnlyInput,
       },
+      territoires: TerritoireDto.fromPaginator(paginatedTerritoires),
       pmtilesUrl: env.get('PMTILES_URL', ''),
     })
   }
 
-  async update({ auth, request, response, session }: HttpContext) {
+  async update({ auth, request, response, session, bouncer }: HttpContext) {
     const user = auth.getUserOrFail()
     const {
       params,
@@ -424,6 +467,23 @@ export default class ProjectsController {
       captageIds,
       ...payload
     } = await request.validateUsing(updateProjectValidator)
+
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
+
+    if (payload.territoireIds !== undefined) {
+      await user.loadOnce('territoires')
+      const userTerritoireIds = new Set(user.territoires.map((territoire) => territoire.id))
+      if (!payload.territoireIds.every((territoireId) => userTerritoireIds.has(territoireId))) {
+        createErrorFlashMessage(
+          session,
+          "L'un des territoires sélectionnés n'existe pas ou ne vous appartient pas."
+        )
+        return response.redirect().back()
+      }
+    }
 
     if (exploitationIds !== undefined && exploitationIds.length > 0) {
       const found = await this.exploitationService
@@ -564,7 +624,7 @@ export default class ProjectsController {
       }
     }
 
-    await this.projectService.updateProject(params.projectId, user.id, {
+    await this.projectService.updateProject(params.projectId, {
       ...payload,
       parcelleIds,
       exploitationIds,
@@ -575,11 +635,15 @@ export default class ProjectsController {
     return response.redirect().toPath(`/projets/${params.projectId}`)
   }
 
-  async destroy({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async destroy({ request, response, session, bouncer }: HttpContext) {
     const { params } = await request.validateUsing(destroyProjectValidator)
 
-    await this.projectService.deleteProject(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
+
+    await this.projectService.deleteProject(params.projectId)
     createSuccessFlashMessage(session, `Le projet a été supprimé avec succès.`)
 
     return response.redirect().toPath(`/projets`)

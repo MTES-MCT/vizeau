@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Exploitation from '#models/exploitation'
+import Project from '#models/project'
 import { TerritoireSchema } from '#database/schema'
 
 export default class Territoire extends TerritoireSchema {
@@ -33,4 +34,10 @@ export default class Territoire extends TerritoireSchema {
     pivotTimestamps: true,
   })
   declare users: ManyToMany<typeof User>
+
+  @manyToMany(() => Project, {
+    pivotTable: 'project_territoire_relations',
+    pivotTimestamps: true,
+  })
+  declare projects: ManyToMany<typeof Project>
 }
