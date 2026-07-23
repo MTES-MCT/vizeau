@@ -7,7 +7,6 @@ export type HomeSectionProps = {
   illustration?: string
   illustrationAlt?: string
   illustrationSide?: 'left' | 'right'
-
   children?: React.ReactNode
 }
 
@@ -20,16 +19,19 @@ const SectionTitle = ({
   subtitle?: string
   isSided?: boolean
 }) => (
-  <div className={`flex flex-col ${isSided ? 'items-start' : 'items-center'}`}>
+  <div className={`fr-mb-8w flex flex-col ${isSided ? 'items-start' : 'items-center'}`}>
     {title && (
-      <h2 className="fr-mb-0" style={{ color: fr.colors.decisions.text.title.blueFrance.default }}>
+      <h2 className="fr-mb-1w" style={{ color: fr.colors.decisions.text.title.blueFrance.default }}>
         {title}
       </h2>
     )}
     {subtitle && (
-      <p className="fr-text--lead" style={{ color: fr.colors.decisions.text.mention.grey.default }}>
+      <span
+        className="fr-text--lg fr-m-0"
+        style={{ color: fr.colors.decisions.text.mention.grey.default }}
+      >
         {subtitle}
-      </p>
+      </span>
     )}
   </div>
 )
@@ -58,27 +60,35 @@ export default function HomeSection({
 
   return (
     <div
-      className="fr-container fr-py-4w flex items-center justify-center"
+      className="w-full fr-px-4w fr-py-8w flex items-center justify-center"
       style={{ backgroundColor }}
     >
-      {illustration ? (
-        <div
-          className={`flex flex-col gap-8 md:flex-row ${illustrationSide === 'right' ? 'md:flex-row-reverse' : ''}`}
-        >
-          <img src={illustration} alt={illustrationAlt} className="w-full flex-1 min-w-[370px]" />
-          <div className="flex-2 h-full flex flex-col justify-start items-start gap-2">
-            <SectionTitle title={title} subtitle={subtitle} isSided={true} />
+      <div className="fr-container">
+        {illustration ? (
+          <div
+            className={`flex flex-wrap items-start justify-center gap-8 ${illustrationSide === 'right' ? 'md:flex-row-reverse' : ''}`}
+          >
+            <div className="w-full max-w-[470px]">
+              <img
+                className="block w-full h-auto object-contain"
+                src={illustration}
+                alt={illustrationAlt}
+              />
+            </div>
+            <div className="flex-2 min-w-[320px] flex-[1_1_360px] h-full flex flex-col justify-start items-start gap-2">
+              <SectionTitle title={title} subtitle={subtitle} isSided={true} />
+
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div className="fr-container">
+            <SectionTitle title={title} subtitle={subtitle} isSided={false} />
 
             {children}
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center">
-          <SectionTitle title={title} subtitle={subtitle} isSided={false} />
-
-          {children}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
