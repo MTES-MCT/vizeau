@@ -20,6 +20,7 @@ export const createProjectValidator = vine.compile(
     description: vine.string().maxLength(4000).optional().nullable(),
     actionType: vine.string().maxLength(255).optional().nullable(),
     status: vine.enum(Object.values(ProjectStatus)).optional(),
+    territoireIds: vine.array(vine.string().uuid()).minLength(1),
     parcelles: vine
       .array(
         vine.object({
@@ -80,6 +81,7 @@ export const updateProjectValidator = vine.compile(
     description: vine.string().maxLength(4000).optional().nullable(),
     actionType: vine.string().maxLength(255).optional().nullable(),
     status: vine.enum(Object.values(ProjectStatus)).optional(),
+    territoireIds: vine.array(vine.string().uuid()).minLength(1).optional(),
     closedAt: vine
       .date()
       .optional()

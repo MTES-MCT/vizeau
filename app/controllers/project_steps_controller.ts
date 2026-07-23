@@ -31,10 +31,13 @@ export default class ProjectStepsController {
     public projectStepTagService: ProjectStepTagService
   ) {}
 
-  async createStepForm({ auth, request, inertia }: HttpContext) {
+  async createStepForm({ auth, request, inertia, bouncer, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(showProjectValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     return inertia.render('projets/etapes/creation', {
       projet: ProjectDto.fromModel(project),
@@ -53,10 +56,12 @@ export default class ProjectStepsController {
     })
   }
 
-  async createStep({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async createStep({ request, response, session, bouncer }: HttpContext) {
     const { params } = await request.validateUsing(showProjectValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     const data = await request.validateUsing(createProjectStepPayloadValidator)
     const { title, note, date: dateInput, tags } = data
@@ -84,10 +89,12 @@ export default class ProjectStepsController {
     return response.redirect().toRoute('projets.show', { projectId: project.id })
   }
 
-  async getStep({ auth, request, inertia }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async getStep({ request, inertia, bouncer, response }: HttpContext) {
     const { params } = await request.validateUsing(showProjectStepValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     const step = await this.projectStepService.getStepForProject(params.stepId, project)
 
@@ -100,11 +107,14 @@ export default class ProjectStepsController {
     })
   }
 
-  async getStepForEdition({ auth, request, inertia }: HttpContext) {
+  async getStepForEdition({ auth, request, inertia, bouncer, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(showProjectStepValidator)
 
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
     const step = await this.projectStepService.getStepForProject(params.stepId, project)
 
     return inertia.render('projets/etapes/edition', {
@@ -125,11 +135,13 @@ export default class ProjectStepsController {
     })
   }
 
-  async editStep({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async editStep({ request, response, session, bouncer }: HttpContext) {
     const { params } = await request.validateUsing(showProjectStepValidator)
     const stepId = params.stepId
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     const data = await request.validateUsing(updateProjectStepPayloadValidator)
     const { title, note, date: dateInput, tags, removedDocumentIds = [] } = data
@@ -171,11 +183,13 @@ export default class ProjectStepsController {
     return response.redirect().toPath(`/projets/${project.id}`)
   }
 
-  async destroyStep({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async destroyStep({ request, response, session, bouncer }: HttpContext) {
     const { params } = await request.validateUsing(showProjectStepValidator)
     const stepId = params.stepId
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     const documents = await ProjectStepDocument.query().where('projectStepId', stepId)
     for (const document of documents) {
@@ -187,12 +201,23 @@ export default class ProjectStepsController {
     return response.redirect().toPath(`/projets/${project.id}`)
   }
 
-  async downloadStepDocument({ auth, request, response, logger, session, inertia }: HttpContext) {
+  async downloadStepDocument({
+    auth,
+    request,
+    response,
+    logger,
+    session,
+    inertia,
+    bouncer,
+  }: HttpContext) {
     const user = auth.getUserOrFail()
     const { params } = await request.validateUsing(downloadProjectStepDocumentValidator)
 
     try {
-      const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+      const project = await this.projectService.findProjectOrFail(params.projectId)
+      if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+        return response.notFound()
+      }
       await this.projectStepService.getStepForProject(params.stepId, project)
 
       const document = await ProjectStepDocument.query()
@@ -221,11 +246,13 @@ export default class ProjectStepsController {
     }
   }
 
-  async destroyDocument({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async destroyDocument({ request, response, session, bouncer }: HttpContext) {
     const { params, documentId } = await request.validateUsing(destroyProjectStepDocumentValidator)
 
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
     await this.projectStepService.getStepForProject(params.stepId, project)
 
     const document = await ProjectStepDocument.query()
@@ -243,10 +270,12 @@ export default class ProjectStepsController {
     return response.redirect().back()
   }
 
-  async completeStep({ auth, request, response, session }: HttpContext) {
-    const user = auth.getUserOrFail()
+  async completeStep({ request, response, session, bouncer }: HttpContext) {
     const { params, id } = await request.validateUsing(completeProjectStepValidator)
-    const project = await this.projectService.findOwnedProjectOrFail(params.projectId, user.id)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.notFound()
+    }
 
     await this.projectStepService.updateStep(
       id,

@@ -1,10 +1,11 @@
 export const STEP_KEYS = {
   GENERAL_INFOS: 1,
-  FIRST_ENTRY: 2,
-  CONSOLIDATIONS: 3,
-  PARCELLES: 4,
-  EXPLOITATIONS: 5,
-  CAPTAGES: 6,
+  TERRITOIRES: 2,
+  FIRST_ENTRY: 3,
+  CONSOLIDATIONS: 4,
+  PARCELLES: 5,
+  EXPLOITATIONS: 6,
+  CAPTAGES: 7,
 } as const
 
 export type ProjetFormStep = {
@@ -20,7 +21,14 @@ export const STEPS: Record<number, ProjetFormStep> = {
   [STEP_KEYS.GENERAL_INFOS]: {
     key: 'GENERAL_INFOS',
     title: 'Informations générales',
+    nextTitle: 'Territoires',
+  },
+  [STEP_KEYS.TERRITOIRES]: {
+    key: 'TERRITOIRES',
+    title: 'Territoires',
     nextTitle: 'Première étape de suivi',
+    description: 'Sélectionner un ou plusieurs territoires (AAC) associés à ce projet.',
+    iconId: 'fr-icon-map-pin-2-line',
   },
   [STEP_KEYS.FIRST_ENTRY]: {
     key: 'FIRST_ENTRY',

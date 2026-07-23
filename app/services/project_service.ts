@@ -10,6 +10,7 @@ export interface ProjectPayload extends Partial<ModelAttributes<Project>> {
   parcelleIds?: string[]
   exploitationIds?: string[]
   captageIds?: string[]
+  territoireIds?: string[]
   steps?: Array<{
     title?: string
     notes?: string
@@ -47,19 +48,31 @@ const PER_PAGE = 20
 @inject()
 export class ProjectService {
   constructor(public projectStepDocumentService: ProjectStepDocumentService) {}
+  /**
+   * Query all projects accessible to the given user: either they are the author,
+   * or they share at least one territoire (AAC) with the project.
+   */
+  queryAccessibleProjects(userId: string) {
+    return Project.query().where((query) => {
+      query.where('userId', userId).orWhereHas('territoires', (territoireQuery) => {
+        territoireQuery.whereHas('users', (userQuery) => {
+          userQuery.where('users.id', userId)
+        })
+      })
+    })
+  }
+
   async listProjects(userId: string, filters: ProjectIndexFilters): Promise<ProjectIndexResult> {
     const { recherche, statut, typesActionExclus, statutsExclus, yearFrom, yearTo, page } = filters
 
     // Total count (unfiltered) — used for the empty-state UI
-    const projetsCount = await Project.query()
-      .where('userId', userId)
+    const projetsCount = await this.queryAccessibleProjects(userId)
       .count('* as total')
       .first()
       .then((r) => Number(r?.$extras?.total ?? 0))
 
     // All distinct action types for the user (unfiltered) — stable filter options
-    const availableActionTypesRows = await Project.query()
-      .where('userId', userId)
+    const availableActionTypesRows = await this.queryAccessibleProjects(userId)
       .whereNotNull('actionType')
       .distinct('actionType')
       .select('actionType')
@@ -68,16 +81,8 @@ export class ProjectService {
 
     // Global year range (unfiltered) — bounds for the year slider
     const [oldestProject, newestProject] = await Promise.all([
-      Project.query()
-        .where('userId', userId)
-        .orderBy('createdAt', 'asc')
-        .select('createdAt')
-        .first(),
-      Project.query()
-        .where('userId', userId)
-        .orderBy('createdAt', 'desc')
-        .select('createdAt')
-        .first(),
+      this.queryAccessibleProjects(userId).orderBy('createdAt', 'asc').select('createdAt').first(),
+      this.queryAccessibleProjects(userId).orderBy('createdAt', 'desc').select('createdAt').first(),
     ])
     const currentYear = new Date().getFullYear()
     const availableYearRange = {
@@ -86,8 +91,7 @@ export class ProjectService {
     }
 
     // Per-status counts using base filters (search + year + type) but no status filter
-    const statusCountsQuery = Project.query()
-      .where('userId', userId)
+    const statusCountsQuery = this.queryAccessibleProjects(userId)
       .select('status')
       .groupBy('status')
       .count('* as count')
@@ -113,8 +117,7 @@ export class ProjectService {
     }
 
     // Main paginated query — all filters applied
-    const mainQuery = Project.query()
-      .where('userId', userId)
+    const mainQuery = this.queryAccessibleProjects(userId)
       .preload('parcelles', (parcelleQuery) => {
         parcelleQuery.preload('comments', (commentQuery) => {
           commentQuery.where('userId', userId)
@@ -150,6 +153,9 @@ export class ProjectService {
       userId,
     })
 
+    if (payload.territoireIds?.length) {
+      await project.related('territoires').attach(payload.territoireIds)
+    }
     if (payload.parcelleIds?.length) {
       await project.related('parcelles').attach(payload.parcelleIds)
     }
@@ -184,19 +190,23 @@ export class ProjectService {
     return project
   }
 
-  async findOwnedProjectOrFail(projectId: string, userId: string) {
-    return Project.query().where('id', projectId).andWhere('userId', userId).firstOrFail()
+  /**
+   * Find a project by id, without any access-control check.
+   * Authorization should be verified separately (e.g. via `bouncer.with('ProjectPolicy')`).
+   */
+  async findProjectOrFail(projectId: string) {
+    return Project.query().where('id', projectId).firstOrFail()
   }
 
-  async deleteProject(projectId: string, userId: string) {
-    const project = await this.findOwnedProjectOrFail(projectId, userId)
+  async deleteProject(projectId: string) {
+    const project = await this.findProjectOrFail(projectId)
 
     await project.delete()
   }
 
-  async updateProject(projectId: string, userId: string, payload: ProjectPayload) {
-    const project = await this.findOwnedProjectOrFail(projectId, userId)
-    const { parcelleIds, exploitationIds, captageIds, ...projectPayload } = payload
+  async updateProject(projectId: string, payload: ProjectPayload) {
+    const project = await this.findProjectOrFail(projectId)
+    const { parcelleIds, exploitationIds, captageIds, territoireIds, ...projectPayload } = payload
 
     project.merge(projectPayload)
     await project.save()
@@ -210,11 +220,15 @@ export class ProjectService {
     if (captageIds !== undefined) {
       await project.related('captages').sync(captageIds)
     }
+    if (territoireIds !== undefined) {
+      await project.related('territoires').sync(territoireIds)
+    }
 
     // Load relations to ensure they are populated when the DTO is used
     await project.load('parcelles')
     await project.load('exploitations')
     await project.load('captages')
+    await project.load('territoires')
     await project.load('steps')
 
     return project
