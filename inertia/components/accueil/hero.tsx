@@ -14,7 +14,7 @@ export default function Hero({ createExploitationUrl }: HeroProps) {
           En format tablette et moins : opacité réduite, taille fixée à la hauteur du parent. */}
       <img
         className="pointer-events-none absolute bottom-0 right-0 h-full max-h-full object-contain object-bottom max-[1670px]:max-w-none max-[1670px]:opacity-15 min-[2100px]:h-[40vw] min-[2100px]:max-h-none min-[2100px]:max-w-none min-[2100px]:opacity-20"
-        src="/Illustration-hero.png"
+        src="/illustration-hero.webp"
         alt="Illustration hero"
       />
 
