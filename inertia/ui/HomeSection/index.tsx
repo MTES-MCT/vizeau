@@ -82,7 +82,7 @@ export default function HomeSection({
             </div>
           </div>
         ) : (
-          <div className="fr-container">
+          <div>
             <SectionTitle title={title} subtitle={subtitle} isSided={false} />
 
             {children}
