@@ -4,7 +4,7 @@ import { UserFactory } from '#database/factories/user_factory'
 import { ProjectFactory } from '#database/factories/project_factory'
 import { TerritoireFactory } from '#database/factories/territoire_factory'
 
-test.group('ProjectPolicy.write', () => {
+test.group('ProjectPolicy.readWrite', () => {
   test('returns true if the user is the author of the project', async ({ assert }) => {
     const author = await UserFactory.create()
     const project = await ProjectFactory.merge({ userId: author.id }).create()
