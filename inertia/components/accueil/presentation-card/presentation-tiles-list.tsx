@@ -2,6 +2,7 @@ import './custom-tile.css'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import { Tile } from '@codegouvfr/react-dsfr/Tile'
+import Reveal from '~/ui/Reveal'
 
 const PRESENTATION_ELEMENTS = [
   {
@@ -51,16 +52,18 @@ const PRESENTATION_ELEMENTS = [
 export default function PresentationTilesList({}: {}) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {PRESENTATION_ELEMENTS.map((element) => (
-        <div key={element.title} className="h-full">
-          <Tile
-            title={element.title}
-            desc={element.description}
-            orientation="horizontal"
-            imageUrl={element.imageUrl}
-            className="custom-tile"
-          />
-        </div>
+      {PRESENTATION_ELEMENTS.map((element, index) => (
+        <Reveal key={element.title} direction="up" delay={90 + index * 100}>
+          <div className="h-full">
+            <Tile
+              title={element.title}
+              desc={element.description}
+              orientation="horizontal"
+              imageUrl={element.imageUrl}
+              className="custom-tile"
+            />
+          </div>
+        </Reveal>
       ))}
     </div>
   )
