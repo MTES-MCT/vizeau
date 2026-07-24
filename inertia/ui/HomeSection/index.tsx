@@ -22,7 +22,7 @@ const SectionTitle = ({
   <div className={`fr-mb-4w flex flex-col ${isSided ? 'items-start' : 'items-center text-center'}`}>
     {title && (
       <h2
-        className="fr-h3 fr-mb-1w text-center"
+        className={`fr-h3 fr-mb-1w ${isSided ? '' : 'text-center'}`}
         style={{ color: fr.colors.decisions.text.title.blueFrance.default }}
       >
         {title}

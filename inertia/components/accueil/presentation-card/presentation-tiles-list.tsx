@@ -22,7 +22,7 @@ const PRESENTATION_ELEMENTS = [
   {
     title: 'Visualisation cartographique',
     description:
-      'Explorez une carte interactive de votre AAC avec les parcelles RPG des exploitations agricoles que vous suivez, filtres par culture et par périmètre de protection',
+      'Explorez une carte interactive de votre AAC avec les parcelles RPG des exploitations agricoles que vous suivez, filtrée par culture et par périmètre de protection.',
     imageUrl: '/presentation-tile-icons/france-line.png',
     backgroundColor: fr.colors.decisions.artwork.minor.yellowMoutarde.default,
   },

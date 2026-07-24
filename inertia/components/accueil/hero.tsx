@@ -1,10 +1,9 @@
 import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
 
-export type HeroProps = {
-  isPublic?: boolean
-  createExploitationUrl?: string
-}
+export type HeroProps =
+  | { isPublic: true; createExploitationUrl?: string }
+  | { isPublic?: false; createExploitationUrl: string }
 
 function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUrl: string }) {
   return (
@@ -87,7 +86,7 @@ export default function Hero({ isPublic = false, createExploitationUrl }: HeroPr
           En format tablette et moins : opacité réduite, taille fixée à la hauteur du parent. */}
       <img
         className="pointer-events-none absolute bottom-0 right-0 h-full max-h-full object-contain object-bottom max-[1670px]:max-w-none max-[1670px]:opacity-15 min-[2100px]:h-[40vw] min-[2100px]:max-h-none min-[2100px]:max-w-none min-[2100px]:opacity-20"
-        src="/illustration-hero.webp"
+        src="/Illustration-hero.webp"
         alt="Illustration hero"
       />
 
