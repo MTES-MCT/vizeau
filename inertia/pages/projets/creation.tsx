@@ -15,6 +15,7 @@ import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 export default function ProjetCreationPage({}: any) {
   const [stepsList, setStepsList] = useState<number[]>([
     STEP_KEYS.GENERAL_INFOS,
+    STEP_KEYS.TERRITOIRES,
     STEP_KEYS.FIRST_ENTRY,
     STEP_KEYS.CONSOLIDATIONS,
   ])
@@ -51,6 +52,7 @@ export default function ProjetCreationPage({}: any) {
       description: formData.generalInfos.description || null,
       actionType: formData.generalInfos.type_action || null,
       status: formData.generalInfos.statut,
+      territoireIds: formData.territoireIds,
       parcelles: formData.parcelles.items.map((p) => ({
         year: p.year,
         rpgId: p.rpgId,

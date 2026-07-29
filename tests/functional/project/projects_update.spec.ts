@@ -260,4 +260,61 @@ test.group('Projects - Update Route', (group) => {
     const years = project.parcelles.map((p) => p.year).sort()
     assert.deepEqual(years, [2023, 2024])
   })
+
+  test('I can update the territoires of one of my projects', async ({ assert, client }) => {
+    const territoire1 = await TerritoireFactory.create()
+    const territoire2 = await TerritoireFactory.create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([territoire1.id, territoire2.id])
+
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+    await project.related('territoires').attach([territoire1.id])
+
+    const response = await client
+      .patch(`projets/${project.id}`)
+      .loginAs(user)
+      .json({ territoireIds: [territoire2.id] })
+      .withCsrfToken()
+
+    response.assertStatus(200)
+
+    await project.load('territoires')
+    assert.equal(project.territoires.length, 1)
+    assert.equal(project.territoires[0].id, territoire2.id)
+  })
+
+  test("I can't remove all territoires from a project", async ({ client }) => {
+    const territoire = await TerritoireFactory.create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([territoire.id])
+
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+    await project.related('territoires').attach([territoire.id])
+
+    const response = await client
+      .patch(`projets/${project.id}`)
+      .header('Accept', 'application/json')
+      .loginAs(user)
+      .json({ territoireIds: [] })
+      .withCsrfToken()
+
+    response.assertStatus(422)
+  })
+
+  test("I can't assign a territoire that doesn't belong to me", async ({ client }) => {
+    const foreignTerritoire = await TerritoireFactory.create()
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+
+    const response = await client
+      .patch(`projets/${project.id}`)
+      .loginAs(user)
+      .json({ territoireIds: [foreignTerritoire.id] })
+      .withCsrfToken()
+
+    response.assertRedirectsTo('/')
+  })
 })

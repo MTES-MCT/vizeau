@@ -5,6 +5,7 @@ import { ParcelleDto } from './parcelle_dto.js'
 import { ProjectStepDto } from './project_step_dto.js'
 import { ExploitationDto } from './exploitation_dto.js'
 import { CaptageDto } from './captage_dto.js'
+import { TerritoireDto } from './territoire_dto.js'
 
 export class ProjectDto {
   static fromModel(project: Project): ProjectJson {
@@ -17,6 +18,7 @@ export class ProjectDto {
       closedAt: project.closedAt?.toISO() ?? null,
       createdAt: project.createdAt!.toISO() as string,
       updatedAt: project.updatedAt!.toISO() as string,
+      territoires: project.territoires?.map((t) => TerritoireDto.fromModel(t)) ?? [],
       parcelles: project.parcelles?.map((p) => ParcelleDto.fromModel(p)) ?? [],
       exploitations: project.exploitations?.map((e) => ExploitationDto.fromModel(e)) ?? [],
       captages: project.captages?.map((c): CaptageJson => CaptageDto.fromModel(c)) ?? [],

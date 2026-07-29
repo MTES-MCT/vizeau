@@ -4,6 +4,7 @@ import CaptagesStep from './captages-step'
 import GeneralInfosStep from './general-infos-step'
 import ConsolidationsStep from './consolidations-step'
 import FirstEntryStep from './first-entry-step'
+import TerritoiresStep from './territoires-step'
 
 export {
   ParcellesStep,
@@ -12,4 +13,5 @@ export {
   GeneralInfosStep,
   ConsolidationsStep,
   FirstEntryStep,
+  TerritoiresStep,
 }

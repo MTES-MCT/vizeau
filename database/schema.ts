@@ -421,6 +421,21 @@ export class ProjectStepSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ProjectTerritoireRelationSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'projectId', 'territoireId', 'updatedAt'] as const
+  $columns = ProjectTerritoireRelationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare projectId: string
+  @column()
+  declare territoireId: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class ProjectSchema extends BaseModel {
   static $columns = ['actionType', 'closedAt', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt', 'userId'] as const
   $columns = ProjectSchema.$columns

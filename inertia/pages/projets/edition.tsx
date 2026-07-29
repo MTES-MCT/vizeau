@@ -17,7 +17,11 @@ export default function ProjetEditionPage({ projet }: any) {
   const stepFromUrl = parseInt(urlParams.get('step') || '1', 10)
 
   const [stepsList, setStepsList] = useState<number[]>(() => {
-    const stepIndexes: number[] = [STEP_KEYS.GENERAL_INFOS, STEP_KEYS.CONSOLIDATIONS]
+    const stepIndexes: number[] = [
+      STEP_KEYS.GENERAL_INFOS,
+      STEP_KEYS.TERRITOIRES,
+      STEP_KEYS.CONSOLIDATIONS,
+    ]
     if (projet.parcelles.length > 0) stepIndexes.push(STEP_KEYS.PARCELLES)
     if (projet.exploitations.length > 0) stepIndexes.push(STEP_KEYS.EXPLOITATIONS)
     if (projet.captages.length > 0) stepIndexes.push(STEP_KEYS.CAPTAGES)
@@ -55,6 +59,7 @@ export default function ProjetEditionPage({ projet }: any) {
     },
     exploitations: projet.exploitations.map((e) => e.id),
     captages: projet.captages.map((c) => c.code),
+    territoireIds: projet.territoires.map((t) => t.id),
   }
 
   const { data, setData, errors, setError, patch, transform } =
@@ -66,6 +71,7 @@ export default function ProjetEditionPage({ projet }: any) {
       description: formData.generalInfos.description || null,
       actionType: formData.generalInfos.type_action || null,
       status: formData.generalInfos.statut,
+      territoireIds: formData.territoireIds,
       parcelles: formData.parcelles.items.map((p) => ({
         year: p.year,
         rpgId: p.rpgId,

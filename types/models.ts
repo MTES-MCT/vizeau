@@ -116,6 +116,7 @@ export type ProjectJson = {
   closedAt: string | null
   createdAt: string
   updatedAt: string
+  territoires: TerritoireJson[]
   parcelles: ParcelleJson[]
   exploitations: ExploitationJson[]
   captages: CaptageJson[]

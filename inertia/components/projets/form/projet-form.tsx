@@ -10,12 +10,14 @@ import {
   GeneralInfosStep,
   ConsolidationsStep,
   FirstEntryStep,
+  TerritoiresStep,
 } from '~/components/projets/form'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 
 // Attach components to steps (done here to avoid circular imports)
 STEPS[STEP_KEYS.GENERAL_INFOS].component = GeneralInfosStep
 STEPS[STEP_KEYS.FIRST_ENTRY].component = FirstEntryStep
+STEPS[STEP_KEYS.TERRITOIRES].component = TerritoiresStep
 STEPS[STEP_KEYS.CONSOLIDATIONS].component = ConsolidationsStep
 STEPS[STEP_KEYS.PARCELLES].component = ParcellesStep
 STEPS[STEP_KEYS.EXPLOITATIONS].component = ExploitationsStep
@@ -23,6 +25,7 @@ STEPS[STEP_KEYS.CAPTAGES].component = CaptagesStep
 
 export type ProjetFormErrors = {
   projectName?: string
+  territoireIds?: string
 }
 
 export type SelectedParcelleFormData = {
@@ -56,6 +59,7 @@ export type ProjetFormData = {
   }
   exploitations: string[]
   captages: string[]
+  territoireIds: string[]
 }
 
 export const defaultFormData: ProjetFormData = {
@@ -73,6 +77,7 @@ export const defaultFormData: ProjetFormData = {
   },
   exploitations: [],
   captages: [],
+  territoireIds: [],
 }
 
 export type ProjetFormProps = {
@@ -88,9 +93,15 @@ export type ProjetFormProps = {
 }
 
 function validate(step: number, formData: ProjetFormData): ProjetFormErrors {
-  if (step === 1) {
+  if (step === STEP_KEYS.GENERAL_INFOS) {
     return {
       projectName: formData.generalInfos.projectName.trim() ? undefined : 'Ce champ est requis',
+    }
+  }
+  if (step === STEP_KEYS.TERRITOIRES) {
+    return {
+      territoireIds:
+        formData.territoireIds.length > 0 ? undefined : 'Sélectionnez au moins un territoire',
     }
   }
   return {}

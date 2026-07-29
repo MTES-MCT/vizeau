@@ -2,6 +2,7 @@ import factory from '@adonisjs/lucid/factories'
 import { fakerFR as faker } from '@faker-js/faker'
 import Project, { ProjectStatus } from '#models/project'
 import { UserFactory } from '#database/factories/user_factory'
+import { TerritoireFactory } from '#database/factories/territoire_factory'
 
 const ProjectActionType = {
   STUDY: 'study',
@@ -22,4 +23,5 @@ export const ProjectFactory = factory
     }
   })
   .relation('user', () => UserFactory)
+  .relation('territoires', () => TerritoireFactory)
   .build()

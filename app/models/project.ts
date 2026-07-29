@@ -5,6 +5,7 @@ import Exploitation from '#models/exploitation'
 import Parcelle from '#models/parcelle'
 import Captage from '#models/captage'
 import User from '#models/user'
+import Territoire from '#models/territoire'
 import ProjectStep from '#models/project_step'
 import { ProjectSchema } from '#database/schema'
 
@@ -26,6 +27,12 @@ export default class Project extends ProjectSchema {
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @manyToMany(() => Territoire, {
+    pivotTable: 'project_territoire_relations',
+    pivotTimestamps: true,
+  })
+  declare territoires: ManyToMany<typeof Territoire>
 
   @column()
   declare status: (typeof ProjectStatus)[keyof typeof ProjectStatus]
