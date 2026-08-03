@@ -25,7 +25,7 @@ export default class AccueilController {
       return response.redirect().toRoute('accueil')
     }
 
-    return inertia.render('accueil', { isPublic: true })
+    return inertia.render('bienvenue', {})
   }
 
   async index({ inertia, auth }: HttpContext) {
@@ -37,7 +37,6 @@ export default class AccueilController {
     const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
 
     return inertia.render('accueil', {
-      isPublic: false,
       latestExploitations: latestExploitations.map((exploitation) =>
         ExploitationDto.fromModel(exploitation)
       ),

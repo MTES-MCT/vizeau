@@ -1,16 +1,15 @@
 import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
-import DashboardHomepage from '~/components/accueil/dashboard-homepage'
-import PublicHomepage from '~/components/accueil/public-homepage'
+import DashboardHomepage, {
+  type DashboardHomepageProps,
+} from '~/components/accueil/dashboard-homepage'
 
-export default function Accueil({ isPublic, latestExploitations, latestLogEntries }: any) {
-  const AccueilContent = isPublic ? PublicHomepage : DashboardHomepage
-
+export default function Accueil({ latestExploitations, latestLogEntries }: DashboardHomepageProps) {
   return (
-    <Layout isPublicPage={isPublic}>
-      <Head title={isPublic ? 'Bienvenue' : 'Accueil'} />
-      <AccueilContent
+    <Layout>
+      <Head title="Accueil" />
+      <DashboardHomepage
         latestExploitations={latestExploitations}
         latestLogEntries={latestLogEntries}
       />

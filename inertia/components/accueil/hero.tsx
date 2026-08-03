@@ -59,7 +59,7 @@ function PublicHeroContent() {
       </p>
       <div className="flex flex-col gap-2">
         <div className="flex gap-4">
-          <Button linkProps={{ href: 'mailto:support@livingdata.co' }}>Demander un accès</Button>
+          <Button linkProps={{ href: 'mailto:vizeau@beta.gouv.fr' }}>Demander un accès</Button>
           {/* À afficher une fois la vidéo disponible */}
           {/* <Button
             priority="secondary"
