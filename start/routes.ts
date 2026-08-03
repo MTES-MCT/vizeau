@@ -12,7 +12,7 @@ import { middleware } from '#start/kernel'
 
 import { controllers } from '#generated/controllers'
 
-router.get('/', ({ response }) => response.redirect('login')).as('root')
+router.get('/', [controllers.Accueil, 'publicIndex']).as('root')
 
 router.get('login', [controllers.Session, 'index'])
 router.post('login', [controllers.Session, 'store'])
@@ -26,7 +26,7 @@ router
     // Routes in this group will redirect to an error page if no territoire is assigned to the user
     router
       .group(() => {
-        router.get('accueil', [controllers.Accueil, 'index'])
+        router.get('accueil', [controllers.Accueil, 'index']).as('accueil')
         router.get('visualisation', [controllers.Visualisation, 'index'])
         router
           .post('visualisation/parcelles', [

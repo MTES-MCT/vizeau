@@ -18,6 +18,16 @@ export default class AccueilController {
     public logEntryService: LogEntryService,
     public eventLogger: EventLoggerService
   ) {}
+  async publicIndex({ inertia, auth, response }: HttpContext) {
+    const isAuthenticated = await auth.check()
+
+    if (isAuthenticated) {
+      return response.redirect().toRoute('accueil')
+    }
+
+    return inertia.render('bienvenue', {})
+  }
+
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
 

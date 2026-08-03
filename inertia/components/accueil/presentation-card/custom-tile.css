@@ -1,0 +1,17 @@
+.custom-tile {
+  height: 100%;
+}
+
+.custom-tile .fr-tile__header {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.custom-tile .fr-tile__img {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+.custom-tile .fr-tile__content {
+  padding: 0 !important;
+}

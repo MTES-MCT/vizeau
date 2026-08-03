@@ -9,9 +9,7 @@ export interface ApiDefinition {
     delete: typeof routes['session.delete']
   }
   noTerritoire: typeof routes['noTerritoire']
-  accueil: {
-    index: typeof routes['accueil.index']
-  }
+  accueil: typeof routes['accueil']
   visualisation: {
     index: typeof routes['visualisation.index']
     assignParcellesToExploitation: typeof routes['visualisation.assignParcellesToExploitation']

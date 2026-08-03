@@ -9,7 +9,7 @@ export type ScannedRoutes = {
     'session.store': { paramsTuple?: []; params?: {} }
     'session.delete': { paramsTuple?: []; params?: {} }
     'noTerritoire': { paramsTuple?: []; params?: {} }
-    'accueil.index': { paramsTuple?: []; params?: {} }
+    'accueil': { paramsTuple?: []; params?: {} }
     'visualisation.index': { paramsTuple?: []; params?: {} }
     'visualisation.assignParcellesToExploitation': { paramsTuple?: []; params?: {} }
     'exploitations.index': { paramsTuple?: []; params?: {} }
@@ -76,7 +76,7 @@ export type ScannedRoutes = {
     'session.index': { paramsTuple?: []; params?: {} }
     'session.delete': { paramsTuple?: []; params?: {} }
     'noTerritoire': { paramsTuple?: []; params?: {} }
-    'accueil.index': { paramsTuple?: []; params?: {} }
+    'accueil': { paramsTuple?: []; params?: {} }
     'visualisation.index': { paramsTuple?: []; params?: {} }
     'exploitations.index': { paramsTuple?: []; params?: {} }
     'exploitations.create': { paramsTuple?: []; params?: {} }
@@ -120,7 +120,7 @@ export type ScannedRoutes = {
     'session.index': { paramsTuple?: []; params?: {} }
     'session.delete': { paramsTuple?: []; params?: {} }
     'noTerritoire': { paramsTuple?: []; params?: {} }
-    'accueil.index': { paramsTuple?: []; params?: {} }
+    'accueil': { paramsTuple?: []; params?: {} }
     'visualisation.index': { paramsTuple?: []; params?: {} }
     'exploitations.index': { paramsTuple?: []; params?: {} }
     'exploitations.create': { paramsTuple?: []; params?: {} }

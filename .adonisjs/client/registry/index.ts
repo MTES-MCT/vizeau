@@ -36,11 +36,11 @@ const routes = {
     tokens: [{"old":"/pas-de-territoire","type":0,"val":"pas-de-territoire","end":""}],
     types: placeholder as Registry['noTerritoire']['types'],
   },
-  'accueil.index': {
+  'accueil': {
     methods: ["GET","HEAD"],
     pattern: '/accueil',
     tokens: [{"old":"/accueil","type":0,"val":"accueil","end":""}],
-    types: placeholder as Registry['accueil.index']['types'],
+    types: placeholder as Registry['accueil']['types'],
   },
   'visualisation.index': {
     methods: ["GET","HEAD"],
