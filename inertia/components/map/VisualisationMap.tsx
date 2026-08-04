@@ -35,6 +35,8 @@ import vector from '~/components/map/styles/vector.json'
 import { usePage } from '@inertiajs/react'
 
 import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
+import { useMap } from '~/hooks/use_map'
+import { MapErrorBoundary } from './map-error-boundary'
 import Loader from '~/ui/Loader'
 
 export type GeoPoint = {
@@ -64,37 +66,36 @@ export interface VisualisationMapRef {
   centerOnCoordinates: (coordinates: { x: number; y: number }) => void
 }
 
-const VisualisationMap = forwardRef<
-  VisualisationMapRef,
-  {
-    exploitations: ExploitationJson[]
-    selectedExploitation?: ExploitationJson
-    selectedParcelle?: ParcelleJson
-    selectedParcelleId?: string
-    isMapLoading: boolean
-    setIsMapLoading: (isMapLoading: boolean) => void
-    onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
-    onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
-    onParcelleMouseLeave?: () => void
-    onMarkerClick?: (exploitation: ExploitationJson) => void
-    onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
-    onMarkerMouseLeave?: () => void
-    formParcelleIds?: string[]
-    unavailableParcelleIds?: string[]
-    millesime: string
-    editMode?: boolean
-    showParcelles?: boolean
-    showAac?: boolean
-    showPpe?: boolean
-    showPpr?: boolean
-    showCommunes?: boolean
-    showBioOnly?: boolean
-    visibleCultures?: string[]
-    showSage?: boolean
-    style?: string
-    onZoomChange?: (zoom: number) => void
-  }
->(
+type VisualisationMapProps = {
+  exploitations: ExploitationJson[]
+  selectedExploitation?: ExploitationJson
+  selectedParcelle?: ParcelleJson
+  selectedParcelleId?: string
+  isMapLoading: boolean
+  setIsMapLoading: (isMapLoading: boolean) => void
+  onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
+  onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
+  onParcelleMouseLeave?: () => void
+  onMarkerClick?: (exploitation: ExploitationJson) => void
+  onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
+  onMarkerMouseLeave?: () => void
+  formParcelleIds?: string[]
+  unavailableParcelleIds?: string[]
+  millesime: string
+  editMode?: boolean
+  showParcelles?: boolean
+  showAac?: boolean
+  showPpe?: boolean
+  showPpr?: boolean
+  showCommunes?: boolean
+  showBioOnly?: boolean
+  visibleCultures?: string[]
+  showSage?: boolean
+  style?: string
+  onZoomChange?: (zoom: number) => void
+}
+
+const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
   (
     {
       exploitations,
@@ -127,8 +128,6 @@ const VisualisationMap = forwardRef<
   ) => {
     const { pmtilesUrl, projects } =
       usePage<InferPageProps<VisualisationController, 'index'>>().props
-    const mapContainerRef = useRef<HTMLDivElement | null>(null)
-    const mapRef = useRef<maplibre.Map | null>(null)
     const markersRef = useRef<maplibre.Marker[]>([])
     // Will be true when a marker is hovered to avoid showing parcelle popup at the same time
     const [isMarkerHovered, setIsMarkerHovered] = useState(false)
@@ -348,14 +347,8 @@ const VisualisationMap = forwardRef<
       [onParcelleClick, unavailableParcelleIds]
     )
 
-    // Map initialization
-    useEffect(() => {
-      if (!mapContainerRef.current) {
-        return
-      }
-
-      const map = new maplibre.Map({
-        container: mapContainerRef.current,
+    const { mapContainerRef, mapRef } = useMap(
+      {
         style: stylesMap[style],
         center: [2.24, 46.54],
         zoom: 5,
@@ -365,76 +358,71 @@ const VisualisationMap = forwardRef<
         dragRotate: false,
         pitchWithRotate: false,
         touchZoomRotate: false,
-      })
+      },
+      (map) => {
+        map.on('load', () => {
+          if (!map.getSource('parcelles')) {
+            map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
+          }
 
-      map.on('load', () => {
-        if (!map.getSource('parcelles')) {
-          map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-        }
+          if (!map.getSource('aac')) {
+            map.addSource('aac', getAacSource({ pmtilesUrl }))
+          }
 
-        if (!map.getSource('aac')) {
-          map.addSource('aac', getAacSource({ pmtilesUrl }))
-        }
+          if (!map.getSource('ppe')) {
+            map.addSource('ppe', getPpeSource({ pmtilesUrl }))
+          }
 
-        if (!map.getSource('ppe')) {
-          map.addSource('ppe', getPpeSource({ pmtilesUrl }))
-        }
+          if (!map.getSource('ppr')) {
+            map.addSource('ppr', getPprSource({ pmtilesUrl }))
+          }
 
-        if (!map.getSource('ppr')) {
-          map.addSource('ppr', getPprSource({ pmtilesUrl }))
-        }
+          if (!map.getSource('sage')) {
+            map.addSource('sage', getSageSource({ pmtilesUrl }))
+          }
 
-        if (!map.getSource('sage')) {
-          map.addSource('sage', getSageSource({ pmtilesUrl }))
-        }
+          const addLayers = (
+            layers: Array<{ id: string; [key: string]: any }>,
+            beforeId?: string
+          ) => {
+            layers.forEach((layer) => {
+              if (!map.getLayer(layer.id)) {
+                map.addLayer(layer as maplibre.AddLayerObject, beforeId)
+              }
+            })
+          }
 
-        const addLayers = (
-          layers: Array<{ id: string; [key: string]: any }>,
-          beforeId?: string
-        ) => {
-          layers.forEach((layer) => {
-            if (!map.getLayer(layer.id)) {
-              map.addLayer(layer as maplibre.AddLayerObject, beforeId)
-            }
-          })
-        }
+          map.addControl(
+            new maplibre.ScaleControl({
+              maxWidth: 100,
+              unit: 'metric',
+            }),
+            'bottom-left'
+          )
 
-        map.addControl(
-          new maplibre.ScaleControl({
-            maxWidth: 100,
-            unit: 'metric',
-          }),
-          'bottom-left'
-        )
+          const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
 
-        const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
+          addLayers(getPprLayer(), beforeId)
+          addLayers(getPpeLayer(), beforeId)
+          addLayers(getAacLayer(), beforeId)
+          addLayers(getCommunesLayer(), beforeId)
+          addLayers(getSageLayer(), beforeId)
+          addLayers(getParcellesLayers(), beforeId)
 
-        addLayers(getPprLayer(), beforeId)
-        addLayers(getPpeLayer(), beforeId)
-        addLayers(getAacLayer(), beforeId)
-        addLayers(getCommunesLayer(), beforeId)
-        addLayers(getSageLayer(), beforeId)
-        addLayers(getParcellesLayers(), beforeId)
+          onZoomChange?.(map.getZoom())
+          setIsMapLoading(false)
+        })
 
-        onZoomChange?.(map.getZoom())
-        setIsMapLoading(false)
-      })
+        // Ensures the map is not blocked in loading state after any loading event
+        map.on('idle', () => {
+          setIsMapLoading(false)
+        })
 
-      // Ensures the map is not blocked in loading state after any loading event
-      map.on('idle', () => {
-        setIsMapLoading(false)
-      })
-
-      map.on('zoomend', () => {
-        onZoomChange?.(map.getZoom())
-      })
-
-      mapRef.current = map
-
-      return () => {
-        map.remove()
+        map.on('zoomend', () => {
+          onZoomChange?.(map.getZoom())
+        })
       }
-    }, [])
+    )
 
     // Exploitations markers init
     useEffect(() => {
@@ -959,6 +947,16 @@ const VisualisationMap = forwardRef<
           </div>
         )}
       </div>
+    )
+  }
+)
+
+const VisualisationMap = forwardRef<VisualisationMapRef, VisualisationMapProps>(
+  function VisualisationMap(props, ref) {
+    return (
+      <MapErrorBoundary>
+        <VisualisationMapContent {...props} ref={ref} />
+      </MapErrorBoundary>
     )
   }
 )
