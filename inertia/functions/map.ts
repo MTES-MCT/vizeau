@@ -1,4 +1,5 @@
 import type maplibre from 'maplibre-gl'
+import { ParcelleJson } from '#types/models'
 
 export function setParcellesHighlight(
   map: maplibre.Map | null,
@@ -28,37 +29,6 @@ export function setParcellesHighlight(
     highlight()
   } else {
     map.once('load', highlight)
-  }
-}
-
-export function setParcellesUnavailability(
-  map: maplibre.Map | null,
-  parcelleIds: string[],
-  unavailable: boolean = true
-) {
-  if (!map) return
-
-  const setUnavailability = () => {
-    if (
-      !map.getSource('parcelles') ||
-      !map.getLayer('parcelles-fill') ||
-      !map.getLayer('parcelles-outline')
-    ) {
-      console.warn('Cannot set parcelles unavailable: map source/layers not ready.')
-      return
-    }
-    for (const id of parcelleIds) {
-      map.setFeatureState(
-        { source: 'parcelles', sourceLayer: 'parcelles', id: id },
-        { unavailable }
-      )
-    }
-  }
-
-  if (map.isStyleLoaded()) {
-    setUnavailability()
-  } else {
-    map.once('load', setUnavailability)
   }
 }
 
@@ -122,4 +92,19 @@ export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number 
   }
 
   return undefined
+}
+
+export function getRpgIdsFromParcellesForYear(
+  parcelles: ParcelleJson[] | undefined,
+  year: string
+): string[] {
+  if (!parcelles || !parcelles.length) return []
+
+  const rpgIds: string[] = []
+  for (const parcelle of parcelles) {
+    if (parcelle.rpgId && parcelle.year.toString() === year) {
+      rpgIds.push(parcelle.rpgId)
+    }
+  }
+  return rpgIds
 }
