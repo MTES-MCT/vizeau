@@ -18,7 +18,7 @@ function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUr
         </span>
       </div>
       <p>
-        L'application facilite l'accès, le traitement et le partage des données liées à
+        L'application facilite l'accès, le traitement et le partage des données liées à{' '}
         <strong>la qualité de l'eau aux captages</strong>. Elle produit un état des lieux clair et
         directement exploitable pour la réalisation de <strong>l'étude des dangers</strong>. Un
         outil simple pour appuyer les collectivités et services de l'État dans{' '}
