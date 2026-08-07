@@ -1,5 +1,5 @@
 import type maplibre from 'maplibre-gl'
-import { ParcelleJson } from '#types/models'
+import type { ParcelleJson } from '#types/models'
 
 export function setParcellesHighlight(
   map: maplibre.Map | null,
