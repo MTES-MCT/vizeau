@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type maplibre from 'maplibre-gl'
 import {
   EMPTY_FEATURE_STATES,
+  getDesiredStateKey,
   reapplyParcellesSourceState,
   reconcileMap,
   type AppliedFeatureStates,
@@ -18,11 +19,7 @@ import {
  * silently drops the layers and sources added on top of the basemap without emitting any
  * event, so its caller has to trigger the pass itself.
  */
-export function useMapReconciler(
-  mapRef: React.RefObject<maplibre.Map | null>,
-  map: maplibre.Map | null,
-  desiredState: MapDesiredState
-) {
+export function useMapReconciler(map: maplibre.Map | null, desiredState: MapDesiredState) {
   const desiredStateRef = useRef(desiredState)
   const featureStatesRef = useRef<AppliedFeatureStates>(EMPTY_FEATURE_STATES)
   const pendingSourceListenerRef = useRef<((event: maplibre.MapSourceDataEvent) => void) | null>(
@@ -35,27 +32,24 @@ export function useMapReconciler(
   desiredStateRef.current = desiredState
 
   const clearPendingSourceListener = useCallback(() => {
-    const currentMap = mapRef.current
     const listener = pendingSourceListenerRef.current
 
-    if (currentMap && listener) {
-      currentMap.off('sourcedata', listener)
+    if (map && listener) {
+      map.off('sourcedata', listener)
     }
 
     pendingSourceListenerRef.current = null
-  }, [mapRef])
+  }, [map])
 
   const reconcile = useCallback(() => {
-    const currentMap = mapRef.current
-
-    if (!currentMap || !isStyleReadyRef.current) {
+    if (!map || !isStyleReadyRef.current) {
       return
     }
 
     clearPendingSourceListener()
 
     const { parcellesSourcePending, appliedFeatureStates } = reconcileMap(
-      currentMap,
+      map,
       desiredStateRef.current,
       featureStatesRef.current
     )
@@ -75,15 +69,15 @@ export function useMapReconciler(
 
       clearPendingSourceListener()
       featureStatesRef.current = reapplyParcellesSourceState(
-        currentMap,
+        map,
         desiredStateRef.current,
         featureStatesRef.current
       )
     }
 
     pendingSourceListenerRef.current = onSourceData
-    currentMap.on('sourcedata', onSourceData)
-  }, [clearPendingSourceListener, mapRef])
+    map.on('sourcedata', onSourceData)
+  }, [clearPendingSourceListener, map])
 
   useEffect(() => {
     if (!map) {
@@ -119,7 +113,7 @@ export function useMapReconciler(
   }, [map, reconcile, clearPendingSourceListener])
 
   // The desired state is compared by value: callers may rebuild the arrays on every render.
-  const desiredStateKey = useMemo(() => JSON.stringify(desiredState), [desiredState])
+  const desiredStateKey = getDesiredStateKey(desiredState)
 
   useEffect(() => {
     reconcile()

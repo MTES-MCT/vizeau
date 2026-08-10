@@ -23,7 +23,7 @@ import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
 
-import { getRpgIdsFromParcellesForYear, setParcellesHighlight } from '~/functions/map'
+import { getRpgIdsFromParcellesForYear } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
 import { MapErrorBoundary } from './map-error-boundary'
 import Loader from '~/ui/Loader'
@@ -115,8 +115,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     ref
   ) => {
     const markersRef = useRef<maplibre.Marker[]>([])
-    // Will be true when a marker is hovered to avoid showing parcelle popup at the same time
-    const [isMarkerHovered, setIsMarkerHovered] = useState(false)
+    // Exploitation whose marker is currently hovered, used both to highlight its parcelles and
+    // to avoid showing the parcelle popup at the same time as the exploitation one.
+    const [hoveredExploitationId, setHoveredExploitationId] = useState<string | null>(null)
+    const isMarkerHovered = hoveredExploitationId !== null
     // The popup is created once and will be hidden/shown on demand, with its contents updated.
     const parcellePopupRef = useRef<maplibre.Popup>(
       new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
@@ -154,6 +156,20 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       selectedParcelleId,
     ])
 
+    // Les parcelles de l'exploitation survolée sont mises en évidence, sauf lorsqu'il s'agit de
+    // l'exploitation sélectionnée dont les parcelles le sont déjà.
+    const hoveredParcelleIds = useMemo(() => {
+      if (!hoveredExploitationId || hoveredExploitationId === selectedExploitation?.id) {
+        return []
+      }
+
+      const hoveredExploitation = exploitations.find(
+        (exploitation) => exploitation.id === hoveredExploitationId
+      )
+
+      return getRpgIdsFromParcellesForYear(hoveredExploitation?.parcelles ?? undefined, millesime)
+    }, [exploitations, hoveredExploitationId, millesime, selectedExploitation])
+
     const desiredMapState: MapDesiredState = useMemo(
       () => ({
         pmtilesUrl,
@@ -167,6 +183,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         showBioOnly,
         visibleCultures,
         highlightedParcelleIds,
+        hoveredParcelleIds,
         unavailableParcelleIds,
       }),
       [
@@ -181,6 +198,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         showBioOnly,
         visibleCultures,
         highlightedParcelleIds,
+        hoveredParcelleIds,
         unavailableParcelleIds,
       ]
     )
@@ -382,7 +400,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     )
 
     // Owns every source, layer, visibility rule, filter and feature state of the map.
-    const reconcileMapState = useMapReconciler(mapRef, map, desiredMapState)
+    const reconcileMapState = useMapReconciler(map, desiredMapState)
 
     // Exploitations markers init
     useEffect(() => {
@@ -416,7 +434,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
               return
             }
 
-            setIsMarkerHovered(true)
+            setHoveredExploitationId(exploitation.id)
 
             const popupNode = document.createElement('div')
             const root = createRoot(popupNode)
@@ -426,38 +444,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
               .setDOMContent(popupNode)
               .addTo(mapRef.current)
 
-            // Highlight parcelles on marker hover if it's not the selected exploitation
-            if (
-              (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
-              exploitation.parcelles &&
-              exploitation.parcelles.length > 0
-            ) {
-              setParcellesHighlight(
-                mapRef.current,
-                getRpgIdsFromParcellesForYear(exploitation.parcelles, millesime),
-                true
-              )
-            }
-
             onMarkerMouseEnter?.(exploitation)
           })
 
           markerElement.addEventListener('mouseleave', () => {
-            setIsMarkerHovered(false)
+            setHoveredExploitationId(null)
             popup.remove()
-
-            // Unhighlight parcelles on marker leave if it's not the selected exploitation
-            if (
-              (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
-              exploitation.parcelles &&
-              exploitation.parcelles.length > 0
-            ) {
-              setParcellesHighlight(
-                mapRef.current,
-                getRpgIdsFromParcellesForYear(exploitation.parcelles, millesime),
-                false
-              )
-            }
 
             onMarkerMouseLeave?.()
           })
@@ -481,16 +473,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         }
 
         markersRef.current = []
+        // The removed markers will never emit their `mouseleave`.
+        setHoveredExploitationId(null)
       }
-    }, [
-      exploitations,
-      selectedExploitation,
-      editMode,
-      millesime,
-      onMarkerClick,
-      onMarkerMouseEnter,
-      onMarkerMouseLeave,
-    ])
+    }, [exploitations, editMode, onMarkerClick, onMarkerMouseEnter, onMarkerMouseLeave])
 
     // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
     useEffect(() => {

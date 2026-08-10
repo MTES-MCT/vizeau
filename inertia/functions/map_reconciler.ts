@@ -17,14 +17,7 @@ import {
 const BASEMAP_ANCHOR_LAYER_ID = 'water-name-lakeline'
 
 const PARCELLES_SOURCE_ID = 'parcelles'
-
-/** Layers backed by the `parcelles` source, in stacking order. */
-export const PARCELLES_LAYER_IDS = [
-  'parcelles-fill',
-  'parcelles-outline',
-  'parcellesbio-fill',
-  'parcellesbio-outline',
-] as const
+const PARCELLES_SOURCE_LAYER = 'parcelles'
 
 const BIO_FILL_OPACITY: maplibre.DataDrivenPropertyValueSpecification<number> = [
   'case',
@@ -47,7 +40,10 @@ export type MapDesiredState = {
   showSage: boolean
   showBioOnly: boolean
   visibleCultures: string[]
+  /** Parcelles highlighted by the current selection or by the parcelle form. */
   highlightedParcelleIds: string[]
+  /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
+  hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
 }
 
@@ -62,107 +58,138 @@ export const EMPTY_FEATURE_STATES: AppliedFeatureStates = {
   unavailable: [],
 }
 
-type SourceDefinition = {
+type ManagedSource = {
   id: string
   build: (state: MapDesiredState) => maplibre.SourceSpecification
 }
 
-/** Single declaration site for every source the map needs. */
-const SOURCE_DEFINITIONS: SourceDefinition[] = [
-  {
-    id: PARCELLES_SOURCE_ID,
-    build: ({ pmtilesUrl, millesime }) => getParcellesSource({ pmtilesUrl, millesime }),
-  },
-  { id: 'aac', build: ({ pmtilesUrl }) => getAacSource({ pmtilesUrl }) },
-  { id: 'ppe', build: ({ pmtilesUrl }) => getPpeSource({ pmtilesUrl }) },
-  { id: 'ppr', build: ({ pmtilesUrl }) => getPprSource({ pmtilesUrl }) },
-  { id: 'sage', build: ({ pmtilesUrl }) => getSageSource({ pmtilesUrl }) },
-]
-
-/**
- * Single declaration site for every layer the map needs. The order of this list is
- * also the stacking order of the layers, from bottom to top.
- */
-const getLayerDefinitions = (): LayerSpecification[] =>
-  [
-    ...getPprLayer(),
-    ...getPpeLayer(),
-    ...getAacLayer(),
-    ...getCommunesLayer(),
-    ...getSageLayer(),
-    ...getParcellesLayers(),
-  ] as LayerSpecification[]
-
-type VisibilityRule = {
-  layers: string[]
-  isVisible: (state: MapDesiredState) => boolean
+type ManagedLayer = {
+  spec: LayerSpecification
+  /** Layers without a rule stay visible; their presentation is driven by paint properties. */
+  isVisible?: (state: MapDesiredState) => boolean
 }
 
-/** Single declaration site for the visibility rules driven by the sidebar checkboxes. */
-const LAYER_VISIBILITY_RULES: VisibilityRule[] = [
-  { layers: ['ppr-fill', 'ppr-outline'], isVisible: (state) => state.showPpr },
-  { layers: ['ppe-fill', 'ppe-outline'], isVisible: (state) => state.showPpe },
-  { layers: ['aac-fill', 'aac-outline'], isVisible: (state) => state.showAac },
-  { layers: ['communes-outline'], isVisible: (state) => state.showCommunes },
-  { layers: ['sage-fill', 'sage-outline'], isVisible: (state) => state.showSage },
+type MapOverlay = {
+  /** Omitted when the overlay draws a source already provided by the basemap style. */
+  source?: ManagedSource
+  layers: ManagedLayer[]
+}
+
+const toManagedLayers = (
+  specs: unknown[],
+  isVisible?: (state: MapDesiredState) => boolean
+): ManagedLayer[] => (specs as LayerSpecification[]).map((spec) => ({ spec, isVisible }))
+
+const parcellesLayerSpecs = getParcellesLayers()
+const isBioLayer = (spec: LayerSpecification) => spec.id.startsWith('parcellesbio')
+
+/**
+ * Single declaration site for every source and layer the map needs. The order of this list,
+ * and of the layers inside each overlay, is also the stacking order, from bottom to top.
+ */
+const MAP_OVERLAYS: MapOverlay[] = [
   {
-    layers: ['parcelles-fill', 'parcelles-outline'],
-    isVisible: (state) => state.showParcelles && !state.showBioOnly,
+    source: { id: 'ppr', build: ({ pmtilesUrl }) => getPprSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getPprLayer(), (state) => state.showPpr),
+  },
+  {
+    source: { id: 'ppe', build: ({ pmtilesUrl }) => getPpeSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getPpeLayer(), (state) => state.showPpe),
+  },
+  {
+    source: { id: 'aac', build: ({ pmtilesUrl }) => getAacSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getAacLayer(), (state) => state.showAac),
+  },
+  {
+    // The communes outline is drawn from a source owned by the basemap style.
+    layers: toManagedLayers(getCommunesLayer(), (state) => state.showCommunes),
+  },
+  {
+    source: { id: 'sage', build: ({ pmtilesUrl }) => getSageSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getSageLayer(), (state) => state.showSage),
+  },
+  {
+    source: {
+      id: PARCELLES_SOURCE_ID,
+      build: ({ pmtilesUrl, millesime }) => getParcellesSource({ pmtilesUrl, millesime }),
+    },
+    layers: [
+      ...toManagedLayers(
+        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec)),
+        (state) => state.showParcelles && !state.showBioOnly
+      ),
+      // The bio layers are never hidden: they are kept transparent so that
+      // `queryRenderedFeatures` can still detect bio parcelles under the cursor.
+      ...toManagedLayers(parcellesLayerSpecs.filter(isBioLayer)),
+    ],
   },
 ]
+
+const MANAGED_SOURCES: ManagedSource[] = MAP_OVERLAYS.flatMap((overlay) =>
+  overlay.source ? [overlay.source] : []
+)
+
+/** Every managed layer, flattened in stacking order. */
+const MANAGED_LAYERS: ManagedLayer[] = MAP_OVERLAYS.flatMap((overlay) => overlay.layers)
+
+const getLayerSourceId = (spec: LayerSpecification): string | undefined =>
+  'source' in spec && typeof spec.source === 'string' ? spec.source : undefined
+
+const getLayerIdsOfSource = (sourceId: string): string[] =>
+  MANAGED_LAYERS.filter(({ spec }) => getLayerSourceId(spec) === sourceId).map(
+    ({ spec }) => spec.id
+  )
+
+/** Layers backed by the `parcelles` source, in stacking order. */
+export const PARCELLES_LAYER_IDS = getLayerIdsOfSource(PARCELLES_SOURCE_ID)
 
 const getAnchorLayerId = (map: maplibre.Map): string | undefined =>
   map.getLayer(BASEMAP_ANCHOR_LAYER_ID) ? BASEMAP_ANCHOR_LAYER_ID : undefined
 
 /**
- * Drops the `parcelles` source and its layers when the millesime it was built for no
- * longer matches the desired one, so that the following steps recreate them.
- * Returns `true` when the source was dropped.
+ * A source is outdated when the specification it was built from no longer matches the desired
+ * state, typically after a millesime change or a pmtiles host change.
  */
-const syncParcellesSource = (map: maplibre.Map, state: MapDesiredState): boolean => {
-  const source = map.getSource(PARCELLES_SOURCE_ID)
+const isSourceOutdated = (
+  source: NonNullable<ReturnType<maplibre.Map['getSource']>>,
+  spec: maplibre.SourceSpecification
+): boolean => 'url' in spec && 'url' in source && source.url !== spec.url
 
-  if (!source) {
-    return false
-  }
-
-  const expectedUrl = getParcellesSource({
-    pmtilesUrl: state.pmtilesUrl,
-    millesime: state.millesime,
-  }).url
-
-  if ('url' in source && source.url === expectedUrl) {
-    return false
-  }
-
-  for (const layerId of PARCELLES_LAYER_IDS) {
+const removeSource = (map: maplibre.Map, sourceId: string) => {
+  for (const layerId of getLayerIdsOfSource(sourceId)) {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId)
     }
   }
 
-  map.removeSource(PARCELLES_SOURCE_ID)
-
-  return true
+  map.removeSource(sourceId)
 }
 
 /**
- * Adds the missing sources. Returns `true` when the `parcelles` source had to be
- * (re)created, meaning MapLibre dropped the feature states that were attached to it.
+ * Adds the missing sources and recreates the outdated ones, dropping their layers along the way
+ * so that the following steps rebuild them. Returns the ids of the sources that were (re)created,
+ * since MapLibre drops the feature states attached to a source together with the source itself.
  */
-const ensureSources = (map: maplibre.Map, state: MapDesiredState): boolean => {
-  let parcellesSourceCreated = false
+const syncSources = (map: maplibre.Map, state: MapDesiredState): Set<string> => {
+  const createdSourceIds = new Set<string>()
 
-  for (const { id, build } of SOURCE_DEFINITIONS) {
-    if (map.getSource(id)) {
+  for (const { id, build } of MANAGED_SOURCES) {
+    const spec = build(state)
+    const source = map.getSource(id)
+
+    if (source && !isSourceOutdated(source, spec)) {
       continue
     }
 
-    map.addSource(id, build(state))
-    parcellesSourceCreated ||= id === PARCELLES_SOURCE_ID
+    if (source) {
+      removeSource(map, id)
+    }
+
+    map.addSource(id, spec)
+    createdSourceIds.add(id)
   }
 
-  return parcellesSourceCreated
+  return createdSourceIds
 }
 
 /**
@@ -173,29 +200,29 @@ const ensureSources = (map: maplibre.Map, state: MapDesiredState): boolean => {
 const ensureLayers = (map: maplibre.Map) => {
   const anchorLayerId = getAnchorLayerId(map)
 
-  const managedLayers = getLayerDefinitions().filter((layer) => {
-    const sourceId = 'source' in layer ? layer.source : undefined
-    return typeof sourceId !== 'string' || Boolean(map.getSource(sourceId))
+  const availableLayers = MANAGED_LAYERS.filter(({ spec }) => {
+    const sourceId = getLayerSourceId(spec)
+    return sourceId === undefined || Boolean(map.getSource(sourceId))
   })
 
-  for (const layer of managedLayers) {
-    if (!map.getLayer(layer.id)) {
-      map.addLayer(layer as AddLayerObject, anchorLayerId)
+  for (const { spec } of availableLayers) {
+    if (!map.getLayer(spec.id)) {
+      map.addLayer(spec as AddLayerObject, anchorLayerId)
     }
   }
 
-  if (isLayerOrderCorrect(map, managedLayers, anchorLayerId)) {
+  if (isLayerOrderCorrect(map, availableLayers, anchorLayerId)) {
     return
   }
 
-  for (const layer of managedLayers) {
-    map.moveLayer(layer.id, anchorLayerId)
+  for (const { spec } of availableLayers) {
+    map.moveLayer(spec.id, anchorLayerId)
   }
 }
 
 const isLayerOrderCorrect = (
   map: maplibre.Map,
-  managedLayers: LayerSpecification[],
+  availableLayers: ManagedLayer[],
   anchorLayerId: string | undefined
 ) => {
   const positions = new Map(map.getLayersOrder().map((layerId, index) => [layerId, index]))
@@ -203,8 +230,8 @@ const isLayerOrderCorrect = (
 
   let previousPosition = -1
 
-  for (const layer of managedLayers) {
-    const position = positions.get(layer.id)
+  for (const { spec } of availableLayers) {
+    const position = positions.get(spec.id)
 
     if (position === undefined || position < previousPosition) {
       return false
@@ -220,17 +247,13 @@ const isLayerOrderCorrect = (
   return true
 }
 
-const setVisibility = (map: maplibre.Map, layerIds: string[], visible: boolean) => {
-  for (const layerId of layerIds) {
-    if (map.getLayer(layerId)) {
-      map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
-    }
-  }
-}
-
 const applyLayerVisibility = (map: maplibre.Map, state: MapDesiredState) => {
-  for (const { layers, isVisible } of LAYER_VISIBILITY_RULES) {
-    setVisibility(map, layers, isVisible(state))
+  for (const { spec, isVisible } of MANAGED_LAYERS) {
+    if (!isVisible || !map.getLayer(spec.id)) {
+      continue
+    }
+
+    map.setLayoutProperty(spec.id, 'visibility', isVisible(state) ? 'visible' : 'none')
   }
 }
 
@@ -282,9 +305,18 @@ const setFeatureStates = (
   state: { highlighted?: boolean; unavailable?: boolean }
 ) => {
   for (const id of parcelleIds) {
-    map.setFeatureState({ source: PARCELLES_SOURCE_ID, sourceLayer: 'parcelles', id }, state)
+    map.setFeatureState(
+      { source: PARCELLES_SOURCE_ID, sourceLayer: PARCELLES_SOURCE_LAYER, id },
+      state
+    )
   }
 }
+
+const dedupe = (ids: string[]): string[] => [...new Set(ids)]
+
+/** Selection and hover are both rendered through the `highlighted` feature state. */
+const getHighlightedParcelleIds = (state: MapDesiredState): string[] =>
+  dedupe([...state.highlightedParcelleIds, ...state.hoveredParcelleIds])
 
 /**
  * Applies the desired feature states and clears the ones that were applied previously
@@ -300,22 +332,18 @@ const applyParcelleFeatureStates = (
     return previous
   }
 
-  const staleHighlighted = previous.highlighted.filter(
-    (id) => !state.highlightedParcelleIds.includes(id)
-  )
-  const staleUnavailable = previous.unavailable.filter(
-    (id) => !state.unavailableParcelleIds.includes(id)
-  )
+  const highlighted = getHighlightedParcelleIds(state)
+  const unavailable = dedupe(state.unavailableParcelleIds)
+
+  const staleHighlighted = previous.highlighted.filter((id) => !highlighted.includes(id))
+  const staleUnavailable = previous.unavailable.filter((id) => !unavailable.includes(id))
 
   setFeatureStates(map, staleHighlighted, { highlighted: false })
   setFeatureStates(map, staleUnavailable, { unavailable: false })
-  setFeatureStates(map, state.highlightedParcelleIds, { highlighted: true })
-  setFeatureStates(map, state.unavailableParcelleIds, { unavailable: true })
+  setFeatureStates(map, highlighted, { highlighted: true })
+  setFeatureStates(map, unavailable, { unavailable: true })
 
-  return {
-    highlighted: [...state.highlightedParcelleIds],
-    unavailable: [...state.unavailableParcelleIds],
-  }
+  return { highlighted, unavailable }
 }
 
 const isParcellesSourceLoaded = (map: maplibre.Map) => {
@@ -350,11 +378,9 @@ export const reconcileMap = (
   state: MapDesiredState,
   previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
 ): ReconcileResult => {
-  // Feature states are dropped along with the source they belong to, whether the source
-  // was replaced because of a millesime change or wiped by a basemap change.
-  syncParcellesSource(map, state)
-
-  const parcellesSourceCreated = ensureSources(map, state)
+  // Feature states are dropped along with the source they belong to, whether the source was
+  // replaced because it went out of date or wiped by a basemap change.
+  const createdSourceIds = syncSources(map, state)
 
   ensureLayers(map)
   applyLayerVisibility(map, state)
@@ -364,7 +390,7 @@ export const reconcileMap = (
   const appliedFeatureStates = applyParcelleFeatureStates(
     map,
     state,
-    parcellesSourceCreated ? EMPTY_FEATURE_STATES : previousFeatureStates
+    createdSourceIds.has(PARCELLES_SOURCE_ID) ? EMPTY_FEATURE_STATES : previousFeatureStates
   )
 
   return { parcellesSourcePending: !isParcellesSourceLoaded(map), appliedFeatureStates }
@@ -381,3 +407,29 @@ export const reapplyParcellesSourceState = (
 
   return applyParcelleFeatureStates(map, state, previousFeatureStates)
 }
+
+const serializeIds = (ids: string[]): string => dedupe(ids).sort().join(',')
+
+/**
+ * Deterministic representation of the desired state, so that callers rebuilding the arrays on
+ * every render do not trigger a reconciliation when nothing actually changed.
+ */
+export const getDesiredStateKey = (state: MapDesiredState): string =>
+  [
+    state.pmtilesUrl,
+    state.millesime,
+    [
+      state.showParcelles,
+      state.showAac,
+      state.showPpe,
+      state.showPpr,
+      state.showCommunes,
+      state.showSage,
+      state.showBioOnly,
+    ]
+      .map(Number)
+      .join(''),
+    serializeIds(state.visibleCultures),
+    serializeIds(getHighlightedParcelleIds(state)),
+    serializeIds(state.unavailableParcelleIds),
+  ].join('|')
