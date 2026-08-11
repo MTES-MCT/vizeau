@@ -7,7 +7,7 @@ import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
-import type { AacSummaryJson, ExploitationJson } from '#types/models'
+import type { AacSummaryJson, ExploitationJson, ProjectJson } from '#types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import { MapGeoJSONFeature } from 'maplibre-gl'
@@ -44,6 +44,8 @@ export type VisualisationPageProps = {
   }
   aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
   selectedAac?: AacSummaryJson
+  pmtilesUrl: string
+  projects: ProjectJson[]
 }
 
 export default function VisualisationPage({
@@ -54,6 +56,8 @@ export default function VisualisationPage({
   aacMeta,
   aacQueryString,
   selectedAac,
+  pmtilesUrl,
+  projects,
 }: VisualisationPageProps) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [mapZoom, setMapZoom] = useState<number | null>(null)
@@ -414,6 +418,8 @@ export default function VisualisationPage({
             visibleCultures={visibleCultures}
             style={style}
             onZoomChange={setMapZoom}
+            pmtilesUrl={pmtilesUrl}
+            projects={projects}
           />
         }
         rightContent={

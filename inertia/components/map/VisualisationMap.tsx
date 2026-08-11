@@ -1,30 +1,20 @@
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
-  forwardRef,
-  useImperativeHandle,
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import type { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
+import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
-import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
-import {
-  getCommunesLayer,
-  getAacSource,
-  getAacLayer,
-  getPpeSource,
-  getPpeLayer,
-  getPprSource,
-  getPprLayer,
-  getSageSource,
-  getSageLayer,
-} from './styles/zonage'
+import type { MapDesiredState } from '~/functions/map_reconciler'
+import { useMapReconciler } from '~/hooks/use_map_reconciler'
 
 import { renderPopupParcelle } from './popup-parcelle'
 
@@ -32,17 +22,11 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
-import { usePage } from '@inertiajs/react'
 
-import { setParcellesUnavailability, setParcellesHighlight } from '~/functions/map'
+import { getRpgIdsFromParcellesForYear } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
 import { MapErrorBoundary } from './map-error-boundary'
 import Loader from '~/ui/Loader'
-
-export type GeoPoint = {
-  type: 'Point'
-  coordinates: [number, number]
-}
 
 type StylesMap = {
   [key: string]: any
@@ -93,6 +77,8 @@ type VisualisationMapProps = {
   showSage?: boolean
   style?: string
   onZoomChange?: (zoom: number) => void
+  pmtilesUrl: string
+  projects: ProjectJson[]
 }
 
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
@@ -123,70 +109,99 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       showSage = false,
       style = 'vector',
       onZoomChange,
+      pmtilesUrl,
+      projects,
     },
     ref
   ) => {
-    const { pmtilesUrl, projects } =
-      usePage<InferPageProps<VisualisationController, 'index'>>().props
     const markersRef = useRef<maplibre.Marker[]>([])
-    // Will be true when a marker is hovered to avoid showing parcelle popup at the same time
-    const [isMarkerHovered, setIsMarkerHovered] = useState(false)
+    // Exploitation whose marker is currently hovered, used both to highlight its parcelles and
+    // to avoid showing the parcelle popup at the same time as the exploitation one.
+    const [hoveredExploitationId, setHoveredExploitationId] = useState<string | null>(null)
+    const isMarkerHovered = hoveredExploitationId !== null
     // The popup is created once and will be hidden/shown on demand, with its contents updated.
     const parcellePopupRef = useRef<maplibre.Popup>(
       new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
-    const previousVisibleCulturesRef = useRef<string[]>([])
-    const showBioOnlyRef = useRef(false)
 
-    // Synchroniser les refs avec les props
-    useEffect(() => {
-      previousVisibleCulturesRef.current = visibleCultures
-    }, [visibleCultures])
-
-    useEffect(() => {
-      showBioOnlyRef.current = showBioOnly
-    }, [showBioOnly])
-
-    // Fonction pour filtrer les parcelles par code culture
-    const updateCultureFilter = useCallback((cultureCodes: string[]) => {
-      if (!mapRef.current) return
-
-      const map = mapRef.current
-
-      if (cultureCodes.length === 0) {
-        const hideFilter: maplibre.FilterSpecification = ['==', ['get', 'id_parcel'], '']
-        ;[
-          'parcelles-fill',
-          'parcelles-outline',
-          'parcellesbio-fill',
-          'parcellesbio-outline',
-        ].forEach((layerId) => {
-          if (map.getLayer(layerId)) {
-            map.setFilter(layerId, hideFilter)
-          }
-        })
-        return
+    // Détermine les parcelles à mettre en évidence selon le mode
+    const highlightedParcelleIds = useMemo(() => {
+      if (editMode) {
+        return formParcelleIds
       }
 
-      // Convertir les codes en nombres
-      const codesAsNumbers = cultureCodes.map((code) => parseInt(code, 10))
+      const selectedParcelleId = selectedParcelle?.rpgId
 
-      const filter: maplibre.FilterSpecification = [
-        'in',
-        ['to-number', ['get', 'code_group']],
-        ['literal', codesAsNumbers],
-      ]
+      if (selectedParcelleId && selectedParcelle.year.toString() === millesime) {
+        return [selectedParcelleId]
+      }
 
-      ;['parcelles-fill', 'parcelles-outline', 'parcellesbio-fill', 'parcellesbio-outline'].forEach(
-        (layerId) => {
-          if (map.getLayer(layerId)) {
-            map.setFilter(layerId, filter)
-          }
-        }
+      if (selectedParcelleId) {
+        return [selectedParcelleId]
+      }
+
+      if (selectedExploitation?.parcelles) {
+        return getRpgIdsFromParcellesForYear(selectedExploitation.parcelles, millesime)
+      }
+
+      return []
+    }, [
+      editMode,
+      formParcelleIds,
+      millesime,
+      selectedExploitation,
+      selectedParcelle,
+      selectedParcelleId,
+    ])
+
+    // Les parcelles de l'exploitation survolée sont mises en évidence, sauf lorsqu'il s'agit de
+    // l'exploitation sélectionnée dont les parcelles le sont déjà.
+    const hoveredParcelleIds = useMemo(() => {
+      if (!hoveredExploitationId || hoveredExploitationId === selectedExploitation?.id) {
+        return []
+      }
+
+      const hoveredExploitation = exploitations.find(
+        (exploitation) => exploitation.id === hoveredExploitationId
       )
-    }, [])
+
+      return getRpgIdsFromParcellesForYear(hoveredExploitation?.parcelles ?? undefined, millesime)
+    }, [exploitations, hoveredExploitationId, millesime, selectedExploitation])
+
+    const desiredMapState: MapDesiredState = useMemo(
+      () => ({
+        pmtilesUrl,
+        millesime,
+        showParcelles,
+        showAac,
+        showPpe,
+        showPpr,
+        showCommunes,
+        showSage,
+        showBioOnly,
+        visibleCultures,
+        highlightedParcelleIds,
+        hoveredParcelleIds,
+        unavailableParcelleIds,
+      }),
+      [
+        pmtilesUrl,
+        millesime,
+        showParcelles,
+        showAac,
+        showPpe,
+        showPpr,
+        showCommunes,
+        showSage,
+        showBioOnly,
+        visibleCultures,
+        highlightedParcelleIds,
+        hoveredParcelleIds,
+        unavailableParcelleIds,
+      ]
+    )
 
     useImperativeHandle(ref, () => ({
       centerOnExploitation: (exploitation: ExploitationJson) => {
@@ -347,7 +362,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       [onParcelleClick, unavailableParcelleIds]
     )
 
-    const { mapContainerRef, mapRef } = useMap(
+    const { mapContainerRef, mapRef, map } = useMap(
       {
         style: stylesMap[style],
         center: [2.24, 46.54],
@@ -359,40 +374,9 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         pitchWithRotate: false,
         touchZoomRotate: false,
       },
-      (map) => {
-        map.on('load', () => {
-          if (!map.getSource('parcelles')) {
-            map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-          }
-
-          if (!map.getSource('aac')) {
-            map.addSource('aac', getAacSource({ pmtilesUrl }))
-          }
-
-          if (!map.getSource('ppe')) {
-            map.addSource('ppe', getPpeSource({ pmtilesUrl }))
-          }
-
-          if (!map.getSource('ppr')) {
-            map.addSource('ppr', getPprSource({ pmtilesUrl }))
-          }
-
-          if (!map.getSource('sage')) {
-            map.addSource('sage', getSageSource({ pmtilesUrl }))
-          }
-
-          const addLayers = (
-            layers: Array<{ id: string; [key: string]: any }>,
-            beforeId?: string
-          ) => {
-            layers.forEach((layer) => {
-              if (!map.getLayer(layer.id)) {
-                map.addLayer(layer as maplibre.AddLayerObject, beforeId)
-              }
-            })
-          }
-
-          map.addControl(
+      (createdMap) => {
+        createdMap.on('load', () => {
+          createdMap.addControl(
             new maplibre.ScaleControl({
               maxWidth: 100,
               unit: 'metric',
@@ -400,29 +384,23 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             'bottom-left'
           )
 
-          const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
-
-          addLayers(getPprLayer(), beforeId)
-          addLayers(getPpeLayer(), beforeId)
-          addLayers(getAacLayer(), beforeId)
-          addLayers(getCommunesLayer(), beforeId)
-          addLayers(getSageLayer(), beforeId)
-          addLayers(getParcellesLayers(), beforeId)
-
-          onZoomChange?.(map.getZoom())
+          onZoomChange?.(createdMap.getZoom())
           setIsMapLoading(false)
         })
 
         // Ensures the map is not blocked in loading state after any loading event
-        map.on('idle', () => {
+        createdMap.on('idle', () => {
           setIsMapLoading(false)
         })
 
-        map.on('zoomend', () => {
-          onZoomChange?.(map.getZoom())
+        createdMap.on('zoomend', () => {
+          onZoomChange?.(createdMap.getZoom())
         })
       }
     )
+
+    // Owns every source, layer, visibility rule, filter and feature state of the map.
+    const reconcileMapState = useMapReconciler(map, desiredMapState)
 
     // Exploitations markers init
     useEffect(() => {
@@ -456,7 +434,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
               return
             }
 
-            setIsMarkerHovered(true)
+            setHoveredExploitationId(exploitation.id)
 
             const popupNode = document.createElement('div')
             const root = createRoot(popupNode)
@@ -466,42 +444,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
               .setDOMContent(popupNode)
               .addTo(mapRef.current)
 
-            // Highlight parcelles on marker hover if it's not the selected exploitation
-            if (
-              (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
-              exploitation.parcelles &&
-              exploitation.parcelles.length > 0
-            ) {
-              setParcellesHighlight(
-                mapRef.current,
-                exploitation.parcelles
-                  .filter((p) => p.year.toString() === millesime)
-                  .map((p) => p.rpgId),
-                true
-              )
-            }
-
             onMarkerMouseEnter?.(exploitation)
           })
 
           markerElement.addEventListener('mouseleave', () => {
-            setIsMarkerHovered(false)
+            setHoveredExploitationId(null)
             popup.remove()
-
-            // Unhighlight parcelles on marker leave if it's not the selected exploitation
-            if (
-              (selectedExploitation === undefined || exploitation.id !== selectedExploitation.id) &&
-              exploitation.parcelles &&
-              exploitation.parcelles.length > 0
-            ) {
-              setParcellesHighlight(
-                mapRef.current,
-                exploitation.parcelles
-                  .filter((p) => p.year.toString() === millesime)
-                  .map((p) => p.rpgId),
-                false
-              )
-            }
 
             onMarkerMouseLeave?.()
           })
@@ -525,16 +473,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         }
 
         markersRef.current = []
+        // The removed markers will never emit their `mouseleave`.
+        setHoveredExploitationId(null)
       }
-    }, [
-      exploitations,
-      selectedExploitation,
-      editMode,
-      millesime,
-      onMarkerClick,
-      onMarkerMouseEnter,
-      onMarkerMouseLeave,
-    ])
+    }, [exploitations, editMode, onMarkerClick, onMarkerMouseEnter, onMarkerMouseLeave])
 
     // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
     useEffect(() => {
@@ -562,7 +504,9 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       }
     }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
 
-    // Mise à jour du style de la carte
+    // Mise à jour du fond de carte. `setStyle` applique un diff synchrone qui retire les
+    // sources et layers ajoutés par-dessus le fond de carte sans émettre d'événement : la
+    // reconciliation doit donc être relancée dans la foulée pour les remettre en place.
     useEffect(() => {
       if (!mapRef.current || style === currentStyleRef.current) {
         return
@@ -572,338 +516,30 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       const center = map.getCenter()
       const zoom = map.getZoom()
 
-      map.setStyle(stylesMap[style])
-
-      map.once('styledata', () => {
+      const restoreCamera = () => {
         map.setCenter(center)
         map.setZoom(zoom)
-
-        // Remettre le marker après le changement de style
-
-        // Rajouter les couches parcelles après le chargement de style
-        if (!map.getSource('parcelles')) {
-          map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-        }
-
-        const parcellesLayers = getParcellesLayers()
-        parcellesLayers.forEach((layer) => {
-          if (!map.getLayer(layer.id)) {
-            const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
-            map.addLayer(layer, beforeId)
-          }
-        })
-
-        const addSourceIfMissing = (sourceId: string, sourceConfig: any) => {
-          if (!map.getSource(sourceId)) {
-            map.addSource(sourceId, sourceConfig)
-          }
-        }
-
-        // Fonction helper pour ajouter des layers
-        const addLayersIfMissing = (layers: Array<{ id: string; [key: string]: any }>) => {
-          layers.forEach((layer) => {
-            if (!map.getLayer(layer.id)) {
-              map.addLayer(layer as maplibre.AddLayerObject)
-            }
-          })
-        }
-
-        // Fonction helper pour définir la visibilité des layers
-        const setLayerVisibility = (layerIds: string[], visible: boolean) => {
-          const visibility = visible ? 'visible' : 'none'
-          layerIds.forEach((layerId) => {
-            if (map.getLayer(layerId)) {
-              map.setLayoutProperty(layerId, 'visibility', visibility)
-            }
-          })
-        }
-
-        addSourceIfMissing('aac', getAacSource({ pmtilesUrl }))
-        addSourceIfMissing('ppe', getPpeSource({ pmtilesUrl }))
-        addSourceIfMissing('ppr', getPprSource({ pmtilesUrl }))
-        addSourceIfMissing('sage', getSageSource({ pmtilesUrl }))
-
-        addLayersIfMissing(getPprLayer())
-        addLayersIfMissing(getPpeLayer())
-        addLayersIfMissing(getAacLayer())
-        addLayersIfMissing(getCommunesLayer())
-        addLayersIfMissing(getSageLayer())
-        addLayersIfMissing(getParcellesLayers())
-
-        // Appliquer immédiatement la visibilité des layers selon l'état des checkboxes
-        const layerVisibilityConfig = [
-          { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
-          { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
-          { layers: ['aac-fill', 'aac-outline'], visible: showAac },
-          { layers: ['communes-outline'], visible: showCommunes },
-          { layers: ['sage-fill', 'sage-outline'], visible: showSage },
-          { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles },
-        ]
-
-        layerVisibilityConfig.forEach(({ layers, visible }) => {
-          setLayerVisibility(layers, visible)
-        })
-
-        // Réappliquer le filtre de culture après changement de style
-        map.once('idle', () => {
-          const currentCultures = previousVisibleCulturesRef.current
-          updateCultureFilter(currentCultures)
-        })
-      })
+      }
 
       currentStyleRef.current = style
-    }, [
-      style,
-      showParcelles,
-      showAac,
-      showPpe,
-      showPpr,
-      showCommunes,
-      showSage,
-      updateCultureFilter,
-    ])
 
+      // Only used when MapLibre falls back to a full style reload, which resets the camera.
+      map.once('style.load', restoreCamera)
+      map.setStyle(stylesMap[style])
+      restoreCamera()
+
+      reconcileMapState()
+
+      return () => {
+        map.off('style.load', restoreCamera)
+      }
+    }, [style, reconcileMapState])
+
+    // La popup ouverte ne décrit plus la parcelle survolée après un changement de millésime.
     useEffect(() => {
-      if (!mapRef.current) return
-
-      const map = mapRef.current
-
-      const applyBioVisibility = () => {
-        if (showBioOnly) {
-          if (map.getLayer('parcelles-fill')) {
-            map.setLayoutProperty('parcelles-fill', 'visibility', 'none')
-          }
-
-          if (map.getLayer('parcelles-outline')) {
-            map.setLayoutProperty('parcelles-outline', 'visibility', 'none')
-          }
-
-          if (map.getLayer('parcellesbio-fill')) {
-            map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
-              'case',
-              ['boolean', ['feature-state', 'unavailable'], false],
-              0.3,
-              ['boolean', ['feature-state', 'highlighted'], false],
-              0.7,
-              0.5,
-            ])
-          }
-
-          if (map.getLayer('parcellesbio-outline')) {
-            map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
-          }
-        } else {
-          if (map.getLayer('parcelles-fill')) {
-            map.setLayoutProperty(
-              'parcelles-fill',
-              'visibility',
-              showParcelles ? 'visible' : 'none'
-            )
-          }
-
-          if (map.getLayer('parcelles-outline')) {
-            map.setLayoutProperty(
-              'parcelles-outline',
-              'visibility',
-              showParcelles ? 'visible' : 'none'
-            )
-          }
-
-          if (map.getLayer('parcellesbio-fill')) {
-            map.setPaintProperty('parcellesbio-fill', 'fill-opacity', 0)
-          }
-
-          if (map.getLayer('parcellesbio-outline')) {
-            map.setPaintProperty('parcellesbio-outline', 'line-opacity', 0)
-          }
-        }
-      }
-
-      if (map.isStyleLoaded()) {
-        applyBioVisibility()
-      } else {
-        map.once('styledata', applyBioVisibility)
-        return () => {
-          map.off('styledata', applyBioVisibility)
-        }
-      }
-    }, [showBioOnly, showParcelles])
-
-    // Mise à jour du millésime des parcelles
-    useEffect(() => {
-      if (!mapRef.current || mapRef.current.getSource('parcelles') === undefined) {
-        return
-      }
-
-      const map = mapRef.current
-
       parcellePopupRef.current.remove()
-
-      if (map.getLayer('parcelles-fill')) {
-        map.removeLayer('parcelles-fill')
-      }
-
-      if (map.getLayer('parcelles-outline')) {
-        map.removeLayer('parcelles-outline')
-      }
-
-      if (map.getLayer('parcellesbio-fill')) {
-        map.removeLayer('parcellesbio-fill')
-      }
-
-      if (map.getLayer('parcellesbio-outline')) {
-        map.removeLayer('parcellesbio-outline')
-      }
-
-      map.removeSource('parcelles')
-      map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-
-      const parcellesLayers = getParcellesLayers()
-      parcellesLayers.forEach((layer) => {
-        const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
-        map.addLayer(layer, beforeId)
-      })
-
-      // Attendre que la source soit chargée pour réappliquer le highlight
-      const onSourceData = (e: any) => {
-        if (e.sourceId === 'parcelles' && e.isSourceLoaded) {
-          map.off('sourcedata', onSourceData)
-
-          // Réappliquer le filtre de culture après changement de millésime
-          const currentCultures = previousVisibleCulturesRef.current
-          updateCultureFilter(currentCultures)
-
-          // Réappliquer la visibilité bio si le mode est actif
-          if (showBioOnlyRef.current) {
-            if (map.getLayer('parcellesbio-fill')) {
-              map.setPaintProperty('parcellesbio-fill', 'fill-opacity', [
-                'case',
-                ['boolean', ['feature-state', 'unavailable'], false],
-                0.3,
-                ['boolean', ['feature-state', 'highlighted'], false],
-                0.7,
-                0.5,
-              ])
-            }
-
-            if (map.getLayer('parcellesbio-outline')) {
-              map.setPaintProperty('parcellesbio-outline', 'line-opacity', 1)
-            }
-          }
-
-          // Réappliquer le highlight des parcelles sélectionnées
-          let parcelleIds: string[] = []
-
-          if (editMode) {
-            parcelleIds = formParcelleIds
-          } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
-            // Si une parcelle spécifique est sélectionnée et que son année correspond au millésime, ne highlighter que celle-ci
-            parcelleIds = [selectedParcelle.rpgId]
-          } else if (selectedParcelleId) {
-            parcelleIds = [selectedParcelleId]
-          } else if (selectedExploitation?.parcelles) {
-            // Sinon, highlighter toutes les parcelles de l'exploitation
-            parcelleIds = selectedExploitation.parcelles
-              .filter((parcelle) => parcelle.year.toString() === millesime)
-              .map((parcelle) => parcelle.rpgId)
-          }
-
-          if (parcelleIds.length > 0) {
-            setParcellesHighlight(mapRef.current, parcelleIds, true)
-          }
-        }
-      }
-
-      map.on('sourcedata', onSourceData)
-
-      return () => {
-        map.off('sourcedata', onSourceData)
-      }
+      currentParcelleIdRef.current = null
     }, [millesime])
-
-    useEffect(() => {
-      // Détermine les parcelles à highlight selon le mode
-      let parcelleIds: string[] = []
-      if (editMode) {
-        parcelleIds = formParcelleIds
-      } else if (selectedParcelle && selectedParcelle.year.toString() === millesime) {
-        parcelleIds = [selectedParcelle.rpgId]
-      } else if (selectedParcelleId) {
-        parcelleIds = [selectedParcelleId]
-      } else if (selectedExploitation?.parcelles) {
-        parcelleIds = selectedExploitation.parcelles
-          .filter((parcelle) => parcelle.year.toString() === millesime)
-          .map((parcelle) => parcelle.rpgId)
-      }
-
-      if (parcelleIds.length > 0) {
-        setParcellesHighlight(mapRef.current, parcelleIds, true)
-      }
-
-      return () => {
-        if (parcelleIds.length > 0) {
-          setParcellesHighlight(mapRef.current, parcelleIds, false)
-        }
-      }
-    }, [
-      editMode,
-      formParcelleIds,
-      selectedExploitation,
-      selectedParcelle,
-      selectedParcelleId,
-      style,
-      millesime,
-    ])
-
-    // Manage unavailable parcelles highlighting
-    useEffect(() => {
-      if (unavailableParcelleIds.length > 0) {
-        setParcellesUnavailability(mapRef.current, unavailableParcelleIds, true)
-      }
-      return () => {
-        if (unavailableParcelleIds.length > 0) {
-          setParcellesUnavailability(mapRef.current, unavailableParcelleIds, false)
-        }
-      }
-    }, [unavailableParcelleIds, style, millesime])
-
-    // Gestion de la visibilité des layers selon les états des checkboxes
-    useEffect(() => {
-      if (!mapRef.current) return
-
-      const map = mapRef.current
-
-      // Configuration des layers avec leurs états de visibilité
-      const layerVisibility = [
-        { layers: ['ppr-fill', 'ppr-outline'], visible: showPpr },
-        { layers: ['ppe-fill', 'ppe-outline'], visible: showPpe },
-        { layers: ['aac-fill', 'aac-outline'], visible: showAac },
-        { layers: ['communes-outline'], visible: showCommunes },
-        { layers: ['sage-fill', 'sage-outline'], visible: showSage },
-        { layers: ['parcelles-fill', 'parcelles-outline'], visible: showParcelles && !showBioOnly },
-      ]
-
-      // Application de la visibilité pour chaque groupe de layers
-      layerVisibility.forEach(({ layers, visible }) => {
-        layers.forEach((layerId) => {
-          if (map.getLayer(layerId)) {
-            map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
-          }
-        })
-      })
-    }, [showParcelles, showAac, showPpe, showPpr, showCommunes, showSage, showBioOnly])
-
-    // Mise à jour du filtre quand visibleCultures change
-    useEffect(() => {
-      if (!mapRef.current || !mapRef.current.isStyleLoaded()) return
-
-      const map = mapRef.current
-
-      // Vérifier que les layers existent avant d'appliquer le filtre
-      if (map.getLayer('parcelles-fill') && map.getLayer('parcelles-outline')) {
-        updateCultureFilter(visibleCultures)
-      }
-    }, [visibleCultures, updateCultureFilter])
 
     return (
       <div className="flex flex-col h-full w-full relative border">
