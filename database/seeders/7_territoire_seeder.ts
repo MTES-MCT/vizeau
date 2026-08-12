@@ -2,10 +2,12 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { AacService } from '#services/aac_service'
 import Territoire from '#models/territoire'
 import User from '#models/user'
+import { DuckdbService } from '#services/duckdb_service'
 
 export default class TerritoireSeeder extends BaseSeeder {
   public async run() {
-    const aacService = new AacService()
+    const duckdbService = new DuckdbService()
+    const aacService = new AacService(duckdbService)
     const rows = await aacService.getAllNames()
 
     const territoires = await Territoire.updateOrCreateMany('code', rows)
