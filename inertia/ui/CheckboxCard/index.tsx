@@ -29,7 +29,7 @@ export default function CheckboxCard({
   onCheck,
 }: CheckboxCardProps) {
   return (
-    <label
+    <div
       className="checkbox-card-effect flex flex-col gap-3 w-full fr-p-1w cursor-pointer"
       style={{
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
@@ -51,7 +51,7 @@ export default function CheckboxCard({
 
         <div className="flex flex-col gap-1 w-full">
           <div className="flex flex-col w-full">
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-2 items-center flex-wrap">
               <TruncatedText maxLines={1} className="fr-m-0 fr-text--lg font-bold">
                 {title}
               </TruncatedText>
@@ -70,20 +70,22 @@ export default function CheckboxCard({
           </div>
           {metas && metas.length > 0 && <MetasList metas={metas} size="xs" />}
         </div>
-        <Checkbox
-          options={[
-            {
-              label: <span className="fr-sr-only">{title}</span>,
-              nativeInputProps: {
-                name: value,
-                value: value,
-                checked: isSelected,
-                onChange: () => onCheck && onCheck(value, !isSelected),
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            options={[
+              {
+                label: <span className="fr-sr-only">{title}</span>,
+                nativeInputProps: {
+                  name: value,
+                  value: value,
+                  checked: isSelected,
+                  onChange: () => onCheck && onCheck(value, !isSelected),
+                },
               },
-            },
-          ]}
-        />
+            ]}
+          />
+        </div>
       </div>
-    </label>
+    </div>
   )
 }
