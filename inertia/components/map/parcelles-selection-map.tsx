@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import maplibre from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
-import { setParcellesHighlight, getCentroid } from '~/functions/map'
+import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
 import { MapErrorBoundary } from './map-error-boundary'
 import { renderPopupParcelle } from './popup-parcelle'
@@ -29,8 +29,6 @@ type ParcellesSelectionMapProps = {
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
 }
-
-const RPG = ['2024', '2023', '2022', '2021', '2020']
 
 export type ParcellesSelectionMapHandle = {
   flyTo: (centroid: { x: number; y: number }) => void
@@ -238,7 +236,7 @@ const ParcellesSelectionMapContent = forwardRef<
             onChange: (e) => handleMillesimeChange(e.target.value),
           }}
         >
-          {RPG.map((m) => (
+          {RPG_YEARS.map((m) => (
             <option key={m} value={m}>
               RPG {m}
             </option>
