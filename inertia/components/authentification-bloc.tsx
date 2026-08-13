@@ -6,13 +6,12 @@ import { Input } from '@codegouvfr/react-dsfr/Input'
 import { fr } from '@codegouvfr/react-dsfr'
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar'
 import { Form } from '@adonisjs/inertia/react'
-import type { SharedProps } from '@adonisjs/inertia/types'
 
 export default function AuthentificationBloc() {
   const borderColor = fr.colors.decisions.border.default.grey.default
   const linkColor = fr.colors.decisions.text.actionHigh.blueFrance.default
 
-  const { flashMessages } = usePage<SharedProps>().props
+  const { flash } = usePage()
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL
   return (
     <div className="flex justify-center items-center w-full">
@@ -27,7 +26,7 @@ export default function AuthentificationBloc() {
           <h4 className="text-center fr-mb-1w">Authentification</h4>
           <p>Entrez votre email pour accéder à l'application</p>
         </div>
-        {flashMessages?.error?.code === 'E_INVALID_CREDENTIALS' && (
+        {flash?.error?.code === 'E_INVALID_CREDENTIALS' && (
           <Alert
             description={
               "Les informations d'identification fournies sont incorrectes. Veuillez vérifier votre adresse e-mail et votre mot de passe, puis réessayer."
