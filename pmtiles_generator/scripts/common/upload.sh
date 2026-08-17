@@ -5,6 +5,20 @@
 #   S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
 set -e
 
+if [ "${NO_UPLOAD:-}" = "1" ]; then
+    PMTILES_FILE=$(find /input/build-pmtiles/ -name "parcelles_france.pmtiles" | head -1)
+    if [ -z "$PMTILES_FILE" ]; then
+        echo "Erreur : parcelles_france.pmtiles introuvable dans /input/build-pmtiles/" >&2
+        exit 1
+    fi
+
+    # Tylt bind-mounts (`mounts:`) are always read-only, so this step can't write
+    # to a host directory directly. run.sh extracts the file locally afterwards
+    # via `tylt export <workspace> build-pmtiles ./output/`.
+    echo "⏭ Upload ignoré (--no-upload) — récupérer le fichier via 'tylt export <workspace> build-pmtiles ./output/'"
+    exit 0
+fi
+
 . /input/setup/config.env
 
 # Configurer awscli avec les credentials S3

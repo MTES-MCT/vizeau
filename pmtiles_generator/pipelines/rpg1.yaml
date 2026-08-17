@@ -1,44 +1,47 @@
-name: RPG to PMTiles
+name: RPG1 (open data GPKG) to PMTiles
 
 # Usage (recommandé — passe MILLESIME et gère le workspace automatiquement) :
-#   ./run.sh 2024
+#   ./run.sh rpg1 2024
 #
 # Sans upload S3 :
-#   ./run.sh 2024 --target build-pmtiles
+#   ./run.sh rpg1 2024 --target build-pmtiles
 #
 # Forcer le re-téléchargement :
-#   ./run.sh 2024 --force download
+#   ./run.sh rpg1 2024 --force download
 #
-# Appel tylt direct (MILLESIME doit être fourni explicitement) :
-#   tylt run --env-file .env --env MILLESIME=2024 --workspace rpg-2024
+# Appel tylt direct (MILLESIME doit être ajouté à un fichier env, --env n'existe pas) :
+#   tylt run pipelines/rpg1.yaml --env-file .env --workspace rpg-rpg1-2024
 #
 # Exporter le PMTiles en local :
-#   tylt export rpg-2024 build-pmtiles ./output/
+#   tylt export rpg-rpg1-2024 build-pmtiles ./output/
 
 steps:
   # ── 1. Setup ────────────────────────────────────────────────────────────────
   # Lit config.yaml, détermine la BASE_URL pour le millésime demandé,
   # et écrit /output/config.env pour les étapes suivantes.
   - id: setup
-    image: python:3.12-slim
-    cmd:
-      [sh, -c, 'pip install --quiet --root-user-action=ignore pyyaml 2>&1 && python /app/setup.py']
+    uses: shell
     allowNetwork: true
+    with:
+      image: alpine:3.19
+      run: apk add --no-cache yq -q && sh /app/setup.sh
     mounts:
-      - host: scripts/setup.py
-        container: /app/setup.py
-      - host: config.yaml
+      - host: ../scripts/rpg1/setup.sh
+        container: /app/setup.sh
+      - host: ../config.yaml
         container: /config.yaml
 
   # ── 2. Discover ─────────────────────────────────────────────────────────────
   # Sonde les URLs pour déterminer si l'archive est un fichier unique (.7z)
   # ou multi-parties (.7z.001, .7z.002, …). Écrit la liste des URLs dans parts.txt.
   - id: discover
-    image: alpine:3.19
-    cmd: [sh, -c, 'apk add --no-cache curl -q && sh /app/discover.sh']
+    uses: shell
     allowNetwork: true
+    with:
+      image: alpine:3.19
+      run: apk add --no-cache curl -q && sh /app/discover.sh
     mounts:
-      - host: scripts/discover.sh
+      - host: ../scripts/sources/open-data/discover.sh
         container: /app/discover.sh
     inputs:
       - step: setup
@@ -46,11 +49,13 @@ steps:
   # ── 3. Download ─────────────────────────────────────────────────────────────
   # Télécharge toutes les parties en parallèle avec curl.
   - id: download
-    image: alpine:3.19
-    cmd: [sh, -c, 'apk add --no-cache curl -q && sh /app/download.sh']
+    uses: shell
     allowNetwork: true
+    with:
+      image: alpine:3.19
+      run: apk add --no-cache curl -q && sh /app/download.sh
     mounts:
-      - host: scripts/download.sh
+      - host: ../scripts/sources/open-data/download.sh
         container: /app/download.sh
     inputs:
       - step: discover
@@ -86,16 +91,14 @@ steps:
   #      disponible pour les millésimes 2019–2023)
   # Sortie : /output/bio.gpkg  (ou /output/.no-bio si indisponible pour ce millésime)
   - id: fetch-bio
-    image: ghcr.io/osgeo/gdal:ubuntu-small-latest
-    cmd:
-      [
-        bash,
-        -c,
-        'apt-get update -qq && apt-get install -y -qq curl unzip python3 file 2>/dev/null && bash /app/fetch-bio.sh',
-      ]
+    uses: shell
     allowNetwork: true
+    with:
+      image: ghcr.io/osgeo/gdal:ubuntu-small-latest
+      packages: [curl, unzip, file]
+      run: bash /app/fetch-bio.sh
     mounts:
-      - host: scripts/fetch-bio.sh
+      - host: ../scripts/sources/open-data/fetch-bio.sh
         container: /app/fetch-bio.sh
     inputs:
       - step: setup
@@ -105,10 +108,12 @@ steps:
   # Convertit chaque couche GeoPackage (EPSG:2154 LAMB93) en FlatGeobuf (EPSG:4326).
   # Mapping automatique des noms de couches vers les source-layers PMTiles.
   - id: convert
-    image: ghcr.io/osgeo/gdal:ubuntu-small-latest
-    cmd: [bash, /app/convert.sh]
+    uses: shell
+    with:
+      image: ghcr.io/osgeo/gdal:ubuntu-small-latest
+      run: bash /app/convert.sh
     mounts:
-      - host: scripts/convert.sh
+      - host: ../scripts/formats/gpkg/convert.sh
         container: /app/convert.sh
     inputs:
       - step: extract
@@ -118,16 +123,7 @@ steps:
   # Assemble tous les FlatGeobuf en un seul PMTiles multi-layers avec tippecanoe.
   # Sortie : {MILLESIME}/parcelles_france.pmtiles
   - id: build-pmtiles
-    image: ubuntu:latest
-    allowNetwork: true
-    cmd:
-      - bash
-      - -c
-      - |
-        apt-get update -qq && apt-get install -y -qq tippecanoe 2>/dev/null && bash /app/build.sh
-    mounts:
-      - host: scripts/build.sh
-        container: /app/build.sh
+    uses: build-pmtiles
     inputs:
       - step: convert
       - step: setup
@@ -138,16 +134,7 @@ steps:
   #   S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_KEY,
   #   S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
   - id: upload
-    image: debian:bookworm-slim
-    allowNetwork: true
-    cmd:
-      - bash
-      - -c
-      - |
-        apt-get update -qq && apt-get install -y -qq awscli 2>/dev/null && bash /app/upload.sh
-    mounts:
-      - host: scripts/upload.sh
-        container: /app/upload.sh
+    uses: upload
     inputs:
       - step: build-pmtiles
       - step: setup

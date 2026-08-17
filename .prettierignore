@@ -1,2 +1,4 @@
 .adonisjs/**/*
 database/schema.ts
+pmtiles_generator/**/*
+*.pmtiles

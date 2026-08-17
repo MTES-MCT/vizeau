@@ -37,31 +37,17 @@ if [ -z "$API_RESPONSE" ]; then
     exit 0
 fi
 
-# Écrire le script Python dans un fichier pour éviter le conflit heredoc/pipe stdin
-cat > /tmp/bio_filter.py << 'PYEOF'
-import sys, json, os
-
-data = json.load(sys.stdin)
-year = os.environ.get("MILLESIME", "")
-
-candidates = [
-    r for r in data["resources"]
-    if f"rpg-bio-{year}" in r.get("url", "")
-]
-
-def priority(r):
-    fmt = r.get("format", "")
-    if "gpkg" in fmt: return 0
-    if fmt in ("zip", "shp.zip"): return 1
-    return 2
-
-candidates.sort(key=priority)
-
-if candidates:
-    print(candidates[0]["url"])
-PYEOF
-
-BIO_URL=$(echo "$API_RESPONSE" | python3 /tmp/bio_filter.py || true)
+# Sélection : ressources dont l'URL contient "rpg-bio-<MILLESIME>", triées par
+# format préféré (gpkg > zip/shp.zip > autre), on garde la première.
+BIO_URL=$(echo "$API_RESPONSE" | jq -r --arg year "$MILLESIME" '
+    [.resources[]? | select(.url // "" | contains("rpg-bio-\($year)"))]
+    | sort_by(
+        if (.format // "" | contains("gpkg")) then 0
+        elif ((.format // "") == "zip" or (.format // "") == "shp.zip") then 1
+        else 2 end
+      )
+    | .[0].url // empty
+' || true)
 
 if [ -z "$BIO_URL" ]; then
     echo "⚠  Aucun fichier RPG BIO disponible pour le millésime $MILLESIME sur data.gouv.fr" >&2

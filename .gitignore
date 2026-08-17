@@ -29,3 +29,6 @@ yarn-error.log
 storybook-static
 
 AGENTS.md
+
+# pmtiles_generator local output (--no-upload)
+pmtiles_generator/output/
