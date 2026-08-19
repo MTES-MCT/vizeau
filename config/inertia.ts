@@ -11,6 +11,7 @@ const inertiaConfig = defineConfig({
    */
   ssr: {
     enabled: true,
+    entrypoint: 'inertia/ssr.tsx',
   },
 
   encryptHistory: true,

@@ -32,7 +32,7 @@ export default function CommentForm({
       {
         preserveState: true,
         preserveScroll: true,
-        only: [reloadProp, 'flashMessages'],
+        only: [reloadProp],
         onSuccess: () => {
           handleCommentModal.close()
         },
