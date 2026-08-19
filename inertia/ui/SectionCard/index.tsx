@@ -15,6 +15,7 @@ export type SectionCardProps = {
   actionIcon?: string
   actionLabel?: string
   handleAction?: () => void
+  additionalAction?: ReactNode
 }
 
 export default function SectionCard({
@@ -27,6 +28,7 @@ export default function SectionCard({
   actionIcon,
   handleAction,
   actionLabel,
+  additionalAction,
   hideLongTitleTooltip = false,
 }: SectionCardProps) {
   const hasHeader = !!(title || icon || (handleAction && actionIcon))
@@ -42,8 +44,8 @@ export default function SectionCard({
       }}
     >
       {hasHeader && (
-        <div className="flex items-center">
-          <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center gap-2 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
             {size === 'small' ? (
               <div className={`flex gap-1 ${caption ? 'items-start' : 'items-center'}`}>
                 {icon && (
@@ -108,30 +110,33 @@ export default function SectionCard({
               </div>
             )}
           </div>
-
-          {handleAction &&
-            actionIcon &&
-            (size === 'small' ? (
-              <Button
-                iconId={actionIcon as any}
-                onClick={handleAction}
-                priority="tertiary"
-                size="small"
-                title={actionLabel || 'Action'}
-                className="whitespace-nowrap"
-              />
-            ) : (
-              <Button
-                iconId={actionIcon as any}
-                onClick={handleAction}
-                priority="secondary"
-                className="whitespace-nowrap"
-              >
-                {actionLabel}
-              </Button>
-            ))}
+          <div className="flex gap-2 flex-wrap items-center justify-end">
+            {additionalAction}
+            {handleAction &&
+              actionIcon &&
+              (size === 'small' ? (
+                <Button
+                  iconId={actionIcon as any}
+                  onClick={handleAction}
+                  priority="tertiary"
+                  size="small"
+                  title={actionLabel || 'Action'}
+                  className="whitespace-nowrap"
+                />
+              ) : (
+                <Button
+                  iconId={actionIcon as any}
+                  onClick={handleAction}
+                  priority="secondary"
+                  className="whitespace-nowrap"
+                >
+                  {actionLabel}
+                </Button>
+              ))}
+          </div>
         </div>
       )}
+
       <div>{children}</div>
     </section>
   )

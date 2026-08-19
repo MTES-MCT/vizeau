@@ -1,4 +1,5 @@
 import SectionCard, { SectionCardProps } from './index'
+import Select from '@codegouvfr/react-dsfr/SelectNext'
 
 const meta = {
   title: 'ui/SectionCard',
@@ -44,6 +45,11 @@ const meta = {
       description:
         "Masquer l'info-bulle du titre même si le texte est long. Par défaut, une info-bulle s’affiche lorsque le titre dépasse 2 lignes ou 90 caractères (en fonction de ce qui est atteint en premier).",
     },
+    additionalAction: {
+      control: 'text',
+      description:
+        "Permet d'ajouter un composant d'action supplémentaire dans l'en-tête de la section.",
+    },
     children: {
       control: 'text',
       description: 'Contenu de la section (ReactNode).',
@@ -60,6 +66,7 @@ const meta = {
     background: 'primary',
     handleAction: () => alert('Action déclenchée !'),
     hideLongTitleTooltip: false,
+    additionalAction: null,
     children: (
       <p className="fr-m-0">
         Une fois rien, c’est rien ; deux fois rien, ce n’est pas beaucoup, mais pour trois fois
@@ -85,6 +92,27 @@ export const SansAction = {
   args: {
     actionIcon: null,
     handleAction: null,
+  },
+}
+
+export const AvecActionSupplémentaire = {
+  args: {
+    additionalAction: (
+      <div className="w-[130px]">
+        <Select
+          className="w-fit pointer-events-auto fr-mb-0"
+          label=""
+          nativeSelectProps={{
+            defaultValue: 'option-1',
+          }}
+          options={[
+            { value: 'option-1', label: 'Option 1' },
+            { value: 'option-2', label: 'Option 2' },
+            { value: 'option-3', label: 'Option 3' },
+          ]}
+        />
+      </div>
+    ),
   },
 }
 
