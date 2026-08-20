@@ -52,14 +52,19 @@ export default function Layout({
                   isActive: pathname.startsWith('/exploitations'),
                 },
                 {
-                  linkProps: { href: '/territoires' },
-                  text: 'Mes territoires',
-                  isActive: pathname.startsWith('/territoires'),
-                },
-                {
-                  linkProps: { href: '/aac' },
-                  text: 'AAC',
-                  isActive: pathname.startsWith('/aac'),
+                  menuLinks: [
+                    {
+                      linkProps: { href: '/territoires' },
+                      text: 'Depuis mes territoires suivis',
+                      isActive: pathname.startsWith('/territoires'),
+                    },
+                    {
+                      linkProps: { href: '/aac' },
+                      text: 'Depuis le référentiel AAC',
+                      isActive: pathname.startsWith('/aac'),
+                    },
+                  ],
+                  text: 'Qualité de l’eau & assolement',
                 },
                 {
                   linkProps: { href: '/projets' },
