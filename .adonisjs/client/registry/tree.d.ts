@@ -73,7 +73,11 @@ export interface ApiDefinition {
     store: typeof routes['projets.store']
     update: typeof routes['projets.update']
     destroy: typeof routes['projets.destroy']
+    exploitations: {
+      export: typeof routes['projets.exploitations.export']
+    }
     steps: {
+      export: typeof routes['projets.steps.export']
       create: typeof routes['projets.steps.create'] & {
         form: typeof routes['projets.steps.create.form']
       }

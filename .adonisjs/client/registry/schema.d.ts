@@ -655,6 +655,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'projets.exploitations.export': {
+    methods: ["GET","HEAD"]
+    pattern: '/projets/:projectId/exploitations/export'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>>
+    }
+  }
+  'projets.steps.export': {
+    methods: ["GET","HEAD"]
+    pattern: '/projets/:projectId/etapes/export'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['exportStepsCsv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['exportStepsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'projets.steps.create.form': {
     methods: ["GET","HEAD"]
     pattern: '/projets/:projectId/etapes/creation'

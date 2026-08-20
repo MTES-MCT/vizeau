@@ -20,6 +20,7 @@ import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { TerritoireDto } from '../dto/territoire_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { ProjectStepTagService } from '#services/project_step_tag_service'
+import { ExploitationCsvService } from '#services/exploitation_csv_service'
 
 @inject()
 export default class ProjectsController {
@@ -29,7 +30,8 @@ export default class ProjectsController {
     public projectService: ProjectService,
     public exploitationService: ExploitationService,
     public projectStepTagService: ProjectStepTagService,
-    public territoireService: TerritoireService
+    public territoireService: TerritoireService,
+    public exploitationCsvService: ExploitationCsvService
   ) {}
 
   async index({ auth, inertia, request }: HttpContext) {
@@ -647,5 +649,25 @@ export default class ProjectsController {
     createSuccessFlashMessage(session, `Le projet a été supprimé avec succès.`)
 
     return response.redirect().toPath(`/projets`)
+  }
+
+  async exportExploitationsCsv({ bouncer, params, response }: HttpContext) {
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.forbidden("Impossible d'exporter les données du projet")
+    }
+
+    await project.load('exploitations', (query) => query.preload('contacts'))
+    const csv = this.exploitationCsvService.generateCsv(project.exploitations)
+
+    const safeName = project.name.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 50)
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `exploitations-${safeName}-${date}.csv`
+
+    return response
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(csv)
   }
 }
