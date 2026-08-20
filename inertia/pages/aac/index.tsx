@@ -14,7 +14,7 @@ import type { AacSummaryJson } from '#types/models'
 export default function AacIndex({ aacs, meta, queryString }: any) {
   return (
     <Layout>
-      <Head title="Qualité de l'eau et d'assolement des Aires d’Alimentaires de Captage (AAC)" />
+      <Head title="Qualité de l'eau et d'assolement des Aires d’Alimentation de Captage (AAC)" />
       <div
         className="fr-p-2w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
@@ -32,7 +32,7 @@ export default function AacIndex({ aacs, meta, queryString }: any) {
           title="Accédez aux données qualité de l'eau et assolement"
           className="fr-mb-5w"
         >
-          Cette page référence l'ensemble des Aires d'Alimentation de Captages (AAC) connues par
+          Cette page référence l'ensemble des Aires d'Alimentation de Captage (AAC) connues par
           l'application.
           <strong style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}>
             Pour consulter la qualité de l'eau et les données d'assolement, sélectionnez en priorité
