@@ -9,6 +9,7 @@ import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { urlFor } from '~/client'
+import { downloadCalendarEvent } from '~/functions/calendar'
 
 export type LogEntryInformationCardProps = {
   userName?: string
@@ -73,6 +74,7 @@ export default function LogEntryInformationCard({
             <Button
               title="Marquer comme effectuée"
               iconId="fr-icon-check-line"
+              style={{ width: '100%', justifyContent: 'center' }}
               nativeButtonProps={{
                 onClick: completeEntryLogModal.open,
               }}
@@ -81,6 +83,27 @@ export default function LogEntryInformationCard({
               Marquer comme effectuée
             </Button>
           )}
+
+          {
+            <Button
+              title="Exporter au format ICS"
+              iconId="fr-icon-calendar-event-line"
+              priority="secondary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              nativeButtonProps={{
+                onClick: () => {
+                  downloadCalendarEvent({
+                    date: logEntry.date,
+                    title: logEntry.title,
+                    description: logEntry.notes,
+                  })
+                },
+              }}
+              className="fr-mt-2w"
+            >
+              Exporter au format ICS
+            </Button>
+          }
 
           <completeEntryLogModal.Component
             title=""

@@ -14,6 +14,7 @@ import {
   getProjectStepTitle,
   severityColorMap,
 } from '~/functions/project_steps'
+import { downloadCalendarEvent } from '~/functions/calendar'
 
 const deleteStepModal = createModal({
   id: 'delete-project-step-modal',
@@ -80,6 +81,20 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
         onClick: () => {
           setStepToComplete(step.id)
           completeStepModal.open()
+        },
+      })
+    }
+
+    if (step.date && additionalInfos.alert?.severity !== 'error') {
+      actions.push({
+        label: 'Exporter au format ICS',
+        iconId: 'fr-icon-calendar-event-line',
+        onClick: () => {
+          downloadCalendarEvent({
+            date: step.date,
+            title: step.title,
+            description: step.note,
+          })
         },
       })
     }
