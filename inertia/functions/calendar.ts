@@ -7,19 +7,19 @@ type CalendarEvent = {
 }
 
 export function downloadCalendarEvent({ date, title, description }: CalendarEvent) {
-  const eventDate = date ? new Date(date) : new Date()
-  const start: [number, number, number, number, number] = [
-    eventDate.getFullYear(),
-    eventDate.getMonth() + 1,
-    eventDate.getDate(),
-    eventDate.getHours(),
-    eventDate.getMinutes(),
-  ]
+  // `date` is a plain YYYY-MM-DD string from a date input: parse it manually
+  // to avoid `new Date(date)` shifting the day/time due to UTC interpretation.
+  const [year, month, day] = date
+    ? date.split('-').map(Number)
+    : (() => {
+        const now = new Date()
+        return [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+      })()
 
   createEvent(
     {
-      start,
-      duration: { hours: 1 },
+      start: [year, month, day],
+      duration: { days: 1 },
       title: title ?? undefined,
       description: description ?? '',
     },
@@ -37,9 +37,12 @@ export function downloadCalendarEvent({ date, title, description }: CalendarEven
 
       link.href = url
       link.download = `${title ?? 'evenement'}.ics`
+      link.style.visibility = 'hidden'
+      document.body.append(link)
       link.click()
+      link.remove()
 
-      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 0)
     }
   )
 }

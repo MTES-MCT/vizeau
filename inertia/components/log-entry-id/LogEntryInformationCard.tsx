@@ -84,7 +84,7 @@ export default function LogEntryInformationCard({
             </Button>
           )}
 
-          {
+          {additionalInfos.alert?.severity !== 'error' && (
             <Button
               title="Exporter au format ICS"
               iconId="fr-icon-calendar-event-line"
@@ -103,7 +103,7 @@ export default function LogEntryInformationCard({
             >
               Exporter au format ICS
             </Button>
-          }
+          )}
 
           <completeEntryLogModal.Component
             title=""
