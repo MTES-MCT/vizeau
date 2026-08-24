@@ -651,7 +651,8 @@ export default class ProjectsController {
     return response.redirect().toPath(`/projets`)
   }
 
-  async exportExploitationsCsv({ bouncer, params, response }: HttpContext) {
+  async exportExploitationsCsv({ bouncer, request, response }: HttpContext) {
+    const { params } = await request.validateUsing(showProjectValidator)
     const project = await this.projectService.findProjectOrFail(params.projectId)
 
     if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {

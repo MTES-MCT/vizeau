@@ -6,13 +6,13 @@ import { urlFor } from '~/client'
 
 export type ProjetExportCardProps = {
   projectId: string
-  hasLogEntries: boolean
+  hasSteps: boolean
   hasExploitations: boolean
 }
 
 export default function ProjetExportCard({
   projectId,
-  hasLogEntries,
+  hasSteps,
   hasExploitations,
 }: ProjetExportCardProps) {
   const [exportUrl, setExportUrl] = useState<string | null>(null)
@@ -24,7 +24,7 @@ export default function ProjetExportCard({
           className="flex-1 fr-mb-0"
           options={[
             { value: 'exploitations', label: 'Exploitations liées', disabled: !hasExploitations },
-            { value: 'etapes', label: 'Étapes du projet', disabled: !hasLogEntries },
+            { value: 'etapes', label: 'Étapes du projet', disabled: !hasSteps },
           ]}
           label={'Export des données'}
           nativeSelectProps={{

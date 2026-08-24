@@ -82,7 +82,7 @@ export default function ShowProjet({ projet }: any) {
             <ProjetInfosCard projet={projet} />
             <ProjetExportCard
               projectId={projet.id}
-              hasLogEntries={projet.steps.length > 0}
+              hasSteps={projet.steps.length > 0}
               hasExploitations={projet.exploitations.length > 0}
             />
             <DeleteAlert
