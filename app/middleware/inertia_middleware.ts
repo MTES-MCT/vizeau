@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
+import type { InferSharedProps } from '@adonisjs/inertia/types'
 import BaseInertiaMiddleware from '@adonisjs/inertia/inertia_middleware'
 import type { FlashMessageType, FlashMessageValue } from '#types/flash_messages'
 import UserTransformer from '#transformers/user_transformer'
@@ -14,26 +15,22 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
      * In that case, we must always assume that HttpContext is not fully hydrated
      * with all the properties.
      */
-    const { session, auth } = ctx as Partial<HttpContext>
+    const { auth } = ctx as Partial<HttpContext>
 
     /**
      * Data shared with all Inertia pages. Make sure you are using
      * transformers for rich data-types like Models.
      */
     return {
-      // Legacy shared props, not type-safe
-      flashMessages: ctx.inertia.always(
-        session?.flashMessages?.toJSON() as Record<FlashMessageType, FlashMessageValue>
-      ),
-
-      // New default Adonis7 shared props
       user: ctx.inertia.always(auth?.user ? UserTransformer.transform(auth.user) : undefined),
       errors: ctx.inertia.always(this.getValidationErrors(ctx)),
-      flash: ctx.inertia.always({
-        error: session?.flashMessages.get('error'),
-        success: session?.flashMessages.get('success'),
-      }),
     }
+  }
+
+  flash(ctx: HttpContext) {
+    const { session } = ctx as Partial<HttpContext>
+
+    return session?.flashMessages?.toJSON() as Record<FlashMessageType, FlashMessageValue>
   }
 
   async handle(ctx: HttpContext, next: NextFn) {

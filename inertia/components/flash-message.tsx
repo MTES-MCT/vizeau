@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import Notice, { NoticeProps } from '@codegouvfr/react-dsfr/Notice'
 import type { FlashMessageType, FlashMessageValue } from '#types/flash_messages'
+import { usePage } from '@inertiajs/react'
 
 export function FlashMessage({
   type,
@@ -44,13 +45,8 @@ const globalDismissed = {
   keys: new Set<string>(),
 }
 
-export function FlashMessages({
-  flashMessages,
-  context,
-}: {
-  flashMessages: Record<FlashMessageType, FlashMessageValue | null>
-  context?: string
-}) {
+export function FlashMessages({ context }: { context?: string }) {
+  const { flash: flashMessages } = usePage()
   const [dismissedMessages, setDismissedMessages] = useState(() => {
     // Au remontage (ex: changement d'onglet), restaure l'état si c'est la même page
     if (globalDismissed.forFlashMessages === flashMessages) {

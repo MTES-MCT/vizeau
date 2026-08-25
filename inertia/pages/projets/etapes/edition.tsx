@@ -16,7 +16,7 @@ import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumen
 import { useRef } from 'react'
 import { urlFor } from '~/client'
 
-export default function ProjectStepEditionPage({ projet, step, flashMessages }: any) {
+export default function ProjectStepEditionPage({ projet, step }: any) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, patch, resetAndClearErrors } = useForm<ProjectStepFormData>({
@@ -64,7 +64,7 @@ export default function ProjectStepEditionPage({ projet, step, flashMessages }: 
       </div>
 
       <div className="fr-container fr-my-4w flex flex-col gap-6">
-        <FlashMessages flashMessages={flashMessages} />
+        <FlashMessages />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="grid grid-cols-[320px_1fr] gap-4">

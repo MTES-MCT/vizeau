@@ -6,6 +6,8 @@ import { Toaster } from '~/ui/Toaster'
 import { MatomoTrackerInjector } from '~/components/matomo-tracker-injector'
 import { FlashMessages, showFlashToasts } from '~/functions/flash_messages'
 
+/// <reference path="./types.ts" />
+
 export default function render(page: any) {
   return createInertiaApp({
     page,
@@ -15,10 +17,10 @@ export default function render(page: any) {
       return pages[`./pages/${name}.tsx`]
     },
     setup({ App, props }) {
-      showFlashToasts(props.initialPage.props.flashMessages as FlashMessages | undefined)
+      showFlashToasts(props.initialPage.flash as FlashMessages | undefined)
 
-      router.on('success', (event) => {
-        showFlashToasts(event.detail.page.props.flashMessages as FlashMessages | undefined)
+      router.on('flash', (event) => {
+        showFlashToasts(event.detail.flash as FlashMessages | undefined)
       })
 
       return (

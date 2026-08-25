@@ -1,5 +1,6 @@
 /// <reference path="../adonisrc.ts" />
 /// <reference path="../config/inertia.ts" />
+/// <reference path="./types.ts" />
 
 import '@codegouvfr/react-dsfr/main.css'
 import '@codegouvfr/react-dsfr/dsfr/dsfr.css'
@@ -38,10 +39,10 @@ createInertiaApp({
   },
 
   setup({ el, App, props }) {
-    showFlashToasts(props.initialPage.props.flashMessages as FlashMessages | undefined)
+    showFlashToasts(props.initialPage.flash as FlashMessages | undefined)
 
-    router.on('success', (event) => {
-      showFlashToasts(event.detail.page.props.flashMessages as FlashMessages | undefined)
+    router.on('flash', (event) => {
+      showFlashToasts(event.detail.flash as FlashMessages | undefined)
     })
 
     hydrateRoot(
