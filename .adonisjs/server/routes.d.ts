@@ -58,6 +58,8 @@ export type ScannedRoutes = {
     'projets.store': { paramsTuple?: []; params?: {} }
     'projets.update': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.destroy': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.exploitations.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.steps.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.create.form': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.get': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.edition': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
@@ -109,6 +111,8 @@ export type ScannedRoutes = {
     'projets.create': { paramsTuple?: []; params?: {} }
     'projets.edition': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.show': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.exploitations.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.steps.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.create.form': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.get': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.edition': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
@@ -153,6 +157,8 @@ export type ScannedRoutes = {
     'projets.create': { paramsTuple?: []; params?: {} }
     'projets.edition': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.show': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.exploitations.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'projets.steps.export': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.create.form': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'projets.steps.get': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.edition': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
