@@ -86,7 +86,7 @@ export default function LogEntryInformationCard({
 
           {additionalInfos.alert?.severity !== 'error' && (
             <Button
-              title="Exporter au format ICS"
+              title="Ajouter à mon calendrier"
               iconId="fr-icon-calendar-event-line"
               priority="secondary"
               style={{ width: '100%', justifyContent: 'center' }}
@@ -101,7 +101,7 @@ export default function LogEntryInformationCard({
               }}
               className="fr-mt-2w"
             >
-              Exporter au format ICS
+              Ajouter à mon calendrier
             </Button>
           )}
 

@@ -87,7 +87,7 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
 
     if (step.date && additionalInfos.alert?.severity !== 'error') {
       actions.push({
-        label: 'Exporter au format ICS',
+        label: 'Ajouter à mon calendrier',
         iconId: 'fr-icon-calendar-event-line',
         onClick: () => {
           downloadCalendarEvent({

@@ -16,10 +16,16 @@ export function downloadCalendarEvent({ date, title, description }: CalendarEven
         return [now.getFullYear(), now.getMonth() + 1, now.getDate()]
       })()
 
+  // Compute the following calendar day for DTEND. Using `duration: { days: 1 }`
+  // instead produces a malformed `DURATION:P1DT` (trailing empty time part) that
+  // some calendar clients mishandle, so an explicit end date is used instead.
+  // UTC arithmetic keeps this immune to the browser's local timezone.
+  const nextDay = new Date(Date.UTC(year, month - 1, day + 1))
+
   createEvent(
     {
       start: [year, month, day],
-      duration: { days: 1 },
+      end: [nextDay.getUTCFullYear(), nextDay.getUTCMonth() + 1, nextDay.getUTCDate()],
       title: title ?? undefined,
       description: description ?? '',
     },
