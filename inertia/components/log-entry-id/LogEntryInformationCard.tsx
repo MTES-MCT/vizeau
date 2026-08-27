@@ -9,6 +9,7 @@ import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { urlFor } from '~/client'
+import { downloadCalendarEvent } from '~/functions/calendar'
 
 export type LogEntryInformationCardProps = {
   userName?: string
@@ -73,12 +74,34 @@ export default function LogEntryInformationCard({
             <Button
               title="Marquer comme effectuée"
               iconId="fr-icon-check-line"
+              style={{ width: '100%', justifyContent: 'center' }}
               nativeButtonProps={{
                 onClick: completeEntryLogModal.open,
               }}
               className="fr-mt-2w"
             >
               Marquer comme effectuée
+            </Button>
+          )}
+
+          {additionalInfos.alert?.severity !== 'error' && (
+            <Button
+              title="Ajouter à mon calendrier"
+              iconId="fr-icon-calendar-event-line"
+              priority="secondary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              nativeButtonProps={{
+                onClick: () => {
+                  downloadCalendarEvent({
+                    date: logEntry.date,
+                    title: logEntry.title,
+                    description: logEntry.notes,
+                  })
+                },
+              }}
+              className="fr-mt-2w"
+            >
+              Ajouter à mon calendrier
             </Button>
           )}
 

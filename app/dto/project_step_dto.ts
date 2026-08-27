@@ -12,7 +12,7 @@ export class ProjectStepDto {
       id: projectStep.id,
       title: projectStep.title,
       note: projectStep.note,
-      date: projectStep.date?.toISO() ?? null,
+      date: projectStep.date?.toISODate() ?? null,
       isValidated: projectStep.isValidated,
       tags:
         projectStep.tags?.map((tag) => ({
