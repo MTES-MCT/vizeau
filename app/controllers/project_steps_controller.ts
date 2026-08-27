@@ -21,6 +21,7 @@ import { ProjectDto } from '../dto/project_dto.js'
 import { ProjectStepDto } from '../dto/project_step_dto.js'
 import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
+import { ProjectStepCsvService } from '#services/project_step_csv_service'
 
 @inject()
 export default class ProjectStepsController {
@@ -28,7 +29,8 @@ export default class ProjectStepsController {
     public projectService: ProjectService,
     public projectStepService: ProjectStepService,
     public projectStepDocumentService: ProjectStepDocumentService,
-    public projectStepTagService: ProjectStepTagService
+    public projectStepTagService: ProjectStepTagService,
+    public projectStepCsvService: ProjectStepCsvService
   ) {}
 
   async createStepForm({ auth, request, inertia, bouncer, response }: HttpContext) {
@@ -54,6 +56,26 @@ export default class ProjectStepsController {
         return ProjectStepTagDto.fromArray(tags)
       }),
     })
+  }
+
+  async exportStepsCsv({ bouncer, request, response }: HttpContext) {
+    const { params } = await request.validateUsing(showProjectValidator)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.forbidden("Impossible d'exporter les données du projet")
+    }
+
+    await project.load('steps', (query) => query.preload('tags').orderBy('createdAt', 'desc'))
+    const csv = this.projectStepCsvService.generateCsv(project.steps)
+
+    const safeName = project.name.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 50)
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `etapes-${safeName}-${date}.csv`
+
+    return response
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(csv)
   }
 
   async createStep({ request, response, session, bouncer }: HttpContext) {

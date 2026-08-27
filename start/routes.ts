@@ -226,6 +226,15 @@ router
         router.patch('projets/:projectId', [controllers.Projects, 'update']).as('projets.update')
         router.delete('projets/:projectId', [controllers.Projects, 'destroy']).as('projets.destroy')
         router
+          .get('projets/:projectId/exploitations/export', [
+            controllers.Projects,
+            'exportExploitationsCsv',
+          ])
+          .as('projets.exploitations.export')
+        router
+          .get('projets/:projectId/etapes/export', [controllers.ProjectSteps, 'exportStepsCsv'])
+          .as('projets.steps.export')
+        router
           .get('projets/:projectId/etapes/creation', [controllers.ProjectSteps, 'createStepForm'])
           .as('projets.steps.create.form')
         router

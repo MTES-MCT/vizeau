@@ -330,6 +330,18 @@ const routes = {
     tokens: [{"old":"/projets/:projectId","type":0,"val":"projets","end":""},{"old":"/projets/:projectId","type":1,"val":"projectId","end":""}],
     types: placeholder as Registry['projets.destroy']['types'],
   },
+  'projets.exploitations.export': {
+    methods: ["GET","HEAD"],
+    pattern: '/projets/:projectId/exploitations/export',
+    tokens: [{"old":"/projets/:projectId/exploitations/export","type":0,"val":"projets","end":""},{"old":"/projets/:projectId/exploitations/export","type":1,"val":"projectId","end":""},{"old":"/projets/:projectId/exploitations/export","type":0,"val":"exploitations","end":""},{"old":"/projets/:projectId/exploitations/export","type":0,"val":"export","end":""}],
+    types: placeholder as Registry['projets.exploitations.export']['types'],
+  },
+  'projets.steps.export': {
+    methods: ["GET","HEAD"],
+    pattern: '/projets/:projectId/etapes/export',
+    tokens: [{"old":"/projets/:projectId/etapes/export","type":0,"val":"projets","end":""},{"old":"/projets/:projectId/etapes/export","type":1,"val":"projectId","end":""},{"old":"/projets/:projectId/etapes/export","type":0,"val":"etapes","end":""},{"old":"/projets/:projectId/etapes/export","type":0,"val":"export","end":""}],
+    types: placeholder as Registry['projets.steps.export']['types'],
+  },
   'projets.steps.create.form': {
     methods: ["GET","HEAD"],
     pattern: '/projets/:projectId/etapes/creation',
