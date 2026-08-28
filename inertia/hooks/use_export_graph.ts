@@ -33,7 +33,8 @@ export function useExportGraph(
 
       // Pass 1: give the chart a lot of extra height so Chart.js lays out every
       // legend item without clipping any of them, then read how much room it needed.
-      chart.resize(originalWidth, originalHeight + 2000)
+      const extraLegendLayoutHeight = 2000
+      chart.resize(originalWidth, originalHeight + extraLegendLayoutHeight)
       chart.update('none')
       const legendHeight = (chart as { legend?: { height?: number } }).legend?.height ?? 0
 

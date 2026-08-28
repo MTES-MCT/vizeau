@@ -20,10 +20,10 @@ export type AacCommunesRepartitionProps = {
   }
 }
 
-export default forwardRef(function AacCommunesRepartition(
-  { communes }: AacCommunesRepartitionProps,
-  chartRef: any
-) {
+export default forwardRef<
+  import('chart.js').Chart<'doughnut'> | undefined,
+  AacCommunesRepartitionProps
+>(function AacCommunesRepartition({ communes }: AacCommunesRepartitionProps, chartRef) {
   const communeRepartitionItems = useMemo(() => {
     const allCommunesPresent = Object.keys(communes.communes).length >= communes.nb_communes
 

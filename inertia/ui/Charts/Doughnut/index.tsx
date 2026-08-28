@@ -17,9 +17,9 @@ export type DoughnutProps = {
   unit?: string
 }
 
-export default forwardRef(function Doughnut(
+export default forwardRef<ChartJS<'doughnut'> | undefined, DoughnutProps>(function Doughnut(
   { chartItems, legendSize = 'md', legendSide, hideLegend = false, unit = '%' }: DoughnutProps,
-  ref: any
+  ref
 ) {
   const legendSizeMap = {
     sm: { box: 15, font: 12 },

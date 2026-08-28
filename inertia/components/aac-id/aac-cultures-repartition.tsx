@@ -20,13 +20,16 @@ export type AacCulturesRepartitionProps = Pick<
 
 type SurfaceAgricoleTab = 'total' | 'ppe' | 'ppr'
 
-export default forwardRef(function AacCulturesRepartition(
+export default forwardRef<
+  import('chart.js').Chart<'doughnut'> | undefined,
+  AacCulturesRepartitionProps
+>(function AacCulturesRepartition(
   {
     surface_agricole_ppe,
     surface_agricole_ppr,
     surface_agricole_utile,
   }: AacCulturesRepartitionProps,
-  ref: any
+  ref
 ) {
   const [selectedTab, setSelectedTab] = useState<SurfaceAgricoleTab>('total')
 
