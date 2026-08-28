@@ -72,11 +72,16 @@ export default function SingleSelectMenu<T extends string | number>({
   }, [isOpen, closeDropdown])
 
   useEffect(() => {
-    if (initialSelectedOption) {
-      setSearchTerm(initialSelectedOption.label)
-      setIsFiltering(false)
+    if (isFiltering) return
+
+    if (initialSelectedOption !== undefined) {
+      setSearchTerm(initialSelectedOption ? initialSelectedOption.label : '')
+      return
     }
-  }, [initialSelectedOption?.value, initialSelectedOption?.label])
+
+    const selectedOption = options.find((opt) => opt.isSelected)
+    setSearchTerm(selectedOption ? selectedOption.label : '')
+  }, [initialSelectedOption, options, isFiltering])
 
   const filteredOptions = useMemo(() => {
     if (isFiltering && searchTerm) {
