@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
-import { useState, useMemo, useEffect } from 'react'
+import { forwardRef, useState, useMemo, useEffect } from 'react'
 import { Line } from 'react-chartjs-2'
 import { min, max } from 'lodash-es'
 
@@ -33,15 +33,18 @@ export type EvolutiveChartLineProps = {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
-export default function EvolutiveChartLine({
-  chartItems,
-  legendSize = 'sm',
-  xAxisLabel = '',
-  yAxisLabel = '',
-  yAxisRightLabel = '',
-  unit = '%',
-  chartHeight,
-}: EvolutiveChartLineProps) {
+const EvolutiveChartLine = forwardRef<any, EvolutiveChartLineProps>(function EvolutiveChartLine(
+  {
+    chartItems,
+    legendSize = 'sm',
+    xAxisLabel = '',
+    yAxisLabel = '',
+    yAxisRightLabel = '',
+    unit = '%',
+    chartHeight,
+  },
+  ref
+) {
   const labels = chartItems.labels || []
   const legendSizeMap = {
     sm: { box: 15, font: 12 },
@@ -194,8 +197,12 @@ export default function EvolutiveChartLine({
       />
 
       <div style={{ height: `${computedChartHeight}px` }}>
-        <Line options={options} data={filteredChartItems} />
+        <Line ref={ref} options={options} data={filteredChartItems} />
       </div>
     </div>
   )
-}
+})
+
+EvolutiveChartLine.displayName = 'EvolutiveChartLine'
+
+export default EvolutiveChartLine

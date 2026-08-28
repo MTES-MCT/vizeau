@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut as ReactChartDoughnut } from 'react-chartjs-2'
 
@@ -16,13 +17,10 @@ export type DoughnutProps = {
   unit?: string
 }
 
-export default function Doughnut({
-  chartItems,
-  legendSize = 'md',
-  legendSide,
-  hideLegend = false,
-  unit = '%',
-}: DoughnutProps) {
+export default forwardRef(function Doughnut(
+  { chartItems, legendSize = 'md', legendSide, hideLegend = false, unit = '%' }: DoughnutProps,
+  ref: any
+) {
   const legendSizeMap = {
     sm: { box: 15, font: 12 },
     md: { box: 25, font: 16 },
@@ -92,5 +90,5 @@ export default function Doughnut({
     ],
   }
 
-  return <ReactChartDoughnut data={data} options={options} />
-}
+  return <ReactChartDoughnut ref={ref} data={data} options={options} />
+})

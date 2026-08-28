@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { forwardRef, useMemo, useState } from 'react'
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
@@ -20,11 +20,14 @@ export type AacCulturesRepartitionProps = Pick<
 
 type SurfaceAgricoleTab = 'total' | 'ppe' | 'ppr'
 
-export default function AacCulturesRepartition({
-  surface_agricole_ppe,
-  surface_agricole_ppr,
-  surface_agricole_utile,
-}: AacCulturesRepartitionProps) {
+export default forwardRef(function AacCulturesRepartition(
+  {
+    surface_agricole_ppe,
+    surface_agricole_ppr,
+    surface_agricole_utile,
+  }: AacCulturesRepartitionProps,
+  ref: any
+) {
   const [selectedTab, setSelectedTab] = useState<SurfaceAgricoleTab>('total')
 
   const cultureItems = useMemo(() => {
@@ -116,7 +119,7 @@ export default function AacCulturesRepartition({
             ))}
           </div>
           <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
-            <Doughnut chartItems={cultureItems} unit="hectares" hideLegend />
+            <Doughnut ref={ref} chartItems={cultureItems} unit="hectares" hideLegend />
           </div>
         </div>
       ) : (
@@ -127,4 +130,4 @@ export default function AacCulturesRepartition({
       )}
     </div>
   )
-}
+})
