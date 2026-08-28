@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
@@ -7,6 +7,8 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import Loader from '~/ui/Loader'
 import VerticalChartBar from '~/ui/Charts/VerticalChartBar'
 import SectionCard from '~/ui/SectionCard'
+import type { Chart as ChartJS } from 'chart.js'
+import { useExportGraph } from '~/hooks/use_export_graph'
 
 export type QualiteSuiviProps = {
   perYearData:
@@ -25,6 +27,7 @@ export default function QualiteSuivi({
   installationCode,
   loadingPerYear,
 }: QualiteSuiviProps) {
+  const chartRef = useRef<ChartJS<'bar'> | undefined>(undefined)
   const [activeView, setActiveView] = useState<'graphique' | 'tableau'>('graphique')
 
   const handleExportCsv = () => {
@@ -43,6 +46,8 @@ export default function QualiteSuivi({
     a.remove()
     URL.revokeObjectURL(url)
   }
+
+  const handleExportGraph = useExportGraph(chartRef, `qualite-eau-${installationCode}.png`)
 
   const chartItems =
     perYearData && perYearData.length > 0
@@ -103,7 +108,7 @@ export default function QualiteSuivi({
         />
         <Button
           iconId="fr-icon-download-line"
-          onClick={handleExportCsv}
+          onClick={activeView === 'graphique' ? handleExportGraph : handleExportCsv}
           disabled={!perYearData || perYearData.length === 0}
           type="button"
         >
@@ -126,6 +131,7 @@ export default function QualiteSuivi({
       ) : activeView === 'graphique' ? (
         chartItems && (
           <VerticalChartBar
+            ref={chartRef}
             chartItems={chartItems}
             yAxisLabel="Nombre d'analyses"
             unit="analyse(s)"
