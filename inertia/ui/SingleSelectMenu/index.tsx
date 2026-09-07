@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useId } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback, useId } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { groupBy } from 'lodash-es'
 
@@ -16,6 +16,7 @@ export type SingleSelectMenuProps<T extends string | number> = {
   label?: string
   hint?: string
   placeholder?: string
+  initialSelectedOption?: OptionType<T> | null
   options: OptionType<T>[]
   onChange: (option: OptionType<T>) => void
 }
@@ -45,14 +46,17 @@ export default function SingleSelectMenu<T extends string | number>({
   label,
   hint,
   placeholder = 'Sélectionner une option',
+  initialSelectedOption,
   options,
   onChange,
 }: SingleSelectMenuProps<T>) {
-  const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerId = `triggerId-${useId()}`
 
-  const selectedOption = options.find((opt) => opt.isSelected)
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isFiltering, setIsFiltering] = useState(false)
+
   const closeDropdown = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
@@ -67,14 +71,35 @@ export default function SingleSelectMenu<T extends string | number>({
     }
   }, [isOpen, closeDropdown])
 
+  useEffect(() => {
+    if (isFiltering) return
+
+    if (initialSelectedOption !== undefined) {
+      setSearchTerm(initialSelectedOption ? initialSelectedOption.label : '')
+      return
+    }
+
+    const selectedOption = options.find((opt) => opt.isSelected)
+    setSearchTerm(selectedOption ? selectedOption.label : '')
+  }, [initialSelectedOption, options, isFiltering])
+
+  const filteredOptions = useMemo(() => {
+    if (isFiltering && searchTerm) {
+      return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    }
+    return options
+  }, [searchTerm, options, isFiltering])
+
   const handleSelect = (value: T) => {
     const option = options.find((opt) => opt.value === value)
     if (!option) return
     onChange({ ...option, isSelected: true })
+    setSearchTerm(option.label)
+    setIsFiltering(false)
     closeDropdown()
   }
 
-  const optionsByGroup = groupBy(options, (opt) => opt.group ?? '')
+  const filteredOptionsByGroup = groupBy(filteredOptions, (opt) => opt.group ?? '')
 
   return (
     <div ref={containerRef} className="fr-select-group" style={{ marginBottom: 0 }}>
@@ -86,13 +111,20 @@ export default function SingleSelectMenu<T extends string | number>({
       )}
 
       <div style={{ position: 'relative' }}>
-        <button
+        <input
           id={triggerId}
-          type="button"
+          type="text"
+          value={searchTerm}
+          onChange={(e) => {
+            setIsOpen(true)
+            setIsFiltering(true)
+            setSearchTerm(e.target.value)
+          }}
+          placeholder={placeholder}
+          className="fr-select"
           onClick={() => setIsOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          className="fr-select"
           style={{
             appearance: 'none',
             WebkitAppearance: 'none',
@@ -101,22 +133,9 @@ export default function SingleSelectMenu<T extends string | number>({
             justifyContent: 'space-between',
             width: '100%',
             textAlign: 'left',
-            cursor: 'pointer',
+            cursor: 'text',
           }}
-        >
-          <span
-            style={{
-              color: selectedOption
-                ? fr.colors.decisions.text.default.grey.default
-                : fr.colors.decisions.text.mention.grey.default,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
-        </button>
+        />
 
         {isOpen && (
           <div
@@ -135,15 +154,15 @@ export default function SingleSelectMenu<T extends string | number>({
             role="listbox"
             aria-label={label}
           >
-            {options.length > 0 ? (
-              Object.keys(optionsByGroup).map((groupName) => (
+            {filteredOptions.length > 0 ? (
+              Object.keys(filteredOptionsByGroup).map((groupName) => (
                 <div
                   key={groupName}
                   role="group"
                   aria-labelledby={groupName ? `single-select-group-${groupName}` : undefined}
                 >
                   {groupName && <GroupHeader groupName={groupName} />}
-                  {optionsByGroup[groupName].map((option, index, arr) => (
+                  {filteredOptionsByGroup[groupName].map((option, index, arr) => (
                     <SingleSelectItem
                       key={option.value}
                       item={option}
