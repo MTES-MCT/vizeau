@@ -100,13 +100,13 @@ export default function ListItem({
   onClick,
 }: ListItemProps) {
   // Default variant
-  const listItemHref = linkProps?.href || onClick
-  const Wrapper = listItemHref ? Link : 'div'
-  const wrapperProps = listItemHref
+  const isClickable = Boolean(linkProps || onClick)
+  const Wrapper = linkProps ? Link : 'div'
+  const wrapperProps = linkProps
     ? {
-        href: linkProps?.href,
-        preserveScroll: linkProps?.preserveScroll,
-        preserveState: linkProps?.preserveState,
+        href: linkProps.href,
+        preserveScroll: linkProps.preserveScroll,
+        preserveState: linkProps.preserveState,
       }
     : {}
 
@@ -114,7 +114,7 @@ export default function ListItem({
     return (
       <Wrapper
         {...wrapperProps}
-        className={`${listItemHref ? 'list-item-effect' : ''}${onClick ? ' cursor-pointer' : ''}`}
+        className={`${isClickable ? 'list-item-effect' : ''}${onClick ? ' cursor-pointer' : ''}`}
         onClick={
           onClick
             ? (e: React.MouseEvent) => {
@@ -188,7 +188,7 @@ export default function ListItem({
   }
 
   return (
-    <Wrapper {...wrapperProps} className={`${listItemHref ? 'list-item-effect' : ''}`}>
+    <Wrapper {...wrapperProps} className={`${isClickable ? 'list-item-effect' : ''}`}>
       <div
         className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{
