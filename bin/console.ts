@@ -14,8 +14,12 @@
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
 
-process.on('unhandledRejection', (error) => {
-  console.error(error)
+/**
+ * Ace has no safety net of its own: without this listener an unhandled
+ * rejection would only print a warning and leave the process running.
+ */
+process.on('unhandledRejection', async (error) => {
+  await prettyPrintError(error)
   process.exit(1)
 })
 
