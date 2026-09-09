@@ -1,7 +1,11 @@
+import type { Chart as ChartJS } from 'chart.js'
+
 import SectionCard from '~/ui/SectionCard'
 import ResumeCard from '~/ui/ResumeCard'
 import SmallSection from '~/ui/SmallSection'
 import AacCommunesRepartition from './aac-communes-repartition'
+import { useRef } from 'react'
+import { useExportGraph } from '~/hooks/use_export_graph'
 
 export type AacTerritoireSectionProps = {
   surface: number
@@ -26,6 +30,12 @@ export default function AacTerritoireSection({
   nb_parcelles,
   communes,
 }: AacTerritoireSectionProps) {
+  const chartRef = useRef<ChartJS<'doughnut'> | undefined>(undefined)
+
+  const handleExportGraph = useExportGraph(chartRef, 'repartition-communes.png', {
+    showLegend: true,
+  })
+
   return (
     <SectionCard title="Territoire">
       <div
@@ -59,9 +69,12 @@ export default function AacTerritoireSection({
         title="Communes concernées"
         iconId="fr-icon-government-line"
         priority="secondary"
+        handleAction={handleExportGraph}
+        actionIcon="fr-icon-download-line"
+        actionLabel="Exporter le graphique"
         hasBorder
       >
-        <AacCommunesRepartition communes={communes} />
+        <AacCommunesRepartition communes={communes} ref={chartRef} />
       </SmallSection>
     </SectionCard>
   )
