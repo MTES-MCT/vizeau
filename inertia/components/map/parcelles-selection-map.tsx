@@ -1,9 +1,19 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import maplibre from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
+import type { MapDesiredState } from '~/functions/map_reconciler'
 import { useMap } from '~/hooks/use_map'
+import { useMapReconciler } from '~/hooks/use_map_reconciler'
+import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import { MapErrorBoundary } from './map-error-boundary'
 import { renderPopupParcelle } from './popup-parcelle'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -15,11 +25,15 @@ import { fr } from '@codegouvfr/react-dsfr'
 const protocol = new Protocol()
 maplibre.addProtocol('pmtiles', protocol.tile)
 
+/** Every culture group is visible: the selection map does not filter parcelles by culture. */
+const ALL_CULTURE_CODES = Object.keys(GROUPES_CULTURAUX)
+
 export type SelectedParcelle = {
   rpgId: string
   surface: number | null
   cultureCode: string | null
   centroid: { x: number; y: number } | undefined
+  isBio?: boolean
 }
 
 type ParcellesSelectionMapProps = {
@@ -28,10 +42,17 @@ type ParcellesSelectionMapProps = {
   selectedParcelleIds: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
+  initialBbox?: [number, number, number, number]
 }
 
 export type ParcellesSelectionMapHandle = {
   flyTo: (centroid: { x: number; y: number }) => void
+  /** Vole vers la parcelle réelle (géométrie issue des tuiles) et la surligne. */
+  focusParcelle: (
+    id: string,
+    fallbackCentroid?: { x: number; y: number },
+    onBioResolved?: (isBio: boolean) => void
+  ) => void
 }
 
 const ParcellesSelectionMapContent = forwardRef<
@@ -44,41 +65,23 @@ const ParcellesSelectionMapContent = forwardRef<
     selectedParcelleIds,
     onParcelleToggle,
     handleMillesimeChange,
+    initialBbox,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
-  const previousSelectedRef = useRef<Set<string>>(new Set())
   const currentParcelleIdRef = useRef<string | null>(null)
   const parcellePopupRef = useRef<maplibre.Popup>(
     new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
-
+  const initialBboxRef = useRef<[number, number, number, number] | undefined>(initialBbox)
   // Keep ref in sync for use in stable callbacks
   useEffect(() => {
     selectedParcelleIdsRef.current = selectedParcelleIds
   }, [selectedParcelleIds])
 
-  // Sync highlights when selectedParcelleIds changes
-  useEffect(() => {
-    const currentSet = new Set(selectedParcelleIds)
-    const prevSet = previousSelectedRef.current
-
-    for (const id of currentSet) {
-      if (!prevSet.has(id)) {
-        setParcellesHighlight(mapRef.current, [id], true)
-      }
-    }
-    for (const id of prevSet) {
-      if (!currentSet.has(id)) {
-        setParcellesHighlight(mapRef.current, [id], false)
-      }
-    }
-    previousSelectedRef.current = currentSet
-  }, [selectedParcelleIds])
-
-  const { mapContainerRef, mapRef } = useMap(
+  const { mapContainerRef, mapRef, map } = useMap(
     {
       style: vector as any,
       center: [2.24, 46.54],
@@ -90,47 +93,69 @@ const ParcellesSelectionMapContent = forwardRef<
       pitchWithRotate: false,
       touchZoomRotate: false,
     },
-    (map) => {
-      map.on('load', () => {
-        map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-        map.addControl(new maplibre.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
-        const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
-        getParcellesLayers().forEach((layer) => {
-          if (!map.getLayer(layer.id)) {
-            map.addLayer(layer as maplibre.AddLayerObject, beforeId)
-          }
-        })
+    (createdMap) => {
+      createdMap.on('load', () => {
+        createdMap.addControl(
+          new maplibre.ScaleControl({ maxWidth: 100, unit: 'metric' }),
+          'bottom-left'
+        )
 
-        // Highlight already-selected parcelles after the map loads
-        if (selectedParcelleIdsRef.current.length > 0) {
-          setParcellesHighlight(map, selectedParcelleIdsRef.current, true)
+        // Center on the provided territoire bbox when available
+        if (initialBboxRef.current) {
+          createdMap.fitBounds(initialBboxRef.current, { padding: 40, duration: 0 })
         }
 
         setIsMapLoading(false)
       })
 
       // Ensures the map is not blocked in loading state after any loading event
-      map.on('idle', () => {
+      createdMap.on('idle', () => {
         setIsMapLoading(false)
       })
     }
   )
+
+  // Only parcelles are shown here, highlighted by the current selection. The reconciler owns
+  // the source, layers, culture filter and feature states, and re-applies them on tile reloads.
+  const desiredMapState: MapDesiredState = useMemo(
+    () => ({
+      pmtilesUrl,
+      millesime,
+      showParcelles: true,
+      showAac: false,
+      showPpe: false,
+      showPpr: false,
+      showCommunes: false,
+      showSage: false,
+      showBioOnly: false,
+      visibleCultures: ALL_CULTURE_CODES,
+      highlightedParcelleIds: selectedParcelleIds,
+      hoveredParcelleIds: [],
+      unavailableParcelleIds: [],
+    }),
+    [pmtilesUrl, millesime, selectedParcelleIds]
+  )
+
+  useMapReconciler(map, desiredMapState)
 
   const handleParcelleMouseMove = useCallback(
     (e: maplibre.MapLayerMouseEvent) => {
       if (!mapRef.current) return
       const props = e.features?.[0]?.properties
       if (!props) return
-      const id = props['id_parcel']
+      const id = String(props['id_parcel'])
 
       if (currentParcelleIdRef.current !== id) {
+        const bioFeatures = mapRef.current.queryRenderedFeatures(e.point, {
+          layers: ['parcellesbio-fill'],
+        })
         const popupContent = renderPopupParcelle(
           props['code_cultu'],
           String(props['surf_parc'] ?? ''),
           millesime,
           undefined,
           false,
-          false,
+          bioFeatures.length > 0,
           true,
           selectedParcelleIdsRef.current.includes(id)
         )
@@ -160,11 +185,15 @@ const ParcellesSelectionMapContent = forwardRef<
       const feature = e.features?.[0]
       if (!feature?.properties) return
 
-      const id = feature.properties['id_parcel']
+      const id = String(feature.properties['id_parcel'])
       const isSelected = selectedParcelleIdsRef.current.includes(id)
 
       // Immediately reflect highlight before state update propagates
       setParcellesHighlight(mapRef.current, [id], !isSelected)
+
+      const bioFeatures = mapRef.current.queryRenderedFeatures(e.point, {
+        layers: ['parcellesbio-fill'],
+      })
 
       onParcelleToggle({
         rpgId: id,
@@ -174,6 +203,7 @@ const ParcellesSelectionMapContent = forwardRef<
             : null,
         cultureCode: feature.properties['code_cultu'] ?? null,
         centroid: getCentroid(feature.geometry),
+        isBio: bioFeatures.length > 0,
       })
 
       // Dismiss popup so it refreshes on next mousemove with updated selection state
@@ -186,6 +216,63 @@ const ParcellesSelectionMapContent = forwardRef<
   useImperativeHandle(ref, () => ({
     flyTo(centroid: { x: number; y: number }) {
       mapRef.current?.flyTo({ center: [centroid.x, centroid.y], zoom: 15, duration: 800 })
+    },
+    focusParcelle(
+      id: string,
+      fallbackCentroid?: { x: number; y: number },
+      onBioResolved?: (isBio: boolean) => void
+    ) {
+      const map = mapRef.current
+      if (!map) return
+      const target = String(id)
+
+      const checkBio = () => {
+        if (!onBioResolved) return
+        const bioFeatures = map
+          .querySourceFeatures('parcelles', { sourceLayer: 'parcellesbio' })
+          .filter(
+            (feature) =>
+              String(feature.id) === target || String(feature.properties?.id_parcel) === target
+          )
+        onBioResolved(bioFeatures.length > 0)
+      }
+
+      // Ne surligne que si la parcelle est toujours sélectionnée : le surlignage
+      // reste piloté par la sélection, jamais par le simple recentrage.
+      const isSelected = () => selectedParcelleIdsRef.current.includes(target)
+
+      // Cherche la parcelle dans les tuiles chargées (id_parcel === rpgId côté DB),
+      // centre dessus au zoom 15 et la surligne. Renvoie false si pas encore chargée.
+      const locate = (): boolean => {
+        const feature = map
+          .querySourceFeatures('parcelles', { sourceLayer: 'parcelles' })
+          .find(
+            (candidate) =>
+              String(candidate.id) === target || String(candidate.properties?.id_parcel) === target
+          )
+        const geometry = feature?.geometry
+        const centroid = geometry ? getCentroid(geometry) : undefined
+        if (!centroid) return false
+        map.flyTo({ center: [centroid.x, centroid.y], zoom: 15, duration: 800 })
+        setParcellesHighlight(map, [target], isSelected())
+        checkBio()
+        return true
+      }
+
+      // Surligne d'emblée : l'effet s'applique dès que la tuile est chargée.
+      setParcellesHighlight(map, [target], isSelected())
+
+      if (locate()) return
+
+      // Parcelle hors des tuiles chargées : à défaut, vole vers le centroïde fourni
+      // pour déclencher le chargement, puis réessaie à chaque tuile chargée.
+      if (fallbackCentroid) {
+        map.flyTo({ center: [fallbackCentroid.x, fallbackCentroid.y], zoom: 15, duration: 800 })
+      }
+      const onData = () => {
+        if (locate()) map.off('idle', onData)
+      }
+      map.on('idle', onData)
     },
   }))
 
