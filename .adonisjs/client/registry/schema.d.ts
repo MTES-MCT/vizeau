@@ -662,9 +662,9 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { projectId: ParamValue }
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.export': {
