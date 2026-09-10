@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     environment: ci
+    # Safety net: a hanging step must not keep a runner busy for hours
+    timeout-minutes: 10
     env:
       APP_KEY: ${{ vars.APP_KEY }}
       DB_DATABASE: ${{ vars.DB_DATABASE }}
@@ -34,7 +36,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [24.x]
+        # Figé sur 24.18.x : Node 24.20 est passé au parseur d'URL ada 4, qui
+        # fait échouer la validation des commandes ace via jsonschema 1.5.0
+        # ("Invalid command exported from ... Invalid URL").
+        # À dégeler à la prochaine upgrade de @adonisjs/core qui embarque le fix de @adonisjs/ace@14.1.1.
+        node-version: [24.18.x]
 
     services:
       postgres:
@@ -48,9 +54,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -69,15 +75,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: ci
+    timeout-minutes: 10
 
     strategy:
       matrix:
-        node-version: [24.x]
+        # Voir le commentaire du job "test"
+        node-version: [24.18.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
