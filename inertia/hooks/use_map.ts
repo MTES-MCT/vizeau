@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
-import maplibre from 'maplibre-gl'
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { Map as MaplibreMap, setWorkerUrl } from 'maplibre-gl'
+import type { MapOptions as MaplibreMapOptions } from 'maplibre-gl'
+// This URL syntax is used by Vite to auto-import some dependencies, cf. https://maplibre.org/maplibre-gl-js/docs/#installation
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 
-type MapOptions = Omit<maplibre.MapOptions, 'container'>
+type MapOptions = Omit<MaplibreMapOptions, 'container'>
 
 type UseMapResult = {
   /** Reactive map instance, suitable for effects that depend on map availability. */
-  map: maplibre.Map | null
+  map: MaplibreMap | null
   /** Attach this ref to the element that hosts the map canvas. */
-  mapContainerRef: React.RefObject<HTMLDivElement | null>
+  mapContainerRef: RefObject<HTMLDivElement | null>
   /** Imperative map instance for event handlers and callbacks without triggering a render. */
-  mapRef: React.RefObject<maplibre.Map | null>
+  mapRef: RefObject<MaplibreMap | null>
 }
 
 /**
@@ -24,13 +27,13 @@ export function useMap(
   /** Initial MapLibre options, excluding the container managed by the hook. */
   options: MapOptions | null,
   /** Called immediately after the map instance is created. */
-  onMapCreated?: (map: maplibre.Map) => void
+  onMapCreated?: (map: MaplibreMap) => void
 ): UseMapResult {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<maplibre.Map | null>(null)
+  const mapRef = useRef<MaplibreMap | null>(null)
   const optionsRef = useRef<MapOptions | null>(options)
   const onMapCreatedRef = useRef(onMapCreated)
-  const [map, setMap] = useState<maplibre.Map | null>(null)
+  const [map, setMap] = useState<MaplibreMap | null>(null)
   const [initializationError, setInitializationError] = useState<Error | null>(null)
   const isEnabled = options !== null
 
@@ -51,10 +54,11 @@ export function useMap(
       return
     }
 
-    let mapInstance: maplibre.Map | null = null
+    let mapInstance: MaplibreMap | null = null
 
     try {
-      mapInstance = new maplibre.Map({
+      setWorkerUrl(workerUrl)
+      mapInstance = new MaplibreMap({
         ...mapOptions,
         container,
       })

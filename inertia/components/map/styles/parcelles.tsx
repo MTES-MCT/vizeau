@@ -1,4 +1,4 @@
-import type { LayerSpecification } from 'maplibre-gl'
+import type { LayerSpecification, VectorSourceSpecification } from 'maplibre-gl'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 
 const defaultOpacity = 0.5
@@ -101,7 +101,7 @@ export const getParcellesSource = ({
 }: {
   pmtilesUrl: string
   millesime: string
-}): maplibregl.VectorSourceSpecification => {
+}): VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/${millesime}/parcelles_france.pmtiles`,
