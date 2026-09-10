@@ -34,7 +34,7 @@ export type ListItemProps = {
   onClick?: () => void
 }
 
-const AdditionnalInfos = ({
+export const AdditionnalInfos = ({
   iconId,
   message,
   alert,

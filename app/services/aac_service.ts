@@ -86,7 +86,9 @@ export class AacService {
     perPage: number,
     recherche?: string,
     commune?: string,
-    aacCodes?: string[]
+    aacCodes?: string[],
+    depassementsReglementaires?: boolean,
+    depassementsAlerte?: boolean
   ): Promise<{ data: Record<string, unknown>[]; total: number }> {
     const conditions: string[] = []
     const parameters: Record<string, string | number | ReturnType<DuckdbService['list']>> = {
@@ -112,6 +114,35 @@ export class AacService {
       parameters.aacCodes = this.duckdbService.list(aacCodes)
     }
 
+    // An AAC matches a dépassement filter when at least one of its installations has had
+    // an analysis exceeding the corresponding threshold, across all recorded history.
+    const [installationCodesWithReglementaire, installationCodesWithAlerte] = await Promise.all([
+      depassementsReglementaires
+        ? this.getInstallationCodesWithDepassement('reglementaire')
+        : Promise.resolve(null),
+      depassementsAlerte
+        ? this.getInstallationCodesWithDepassement('alerte')
+        : Promise.resolve(null),
+    ])
+
+    if (installationCodesWithReglementaire) {
+      conditions.push(
+        'len(list_filter(list_transform(installations, i -> i.code), ' +
+          'code -> list_contains($installationCodesWithReglementaire, code))) > 0'
+      )
+      parameters.installationCodesWithReglementaire = this.duckdbService.list(
+        installationCodesWithReglementaire
+      )
+    }
+
+    if (installationCodesWithAlerte) {
+      conditions.push(
+        'len(list_filter(list_transform(installations, i -> i.code), ' +
+          'code -> list_contains($installationCodesWithAlerte, code))) > 0'
+      )
+      parameters.installationCodesWithAlerte = this.duckdbService.list(installationCodesWithAlerte)
+    }
+
     const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
 
     /*
@@ -122,6 +153,7 @@ export class AacService {
      */
     const rows = await this.duckdbService.query<Record<string, unknown>>(
       'SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles, surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile, bbox, ' +
+        'list_transform(installations, i -> i.code) AS installation_codes, ' +
         'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($path) ' +
         where +
@@ -132,14 +164,104 @@ export class AacService {
     // The total is embedded in every row; fall back to 0 when the page is empty.
     const total = rows.length > 0 ? Number(rows[0].total_count) : 0
 
+    const installationCodesByRow = rows.map((r) =>
+      Array.isArray(r.installation_codes)
+        ? r.installation_codes.filter((code): code is string => typeof code === 'string')
+        : []
+    )
+    const allInstallationCodes = Array.from(new Set(installationCodesByRow.flat()))
+    const conformiteByInstallation =
+      await this.getConformiteStatsByInstallation(allInstallationCodes)
+
     return {
-      data: rows.map((r) => {
-        const { total_count: totalCount, ...rest } = r
+      data: rows.map((r, index) => {
+        const { total_count: totalCount, installation_codes: installationCodes, ...rest } = r
         void totalCount
-        return rest
+        void installationCodes
+
+        const conformite = installationCodesByRow[index].reduce(
+          (acc, code) => {
+            const stats = conformiteByInstallation.get(code)
+            if (!stats) return acc
+            return {
+              depassements_alerte: acc.depassements_alerte + stats.depassements_alerte,
+              depassements_reglementaires:
+                acc.depassements_reglementaires + stats.depassements_reglementaires,
+            }
+          },
+          { depassements_alerte: 0, depassements_reglementaires: 0 }
+        )
+
+        return { ...rest, ...conformite }
       }),
       total,
     }
+  }
+
+  /**
+   * Get aggregate conformity stats (dépassements d'alerte, dépassements réglementaires),
+   * over all recorded history, for each of the given installation codes individually.
+   * A date exceeding both thresholds is counted only under réglementaire (same priority
+   * as SQL_STATUT_CASE), mirroring the mutual-exclusivity rule used in per-installation stats.
+   */
+  async getConformiteStatsByInstallation(
+    installationCodes: string[]
+  ): Promise<Map<string, AnalysesStats>> {
+    const statsByInstallation = new Map<string, AnalysesStats>()
+    if (installationCodes.length === 0) return statsByInstallation
+
+    const sql = `
+      WITH date_flags AS (
+        SELECT
+          code_installation,
+          date_prelevement,
+          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
+          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
+        FROM read_parquet($path)
+        WHERE code_installation = ANY($installationCodes)
+        GROUP BY code_installation, date_prelevement
+      )
+      SELECT
+        code_installation,
+        CAST(COUNT(*) AS INTEGER) AS total,
+        CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
+        CAST(COUNT(*) FILTER (WHERE dep_alerte AND NOT dep_regl) AS INTEGER) AS depassements_alerte
+      FROM date_flags
+      GROUP BY code_installation
+    `
+    const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
+      path: getAnalysesRobinetPath(),
+      installationCodes: this.duckdbService.list(installationCodes),
+    })
+
+    for (const row of rows) {
+      if (typeof row.code_installation !== 'string') continue
+      statsByInstallation.set(row.code_installation, {
+        total: Number(row.total ?? 0),
+        depassements_alerte: Number(row.depassements_alerte ?? 0),
+        depassements_reglementaires: Number(row.depassements_reglementaires ?? 0),
+      })
+    }
+
+    return statsByInstallation
+  }
+
+  /**
+   * Returns the distinct installation codes that have at least one water-quality analysis
+   * exceeding the given threshold ("reglementaire": limite_qualite, "alerte": reference_qualite),
+   * across all recorded history. Used to filter the AAC list by dépassement type.
+   */
+  async getInstallationCodesWithDepassement(type: 'reglementaire' | 'alerte'): Promise<string[]> {
+    const condition = type === 'reglementaire' ? SQL_DEP_REGL : SQL_DEP_ALERTE
+
+    const rows = await this.duckdbService.query<Record<string, unknown>>(
+      `SELECT DISTINCT code_installation FROM read_parquet($path) WHERE ${condition}`,
+      { path: getAnalysesRobinetPath() }
+    )
+
+    return rows
+      .map((r) => r.code_installation)
+      .filter((code): code is string => typeof code === 'string')
   }
 
   /**

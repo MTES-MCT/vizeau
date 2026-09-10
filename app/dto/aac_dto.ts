@@ -15,6 +15,8 @@ export type AacSummaryJson = {
   surface_agricole_ppe: Record<string, CultureInfo>
   surface_agricole_ppr: Record<string, CultureInfo>
   surface_agricole_utile: Record<string, CultureInfo>
+  depassements_alerte: number
+  depassements_reglementaires: number
 }
 
 export class AacDto {
@@ -48,6 +50,8 @@ export class AacDto {
       surface_agricole_ppe: (row.surface_agricole_ppe as Record<string, CultureInfo>) ?? {},
       surface_agricole_ppr: (row.surface_agricole_ppr as Record<string, CultureInfo>) ?? {},
       surface_agricole_utile: (row.surface_agricole_utile as Record<string, CultureInfo>) ?? {},
+      depassements_alerte: (row.depassements_alerte as number) ?? 0,
+      depassements_reglementaires: (row.depassements_reglementaires as number) ?? 0,
     }
   }
 

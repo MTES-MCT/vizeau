@@ -5,9 +5,11 @@ import Layout from '~/ui/layouts/layout'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
-import ListItem from '~/ui/ListItem'
+
 import type { TerritoireJson } from '#types/models'
 import Alert from '@codegouvfr/react-dsfr/Alert'
+import DepassementsListItem from '~/ui/DepassementsListItem'
+import { getAacListItemMetas } from '~/functions/aac'
 
 export default function TerritoiresIndex({ territoires, meta }: any) {
   return (
@@ -54,43 +56,14 @@ export default function TerritoiresIndex({ territoires, meta }: any) {
             <div className="flex flex-col gap-2">
               {territoires.map((territoire: TerritoireJson, index: number) => {
                 return (
-                  <ListItem
-                    key={territoire.id}
+                  <DepassementsListItem
+                    key={territoire.code}
                     title={territoire.nom}
-                    linkProps={territoire.aacHref ? { href: territoire.aacHref } : undefined}
                     priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                    metas={[
-                      {
-                        content: territoire.code
-                          ? `Code SANDRE : ${territoire.code}`
-                          : 'Territoire non identifié au SANDRE',
-                        iconId: territoire.code ? 'fr-icon-hashtag' : 'fr-icon-error-warning-line',
-                      },
-                      ...(territoire.surface
-                        ? [
-                            {
-                              content: `${Math.round(territoire.surface)} ha`,
-                              iconId: 'fr-icon-ruler-line',
-                            },
-                          ]
-                        : []),
-                      ...(territoire.nb_captages_actifs
-                        ? [
-                            {
-                              content: `${territoire.nb_captages_actifs} captage${territoire.nb_captages_actifs > 1 ? 's' : ''} actif${territoire.nb_captages_actifs > 1 ? 's' : ''}`,
-                              iconId: 'fr-icon-drop-line',
-                            },
-                          ]
-                        : []),
-                      ...(territoire.nb_communes
-                        ? [
-                            {
-                              content: `${territoire.nb_communes} commune${territoire.nb_communes > 1 ? 's' : ''}`,
-                              iconId: 'fr-icon-government-line',
-                            },
-                          ]
-                        : []),
-                    ]}
+                    linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
+                    depassementsAlerte={territoire.depassements_alerte}
+                    depassementsReglementaires={territoire.depassements_reglementaires}
+                    metas={getAacListItemMetas(territoire)}
                   />
                 )
               })}

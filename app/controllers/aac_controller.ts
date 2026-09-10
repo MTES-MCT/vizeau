@@ -5,6 +5,7 @@ import { AacDto } from '../dto/aac_dto.js'
 import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
+import { parseAacDepassementsFilters } from '../helpers/aac_filters.js'
 
 const PER_PAGE = 20
 
@@ -24,8 +25,17 @@ export default class AacController {
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
     const recherche = rechercheInput || undefined
     const commune = communeInput || undefined
+    const { depassementsReglementaires, depassementsAlerte } = parseAacDepassementsFilters(request)
 
-    const { data, total } = await this.aacService.getAll(page, PER_PAGE, recherche, commune)
+    const { data, total } = await this.aacService.getAll(
+      page,
+      PER_PAGE,
+      recherche,
+      commune,
+      undefined,
+      depassementsReglementaires,
+      depassementsAlerte
+    )
     const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
 
     return inertia.render('aac/index', {
@@ -35,6 +45,8 @@ export default class AacController {
         aacRecherche: recherche ?? '',
         aacCommune: commune ?? '',
         aacPage: String(page),
+        aacDepassementsReglementaires: String(depassementsReglementaires),
+        aacDepassementsAlerte: String(depassementsAlerte),
       },
     })
   }
@@ -46,8 +58,21 @@ export default class AacController {
       return response.abort(`AAC avec le code "${params.code}" introuvable`, 404)
     }
 
+    const aac = AacDto.fromRaw(raw)
+
+    const conformiteByInstallation = await this.aacService.getConformiteStatsByInstallation(
+      aac.installations.map((installation) => installation.code)
+    )
+    aac.installations = aac.installations.map((installation) => ({
+      ...installation,
+      depassements_alerte:
+        conformiteByInstallation.get(installation.code)?.depassements_alerte ?? 0,
+      depassements_reglementaires:
+        conformiteByInstallation.get(installation.code)?.depassements_reglementaires ?? 0,
+    }))
+
     return inertia.render('aac/id', {
-      aac: AacDto.fromRaw(raw),
+      aac,
     })
   }
 

@@ -6,12 +6,15 @@ import { fr } from '@codegouvfr/react-dsfr'
 
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar'
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
 
 export type AacsSearchProps = {
   queryString: {
     aacRecherche: string
     aacCommune: string
     aacPage: string
+    aacDepassementsReglementaires?: string
+    aacDepassementsAlerte?: string
   }
   reloadOnly: string[]
 }
@@ -24,6 +27,12 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
   // is still typing.
   const [searchValue, setSearchValue] = useState(queryString?.aacRecherche || '')
   const [communeFilter, setCommuneFilter] = useState(queryString?.aacCommune || '')
+  const [depReglFilter, setDepReglFilter] = useState(
+    queryString?.aacDepassementsReglementaires === 'true'
+  )
+  const [depAlertFilter, setDepAlertFilter] = useState(
+    queryString?.aacDepassementsAlerte === 'true'
+  )
 
   // Keep a stable ref to reloadOnly so the debounced functions never need to
   // be recreated (and therefore never get cancelled) when the prop identity changes.
@@ -62,6 +71,24 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
       handleCommuneFilter.cancel()
     }
   }, [handleSearch, handleCommuneFilter])
+
+  const handleDepReglFilterToggle = (checked: boolean) => {
+    setDepReglFilter(checked)
+    router.reload({
+      only: reloadOnlyRef.current,
+      data: { aacDepassementsReglementaires: String(checked), aacPage: '1' },
+      replace: true,
+    })
+  }
+
+  const handleDepAlertFilterToggle = (checked: boolean) => {
+    setDepAlertFilter(checked)
+    router.reload({
+      only: reloadOnlyRef.current,
+      data: { aacDepassementsAlerte: String(checked), aacPage: '1' },
+      replace: true,
+    })
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -134,6 +161,30 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
               />
             )}
           </div>
+
+          <Checkbox
+            small
+            options={[
+              {
+                label: 'Dépassements réglementaires',
+                nativeInputProps: {
+                  name: 'aacDepassementsReglementaires',
+                  checked: depReglFilter,
+                  onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                    handleDepReglFilterToggle(e.target.checked),
+                },
+              },
+              {
+                label: "Dépassements d'alerte",
+                nativeInputProps: {
+                  name: 'aacDepassementsAlerte',
+                  checked: depAlertFilter,
+                  onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                    handleDepAlertFilterToggle(e.target.checked),
+                },
+              },
+            ]}
+          />
         </div>
       )}
     </div>

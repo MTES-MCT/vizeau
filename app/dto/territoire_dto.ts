@@ -20,6 +20,8 @@ export class TerritoireDto {
       bbox: ter.bbox ?? null,
       communes: ter.communes ?? null,
       nb_parcelles: ter.nb_parcelles ?? null,
+      depassements_alerte: ter.depassements_alerte ?? null,
+      depassements_reglementaires: ter.depassements_reglementaires ?? null,
     }
   }
 
