@@ -119,7 +119,7 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
 
       {isFiltersVisible && (
         <div
-          className="fr-p-2w"
+          className="fr-p-2w h-fit"
           style={{
             border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
           }}
@@ -164,6 +164,7 @@ export default function AacsSearch({ queryString, reloadOnly }: AacsSearchProps)
 
           <Checkbox
             small
+            className="fr-mt-3w fr-mb-0"
             options={[
               {
                 label: 'Dépassements réglementaires',
