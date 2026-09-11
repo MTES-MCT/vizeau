@@ -10,7 +10,7 @@ import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 import type { AacSummaryJson, ExploitationJson, ProjectJson } from '#types/models'
 import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
-import { MapGeoJSONFeature } from 'maplibre-gl'
+import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { getCentroid } from '~/functions/map'
 import { urlFor } from '~/client'
 

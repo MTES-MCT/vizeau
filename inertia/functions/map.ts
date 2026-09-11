@@ -1,8 +1,9 @@
-import type maplibre from 'maplibre-gl'
+import type { Map as MaplibreMap } from 'maplibre-gl'
+import type { Geometry } from 'geojson'
 import type { ParcelleJson } from '#types/models'
 
 export function setParcellesHighlight(
-  map: maplibre.Map | null,
+  map: MaplibreMap | null,
   parcelleIds: string[],
   highlighted: boolean = true
 ) {
@@ -60,7 +61,7 @@ function getRingCentroid(ring: number[][]): { x: number; y: number; area: number
   }
 }
 
-export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
+export function getCentroid(geometry: Geometry): { x: number; y: number } | undefined {
   if (geometry.type === 'Polygon') {
     return getRingCentroid(geometry.coordinates[0])
   }

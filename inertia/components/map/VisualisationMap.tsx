@@ -9,7 +9,8 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
-import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
+import { addProtocol, Marker, Popup, ScaleControl } from 'maplibre-gl'
+import type { LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
@@ -39,7 +40,7 @@ const stylesMap: StylesMap = {
 }
 
 const protocol = new Protocol()
-maplibre.addProtocol('pmtiles', protocol.tile)
+addProtocol('pmtiles', protocol.tile)
 
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
@@ -114,14 +115,14 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     },
     ref
   ) => {
-    const markersRef = useRef<maplibre.Marker[]>([])
+    const markersRef = useRef<Marker[]>([])
     // Exploitation whose marker is currently hovered, used both to highlight its parcelles and
     // to avoid showing the parcelle popup at the same time as the exploitation one.
     const [hoveredExploitationId, setHoveredExploitationId] = useState<string | null>(null)
     const isMarkerHovered = hoveredExploitationId !== null
     // The popup is created once and will be hidden/shown on demand, with its contents updated.
-    const parcellePopupRef = useRef<maplibre.Popup>(
-      new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+    const parcellePopupRef = useRef<Popup>(
+      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
@@ -262,7 +263,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     }, [exploitations])
 
     const handleParcelleMouseMove = useCallback(
-      (e: maplibre.MapLayerMouseEvent) => {
+      (e: MapLayerMouseEvent) => {
         // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
         if (!mapRef.current || isMarkerHovered) {
           return
@@ -347,7 +348,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     }, [onParcelleMouseLeave])
 
     const handleParcelleClick = useCallback(
-      (e: maplibre.MapLayerMouseEvent) => {
+      (e: MapLayerMouseEvent) => {
         if (!mapRef.current || !onParcelleClick) {
           return
         }
@@ -377,7 +378,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       (createdMap) => {
         createdMap.on('load', () => {
           createdMap.addControl(
-            new maplibre.ScaleControl({
+            new ScaleControl({
               maxWidth: 100,
               unit: 'metric',
             }),
@@ -412,7 +413,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         if (exploitation.location) {
           const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
 
-          const popup = new maplibre.Popup({
+          const popup = new Popup({
             closeButton: false,
             closeOnClick: false,
             offset: 25,
@@ -420,7 +421,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             className: 'custom-popup',
           })
 
-          const marker = new maplibre.Marker({
+          const marker = new Marker({
             draggable: false,
             color: markerColor,
           })
