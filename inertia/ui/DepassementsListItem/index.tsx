@@ -75,10 +75,10 @@ export default function DepassementsListItem({
                 className="fr-icon-error-line fr-icon--sm"
                 style={{ color: fr.colors.decisions.text.default.error.default }}
               />
-              dép. réglementaires :
               <strong style={{ color: fr.colors.decisions.text.default.error.default }}>
                 {depassementsReglementairesValue}
-              </strong>
+              </strong>{' '}
+              {`dép. réglementaire${depassementsReglementairesValue > 1 ? 's' : ''}`}
             </div>
           )}
 
@@ -88,10 +88,10 @@ export default function DepassementsListItem({
                 className="fr-icon-alert-line fr-icon--sm"
                 style={{ color: fr.colors.decisions.text.default.warning.default }}
               />
-              dép. avec alertes :
               <strong style={{ color: fr.colors.decisions.text.default.warning.default }}>
                 {depassementsAlerteValue}
-              </strong>
+              </strong>{' '}
+              {`dép. avec alerte${depassementsAlerteValue > 1 ? 's' : ''}`}
             </div>
           )}
         </div>
