@@ -7,7 +7,7 @@ import { EventLoggerService } from '#services/event_logger_service'
 import { assignParcellesToExploitationValidator } from '#validators/parcelle'
 import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
-import { parseAacDepassementsFilters } from '../helpers/aac_filters.js'
+import { depassementsFiltersValidator } from '#validators/aac'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import Project from '#models/project'
@@ -56,10 +56,8 @@ export default class VisualisationController {
     const aacRecherche = request.input('aacRecherche') || undefined
     const aacCommune = request.input('aacCommune') || undefined
     const aacCode = request.input('aacCode') || undefined
-    const {
-      depassementsReglementaires: aacDepassementsReglementaires,
-      depassementsAlerte: aacDepassementsAlerte,
-    } = parseAacDepassementsFilters(request)
+    const { aacDepassementsReglementaires = false, aacDepassementsAlerte = false } =
+      await request.validateUsing(depassementsFiltersValidator)
 
     // Memoize the DuckDB/S3 query so it only runs once even when both aacs
     // and aacMeta are resolved in the same partial reload.

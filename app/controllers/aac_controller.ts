@@ -2,10 +2,14 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
-import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
+import {
+  analysesSummaryValidator,
+  analysesValidator,
+  depassementsFiltersValidator,
+  yearRangeValidator,
+} from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
-import { parseAacDepassementsFilters } from '../helpers/aac_filters.js'
 
 const PER_PAGE = 20
 
@@ -25,7 +29,10 @@ export default class AacController {
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
     const recherche = rechercheInput || undefined
     const commune = communeInput || undefined
-    const { depassementsReglementaires, depassementsAlerte } = parseAacDepassementsFilters(request)
+    const {
+      aacDepassementsReglementaires: depassementsReglementaires = false,
+      aacDepassementsAlerte: depassementsAlerte = false,
+    } = await request.validateUsing(depassementsFiltersValidator)
 
     const { data, total } = await this.aacService.getAll(
       page,
