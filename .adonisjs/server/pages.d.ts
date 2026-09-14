@@ -15,6 +15,7 @@ declare module '@adonisjs/inertia/types' {
     'aac/captage': ExtractProps<(typeof import('../../inertia/pages/aac/captage.tsx'))['default']>
     'aac/id': ExtractProps<(typeof import('../../inertia/pages/aac/id.tsx'))['default']>
     'aac/index': ExtractProps<(typeof import('../../inertia/pages/aac/index.tsx'))['default']>
+    'accessibilite': ExtractProps<(typeof import('../../inertia/pages/accessibilite.tsx'))['default']>
     'accueil': ExtractProps<(typeof import('../../inertia/pages/accueil.tsx'))['default']>
     'bienvenue': ExtractProps<(typeof import('../../inertia/pages/bienvenue.tsx'))['default']>
     'errors/not_found': ExtractProps<(typeof import('../../inertia/pages/errors/not_found.tsx'))['default']>

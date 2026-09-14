@@ -17,6 +17,7 @@ router.get('/', [controllers.Accueil, 'publicIndex']).as('root')
 router.get('login', [controllers.Session, 'index'])
 router.post('login', [controllers.Session, 'store'])
 
+router.get('accessibilite', ({ inertia }) => inertia.render('accessibilite', {}))
 // Protected routes
 router
   .group(() => {

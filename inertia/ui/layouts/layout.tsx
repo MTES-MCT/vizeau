@@ -116,6 +116,9 @@ export default function Layout({
           accessibility="non compliant"
           bottomItems={[headerFooterDisplayItem]}
           contentDescription=""
+          accessibilityLinkProps={{
+            href: '/accessibilite',
+          }}
         />
       )}
     </div>
