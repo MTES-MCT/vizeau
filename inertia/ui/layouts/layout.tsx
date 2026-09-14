@@ -113,7 +113,7 @@ export default function Layout({
       </main>
       {!hideFooter && (
         <Footer
-          accessibility="fully compliant"
+          accessibility="non compliant"
           bottomItems={[headerFooterDisplayItem]}
           contentDescription=""
         />

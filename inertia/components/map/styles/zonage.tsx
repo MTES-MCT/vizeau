@@ -1,3 +1,5 @@
+import { VectorSourceSpecification } from 'maplibre-gl'
+
 export const getCommunesLayer = () => {
   return [
     {
@@ -148,33 +150,21 @@ export const getSageLayer = () => {
   ]
 }
 
-export const getAacSource = ({
-  pmtilesUrl,
-}: {
-  pmtilesUrl: string
-}): maplibregl.VectorSourceSpecification => {
+export const getAacSource = ({ pmtilesUrl }: { pmtilesUrl: string }): VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
   }
 }
 
-export const getPpeSource = ({
-  pmtilesUrl,
-}: {
-  pmtilesUrl: string
-}): maplibregl.VectorSourceSpecification => {
+export const getPpeSource = ({ pmtilesUrl }: { pmtilesUrl: string }): VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
   }
 }
 
-export const getPprSource = ({
-  pmtilesUrl,
-}: {
-  pmtilesUrl: string
-}): maplibregl.VectorSourceSpecification => {
+export const getPprSource = ({ pmtilesUrl }: { pmtilesUrl: string }): VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,
@@ -185,7 +175,7 @@ export const getSageSource = ({
   pmtilesUrl,
 }: {
   pmtilesUrl: string
-}): maplibregl.VectorSourceSpecification => {
+}): VectorSourceSpecification => {
   return {
     type: 'vector',
     url: `pmtiles://${pmtilesUrl}/zonage.pmtiles`,

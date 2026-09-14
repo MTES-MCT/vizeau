@@ -1,5 +1,11 @@
-import type maplibre from 'maplibre-gl'
-import type { AddLayerObject, FilterSpecification, LayerSpecification } from 'maplibre-gl'
+import type {
+  AddLayerObject,
+  DataDrivenPropertyValueSpecification,
+  FilterSpecification,
+  LayerSpecification,
+  Map as MaplibreMap,
+  SourceSpecification,
+} from 'maplibre-gl'
 import { getParcellesLayers, getParcellesSource } from '~/components/map/styles/parcelles'
 import {
   getAacLayer,
@@ -19,7 +25,7 @@ const BASEMAP_ANCHOR_LAYER_ID = 'water-name-lakeline'
 const PARCELLES_SOURCE_ID = 'parcelles'
 const PARCELLES_SOURCE_LAYER = 'parcelles'
 
-const BIO_FILL_OPACITY: maplibre.DataDrivenPropertyValueSpecification<number> = [
+const BIO_FILL_OPACITY: DataDrivenPropertyValueSpecification<number> = [
   'case',
   ['boolean', ['feature-state', 'unavailable'], false],
   0.3,
@@ -60,7 +66,7 @@ export const EMPTY_FEATURE_STATES: AppliedFeatureStates = {
 
 type ManagedSource = {
   id: string
-  build: (state: MapDesiredState) => maplibre.SourceSpecification
+  build: (state: MapDesiredState) => SourceSpecification
 }
 
 type ManagedLayer = {
@@ -143,7 +149,7 @@ const getLayerIdsOfSource = (sourceId: string): string[] =>
 /** Layers backed by the `parcelles` source, in stacking order. */
 export const PARCELLES_LAYER_IDS = getLayerIdsOfSource(PARCELLES_SOURCE_ID)
 
-const getAnchorLayerId = (map: maplibre.Map): string | undefined =>
+const getAnchorLayerId = (map: MaplibreMap): string | undefined =>
   map.getLayer(BASEMAP_ANCHOR_LAYER_ID) ? BASEMAP_ANCHOR_LAYER_ID : undefined
 
 /**
@@ -151,11 +157,11 @@ const getAnchorLayerId = (map: maplibre.Map): string | undefined =>
  * state, typically after a millesime change or a pmtiles host change.
  */
 const isSourceOutdated = (
-  source: NonNullable<ReturnType<maplibre.Map['getSource']>>,
-  spec: maplibre.SourceSpecification
+  source: NonNullable<ReturnType<MaplibreMap['getSource']>>,
+  spec: SourceSpecification
 ): boolean => 'url' in spec && 'url' in source && source.url !== spec.url
 
-const removeSource = (map: maplibre.Map, sourceId: string) => {
+const removeSource = (map: MaplibreMap, sourceId: string) => {
   for (const layerId of getLayerIdsOfSource(sourceId)) {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId)
@@ -170,7 +176,7 @@ const removeSource = (map: maplibre.Map, sourceId: string) => {
  * so that the following steps rebuild them. Returns the ids of the sources that were (re)created,
  * since MapLibre drops the feature states attached to a source together with the source itself.
  */
-const syncSources = (map: maplibre.Map, state: MapDesiredState): Set<string> => {
+const syncSources = (map: MaplibreMap, state: MapDesiredState): Set<string> => {
   const createdSourceIds = new Set<string>()
 
   for (const { id, build } of MANAGED_SOURCES) {
@@ -197,7 +203,7 @@ const syncSources = (map: maplibre.Map, state: MapDesiredState): Set<string> => 
  * Layers whose source is not available in the current style are skipped, and the layers
  * are only moved when their current order deviates from the declared one.
  */
-const ensureLayers = (map: maplibre.Map) => {
+const ensureLayers = (map: MaplibreMap) => {
   const anchorLayerId = getAnchorLayerId(map)
 
   const availableLayers = MANAGED_LAYERS.filter(({ spec }) => {
@@ -221,7 +227,7 @@ const ensureLayers = (map: maplibre.Map) => {
 }
 
 const isLayerOrderCorrect = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   availableLayers: ManagedLayer[],
   anchorLayerId: string | undefined
 ) => {
@@ -247,7 +253,7 @@ const isLayerOrderCorrect = (
   return true
 }
 
-const applyLayerVisibility = (map: maplibre.Map, state: MapDesiredState) => {
+const applyLayerVisibility = (map: MaplibreMap, state: MapDesiredState) => {
   for (const { spec, isVisible } of MANAGED_LAYERS) {
     if (!isVisible || !map.getLayer(spec.id)) {
       continue
@@ -261,7 +267,7 @@ const applyLayerVisibility = (map: maplibre.Map, state: MapDesiredState) => {
  * The bio layers stay in the style even when hidden: they are kept transparent so that
  * `queryRenderedFeatures` can still detect bio parcelles under the cursor.
  */
-const applyBioPresentation = (map: maplibre.Map, state: MapDesiredState) => {
+const applyBioPresentation = (map: MaplibreMap, state: MapDesiredState) => {
   if (map.getLayer('parcellesbio-fill')) {
     map.setPaintProperty(
       'parcellesbio-fill',
@@ -275,7 +281,7 @@ const applyBioPresentation = (map: maplibre.Map, state: MapDesiredState) => {
   }
 }
 
-const applyCultureFilter = (map: maplibre.Map, state: MapDesiredState) => {
+const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
   const filter: FilterSpecification =
     state.visibleCultures.length === 0
       ? ['==', ['get', 'id_parcel'], '']
@@ -292,7 +298,7 @@ const applyCultureFilter = (map: maplibre.Map, state: MapDesiredState) => {
   }
 }
 
-const areParcellesLayersReady = (map: maplibre.Map) =>
+const areParcellesLayersReady = (map: MaplibreMap) =>
   Boolean(
     map.getSource(PARCELLES_SOURCE_ID) &&
     map.getLayer('parcelles-fill') &&
@@ -300,7 +306,7 @@ const areParcellesLayersReady = (map: maplibre.Map) =>
   )
 
 const setFeatureStates = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   parcelleIds: string[],
   state: { highlighted?: boolean; unavailable?: boolean }
 ) => {
@@ -324,7 +330,7 @@ const getHighlightedParcelleIds = (state: MapDesiredState): string[] =>
  * recreated, since MapLibre drops the feature states along with the source.
  */
 const applyParcelleFeatureStates = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previous: AppliedFeatureStates
 ): AppliedFeatureStates => {
@@ -346,7 +352,7 @@ const applyParcelleFeatureStates = (
   return { highlighted, unavailable }
 }
 
-const isParcellesSourceLoaded = (map: maplibre.Map) => {
+const isParcellesSourceLoaded = (map: MaplibreMap) => {
   if (!map.getSource(PARCELLES_SOURCE_ID)) {
     return false
   }
@@ -374,7 +380,7 @@ export type ReconcileResult = {
  * state changes.
  */
 export const reconcileMap = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
 ): ReconcileResult => {
@@ -398,7 +404,7 @@ export const reconcileMap = (
 
 /** Re-applies the parcelles state once the source tiles are available. */
 export const reapplyParcellesSourceState = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
 ): AppliedFeatureStates => {

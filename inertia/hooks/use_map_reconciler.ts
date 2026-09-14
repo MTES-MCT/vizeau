@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import type maplibre from 'maplibre-gl'
+import type { Map as MaplibreMap, MapSourceDataEvent } from 'maplibre-gl'
 import {
   EMPTY_FEATURE_STATES,
   getDesiredStateKey,
@@ -19,12 +19,10 @@ import {
  * silently drops the layers and sources added on top of the basemap without emitting any
  * event, so its caller has to trigger the pass itself.
  */
-export function useMapReconciler(map: maplibre.Map | null, desiredState: MapDesiredState) {
+export function useMapReconciler(map: MaplibreMap | null, desiredState: MapDesiredState) {
   const desiredStateRef = useRef(desiredState)
   const featureStatesRef = useRef<AppliedFeatureStates>(EMPTY_FEATURE_STATES)
-  const pendingSourceListenerRef = useRef<((event: maplibre.MapSourceDataEvent) => void) | null>(
-    null
-  )
+  const pendingSourceListenerRef = useRef<((event: MapSourceDataEvent) => void) | null>(null)
   // `map.isStyleLoaded()` stays false until every source of the style is loaded, which is
   // too late: the style can be configured as soon as its specification has been parsed.
   const isStyleReadyRef = useRef(false)
@@ -62,7 +60,7 @@ export function useMapReconciler(map: maplibre.Map | null, desiredState: MapDesi
 
     // The parcelles tiles are not available yet: replay the parcelles part of the pass
     // once they are, so no filter or feature state is left unapplied.
-    const onSourceData = (event: maplibre.MapSourceDataEvent) => {
+    const onSourceData = (event: MapSourceDataEvent) => {
       if (event.sourceId !== 'parcelles' || !event.isSourceLoaded) {
         return
       }

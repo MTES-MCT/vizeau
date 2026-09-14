@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import maplibre from 'maplibre-gl'
+import { addProtocol, Popup, ScaleControl } from 'maplibre-gl'
+import type { AddLayerObject, MapLayerMouseEvent } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
@@ -13,7 +14,7 @@ import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
 
 const protocol = new Protocol()
-maplibre.addProtocol('pmtiles', protocol.tile)
+addProtocol('pmtiles', protocol.tile)
 
 export type SelectedParcelle = {
   rpgId: string
@@ -51,8 +52,8 @@ const ParcellesSelectionMapContent = forwardRef<
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const previousSelectedRef = useRef<Set<string>>(new Set())
   const currentParcelleIdRef = useRef<string | null>(null)
-  const parcellePopupRef = useRef<maplibre.Popup>(
-    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+  const parcellePopupRef = useRef<Popup>(
+    new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
 
   // Keep ref in sync for use in stable callbacks
@@ -93,11 +94,11 @@ const ParcellesSelectionMapContent = forwardRef<
     (map) => {
       map.on('load', () => {
         map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-        map.addControl(new maplibre.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
+        map.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
         const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
         getParcellesLayers().forEach((layer) => {
           if (!map.getLayer(layer.id)) {
-            map.addLayer(layer as maplibre.AddLayerObject, beforeId)
+            map.addLayer(layer as AddLayerObject, beforeId)
           }
         })
 
@@ -117,7 +118,7 @@ const ParcellesSelectionMapContent = forwardRef<
   )
 
   const handleParcelleMouseMove = useCallback(
-    (e: maplibre.MapLayerMouseEvent) => {
+    (e: MapLayerMouseEvent) => {
       if (!mapRef.current) return
       const props = e.features?.[0]?.properties
       if (!props) return
@@ -155,7 +156,7 @@ const ParcellesSelectionMapContent = forwardRef<
   }, [])
 
   const handleParcelleClick = useCallback(
-    (e: maplibre.MapLayerMouseEvent) => {
+    (e: MapLayerMouseEvent) => {
       if (!mapRef.current) return
       const feature = e.features?.[0]
       if (!feature?.properties) return
