@@ -42,7 +42,13 @@ export type VisualisationPageProps = {
     currentPage: number
     lastPage: number
   }
-  aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
+  aacQueryString: {
+    aacRecherche: string
+    aacCommune: string
+    aacPage: string
+    aacDepassementsReglementaires?: string
+    aacDepassementsAlerte?: string
+  }
   selectedAac?: AacSummaryJson
   pmtilesUrl: string
   projects: ProjectJson[]

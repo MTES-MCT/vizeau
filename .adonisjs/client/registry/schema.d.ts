@@ -86,9 +86,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').depassementsFiltersValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'visualisation.assignParcellesToExploitation': {
@@ -398,9 +398,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').depassementsFiltersValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.show': {

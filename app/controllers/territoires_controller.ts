@@ -60,6 +60,8 @@ export default class TerritoiresController {
         bbox: aac?.bbox ?? null,
         communes: aac?.communes ?? null,
         nb_parcelles: aac?.nb_parcelles ?? null,
+        depassements_alerte: aac?.depassements_alerte ?? null,
+        depassements_reglementaires: aac?.depassements_reglementaires ?? null,
       }
     })
 

@@ -19,3 +19,10 @@ export const yearRangeValidator = vine.compile(
     yearMax: vine.number().withoutDecimals(),
   })
 )
+
+export const depassementsFiltersValidator = vine.compile(
+  vine.object({
+    aacDepassementsReglementaires: vine.boolean().optional(),
+    aacDepassementsAlerte: vine.boolean().optional(),
+  })
+)

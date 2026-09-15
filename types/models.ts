@@ -41,6 +41,8 @@ export type TerritoireJson = {
   bbox: [number, number, number, number] | null
   communes: { nb_communes: number; communes: Record<string, CommuneInfo> } | null
   nb_parcelles: number | null
+  depassements_alerte: number | null
+  depassements_reglementaires: number | null
 }
 
 export type LogEntryTagJson = {
@@ -213,6 +215,8 @@ export type AacSummaryJson = {
     evolution: { annee: number; nb_parcelles: number; surface: number }[]
   }
   bbox: [number, number, number, number] | null
+  depassements_alerte: number
+  depassements_reglementaires: number
 }
 
 export type PaginatedJson<T> = {

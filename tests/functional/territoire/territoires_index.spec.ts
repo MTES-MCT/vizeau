@@ -33,6 +33,8 @@ function createMockAacService(): AacService {
           surface_agricole_ppe: null,
           surface_agricole_ppr: null,
           surface_agricole_utile: null,
+          depassements_alerte: code === '12345' ? 2 : 0,
+          depassements_reglementaires: code === '12345' ? 1 : 0,
         })),
         total: codes.length,
       }
@@ -86,12 +88,16 @@ test.group('Territoires - Index Route', (group) => {
     assert.equal(territoireWithAacLink.surface, 150.5)
     assert.equal(territoireWithAacLink.nb_communes, 2)
     assert.equal(territoireWithAacLink.nb_captages_actifs, 3)
+    assert.equal(territoireWithAacLink.depassements_alerte, 2)
+    assert.equal(territoireWithAacLink.depassements_reglementaires, 1)
     assert.isNull(territoireWithoutAacLink.code)
     assert.isNull(territoireWithoutAacLink.aacHref)
     assert.equal(territoireWithoutAacLink.typeLabel, 'Autre territoire')
     assert.isNull(territoireWithoutAacLink.surface)
     assert.isNull(territoireWithoutAacLink.nb_communes)
     assert.isNull(territoireWithoutAacLink.nb_captages_actifs)
+    assert.isNull(territoireWithoutAacLink.depassements_alerte)
+    assert.isNull(territoireWithoutAacLink.depassements_reglementaires)
   })
 
   test('user gets paginated territoires', async ({ assert, client, route }) => {

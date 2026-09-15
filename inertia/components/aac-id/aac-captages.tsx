@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { stringToColor } from '~/functions/colors'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 
 import Button from '@codegouvfr/react-dsfr/Button'
@@ -8,11 +7,11 @@ import { Range } from '@codegouvfr/react-dsfr/Range'
 import ButtonWithSelector, { OptionType } from '~/ui/ButtonWithSelector'
 import Tag from '@codegouvfr/react-dsfr/Tag'
 import SmallSection from '~/ui/SmallSection'
-import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard from '~/ui/ResumeCard'
 import Loader from '~/ui/Loader'
+import DepassementsListItem from '~/ui/DepassementsListItem'
 
 type AnalysesSummary = {
   nb_analyses: number
@@ -34,6 +33,8 @@ export type AacCaptagesProps = {
     usage: string
     etat: string
     prioritaire: boolean | null
+    depassements_alerte?: number
+    depassements_reglementaires?: number
   }[]
 }
 
@@ -330,7 +331,12 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           <ul className="flex flex-col gap-2 fr-p-0">
             {filteredInstallations.map((installation, index) => (
               <li key={installation.code} style={{ listStyle: 'none' }}>
-                <ListItem
+                <DepassementsListItem
+                  title={installation.nom}
+                  priority={index % 2 === 1 ? 'secondary' : 'primary'}
+                  linkProps={
+                    installation.code ? { href: `/installation/${installation.code}` } : undefined
+                  }
                   additionalInfos={{
                     ...(installation.prioritaire === true && {
                       message: 'Prioritaire',
@@ -343,23 +349,14 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
                       },
                     }),
                   }}
-                  variant="compact"
-                  hasBorder
-                  priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                  title={installation.nom}
-                  tags={[
-                    {
-                      label: installation.type,
-                      color: stringToColor(installation.type),
-                    },
-                  ]}
+                  depassementsAlerte={installation.depassements_alerte}
+                  depassementsReglementaires={installation.depassements_reglementaires}
                   metas={[
                     {
                       iconId: 'fr-icon-government-line',
                       content: `${installation.commune} (${installation.departement})`,
                     },
                   ]}
-                  linkProps={{ href: `/aac/${aacCode}/installations/${installation.code}` }}
                 />
               </li>
             ))}

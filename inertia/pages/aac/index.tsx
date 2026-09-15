@@ -3,13 +3,13 @@ import { Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
-import { formatDateFr } from '~/functions/date'
 import AacsSearch from '~/components/aacs/aacs-search'
 import Layout from '~/ui/layouts/layout'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import ListItem from '~/ui/ListItem'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import type { AacSummaryJson } from '#types/models'
+import DepassementsListItem from '~/ui/DepassementsListItem'
+import { getAacListItemMetas } from '~/functions/aac'
 
 export default function AacIndex({ aacs, meta, queryString }: any) {
   return (
@@ -63,24 +63,17 @@ export default function AacIndex({ aacs, meta, queryString }: any) {
           ) : (
             <>
               <div className="flex flex-col gap-2">
-                {aacs.map((aac: AacSummaryJson, index: number) => {
-                  return (
-                    <ListItem
-                      key={aac.code}
-                      title={aac.nom}
-                      linkProps={{ href: `/aac/${aac.code}` }}
-                      priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                      metas={[
-                        { content: `${formatDateFr(aac.date_maj)}`, iconId: 'fr-icon-time-line' },
-                        { content: `${Math.round(aac.surface)} ha`, iconId: 'fr-icon-ruler-line' },
-                        {
-                          content: `${aac.nb_communes} commune${aac.nb_communes > 1 ? 's' : ''}`,
-                          iconId: 'fr-icon-government-line',
-                        },
-                      ]}
-                    />
-                  )
-                })}
+                {aacs.map((aac: AacSummaryJson, index: number) => (
+                  <DepassementsListItem
+                    key={aac.code}
+                    title={aac.nom}
+                    priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                    linkProps={aac.code ? { href: `/aac/${aac.code}` } : undefined}
+                    depassementsAlerte={aac.depassements_alerte}
+                    depassementsReglementaires={aac.depassements_reglementaires}
+                    metas={getAacListItemMetas(aac)}
+                  />
+                ))}
               </div>
               {meta.lastPage > 1 && (
                 <div className="fr-mt-4w flex justify-center">
