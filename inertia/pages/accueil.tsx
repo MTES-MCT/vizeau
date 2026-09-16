@@ -2,13 +2,18 @@ import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
 import type { TerritoireJson, ProchainesTacheJson, ProjectJson } from '#types/models'
-import type { ConformiteRepartitionJson, SubstancesRepartitionJson } from '#types/captage'
+import type {
+  ConformiteRepartitionJson,
+  SubstancesRepartitionJson,
+  CaptageAlerteJson,
+} from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
 import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
 import SubstancesAlertes from '~/components/accueil/substances-alertes'
 import ProchainesTaches from '~/components/accueil/prochaines-taches'
 import ProjetsEnCours from '~/components/accueil/projets-en-cours'
+import CaptagesAlertes from '~/components/accueil/captages-alertes'
 import SectionCard from '~/ui/SectionCard'
 import Button from '@codegouvfr/react-dsfr/Button'
 
@@ -18,6 +23,7 @@ export type DashboardHomepageProps = {
   territoires: TerritoireJson[]
   conformiteRepartition?: ConformiteRepartitionJson
   substancesRepartition?: SubstancesRepartitionJson
+  captagesAlertes: CaptageAlerteJson[]
   prochainesTaches: ProchainesTacheJson[]
 }
 
@@ -27,6 +33,7 @@ export default function Accueil({
   territoires,
   conformiteRepartition,
   substancesRepartition,
+  captagesAlertes,
   prochainesTaches,
 }: DashboardHomepageProps) {
   return (
@@ -59,6 +66,7 @@ export default function Accueil({
             </aside>
 
             <main className="fr-col-12 flex flex-col fr-col-lg-8 min-w-0 gap-4">
+              <CaptagesAlertes captages={captagesAlertes} />
               <div id="prochaines-taches">
                 <ProchainesTaches prochainesTaches={prochainesTaches} />
               </div>
