@@ -7,7 +7,7 @@ export type HeroProps =
 
 function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUrl: string }) {
   return (
-    <div className="w-full max-w-[60%] max-[1440px]:max-w-full min-[2100px]:max-w-full">
+    <div className="w-full max-w-full min-[1440px]:max-w-[calc(55%_-_2rem)]">
       <div className="fr-mb-6w flex flex-col">
         <h1 className="fr-mb-1w">Pilotage de la protection des captages</h1>
         <span
@@ -39,7 +39,7 @@ function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUr
 
 function PublicHeroContent() {
   return (
-    <div className="w-full max-w-[60%] max-[1440px]:max-w-full min-[2100px]:max-w-full">
+    <div className="max-w-[700px] min-[1440px]:max-w-[calc(55%_-_2rem)]">
       <div className="fr-mb-6w flex flex-col">
         <h1 className="fr-mb-1w">
           Protéger la ressource d'eau en France, du diagnostic à l'action
@@ -60,12 +60,6 @@ function PublicHeroContent() {
       <div className="flex flex-col gap-2">
         <div className="flex gap-4">
           <Button linkProps={{ href: 'mailto:vizeau@beta.gouv.fr' }}>Demander un accès</Button>
-          {/* À afficher une fois la vidéo disponible */}
-          {/* <Button
-            priority="secondary"
-            nativeButtonProps={{ type: 'button' }}>
-            Voir la démo
-          </Button> */}
         </div>
         <div className="fr-text--sm fr-mt-1v">
           <span className="fr-icon-lock-unlock-line fr-icon--sm fr-mr-1w" />
@@ -82,10 +76,8 @@ export default function Hero({ isPublic = false, createExploitationUrl }: HeroPr
       className="w-full relative overflow-hidden fr-px-4w fr-py-8w flex justify-center min-h-[60px]"
       style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
     >
-      {/* Image toujours ancrée en bas à droite, taille responsive.
-          En format tablette et moins : opacité réduite, taille fixée à la hauteur du parent. */}
       <img
-        className="pointer-events-none absolute bottom-0 right-0 h-full max-h-full object-contain object-bottom max-[1670px]:max-w-none max-[1670px]:opacity-15 min-[2100px]:h-[40vw] min-[2100px]:max-h-none min-[2100px]:max-w-none min-[2100px]:opacity-20"
+        className="pointer-events-none absolute right-0 bottom-0 h-full w-auto max-w-none object-contain object-bottom opacity-10 min-[1440px]:h-auto min-[1440px]:w-[45%] min-[1440px]:opacity-100"
         src="/Illustration-hero.webp"
         alt="Illustration hero"
       />
