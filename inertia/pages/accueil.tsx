@@ -8,6 +8,7 @@ import Hero from '~/components/accueil/hero'
 import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
 import SubstancesAlertes from '~/components/accueil/substances-alertes'
 import ProchainesTaches from '~/components/accueil/prochaines-taches'
+import ProjetsEnCours from '~/components/accueil/projets-en-cours'
 import SectionCard from '~/ui/SectionCard'
 import Button from '@codegouvfr/react-dsfr/Button'
 
@@ -60,6 +61,9 @@ export default function Accueil({
             <main className="fr-col-12 flex flex-col fr-col-lg-8 min-w-0 gap-4">
               <div id="prochaines-taches">
                 <ProchainesTaches prochainesTaches={prochainesTaches} />
+              </div>
+              <div id="projets-en-cours">
+                <ProjetsEnCours projets={currentProjects} />
               </div>
             </main>
           </div>
