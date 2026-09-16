@@ -1,5 +1,6 @@
 import { inject } from '@adonisjs/core'
 import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
+import { AacDto, type AacSummaryJson } from '../dto/aac_dto.js'
 import type { AnalysesStats, AnalysesPerYear, SubstanceItem, ChroniqueData } from '#types/captage'
 
 function getParquetPath(): string {
@@ -195,6 +196,24 @@ export class AacService {
       }),
       total,
     }
+  }
+
+  /**
+   * Get the AAC summaries for a fixed set of codes, keyed by code.
+   * Used to enrich territoires (which only store a `code`) with AAC data
+   * such as surface, dépassements, etc.
+   */
+  async getSummariesByCode(aacCodes: string[]): Promise<Record<string, AacSummaryJson>> {
+    const summariesByCode: Record<string, AacSummaryJson> = {}
+    if (aacCodes.length === 0) return summariesByCode
+
+    const { data } = await this.getAll(1, aacCodes.length, undefined, undefined, aacCodes)
+    for (const row of data) {
+      const summary = AacDto.fromRawSummary(row)
+      summariesByCode[summary.code] = summary
+    }
+
+    return summariesByCode
   }
 
   /**
