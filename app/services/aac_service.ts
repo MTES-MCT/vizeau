@@ -8,6 +8,7 @@ import type {
   ChroniqueData,
   SubstanceAlerteJson,
   SubstancesRepartitionJson,
+  CaptageAlerteJson,
 } from '#types/captage'
 
 function getParquetPath(): string {
@@ -321,6 +322,82 @@ export class AacService {
     }
 
     return statsByInstallation
+  }
+
+  /**
+   * Get every installation of the given AACs having at least one dépassement on record,
+   * with the AAC it belongs to. A date exceeding both thresholds is counted only under
+   * réglementaire, as in getConformiteStatsByInstallation. Ordered by severity
+   * (réglementaires first, then alertes), so the caller can take the worst N.
+   * Used to build the "points de prélèvement à risque" home page widget.
+   */
+  async getCaptagesAlertesByAacCodes(aacCodes: string[]): Promise<CaptageAlerteJson[]> {
+    if (aacCodes.length === 0) return []
+
+    const sql = `
+      WITH aac_installations AS (
+        SELECT code AS aac_code, nom AS aac_nom, unnest(installations) AS installation
+        FROM read_parquet($aacPath)
+        WHERE code = ANY($aacCodes)
+      ),
+      installation_infos AS (
+        SELECT
+          aac_code,
+          aac_nom,
+          installation.code AS code,
+          installation.nom AS nom,
+          installation.commune AS commune,
+          installation.departement AS departement
+        FROM aac_installations
+      ),
+      date_flags AS (
+        SELECT
+          ii.code AS code_installation,
+          ar.date_prelevement,
+          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
+          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
+        FROM read_parquet($analysesPath) ar
+        JOIN installation_infos ii ON ii.code = ar.code_installation
+        GROUP BY ii.code, ar.date_prelevement
+      ),
+      stats AS (
+        SELECT
+          code_installation,
+          CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
+          CAST(COUNT(*) FILTER (WHERE dep_alerte AND NOT dep_regl) AS INTEGER) AS depassements_alerte
+        FROM date_flags
+        GROUP BY code_installation
+      )
+      SELECT
+        ii.code,
+        ii.nom,
+        ii.commune,
+        ii.departement,
+        ii.aac_code,
+        ii.aac_nom,
+        s.depassements_reglementaires,
+        s.depassements_alerte
+      FROM stats s
+      JOIN installation_infos ii ON ii.code = s.code_installation
+      WHERE s.depassements_reglementaires > 0 OR s.depassements_alerte > 0
+      ORDER BY s.depassements_reglementaires DESC, s.depassements_alerte DESC, ii.nom
+    `
+    const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
+      aacPath: getParquetPath(),
+      analysesPath: getAnalysesRobinetPath(),
+      aacCodes: this.duckdbService.list(aacCodes),
+    })
+
+    return rows.map((row) => ({
+      code: String(row.code ?? ''),
+      nom: String(row.nom ?? ''),
+      commune: String(row.commune ?? ''),
+      departement: String(row.departement ?? ''),
+      aac_code: String(row.aac_code ?? ''),
+      aac_nom: String(row.aac_nom ?? ''),
+      depassements_alerte: Number(row.depassements_alerte ?? 0),
+      depassements_reglementaires: Number(row.depassements_reglementaires ?? 0),
+    }))
   }
 
   /**

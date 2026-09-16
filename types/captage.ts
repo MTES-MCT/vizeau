@@ -29,6 +29,20 @@ export type SubstancesRepartitionJson = {
   parTerritoire: Record<string, SubstanceAlerteJson[]>
 }
 
+// One installation (point de prélèvement) belonging to a user territoire and having at least
+// one dépassement on record, with the AAC it belongs to so it can be linked to.
+// Used to build the "points de prélèvement à risque" home page widget.
+export type CaptageAlerteJson = {
+  code: string
+  nom: string
+  commune: string
+  departement: string
+  aac_code: string
+  aac_nom: string
+  depassements_alerte: number
+  depassements_reglementaires: number
+}
+
 export type AnalysesPerYear = {
   annee: number
   total: number
