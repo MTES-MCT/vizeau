@@ -1,14 +1,13 @@
-import env from '#start/env'
 import { inject } from '@adonisjs/core'
-import { DuckdbService } from '#services/duckdb_service'
+import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
 import type { AnalysesStats, AnalysesPerYear, SubstanceItem, ChroniqueData } from '#types/captage'
 
 function getParquetPath(): string {
-  return `s3://${env.get('S3_BUCKET')}/aac.parquet`
+  return `s3://${getAacFilesS3Driver().options.bucket}/aac.parquet`
 }
 
 function getAnalysesRobinetPath(): string {
-  return `s3://${env.get('S3_BUCKET')}/analyses_robinet.parquet`
+  return `s3://${getAacFilesS3Driver().options.bucket}/analyses_robinet.parquet`
 }
 
 // ---------------------------------------------------------------------------

@@ -5,7 +5,13 @@ import {
   type DuckDBValue,
 } from '@duckdb/node-api'
 import { inject } from '@adonisjs/core'
+import drive from '@adonisjs/drive/services/main'
+import type { S3Driver } from 'flydrive/drivers/s3'
 import env from '#start/env'
+
+export function getAacFilesS3Driver(): S3Driver {
+  return drive.use('aacFilesS3').driver as S3Driver
+}
 
 type DuckdbParameters = Record<string, DuckDBValue>
 
@@ -76,13 +82,26 @@ export class DuckdbService {
 
         await connection.run('INSTALL httpfs;')
         await connection.run('LOAD httpfs;')
+
+        // Copy the AAC S3 connection information as a DuckDB Secret.
+        // DuckDB's S3 secret expects a bare host for ENDPOINT (no protocol) and
+        // controls HTTPS separately via USE_SSL, unlike the AWS SDK / Drive
+        // endpoint below, which is a full URL. Derive both from the same source.
+        const { region, endpoint, credentials } = getAacFilesS3Driver().options as {
+          region: string
+          endpoint: string
+          credentials: { accessKeyId: string; secretAccessKey: string }
+        }
+        const { accessKeyId, secretAccessKey } = credentials
+        const endpointUrl = new URL(endpoint)
         await connection.run(`
           CREATE SECRET aac_s3_secret (
             TYPE S3,
-            KEY_ID '${sqlEscape(env.get('S3_ACCESS_KEY'))}',
-            SECRET '${sqlEscape(env.get('S3_SECRET_KEY'))}',
-            REGION '${sqlEscape(env.get('S3_REGION'))}',
-            ENDPOINT '${sqlEscape(env.get('S3_ENDPOINT'))}',
+            KEY_ID '${sqlEscape(accessKeyId)}',
+            SECRET '${sqlEscape(secretAccessKey)}',
+            REGION '${sqlEscape(region)}',
+            ENDPOINT '${sqlEscape(endpointUrl.host)}',
+            USE_SSL ${endpointUrl.protocol === 'https:'},
             URL_STYLE 'path'
           );
         `)
