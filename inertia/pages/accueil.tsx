@@ -1,18 +1,27 @@
 import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
-import type { ProjectJson } from '#types/models'
+import type { TerritoireJson, ProjectJson } from '#types/models'
+import type { ConformiteRepartitionJson } from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
+import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
 import SectionCard from '~/ui/SectionCard'
 import Button from '@codegouvfr/react-dsfr/Button'
 
 export type DashboardHomepageProps = {
   urgentTasksCount: number
   currentProjects: ProjectJson[]
+  territoires: TerritoireJson[]
+  conformiteRepartition?: ConformiteRepartitionJson
 }
 
-export default function Accueil({ urgentTasksCount, currentProjects }: DashboardHomepageProps) {
+export default function Accueil({
+  urgentTasksCount,
+  currentProjects,
+  territoires,
+  conformiteRepartition,
+}: DashboardHomepageProps) {
   return (
     <Layout>
       <Head title="Accueil" />
@@ -32,6 +41,10 @@ export default function Accueil({ urgentTasksCount, currentProjects }: Dashboard
                   Démarrer un nouveau projet
                 </Button>
               </SectionCard>
+              <TerritoiresAlertes
+                territoires={territoires}
+                conformiteRepartition={conformiteRepartition}
+              />
             </aside>
           </div>
         </div>

@@ -218,6 +218,58 @@ export class AacService {
 
   /**
    * Get aggregate conformity stats (dépassements d'alerte, dépassements réglementaires),
+   * over all recorded history, for each of the given AAC codes — summed across every
+   * installation of the AAC. Used to flag "at risk" territoires on the home page.
+   */
+  async getConformiteStatsByAacCodes(aacCodes: string[]): Promise<Map<string, AnalysesStats>> {
+    const statsByAacCode = new Map<string, AnalysesStats>()
+    if (aacCodes.length === 0) return statsByAacCode
+
+    const sql = `
+      WITH aac_installations AS (
+        SELECT code AS aac_code, unnest(list_transform(installations, i -> i.code)) AS installation_code
+        FROM read_parquet($aacPath)
+        WHERE code = ANY($aacCodes)
+      ),
+      date_flags AS (
+        SELECT
+          ai.aac_code,
+          ar.code_installation,
+          ar.date_prelevement,
+          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
+          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
+        FROM read_parquet($analysesPath) ar
+        JOIN aac_installations ai ON ai.installation_code = ar.code_installation
+        GROUP BY ai.aac_code, ar.code_installation, ar.date_prelevement
+      )
+      SELECT
+        aac_code,
+        CAST(COUNT(*) AS INTEGER) AS total,
+        CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
+        CAST(COUNT(*) FILTER (WHERE dep_alerte) AS INTEGER) AS depassements_alerte
+      FROM date_flags
+      GROUP BY aac_code
+    `
+    const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
+      aacPath: getParquetPath(),
+      analysesPath: getAnalysesRobinetPath(),
+      aacCodes: this.duckdbService.list(aacCodes),
+    })
+
+    for (const row of rows) {
+      if (typeof row.aac_code !== 'string') continue
+      statsByAacCode.set(row.aac_code, {
+        total: Number(row.total ?? 0),
+        depassements_alerte: Number(row.depassements_alerte ?? 0),
+        depassements_reglementaires: Number(row.depassements_reglementaires ?? 0),
+      })
+    }
+
+    return statsByAacCode
+  }
+
+  /**
+   * Get aggregate conformity stats (dépassements d'alerte, dépassements réglementaires),
    * over all recorded history, for each of the given installation codes individually.
    * A date exceeding both thresholds is counted only under réglementaire (same priority
    * as SQL_STATUT_CASE), mirroring the mutual-exclusivity rule used in per-installation stats.

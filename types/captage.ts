@@ -4,6 +4,12 @@ export type AnalysesStats = {
   depassements_reglementaires: number
 }
 
+// Conformity stats for every user territoire that has an AAC code, keyed by territoire id.
+// Used to build the "territoires suivis à risque" home page widget.
+export type ConformiteRepartitionJson = {
+  parTerritoire: Record<string, AnalysesStats>
+}
+
 export type AnalysesPerYear = {
   annee: number
   total: number
