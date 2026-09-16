@@ -10,6 +10,25 @@ export type ConformiteRepartitionJson = {
   parTerritoire: Record<string, AnalysesStats>
 }
 
+export type SubstanceAlerteJson = {
+  code_parametre: number
+  libelle_parametre: string
+  // Percentage of analyses exceeding the threshold for this substance's type.
+  taux_depassement: number
+  type: 'reglementaire' | 'alerte'
+  // Concentration measured at the most recent analysis for this substance.
+  derniere_valeur: number
+  code_unite: string
+}
+
+// Top 5 substances at risk, all-time, across every installation of every user territoire
+// that has an AAC code — both combined and per territoire. Used to build the
+// "top 5 des substances à risque" home page widget.
+export type SubstancesRepartitionJson = {
+  tousTerritoires: SubstanceAlerteJson[]
+  parTerritoire: Record<string, SubstanceAlerteJson[]>
+}
+
 export type AnalysesPerYear = {
   annee: number
   total: number

@@ -53,12 +53,14 @@ export default class AccueilController {
       currentProjects,
       aacSummariesByCode,
       conformiteStatsByAacCode,
+      substancesRepartition,
     ] = await Promise.all([
       this.logEntryService.countUrgentLogEntriesForUser(user.id),
       this.projectStepService.countUrgentStepsForUser(user.id),
       this.projectService.getCurrentProjects(user.id),
       this.aacService.getSummariesByCode(aacCodes),
       this.aacService.getConformiteStatsByAacCodes(aacCodes),
+      this.aacService.getSubstancesAlertesRepartition(territoiresAvecCode),
     ])
 
     const territoires = territoireModels.map((territoire) =>
@@ -81,6 +83,7 @@ export default class AccueilController {
       currentProjects: ProjectDto.toJsonArray(currentProjects),
       territoires,
       conformiteRepartition,
+      substancesRepartition,
     })
   }
 

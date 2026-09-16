@@ -1,7 +1,14 @@
 import { inject } from '@adonisjs/core'
 import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
 import { AacDto, type AacSummaryJson } from '../dto/aac_dto.js'
-import type { AnalysesStats, AnalysesPerYear, SubstanceItem, ChroniqueData } from '#types/captage'
+import type {
+  AnalysesStats,
+  AnalysesPerYear,
+  SubstanceItem,
+  ChroniqueData,
+  SubstanceAlerteJson,
+  SubstancesRepartitionJson,
+} from '#types/captage'
 
 function getParquetPath(): string {
   return `s3://${getAacFilesS3Driver().options.bucket}/aac.parquet`
@@ -332,6 +339,136 @@ export class AacService {
     return rows
       .map((r) => r.code_installation)
       .filter((code): code is string => typeof code === 'string')
+  }
+
+  /**
+   * Get the top 5 substances at risk (all-time, all installations combined), both across
+   * every given territoire and for each one individually. Réglementaire dépassements are
+   * always ranked before alerte-only ones, then by dépassement rate descending.
+   * Used to build the "top 5 des substances à risque" home page widget.
+   */
+  async getSubstancesAlertesRepartition(
+    territoires: { id: string; code: string }[]
+  ): Promise<SubstancesRepartitionJson> {
+    const empty: SubstancesRepartitionJson = { tousTerritoires: [], parTerritoire: {} }
+    if (territoires.length === 0) return empty
+
+    const aacCodes = territoires.map((t) => t.code)
+
+    type SubstanceRow = {
+      aac_code: string
+      code_parametre: number
+      libelle_parametre: string
+      nb_dep_regl: number
+      nb_dep_alerte: number
+      nb_total: number
+      derniere_valeur: number
+      code_unite: string
+      // ISO date (YYYY-MM-DD), compared as a string to pick the most recent value
+      // when combining territoires — not exposed on SubstanceAlerteJson.
+      derniere_date: string
+    }
+
+    const sql = `
+      WITH aac_installations AS (
+        SELECT code AS aac_code, unnest(list_transform(installations, i -> i.code)) AS installation_code
+        FROM read_parquet($aacPath)
+        WHERE code = ANY($aacCodes)
+      )
+      SELECT
+        ai.aac_code,
+        CAST(ar.code_parametre AS INTEGER) AS code_parametre,
+        ANY_VALUE(ar.libelle_parametre) AS libelle_parametre,
+        CAST(COUNT(*) FILTER (WHERE ${SQL_DEP_REGL}) AS INTEGER) AS nb_dep_regl,
+        CAST(COUNT(*) FILTER (WHERE ${SQL_DEP_ALERTE}) AS INTEGER) AS nb_dep_alerte,
+        CAST(COUNT(*) AS INTEGER) AS nb_total,
+        arg_max(ar.resultat_traduction, ar.date_prelevement) AS derniere_valeur,
+        arg_max(ar.code_unite, ar.date_prelevement) AS code_unite,
+        CAST(MAX(ar.date_prelevement) AS VARCHAR) AS derniere_date
+      FROM read_parquet($analysesPath) ar
+      JOIN aac_installations ai ON ai.installation_code = ar.code_installation
+      WHERE ar.resultat_traduction IS NOT NULL
+      GROUP BY ai.aac_code, ar.code_parametre
+    `
+    const rawRows = await this.duckdbService.query<Record<string, unknown>>(sql, {
+      aacPath: getParquetPath(),
+      analysesPath: getAnalysesRobinetPath(),
+      aacCodes: this.duckdbService.list(aacCodes),
+    })
+
+    const rows: SubstanceRow[] = rawRows.map((r) => ({
+      aac_code: String(r.aac_code),
+      code_parametre: Number(r.code_parametre),
+      libelle_parametre: String(r.libelle_parametre ?? ''),
+      nb_dep_regl: Number(r.nb_dep_regl ?? 0),
+      nb_dep_alerte: Number(r.nb_dep_alerte ?? 0),
+      nb_total: Number(r.nb_total ?? 0),
+      derniere_valeur: Number(r.derniere_valeur ?? 0),
+      code_unite: String(r.code_unite ?? ''),
+      derniere_date: String(r.derniere_date ?? ''),
+    }))
+
+    const toSubstanceAlerte = (row: Omit<SubstanceRow, 'aac_code'>): SubstanceAlerteJson | null => {
+      if (row.nb_dep_regl === 0 && row.nb_dep_alerte === 0) return null
+
+      const isReglementaire = row.nb_dep_regl > 0
+      const depCount = isReglementaire ? row.nb_dep_regl : row.nb_dep_alerte
+
+      return {
+        code_parametre: row.code_parametre,
+        libelle_parametre: row.libelle_parametre,
+        taux_depassement: Math.round((1000 * depCount) / row.nb_total) / 10,
+        type: isReglementaire ? 'reglementaire' : 'alerte',
+        derniere_valeur: row.derniere_valeur,
+        code_unite: row.code_unite,
+      }
+    }
+
+    const top5 = (substances: (SubstanceAlerteJson | null)[]): SubstanceAlerteJson[] =>
+      substances
+        .filter((s): s is SubstanceAlerteJson => s !== null)
+        .sort((a, b) => {
+          if (a.type !== b.type) return a.type === 'reglementaire' ? -1 : 1
+          return b.taux_depassement - a.taux_depassement
+        })
+        .slice(0, 5)
+
+    const rowsByAacCode = new Map<string, SubstanceRow[]>()
+    for (const row of rows) {
+      const list = rowsByAacCode.get(row.aac_code) ?? []
+      list.push(row)
+      rowsByAacCode.set(row.aac_code, list)
+    }
+
+    const parTerritoire: Record<string, SubstanceAlerteJson[]> = {}
+    for (const territoire of territoires) {
+      const territoireRows = rowsByAacCode.get(territoire.code) ?? []
+      parTerritoire[territoire.id] = top5(territoireRows.map(toSubstanceAlerte))
+    }
+
+    // "Tous territoires": sum each substance's counts across every territoire before ranking,
+    // keeping the value/unit from whichever territoire has the most recent analysis.
+    const combinedByCodeParametre = new Map<number, Omit<SubstanceRow, 'aac_code'>>()
+    for (const row of rows) {
+      const existing = combinedByCodeParametre.get(row.code_parametre)
+      if (existing) {
+        existing.nb_dep_regl += row.nb_dep_regl
+        existing.nb_dep_alerte += row.nb_dep_alerte
+        existing.nb_total += row.nb_total
+        if (row.derniere_date > existing.derniere_date) {
+          existing.derniere_valeur = row.derniere_valeur
+          existing.code_unite = row.code_unite
+          existing.derniere_date = row.derniere_date
+        }
+      } else {
+        combinedByCodeParametre.set(row.code_parametre, { ...row })
+      }
+    }
+
+    return {
+      tousTerritoires: top5(Array.from(combinedByCodeParametre.values()).map(toSubstanceAlerte)),
+      parTerritoire,
+    }
   }
 
   /**

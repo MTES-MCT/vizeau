@@ -2,10 +2,11 @@ import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
 import type { TerritoireJson, ProjectJson } from '#types/models'
-import type { ConformiteRepartitionJson } from '#types/captage'
+import type { ConformiteRepartitionJson, SubstancesRepartitionJson } from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
 import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
+import SubstancesAlertes from '~/components/accueil/substances-alertes'
 import SectionCard from '~/ui/SectionCard'
 import Button from '@codegouvfr/react-dsfr/Button'
 
@@ -14,6 +15,7 @@ export type DashboardHomepageProps = {
   currentProjects: ProjectJson[]
   territoires: TerritoireJson[]
   conformiteRepartition?: ConformiteRepartitionJson
+  substancesRepartition?: SubstancesRepartitionJson
 }
 
 export default function Accueil({
@@ -21,6 +23,7 @@ export default function Accueil({
   currentProjects,
   territoires,
   conformiteRepartition,
+  substancesRepartition,
 }: DashboardHomepageProps) {
   return (
     <Layout>
@@ -41,6 +44,10 @@ export default function Accueil({
                   Démarrer un nouveau projet
                 </Button>
               </SectionCard>
+              <SubstancesAlertes
+                territoires={territoires}
+                substancesRepartition={substancesRepartition}
+              />
               <TerritoiresAlertes
                 territoires={territoires}
                 conformiteRepartition={conformiteRepartition}
