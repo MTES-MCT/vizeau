@@ -56,6 +56,7 @@ export default class AccueilController {
       aacSummariesByCode,
       conformiteStatsByAacCode,
       substancesRepartition,
+      captagesAlertes,
       upcomingProjectSteps,
       upcomingLogEntries,
     ] = await Promise.all([
@@ -65,6 +66,7 @@ export default class AccueilController {
       this.aacService.getSummariesByCode(aacCodes),
       this.aacService.getConformiteStatsByAacCodes(aacCodes),
       this.aacService.getSubstancesAlertesRepartition(territoiresAvecCode),
+      this.aacService.getCaptagesAlertesByAacCodes(aacCodes),
       this.projectStepService.getUpcomingStepsForUser(user.id),
       this.logEntryService.getUpcomingLogEntriesForUser(user.id),
     ])
@@ -95,6 +97,7 @@ export default class AccueilController {
       territoires,
       conformiteRepartition,
       substancesRepartition,
+      captagesAlertes,
       prochainesTaches,
     })
   }
