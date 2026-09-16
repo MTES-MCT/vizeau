@@ -28,6 +28,24 @@ export class ProjectStepService {
     return Number(result?.$extras?.total ?? 0)
   }
 
+  // Used on the home page: all upcoming (non-validated) steps of projects accessible to the user, overdue first.
+  async getUpcomingStepsForUser(userId: string) {
+    return ProjectStep.query()
+      .where('isValidated', false)
+      .whereNotNull('date')
+      .whereHas('project', (projectQuery) => {
+        projectQuery.where((query) => {
+          query.where('userId', userId).orWhereHas('territoires', (territoireQuery) => {
+            territoireQuery.whereHas('users', (userQuery) => {
+              userQuery.where('users.id', userId)
+            })
+          })
+        })
+      })
+      .preload('project')
+      .orderBy('date', 'asc')
+  }
+
   async createStep(
     project: Project,
     data: Partial<ModelAttributes<ProjectStep>>,

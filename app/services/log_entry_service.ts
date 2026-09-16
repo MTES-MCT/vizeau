@@ -63,6 +63,22 @@ export class LogEntryService {
     return Number(result?.$extras?.total ?? 0)
   }
 
+  // Used on the home page: all upcoming (non-completed) entries from exploitations accessible to the user, overdue first.
+  async getUpcomingLogEntriesForUser(userId: string) {
+    return this.queryLogEntriesFromActiveExploitation()
+      .andWhere('isCompleted', false)
+      .whereNotNull('date')
+      .whereHas('exploitation', (exploitationQuery) => {
+        exploitationQuery.whereHas('territoires', (territoireQuery) => {
+          territoireQuery.whereHas('users', (userQuery) => {
+            userQuery.where('users.id', userId)
+          })
+        })
+      })
+      .preload('exploitation')
+      .orderBy('date', 'asc')
+  }
+
   async findDocument(documentId: number, userId: string) {
     return LogEntryDocument.query()
       .where('id', documentId)

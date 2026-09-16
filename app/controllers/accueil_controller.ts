@@ -7,8 +7,10 @@ import { TerritoireService } from '#services/territoire_service'
 import { AacService } from '#services/aac_service'
 import { EventLoggerService } from '#services/event_logger_service'
 import { TerritoireDto } from '../dto/territoire_dto.js'
+import { ProchainesTacheDto } from '../dto/prochaines_tache_dto.js'
 import { ProjectDto } from '../dto/project_dto.js'
 import type { ConformiteRepartitionJson } from '#types/captage'
+import type { ProchainesTacheJson } from '#types/models'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -54,6 +56,8 @@ export default class AccueilController {
       aacSummariesByCode,
       conformiteStatsByAacCode,
       substancesRepartition,
+      upcomingProjectSteps,
+      upcomingLogEntries,
     ] = await Promise.all([
       this.logEntryService.countUrgentLogEntriesForUser(user.id),
       this.projectStepService.countUrgentStepsForUser(user.id),
@@ -61,7 +65,14 @@ export default class AccueilController {
       this.aacService.getSummariesByCode(aacCodes),
       this.aacService.getConformiteStatsByAacCodes(aacCodes),
       this.aacService.getSubstancesAlertesRepartition(territoiresAvecCode),
+      this.projectStepService.getUpcomingStepsForUser(user.id),
+      this.logEntryService.getUpcomingLogEntriesForUser(user.id),
     ])
+
+    const prochainesTaches: ProchainesTacheJson[] = [
+      ...upcomingProjectSteps.map((step) => ProchainesTacheDto.fromProjectStep(step)),
+      ...upcomingLogEntries.map((logEntry) => ProchainesTacheDto.fromLogEntry(logEntry)),
+    ].sort((a, b) => a.date.localeCompare(b.date))
 
     const territoires = territoireModels.map((territoire) =>
       TerritoireDto.fromModel(
@@ -84,6 +95,7 @@ export default class AccueilController {
       territoires,
       conformiteRepartition,
       substancesRepartition,
+      prochainesTaches,
     })
   }
 

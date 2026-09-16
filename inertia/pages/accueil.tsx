@@ -1,12 +1,13 @@
 import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
-import type { TerritoireJson, ProjectJson } from '#types/models'
+import type { TerritoireJson, ProchainesTacheJson, ProjectJson } from '#types/models'
 import type { ConformiteRepartitionJson, SubstancesRepartitionJson } from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
 import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
 import SubstancesAlertes from '~/components/accueil/substances-alertes'
+import ProchainesTaches from '~/components/accueil/prochaines-taches'
 import SectionCard from '~/ui/SectionCard'
 import Button from '@codegouvfr/react-dsfr/Button'
 
@@ -16,6 +17,7 @@ export type DashboardHomepageProps = {
   territoires: TerritoireJson[]
   conformiteRepartition?: ConformiteRepartitionJson
   substancesRepartition?: SubstancesRepartitionJson
+  prochainesTaches: ProchainesTacheJson[]
 }
 
 export default function Accueil({
@@ -24,6 +26,7 @@ export default function Accueil({
   territoires,
   conformiteRepartition,
   substancesRepartition,
+  prochainesTaches,
 }: DashboardHomepageProps) {
   return (
     <Layout>
@@ -53,6 +56,12 @@ export default function Accueil({
                 conformiteRepartition={conformiteRepartition}
               />
             </aside>
+
+            <main className="fr-col-12 flex flex-col fr-col-lg-8 min-w-0 gap-4">
+              <div id="prochaines-taches">
+                <ProchainesTaches prochainesTaches={prochainesTaches} />
+              </div>
+            </main>
           </div>
         </div>
       </>
