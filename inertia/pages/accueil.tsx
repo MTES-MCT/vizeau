@@ -1,18 +1,19 @@
 import { Head } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
-import DashboardHomepage, {
-  type DashboardHomepageProps,
-} from '~/components/accueil/dashboard-homepage'
+import type { ProjectJson } from '#types/models'
+import Hero from '~/components/accueil/hero'
 
-export default function Accueil({ latestExploitations, latestLogEntries }: DashboardHomepageProps) {
+export type DashboardHomepageProps = {
+  urgentTasksCount: number
+  currentProjects: ProjectJson[]
+}
+
+export default function Accueil({ urgentTasksCount, currentProjects }: DashboardHomepageProps) {
   return (
     <Layout>
       <Head title="Accueil" />
-      <DashboardHomepage
-        latestExploitations={latestExploitations}
-        latestLogEntries={latestLogEntries}
-      />
+      <Hero urgentTasksCount={urgentTasksCount} currentProjectsCount={currentProjects.length} />
     </Layout>
   )
 }

@@ -1,10 +1,10 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
+import { ProjectService } from '#services/project_service'
+import { ProjectStepService } from '#services/project_step_service'
 import { EventLoggerService } from '#services/event_logger_service'
-import { LogEntryDto } from '../dto/log_entry_dto.js'
-import { ExploitationDto } from '../dto/exploitation_dto.js'
+import { ProjectDto } from '../dto/project_dto.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -14,8 +14,9 @@ const EVENTS = {
 @inject()
 export default class AccueilController {
   constructor(
-    public exploitationService: ExploitationService,
     public logEntryService: LogEntryService,
+    public projectService: ProjectService,
+    public projectStepService: ProjectStepService,
     public eventLogger: EventLoggerService
   ) {}
   async publicIndex({ inertia, auth, response }: HttpContext) {
@@ -33,14 +34,15 @@ export default class AccueilController {
 
     this.eventLogger.logEvent({ userId: user.id, ...EVENTS.PAGE_VIEW })
 
-    const latestExploitations = await this.exploitationService.queryLatestExploitations(user.id)
-    const latestLogEntries = await this.logEntryService.getLatestLogEntriesFromUser(user.id)
+    const [urgentLogEntriesCount, urgentProjectStepsCount, currentProjects] = await Promise.all([
+      this.logEntryService.countUrgentLogEntriesForUser(user.id),
+      this.projectStepService.countUrgentStepsForUser(user.id),
+      this.projectService.getCurrentProjects(user.id),
+    ])
 
     return inertia.render('accueil', {
-      latestExploitations: latestExploitations.map((exploitation) =>
-        ExploitationDto.fromModel(exploitation)
-      ),
-      latestLogEntries: latestLogEntries.map((log) => LogEntryDto.fromModel(log)),
+      urgentTasksCount: urgentLogEntriesCount + urgentProjectStepsCount,
+      currentProjects: ProjectDto.toJsonArray(currentProjects),
     })
   }
 

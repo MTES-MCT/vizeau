@@ -2,6 +2,7 @@ import LogEntry from '#models/log_entry'
 import { errors } from '@adonisjs/auth'
 import { type ModelAttributes } from '@adonisjs/lucid/types/model'
 import LogEntryDocument from '#models/log_entry_document'
+import { DateTime } from 'luxon'
 
 export class LogEntryService {
   /**
@@ -41,25 +42,25 @@ export class LogEntryService {
       .paginate(page, pageSize)
   }
 
-  // Request used on the home page
-  async getLatestLogEntriesFromUser(userId: string, limit = 5) {
-    return (
-      this.queryLogEntriesFromActiveExploitation()
-        // We want to only show the current user's entries on the home page
-        .where('userId', userId)
-        // Only show entries from exploitations that share at least one territoire with the user (same as the exploitations shown on the home page)
-        .whereHas('exploitation', (exploitationQuery) => {
-          exploitationQuery.whereHas('territoires', (territoireQuery) => {
-            territoireQuery.whereHas('users', (userQuery) => {
-              userQuery.where('users.id', userId)
-            })
+  // Used on the home page: tasks authored by the user, due within the next 7 days or overdue.
+  async countUrgentLogEntriesForUser(userId: string): Promise<number> {
+    const deadline = DateTime.now().plus({ days: 7 }).toISODate() as string
+
+    const result = await this.queryLogEntriesFromActiveExploitation()
+      .andWhere('isCompleted', false)
+      .whereNotNull('date')
+      .andWhere('date', '<=', deadline)
+      .whereHas('exploitation', (exploitationQuery) => {
+        exploitationQuery.whereHas('territoires', (territoireQuery) => {
+          territoireQuery.whereHas('users', (userQuery) => {
+            userQuery.where('users.id', userId)
           })
         })
-        .preload('tags')
-        .preload('exploitation')
-        .orderBy('createdAt', 'desc')
-        .limit(limit)
-    )
+      })
+      .count('* as total')
+      .first()
+
+    return Number(result?.$extras?.total ?? 0)
   }
 
   async findDocument(documentId: number, userId: string) {
