@@ -19,6 +19,17 @@ const driveConfig = defineConfig({
       endpoint: env.get('USER_UPLOADS_S3_ENDPOINT'),
       visibility: 'private',
     }),
+    // For backward compat only, delete once the change is in production
+    spaces: services.s3({
+      credentials: {
+        accessKeyId: env.get('USER_UPLOADS_S3_ACCESS_KEY'),
+        secretAccessKey: env.get('USER_UPLOADS_S3_SECRET_KEY'),
+      },
+      region: env.get('USER_UPLOADS_S3_REGION'),
+      bucket: env.get('USER_UPLOADS_S3_BUCKET'),
+      endpoint: env.get('USER_UPLOADS_S3_ENDPOINT'),
+      visibility: 'private',
+    }),
     // We don't use this bucket with drive at this moment, only through DuckDB,
     // But this way the configuration is centralized somewhere
     aacFilesS3: services.s3({
