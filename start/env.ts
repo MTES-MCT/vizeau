@@ -60,7 +60,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the drive package
   |----------------------------------------------------------
   */
-  DRIVE_DISK: Env.schema.enum(['userUploadsS3'] as const),
+  DRIVE_DISK: Env.schema.enum(['userUploadsS3', 'spaces'] as const),
   USER_UPLOADS_S3_ACCESS_KEY: Env.schema.string(),
   USER_UPLOADS_S3_SECRET_KEY: Env.schema.string(),
   USER_UPLOADS_S3_REGION: Env.schema.string(),
