@@ -60,23 +60,23 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the drive package
   |----------------------------------------------------------
   */
-  DRIVE_DISK: Env.schema.enum(['spaces'] as const),
-  SPACES_KEY: Env.schema.string(),
-  SPACES_SECRET: Env.schema.string(),
-  SPACES_REGION: Env.schema.string(),
-  SPACES_BUCKET: Env.schema.string(),
-  SPACES_ENDPOINT: Env.schema.string(),
+  DRIVE_DISK: Env.schema.enum(['userUploadsS3'] as const),
+  USER_UPLOADS_S3_ACCESS_KEY: Env.schema.string(),
+  USER_UPLOADS_S3_SECRET_KEY: Env.schema.string(),
+  USER_UPLOADS_S3_REGION: Env.schema.string(),
+  USER_UPLOADS_S3_BUCKET: Env.schema.string(),
+  USER_UPLOADS_S3_ENDPOINT: Env.schema.string(),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring the AAC parquet file
   |----------------------------------------------------------
   */
-  S3_ACCESS_KEY: Env.schema.string(),
-  S3_SECRET_KEY: Env.schema.string(),
-  S3_REGION: Env.schema.string(),
-  S3_BUCKET: Env.schema.string(),
-  S3_ENDPOINT: Env.schema.string(),
+  AAC_FILES_S3_ACCESS_KEY: Env.schema.string(),
+  AAC_FILES_S3_SECRET_KEY: Env.schema.string(),
+  AAC_FILES_S3_REGION: Env.schema.string(),
+  AAC_FILES_S3_BUCKET: Env.schema.string(),
+  AAC_FILES_S3_ENDPOINT: Env.schema.string(),
 
   // If true, DuckDB will write logs in the standard output
   DUCKDB_DEBUG: Env.schema.boolean.optional(),

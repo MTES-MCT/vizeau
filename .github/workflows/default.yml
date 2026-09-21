@@ -23,16 +23,16 @@ jobs:
       LOG_LEVEL: ${{ vars.LOG_LEVEL }}
       SESSION_DRIVER: ${{ vars.SESSION_DRIVER }}
       DRIVE_DISK: ${{ vars.DRIVE_DISK }}
-      SPACES_KEY: ${{ secrets.SPACES_KEY }}
-      SPACES_SECRET: ${{ secrets.SPACES_SECRET }}
-      SPACES_REGION: ${{ vars.SPACES_REGION }}
-      SPACES_BUCKET: ${{ vars.SPACES_BUCKET }}
-      SPACES_ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
-      S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
-      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
-      S3_REGION: ${{ vars.S3_REGION }}
-      S3_BUCKET: ${{ vars.S3_BUCKET }}
-      S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+      USER_UPLOADS_S3_ACCESS_KEY: ${{ secrets.USER_UPLOADS_S3_ACCESS_KEY }}
+      USER_UPLOADS_S3_SECRET_KEY: ${{ secrets.USER_UPLOADS_S3_SECRET_KEY }}
+      USER_UPLOADS_S3_REGION: ${{ vars.USER_UPLOADS_S3_REGION }}
+      USER_UPLOADS_S3_BUCKET: ${{ vars.USER_UPLOADS_S3_BUCKET }}
+      USER_UPLOADS_S3_ENDPOINT: ${{ vars.USER_UPLOADS_S3_ENDPOINT }}
+      AAC_FILES_S3_ACCESS_KEY: ${{ secrets.AAC_FILES_S3_ACCESS_KEY }}
+      AAC_FILES_S3_SECRET_KEY: ${{ secrets.AAC_FILES_S3_SECRET_KEY }}
+      AAC_FILES_S3_REGION: ${{ vars.AAC_FILES_S3_REGION }}
+      AAC_FILES_S3_BUCKET: ${{ vars.AAC_FILES_S3_BUCKET }}
+      AAC_FILES_S3_ENDPOINT: ${{ vars.AAC_FILES_S3_ENDPOINT }}
 
     strategy:
       matrix:
