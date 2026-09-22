@@ -335,7 +335,9 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
                   title={installation.nom}
                   priority={index % 2 === 1 ? 'secondary' : 'primary'}
                   linkProps={
-                    installation.code ? { href: `/installation/${installation.code}` } : undefined
+                    installation.code
+                      ? { href: `/aac/${aacCode}/installations/${installation.code}` }
+                      : undefined
                   }
                   additionalInfos={{
                     ...(installation.prioritaire === true && {
