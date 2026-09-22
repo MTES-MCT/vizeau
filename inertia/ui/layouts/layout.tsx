@@ -73,7 +73,7 @@ export default function Layout({
                 },
                 {
                   linkProps: { href: '/visualisation' },
-                  text: 'Visualisation',
+                  text: 'Carte',
                   isActive: pathname.startsWith('/visualisation'),
                 },
               ]

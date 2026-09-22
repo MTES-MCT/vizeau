@@ -324,7 +324,7 @@ export default function VisualisationPage({
 
   return (
     <Layout isMapLayout={true} hideFooter={true}>
-      <Head title="Visualisation" />
+      <Head title="Carte" />
       <MapLayout
         pageName="Exploitations agricoles et AAC"
         leftContent={
