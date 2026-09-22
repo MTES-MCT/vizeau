@@ -10,6 +10,7 @@ import {
 } from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
+import env from '#start/env'
 
 const PER_PAGE = 20
 
@@ -58,7 +59,7 @@ export default class AacController {
     })
   }
 
-  async show({ params, inertia, response }: HttpContext) {
+  async show({ params, inertia, response, auth }: HttpContext) {
     const raw = await this.aacService.getByCode(params.code)
 
     if (!raw) {
@@ -78,8 +79,15 @@ export default class AacController {
         conformiteByInstallation.get(installation.code)?.depassements_reglementaires ?? 0,
     }))
 
+    // L'AAC n'est un territoire de l'utilisateur que s'il y est rattaché : lui seul peut
+    // rebondir vers la carte, dont les données sont restreintes à ses territoires.
+    const user = auth.getUserOrFail()
+    const isTerritoire = user.territoires.some((territoire) => territoire.code === aac.code)
+
     return inertia.render('aac/id', {
       aac,
+      isTerritoire,
+      pmtilesUrl: env.get('PMTILES_URL', ''),
     })
   }
 
