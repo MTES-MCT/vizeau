@@ -18,8 +18,25 @@ export default class TerritoiresController {
     const pageInput = request.input('territoiresPage') || request.input('page') || '1'
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
 
+    // Calcul partagé entre les deux props différées pour ne l'exécuter qu'une fois
+    let territoiresPromise: ReturnType<typeof this.getTerritoires> | undefined
+    const getTerritoires = () => (territoiresPromise ??= this.getTerritoires(user.id, page))
+
+    return inertia.render('territoires/index', {
+      territoires: inertia.defer(async () => {
+        const { territoires } = await getTerritoires()
+        return territoires
+      }, 'territoires'),
+      meta: inertia.defer(async () => {
+        const { meta } = await getTerritoires()
+        return meta
+      }, 'territoires'),
+    })
+  }
+
+  private async getTerritoires(userId: string, page: number) {
     const territoiresPaginator = await this.territoireService.getTerritoiresForUser(
-      user.id,
+      userId,
       page,
       PER_PAGE
     )
@@ -65,9 +82,6 @@ export default class TerritoiresController {
       }
     })
 
-    return inertia.render('territoires/index', {
-      territoires,
-      meta: territoiresPaginator.getMeta(),
-    })
+    return { territoires, meta: territoiresPaginator.getMeta() }
   }
 }

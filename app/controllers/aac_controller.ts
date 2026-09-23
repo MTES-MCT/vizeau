@@ -34,20 +34,29 @@ export default class AacController {
       aacDepassementsAlerte: depassementsAlerte = false,
     } = await request.validateUsing(depassementsFiltersValidator)
 
-    const { data, total } = await this.aacService.getAll(
-      page,
-      PER_PAGE,
-      recherche,
-      commune,
-      undefined,
-      depassementsReglementaires,
-      depassementsAlerte
-    )
-    const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
+    // Requête partagée entre les deux props différées pour ne l'exécuter qu'une fois
+    let aacsPromise: ReturnType<AacService['getAll']> | undefined
+    const getAacs = () =>
+      (aacsPromise ??= this.aacService.getAll(
+        page,
+        PER_PAGE,
+        recherche,
+        commune,
+        undefined,
+        depassementsReglementaires,
+        depassementsAlerte
+      ))
 
     return inertia.render('aac/index', {
-      aacs: data.map(AacDto.fromRawSummary),
-      meta: { total, perPage: PER_PAGE, currentPage: page, lastPage },
+      aacs: inertia.defer(async () => {
+        const aacsWithMeta = await getAacs()
+        return aacsWithMeta.data.map(AacDto.fromRawSummary)
+      }, 'aacs'),
+      meta: inertia.defer(async () => {
+        const { total } = await getAacs()
+        const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
+        return { total, perPage: PER_PAGE, currentPage: page, lastPage }
+      }, 'aacs'),
       queryString: {
         aacRecherche: recherche ?? '',
         aacCommune: commune ?? '',
