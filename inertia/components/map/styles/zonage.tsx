@@ -23,25 +23,14 @@ export const getCommunesLayer = () => {
 export const getAacLayer = () => {
   return [
     {
-      'id': 'aac-fill',
-      'type': 'fill',
-      'source': 'aac',
-      'source-layer': 'aac',
-      'minzoom': 12,
-      'paint': {
-        'fill-color': '#a6f2fa',
-        'fill-opacity': 0.3,
-      },
-    },
-    {
       'id': 'aac-outline',
       'type': 'line',
       'source': 'aac',
       'source-layer': 'aac',
       'minzoom': 8,
       'paint': {
-        'line-color': '#009099',
-        'line-width': 2,
+        'line-color': '#000091',
+        'line-width': 5,
         'line-opacity': 1,
       },
     },
