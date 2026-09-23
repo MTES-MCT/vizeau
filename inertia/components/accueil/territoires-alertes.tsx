@@ -59,65 +59,63 @@ export default function TerritoiresAlertes({
           </div>
 
           <div className="flex flex-col gap-2">
-            {territoiresAvecAlerte
-              .map(
-                ({
-                  nom,
-                  id,
-                  code,
-                  surface,
-                  nb_communes,
-                  nb_captages_actifs,
-                  depassements_alerte,
-                  depassements_reglementaires,
-                }) => {
-                  return (
-                    <Link
-                      key={id}
-                      className="fr-p-3v cursor-pointer list-item-effect"
-                      style={{
-                        border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-                        background: fr.colors.decisions.background.default.grey.default,
-                      }}
-                      href={`/aac/${code}`}
-                      onClick={() => router.visit(`/aac/${code}`)}
-                    >
-                      <div className="flex gap-3">
-                        <strong>{nom}</strong>
-                        <Tag
-                          small
-                          style={{
-                            background: fr.colors.decisions.background.contrast.warning.default,
-                            color: fr.colors.decisions.text.default.warning.default,
-                          }}
-                        >
-                          {depassements_alerte + depassements_reglementaires} alerte(s)
-                        </Tag>
-                      </div>
-                      <div className="flex w-full flex-wrap gap-1">
-                        <LabelInfo
-                          icon="fr-icon-ruler-line"
-                          info={surface ? `${surface} ha` : 'Non renseigné'}
-                          size="sm"
-                        />
-                        ·
-                        <LabelInfo
-                          icon="fr-icon-drop-line"
-                          info={nb_captages_actifs?.toString() ?? 'Non renseigné'}
-                          size="sm"
-                        />
-                        ·
-                        <LabelInfo
-                          icon="fr-icon-government-line"
-                          info={nb_communes?.toString() ?? 'Non renseigné'}
-                          size="sm"
-                        />
-                      </div>
-                    </Link>
-                  )
-                }
-              )
-              .slice(0, 10)}
+            {territoiresAvecAlerte.map(
+              ({
+                nom,
+                id,
+                code,
+                surface,
+                nb_communes,
+                nb_captages_actifs,
+                depassements_alerte,
+                depassements_reglementaires,
+              }) => {
+                return (
+                  <Link
+                    key={id}
+                    className="fr-p-3v cursor-pointer list-item-effect"
+                    style={{
+                      border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+                      background: fr.colors.decisions.background.default.grey.default,
+                    }}
+                    href={`/aac/${code}`}
+                    onClick={() => router.visit(`/aac/${code}`)}
+                  >
+                    <div className="flex gap-3">
+                      <strong>{nom}</strong>
+                      <Tag
+                        small
+                        style={{
+                          background: fr.colors.decisions.background.contrast.warning.default,
+                          color: fr.colors.decisions.text.default.warning.default,
+                        }}
+                      >
+                        {depassements_alerte + depassements_reglementaires} alerte(s)
+                      </Tag>
+                    </div>
+                    <div className="flex w-full flex-wrap gap-1">
+                      <LabelInfo
+                        icon="fr-icon-ruler-line"
+                        info={surface ? `${surface} ha` : 'Non renseigné'}
+                        size="sm"
+                      />
+                      ·
+                      <LabelInfo
+                        icon="fr-icon-drop-line"
+                        info={nb_captages_actifs?.toString() ?? 'Non renseigné'}
+                        size="sm"
+                      />
+                      ·
+                      <LabelInfo
+                        icon="fr-icon-government-line"
+                        info={nb_communes?.toString() ?? 'Non renseigné'}
+                        size="sm"
+                      />
+                    </div>
+                  </Link>
+                )
+              }
+            )}
           </div>
           {territoiresAvecAlerte.length > 10 && (
             <span className="fr-text--xs">

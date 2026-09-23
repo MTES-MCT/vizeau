@@ -11,10 +11,7 @@ function createFailingAacService(): AacService {
   }
 
   return {
-    getSummariesByCode: fail,
-    getConformiteStatsByAacCodes: fail,
-    getSubstancesAlertesRepartition: fail,
-    getCaptagesAlertesByAacCodes: fail,
+    getOverviewForTerritoires: fail,
   } as unknown as AacService
 }
 

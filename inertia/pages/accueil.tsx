@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import { Head, Deferred } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
 import type { TerritoireJson, ProchainesTacheJson, ProjectJson } from '#types/models'
@@ -15,16 +15,27 @@ import ProchainesTaches from '~/components/accueil/prochaines-taches'
 import ProjetsEnCours from '~/components/accueil/projets-en-cours'
 import CaptagesAlertes from '~/components/accueil/captages-alertes'
 import SectionCard from '~/ui/SectionCard'
+import Loader from '~/ui/Loader'
 import Button from '@codegouvfr/react-dsfr/Button'
 
 export type DashboardHomepageProps = {
   urgentTasksCount: number
   currentProjects: ProjectJson[]
-  territoires: TerritoireJson[]
+  territoires?: TerritoireJson[]
   conformiteRepartition?: ConformiteRepartitionJson
   substancesRepartition?: SubstancesRepartitionJson
-  captagesAlertes: CaptageAlerteJson[]
+  captagesAlertes?: CaptageAlerteJson[]
   prochainesTaches: ProchainesTacheJson[]
+}
+
+function SectionCardLoader({ title, size }: { title: string; size?: 'small' | 'medium' }) {
+  return (
+    <SectionCard title={title} size={size}>
+      <div className="flex items-center justify-center fr-py-2w">
+        <Loader type="dots" size="sm" />
+      </div>
+    </SectionCard>
+  )
 }
 
 export default function Accueil({
@@ -55,18 +66,39 @@ export default function Accueil({
                   Démarrer un nouveau projet
                 </Button>
               </SectionCard>
-              <SubstancesAlertes
-                territoires={territoires}
-                substancesRepartition={substancesRepartition}
-              />
-              <TerritoiresAlertes
-                territoires={territoires}
-                conformiteRepartition={conformiteRepartition}
-              />
+              <Deferred
+                data={['territoires', 'substancesRepartition']}
+                fallback={<SectionCardLoader title="Top 5 des substances à risque" size="small" />}
+              >
+                {territoires && (
+                  <SubstancesAlertes
+                    territoires={territoires}
+                    substancesRepartition={substancesRepartition}
+                  />
+                )}
+              </Deferred>
+              <Deferred
+                data={['territoires', 'conformiteRepartition']}
+                fallback={
+                  <SectionCardLoader title="Mes territoires suivis à risque" size="small" />
+                }
+              >
+                {territoires && (
+                  <TerritoiresAlertes
+                    territoires={territoires}
+                    conformiteRepartition={conformiteRepartition}
+                  />
+                )}
+              </Deferred>
             </aside>
 
             <main className="fr-col-12 flex flex-col fr-col-lg-8 min-w-0 gap-4">
-              <CaptagesAlertes captages={captagesAlertes} />
+              <Deferred
+                data="captagesAlertes"
+                fallback={<SectionCardLoader title="Points de prélèvement à risque" size="small" />}
+              >
+                {captagesAlertes && <CaptagesAlertes captages={captagesAlertes} />}
+              </Deferred>
               <div id="prochaines-taches">
                 <ProchainesTaches prochainesTaches={prochainesTaches} />
               </div>

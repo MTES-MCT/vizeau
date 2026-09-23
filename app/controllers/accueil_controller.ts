@@ -12,6 +12,7 @@ import { ProchainesTacheDto } from '../dto/prochaines_tache_dto.js'
 import { ProjectDto } from '../dto/project_dto.js'
 import type { ConformiteRepartitionJson } from '#types/captage'
 import type { ProchainesTacheJson } from '#types/models'
+import Territoire from '#models/territoire'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -62,51 +63,16 @@ export default class AccueilController {
 
     this.eventLogger.logEvent({ userId: user.id, ...EVENTS.PAGE_VIEW })
 
-    const territoireModels = await this.territoireService.getAllTerritoiresForUser(user.id)
-
-    const territoiresAvecCode = territoireModels.filter(
-      (territoire): territoire is typeof territoire & { code: string } => territoire.code !== null
-    )
-    const aacCodes = territoiresAvecCode.map((territoire) => territoire.code)
-
     const [
       urgentLogEntriesCount,
       urgentProjectStepsCount,
       currentProjects,
-      aacSummariesByCode,
-      conformiteStatsByAacCode,
-      substancesRepartition,
-      captagesAlertes,
       upcomingProjectSteps,
       upcomingLogEntries,
     ] = await Promise.all([
       this.logEntryService.countUrgentLogEntriesForUser(user.id),
       this.projectStepService.countUrgentStepsForUser(user.id),
       this.projectService.getCurrentProjects(user.id),
-      withAacFallback(
-        logger,
-        'résumés AAC',
-        () => this.aacService.getSummariesByCode(aacCodes),
-        {}
-      ),
-      withAacFallback(
-        logger,
-        'stats de conformité',
-        () => this.aacService.getConformiteStatsByAacCodes(aacCodes),
-        new Map()
-      ),
-      withAacFallback(
-        logger,
-        'substances à risque',
-        () => this.aacService.getSubstancesAlertesRepartition(territoiresAvecCode),
-        { tousTerritoires: [], parTerritoire: {} }
-      ),
-      withAacFallback(
-        logger,
-        'points de prélèvement à risque',
-        () => this.aacService.getCaptagesAlertesByAacCodes(aacCodes),
-        []
-      ),
       this.projectStepService.getUpcomingStepsForUser(user.id),
       this.logEntryService.getUpcomingLogEntriesForUser(user.id),
     ])
@@ -115,6 +81,70 @@ export default class AccueilController {
       ...upcomingProjectSteps.map((step) => ProchainesTacheDto.fromProjectStep(step)),
       ...upcomingLogEntries.map((logEntry) => ProchainesTacheDto.fromLogEntry(logEntry)),
     ].sort((a, b) => a.date.localeCompare(b.date))
+
+    // Les données AAC (DuckDB sur S3) sont les plus lentes à calculer (jusqu'à 2s) : elles sont
+    // chargées via des props différées Inertia pour ne pas retarder le premier rendu de la page
+    // d'accueil. Le calcul est mutualisé et mémoïsé car chaque prop différée est résolue séparément.
+    let aacDataPromise: ReturnType<typeof this.loadAacData> | undefined
+    const getAacData = () => {
+      if (!aacDataPromise) {
+        aacDataPromise = this.loadAacData(user.id, logger)
+      }
+      return aacDataPromise
+    }
+
+    return inertia.render('accueil', {
+      urgentTasksCount: urgentLogEntriesCount + urgentProjectStepsCount,
+      currentProjects: ProjectDto.toJsonArray(currentProjects),
+      prochainesTaches,
+      territoires: inertia.defer(async () => {
+        const aacData = await getAacData()
+        return aacData.territoires
+      }, 'aac'),
+      conformiteRepartition: inertia.defer(async () => {
+        const aacData = await getAacData()
+        return aacData.conformiteRepartition
+      }, 'aac'),
+      substancesRepartition: inertia.defer(async () => {
+        const aacData = await getAacData()
+        return aacData.substancesRepartition
+      }, 'aac'),
+      captagesAlertes: inertia.defer(async () => {
+        const aacData = await getAacData()
+        return aacData.captagesAlertes
+      }, 'aac'),
+    })
+  }
+
+  private async loadAacData(userId: string, logger: Logger) {
+    // We only load the first 10 territoires to make the page fast
+    const territoireModelsPaginator = await this.territoireService.getTerritoiresForUser(
+      userId,
+      1,
+      10
+    )
+
+    const territoireModels = territoireModelsPaginator.serialize().data as Territoire[]
+
+    const territoiresAvecCode = territoireModels.filter(
+      (territoire): territoire is typeof territoire & { code: string } => territoire.code !== null
+    )
+    const {
+      summariesByCode: aacSummariesByCode,
+      conformiteStatsByAacCode,
+      substancesRepartition,
+      captagesAlertes,
+    } = await withAacFallback(
+      logger,
+      "vue d'ensemble AAC",
+      () => this.aacService.getOverviewForTerritoires(territoiresAvecCode),
+      {
+        summariesByCode: {},
+        conformiteStatsByAacCode: new Map(),
+        substancesRepartition: { tousTerritoires: [], parTerritoire: {} },
+        captagesAlertes: [],
+      }
+    )
 
     const territoires = territoireModels.map((territoire) =>
       TerritoireDto.fromModel(
@@ -131,15 +161,7 @@ export default class AccueilController {
       ),
     }
 
-    return inertia.render('accueil', {
-      urgentTasksCount: urgentLogEntriesCount + urgentProjectStepsCount,
-      currentProjects: ProjectDto.toJsonArray(currentProjects),
-      territoires,
-      conformiteRepartition,
-      substancesRepartition,
-      captagesAlertes,
-      prochainesTaches,
-    })
+    return { territoires, conformiteRepartition, substancesRepartition, captagesAlertes }
   }
 
   async noTerritoire({ inertia, response, auth }: HttpContext) {
