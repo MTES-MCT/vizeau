@@ -277,15 +277,13 @@ export class AacService {
   }
 
   /**
-   * Returns the surface of each of the given AACs, keyed by AAC code.
+   * Returns the surface of every AAC, keyed by AAC code.
    * Reads only the `code` and `surface` columns from the Parquet file.
    */
-  async getSurfacesByCodes(codes: string[]): Promise<Record<string, number | null>> {
-    if (codes.length === 0) return {}
-
+  async getAllSurfaces(): Promise<Record<string, number | null>> {
     const rows = await this.duckdbService.query<Record<string, unknown>>(
-      'SELECT code, surface FROM read_parquet($path) WHERE code = ANY($codes)',
-      { path: getParquetPath(), codes: this.duckdbService.list(codes) }
+      'SELECT code, surface FROM read_parquet($path)',
+      { path: getParquetPath() }
     )
 
     return Object.fromEntries(

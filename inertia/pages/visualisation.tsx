@@ -51,6 +51,7 @@ export type VisualisationPageProps = {
   }
   selectedAac?: AacSummaryJson
   aacSurfaces: Record<string, number | null>
+  accessibleAacCodes: string[]
   pmtilesUrl: string
   projects: ProjectJson[]
 }
@@ -64,6 +65,7 @@ export default function VisualisationPage({
   aacQueryString,
   selectedAac,
   aacSurfaces,
+  accessibleAacCodes,
   pmtilesUrl,
   projects,
 }: VisualisationPageProps) {
@@ -442,6 +444,7 @@ export default function VisualisationPage({
             pmtilesUrl={pmtilesUrl}
             projects={projects}
             aacSurfaces={aacSurfaces}
+            accessibleAacCodes={accessibleAacCodes}
           />
         }
         rightContent={

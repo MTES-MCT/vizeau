@@ -85,8 +85,10 @@ type VisualisationMapProps = {
   onZoomChange?: (zoom: number) => void
   pmtilesUrl: string
   projects: ProjectJson[]
-  /** Surfaces of the AACs the user can open, keyed by AAC code. */
+  /** Surfaces of every AAC, keyed by AAC code. */
   aacSurfaces?: Record<string, number | null>
+  /** AACs the user can open in the sidebar. */
+  accessibleAacCodes?: string[]
 }
 
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
@@ -122,6 +124,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       pmtilesUrl,
       projects,
       aacSurfaces = {},
+      accessibleAacCodes = [],
     },
     ref
   ) => {
@@ -377,8 +380,8 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     // Only the AACs of the user's territoires can be opened in the sidebar, and not while
     // parcelles are being assigned.
     const isAacClickable = useCallback(
-      (code: string) => !editMode && Boolean(onAacClick) && Object.hasOwn(aacSurfaces, code),
-      [editMode, onAacClick, aacSurfaces]
+      (code: string) => !editMode && Boolean(onAacClick) && accessibleAacCodes.includes(code),
+      [editMode, onAacClick, accessibleAacCodes]
     )
 
     const getClickableAacCodeAt = useCallback(
