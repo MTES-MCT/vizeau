@@ -105,6 +105,8 @@ export default class VisualisationController {
         if (!raw) return undefined
         return AacDto.fromRawSummary(raw)
       },
+      // Surfaces of the AACs the user can open, shown when hovering them on the map.
+      aacSurfaces: () => this.aacService.getSurfacesByCodes(userTerritoireCodes),
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)
