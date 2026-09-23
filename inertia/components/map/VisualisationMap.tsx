@@ -65,6 +65,7 @@ type VisualisationMapProps = {
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
   onMarkerClick?: (exploitation: ExploitationJson) => void
+  onAacClick?: (aacCode: string) => void
   onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
   onMarkerMouseLeave?: () => void
   formParcelleIds?: string[]
@@ -99,6 +100,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleClick,
       onParcelleMouseLeave,
       onMarkerClick,
+      onAacClick,
       onMarkerMouseEnter,
       onMarkerMouseLeave,
       formParcelleIds = [],
@@ -368,9 +370,36 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleMouseLeave?.()
     }, [onParcelleMouseLeave])
 
+    // Only the AACs of the user's territoires can be opened in the sidebar, and not while
+    // parcelles are being assigned.
+    const isAacClickable = useCallback(
+      (code: string) => !editMode && Boolean(onAacClick) && Object.hasOwn(aacSurfaces, code),
+      [editMode, onAacClick, aacSurfaces]
+    )
+
+    const getClickableAacCodeAt = useCallback(
+      (point: MapLayerMouseEvent['point']): string | undefined => {
+        if (!mapRef.current?.getLayer(AAC_HIT_AREA_LAYER_ID)) {
+          return undefined
+        }
+
+        const code = mapRef.current.queryRenderedFeatures(point, {
+          layers: [AAC_HIT_AREA_LAYER_ID],
+        })[0]?.properties?.CdAAC
+
+        return code && isAacClickable(code) ? code : undefined
+      },
+      [isAacClickable]
+    )
+
     const handleParcelleClick = useCallback(
       (e: MapLayerMouseEvent) => {
         if (!mapRef.current || !onParcelleClick) {
+          return
+        }
+
+        // Clicking a clickable AAC border opens the AAC rather than the parcelle beneath it.
+        if (getClickableAacCodeAt(e.point)) {
           return
         }
 
@@ -381,7 +410,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           onParcelleClick(feature)
         }
       },
-      [onParcelleClick, unavailableParcelleIds]
+      [onParcelleClick, unavailableParcelleIds, getClickableAacCodeAt]
     )
 
     const handleAacMouseMove = useCallback(
@@ -408,14 +437,33 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         } else {
           aacPopupRef.current.setLngLat(e.lngLat)
         }
+
+        mapRef.current.getCanvas().style.cursor = isAacClickable(code) ? 'pointer' : 'not-allowed'
       },
-      [aacSurfaces, isMarkerHovered]
+      [aacSurfaces, isMarkerHovered, isAacClickable]
     )
 
     const handleAacMouseLeave = useCallback(() => {
       aacPopupRef.current.remove()
       currentAacCodeRef.current = null
+
+      if (mapRef.current) {
+        mapRef.current.getCanvas().style.cursor = ''
+      }
     }, [])
+
+    const handleAacClick = useCallback(
+      (e: MapLayerMouseEvent) => {
+        const code = getClickableAacCodeAt(e.point)
+
+        if (code) {
+          aacPopupRef.current.remove()
+          currentAacCodeRef.current = null
+          onAacClick?.(code)
+        }
+      },
+      [getClickableAacCodeAt, onAacClick]
+    )
 
     const { mapContainerRef, mapRef, map } = useMap(
       {
@@ -564,12 +612,14 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
 
       map?.on('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
       map?.on('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+      map?.on('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
 
       return () => {
         map?.off('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
         map?.off('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+        map?.off('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
       }
-    }, [handleAacMouseMove, handleAacMouseLeave])
+    }, [handleAacMouseMove, handleAacMouseLeave, handleAacClick])
 
     // Mise à jour du fond de carte. `setStyle` applique un diff synchrone qui retire les
     // sources et layers ajoutés par-dessus le fond de carte sans émettre d'événement : la

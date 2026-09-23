@@ -200,6 +200,17 @@ export default function VisualisationPage({
     [editMode]
   )
 
+  // Opens the clicked AAC in the sidebar, like its link in the AAC list does.
+  const handleAacClick = useCallback(
+    (aacCode: string) => {
+      router.visit(`/visualisation?aacCode=${aacCode}&millesime=${millesime}`, {
+        preserveState: true,
+        preserveScroll: true,
+      })
+    },
+    [millesime]
+  )
+
   // Fonction pour toggle une culture
   const toggleCulture = useCallback((code: string) => {
     setVisibleCultures((prev) =>
@@ -411,6 +422,7 @@ export default function VisualisationPage({
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
+            onAacClick={handleAacClick}
             formParcelleIds={formParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
