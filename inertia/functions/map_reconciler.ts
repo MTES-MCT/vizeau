@@ -6,7 +6,12 @@ import type {
   Map as MaplibreMap,
   SourceSpecification,
 } from 'maplibre-gl'
-import { getParcellesLayers, getParcellesSource } from '~/components/map/styles/parcelles'
+import {
+  getParcellesLayers,
+  getParcellesSource,
+  PARCELLES_MIN_ZOOM,
+  PARCELLES_PROBE_LAYER_ID,
+} from '~/components/map/styles/parcelles'
 import {
   getAacLayer,
   getAacSource,
@@ -88,6 +93,7 @@ const toManagedLayers = (
 
 const parcellesLayerSpecs = getParcellesLayers()
 const isBioLayer = (spec: LayerSpecification) => spec.id.startsWith('parcellesbio')
+const isProbeLayer = (spec: LayerSpecification) => spec.id === PARCELLES_PROBE_LAYER_ID
 
 /**
  * Single declaration site for every source and layer the map needs. The order of this list,
@@ -121,12 +127,14 @@ const MAP_OVERLAYS: MapOverlay[] = [
     },
     layers: [
       ...toManagedLayers(
-        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec)),
+        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec) && !isProbeLayer(spec)),
         (state) => state.showParcelles && !state.showBioOnly
       ),
       // The bio layers are never hidden: they are kept transparent so that
       // `queryRenderedFeatures` can still detect bio parcelles under the cursor.
       ...toManagedLayers(parcellesLayerSpecs.filter(isBioLayer)),
+      // Never hidden nor filtered, so that hidden cultures are still detected in the viewport.
+      ...toManagedLayers(parcellesLayerSpecs.filter(isProbeLayer)),
     ],
   },
 ]
@@ -292,7 +300,7 @@ const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
         ]
 
   for (const layerId of PARCELLES_LAYER_IDS) {
-    if (map.getLayer(layerId)) {
+    if (layerId !== PARCELLES_PROBE_LAYER_ID && map.getLayer(layerId)) {
       map.setFilter(layerId, filter)
     }
   }
@@ -362,6 +370,20 @@ const isParcellesSourceLoaded = (map: MaplibreMap) => {
   } catch {
     return false
   }
+}
+
+/**
+ * Culture group codes present in the viewport, whatever the culture filter. `null` when the
+ * parcelles are not rendered at the current zoom level.
+ */
+export const getCulturesInViewport = (map: MaplibreMap): string[] | null => {
+  if (map.getZoom() < PARCELLES_MIN_ZOOM || !map.getLayer(PARCELLES_PROBE_LAYER_ID)) {
+    return null
+  }
+
+  const features = map.queryRenderedFeatures({ layers: [PARCELLES_PROBE_LAYER_ID] })
+
+  return dedupe(features.map((feature) => String(feature.properties?.code_group)))
 }
 
 export type ReconcileResult = {

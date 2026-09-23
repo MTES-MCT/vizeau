@@ -10,6 +10,11 @@ const defaultZoomedInLineWidth = 1
 const selectedZoomedOutLineWidth = 2
 const selectedZoomedInLineWidth = 4
 
+export const PARCELLES_MIN_ZOOM = 10
+
+/** Couche transparente et jamais filtrée, pour lister les cultures présentes dans la zone visible. */
+export const PARCELLES_PROBE_LAYER_ID = 'parcelles-probe'
+
 export const getParcellesLayers = (): LayerSpecification[] => {
   const colorMatch: any[] = ['match', ['get', 'code_group']]
 
@@ -90,6 +95,16 @@ export const getParcellesLayers = (): LayerSpecification[] => {
         'line-color': '#000000',
         'line-width': ['interpolate', ['linear'], ['zoom'], 15, 1, 18, 3],
         'line-opacity': 0, // Transparent par défaut
+      },
+    },
+    {
+      'id': PARCELLES_PROBE_LAYER_ID,
+      'type': 'fill',
+      'source': 'parcelles',
+      'source-layer': 'parcelles',
+      'minzoom': PARCELLES_MIN_ZOOM,
+      'paint': {
+        'fill-opacity': 0,
       },
     },
   ]
