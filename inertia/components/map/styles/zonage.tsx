@@ -23,6 +23,19 @@ export const getCommunesLayer = () => {
 export const getAacLayer = () => {
   return [
     {
+      // Highlights the AAC shown in the sidebar; its filter is set by the map reconciler.
+      'id': 'aac-selected-fill',
+      'type': 'fill',
+      'source': 'aac',
+      'source-layer': 'aac',
+      'minzoom': 8,
+      'filter': ['==', ['get', 'CdAAC'], ''],
+      'paint': {
+        'fill-color': '#000091',
+        'fill-opacity': 0.1,
+      },
+    },
+    {
       'id': 'aac-outline',
       'type': 'line',
       'source': 'aac',

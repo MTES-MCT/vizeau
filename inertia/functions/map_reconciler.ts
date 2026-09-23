@@ -51,6 +51,8 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
+  /** AAC shown in the sidebar, highlighted on the map. */
+  selectedAacCode?: string
 }
 
 /** Feature states currently applied to the `parcelles` source. */
@@ -298,6 +300,12 @@ const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
   }
 }
 
+const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
+  if (map.getLayer('aac-selected-fill')) {
+    map.setFilter('aac-selected-fill', ['==', ['get', 'CdAAC'], state.selectedAacCode ?? ''])
+  }
+}
+
 const areParcellesLayersReady = (map: MaplibreMap) =>
   Boolean(
     map.getSource(PARCELLES_SOURCE_ID) &&
@@ -373,7 +381,7 @@ export type ReconcileResult = {
 
 /**
  * Brings the map in line with the desired state: sources, layers, layer order, layer
- * visibility, culture filter, bio presentation and parcelle feature states.
+ * visibility, culture filter, bio presentation, AAC selection and parcelle feature states.
  *
  * The function is idempotent and is the only place where the map is configured. It must
  * be called after the map has loaded, after every `style.load` and whenever the desired
@@ -392,6 +400,7 @@ export const reconcileMap = (
   applyLayerVisibility(map, state)
   applyBioPresentation(map, state)
   applyCultureFilter(map, state)
+  applyAacSelection(map, state)
 
   const appliedFeatureStates = applyParcelleFeatureStates(
     map,
@@ -438,4 +447,5 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(state.visibleCultures),
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
+    state.selectedAacCode ?? '',
   ].join('|')

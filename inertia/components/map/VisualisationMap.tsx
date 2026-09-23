@@ -66,6 +66,7 @@ type VisualisationMapProps = {
   onParcelleMouseLeave?: () => void
   onMarkerClick?: (exploitation: ExploitationJson) => void
   onAacClick?: (aacCode: string) => void
+  selectedAacCode?: string
   onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
   onMarkerMouseLeave?: () => void
   formParcelleIds?: string[]
@@ -101,6 +102,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleMouseLeave,
       onMarkerClick,
       onAacClick,
+      selectedAacCode,
       onMarkerMouseEnter,
       onMarkerMouseLeave,
       formParcelleIds = [],
@@ -198,6 +200,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       }),
       [
         pmtilesUrl,
@@ -213,6 +216,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       ]
     )
 

@@ -423,6 +423,7 @@ export default function VisualisationPage({
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
             onAacClick={handleAacClick}
+            selectedAacCode={selectedAac?.code}
             formParcelleIds={formParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
