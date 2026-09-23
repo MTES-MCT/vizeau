@@ -50,6 +50,7 @@ export type VisualisationPageProps = {
     aacDepassementsAlerte?: string
   }
   selectedAac?: AacSummaryJson
+  aacSurfaces: Record<string, number | null>
   pmtilesUrl: string
   projects: ProjectJson[]
 }
@@ -62,6 +63,7 @@ export default function VisualisationPage({
   aacMeta,
   aacQueryString,
   selectedAac,
+  aacSurfaces,
   pmtilesUrl,
   projects,
 }: VisualisationPageProps) {
@@ -426,6 +428,7 @@ export default function VisualisationPage({
             onZoomChange={setMapZoom}
             pmtilesUrl={pmtilesUrl}
             projects={projects}
+            aacSurfaces={aacSurfaces}
           />
         }
         rightContent={

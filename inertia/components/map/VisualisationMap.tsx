@@ -18,6 +18,7 @@ import type { MapDesiredState } from '~/functions/map_reconciler'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 
 import { renderPopupParcelle } from './popup-parcelle'
+import { renderPopupAac } from './popup-aac'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
@@ -43,6 +44,8 @@ const protocol = new Protocol()
 addProtocol('pmtiles', protocol.tile)
 
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
+
+const AAC_HIT_AREA_LAYER_ID = 'aac-outline-hit-area'
 
 export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
@@ -80,6 +83,8 @@ type VisualisationMapProps = {
   onZoomChange?: (zoom: number) => void
   pmtilesUrl: string
   projects: ProjectJson[]
+  /** Surfaces of the AACs the user can open, keyed by AAC code. */
+  aacSurfaces?: Record<string, number | null>
 }
 
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
@@ -112,6 +117,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onZoomChange,
       pmtilesUrl,
       projects,
+      aacSurfaces = {},
     },
     ref
   ) => {
@@ -125,6 +131,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
+    const aacPopupRef = useRef<Popup>(
+      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+    )
+    const currentAacCodeRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
 
     // Détermine les parcelles à mettre en évidence selon le mode
@@ -269,6 +279,17 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           return
         }
 
+        // The AAC border sits on top of the parcelles: its popup takes precedence.
+        if (
+          mapRef.current.getLayer(AAC_HIT_AREA_LAYER_ID) &&
+          mapRef.current.queryRenderedFeatures(e.point, { layers: [AAC_HIT_AREA_LAYER_ID] })
+            .length > 0
+        ) {
+          parcellePopupRef.current.remove()
+          currentParcelleIdRef.current = null
+          return
+        }
+
         const props = e.features?.[0]?.properties
 
         const cultureCode = props?.code_cultu
@@ -362,6 +383,39 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       },
       [onParcelleClick, unavailableParcelleIds]
     )
+
+    const handleAacMouseMove = useCallback(
+      (e: MapLayerMouseEvent) => {
+        if (!mapRef.current || isMarkerHovered) {
+          return
+        }
+
+        const props = e.features?.[0]?.properties
+        const code = props?.CdAAC
+
+        if (!code) {
+          return
+        }
+
+        if (currentAacCodeRef.current !== code) {
+          const nom = props.NomDeAACUsage || props.NomDeAACAdministratif || code
+          aacPopupRef.current
+            .setLngLat(e.lngLat)
+            .setDOMContent(renderPopupAac(nom, code, aacSurfaces[code]))
+            .addTo(mapRef.current)
+
+          currentAacCodeRef.current = code
+        } else {
+          aacPopupRef.current.setLngLat(e.lngLat)
+        }
+      },
+      [aacSurfaces, isMarkerHovered]
+    )
+
+    const handleAacMouseLeave = useCallback(() => {
+      aacPopupRef.current.remove()
+      currentAacCodeRef.current = null
+    }, [])
 
     const { mapContainerRef, mapRef, map } = useMap(
       {
@@ -504,6 +558,18 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         })
       }
     }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
+
+    useEffect(() => {
+      const map = mapRef.current
+
+      map?.on('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+      map?.on('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+
+      return () => {
+        map?.off('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+        map?.off('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+      }
+    }, [handleAacMouseMove, handleAacMouseLeave])
 
     // Mise à jour du fond de carte. `setStyle` applique un diff synchrone qui retire les
     // sources et layers ajoutés par-dessus le fond de carte sans émettre d'événement : la

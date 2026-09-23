@@ -34,6 +34,19 @@ export const getAacLayer = () => {
         'line-opacity': 1,
       },
     },
+    {
+      // Transparent and wider than the outline, so that hovering the border is not a pixel hunt.
+      'id': 'aac-outline-hit-area',
+      'type': 'line',
+      'source': 'aac',
+      'source-layer': 'aac',
+      'minzoom': 8,
+      'paint': {
+        'line-color': '#000091',
+        'line-width': 12,
+        'line-opacity': 0,
+      },
+    },
   ]
 }
 
