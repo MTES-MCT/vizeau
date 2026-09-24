@@ -10,11 +10,11 @@ import {
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import { addProtocol, Marker, Popup, ScaleControl } from 'maplibre-gl'
-import type { LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
+import type { LngLatBounds, LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
-import type { MapDesiredState } from '~/functions/map_reconciler'
+import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 
 import { renderPopupParcelle } from './popup-parcelle'
@@ -83,6 +83,8 @@ type VisualisationMapProps = {
   showSage?: boolean
   style?: string
   onZoomChange?: (zoom: number) => void
+  /** `null` lorsque les parcelles ne sont pas affichées au niveau de zoom courant. */
+  onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
   pmtilesUrl: string
   projects: ProjectJson[]
   /** Surfaces of every AAC, keyed by AAC code. */
@@ -121,6 +123,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       showSage = false,
       style = 'vector',
       onZoomChange,
+      onCulturesInViewportChange,
       pmtilesUrl,
       projects,
       aacSurfaces = {},
@@ -128,6 +131,11 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     },
     ref
   ) => {
+    const onCulturesInViewportChangeRef = useRef(onCulturesInViewportChange)
+    onCulturesInViewportChangeRef.current = onCulturesInViewportChange
+    // Les cultures sont relevées au premier `idle` suivant un déplacement, une fois les tuiles
+    // de la nouvelle zone chargées : un relevé plus tôt manquerait des cultures présentes.
+    const culturesInViewportPendingRef = useRef(true)
     const markersRef = useRef<Marker[]>([])
     // Exploitation whose marker is currently hovered, used both to highlight its parcelles and
     // to avoid showing the parcelle popup at the same time as the exploitation one.
@@ -501,10 +509,22 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         // Ensures the map is not blocked in loading state after any loading event
         createdMap.on('idle', () => {
           setIsMapLoading(false)
+
+          if (culturesInViewportPendingRef.current) {
+            culturesInViewportPendingRef.current = false
+            onCulturesInViewportChangeRef.current?.(
+              getCulturesInViewport(createdMap),
+              createdMap.getBounds()
+            )
+          }
         })
 
         createdMap.on('zoomend', () => {
           onZoomChange?.(createdMap.getZoom())
+        })
+
+        createdMap.on('moveend', () => {
+          culturesInViewportPendingRef.current = true
         })
       }
     )
@@ -663,6 +683,11 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     useEffect(() => {
       parcellePopupRef.current.remove()
       currentParcelleIdRef.current = null
+    }, [millesime])
+
+    // Les cultures présentes dans la zone visible dépendent du millésime affiché.
+    useEffect(() => {
+      culturesInViewportPendingRef.current = true
     }, [millesime])
 
     return (
