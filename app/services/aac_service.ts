@@ -277,6 +277,26 @@ export class AacService {
   }
 
   /**
+   * Returns the surface of every AAC, keyed by AAC code.
+   * Reads only the `code` and `surface` columns from the Parquet file.
+   */
+  async getAllSurfaces(): Promise<Record<string, number | null>> {
+    const rows = await this.duckdbService.query<Record<string, unknown>>(
+      'SELECT code, surface FROM read_parquet($path)',
+      { path: getParquetPath() }
+    )
+
+    return Object.fromEntries(
+      rows
+        .filter((row) => typeof row.code === 'string')
+        .map((row) => [
+          row.code,
+          row.surface === null || row.surface === undefined ? null : Number(row.surface),
+        ])
+    )
+  }
+
+  /**
    * Returns installation codes for a given AAC code.
    * Reads only the installations column to avoid loading the full AAC row.
    */

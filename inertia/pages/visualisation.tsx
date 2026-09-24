@@ -50,6 +50,8 @@ export type VisualisationPageProps = {
     aacDepassementsAlerte?: string
   }
   selectedAac?: AacSummaryJson
+  aacSurfaces: Record<string, number | null>
+  accessibleAacCodes: string[]
   pmtilesUrl: string
   projects: ProjectJson[]
 }
@@ -62,6 +64,8 @@ export default function VisualisationPage({
   aacMeta,
   aacQueryString,
   selectedAac,
+  aacSurfaces,
+  accessibleAacCodes,
   pmtilesUrl,
   projects,
 }: VisualisationPageProps) {
@@ -202,6 +206,17 @@ export default function VisualisationPage({
       }
     },
     [editMode]
+  )
+
+  // Opens the clicked AAC in the sidebar, like its link in the AAC list does.
+  const handleAacClick = useCallback(
+    (aacCode: string) => {
+      router.visit(`/visualisation?aacCode=${aacCode}&millesime=${millesime}`, {
+        preserveState: true,
+        preserveScroll: true,
+      })
+    },
+    [millesime]
   )
 
   // When edit mode changes, we need to refresh the unavailable parcelles from the server.
@@ -402,6 +417,8 @@ export default function VisualisationPage({
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
+            onAacClick={handleAacClick}
+            selectedAacCode={selectedAac?.code}
             formParcelleIds={formParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
@@ -420,6 +437,8 @@ export default function VisualisationPage({
             onCulturesInViewportChange={handleCulturesInViewportChange}
             pmtilesUrl={pmtilesUrl}
             projects={projects}
+            aacSurfaces={aacSurfaces}
+            accessibleAacCodes={accessibleAacCodes}
           />
         }
         rightContent={

@@ -18,6 +18,7 @@ import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_rec
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 
 import { renderPopupParcelle } from './popup-parcelle'
+import { renderPopupAac } from './popup-aac'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
@@ -44,6 +45,8 @@ addProtocol('pmtiles', protocol.tile)
 
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
+const AAC_HIT_AREA_LAYER_ID = 'aac-outline-hit-area'
+
 export interface VisualisationMapRef {
   centerOnExploitation: (exploitation: ExploitationJson) => void
   centerOnParcelle: (parcelle: ParcelleJson) => void
@@ -62,6 +65,8 @@ type VisualisationMapProps = {
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
   onMarkerClick?: (exploitation: ExploitationJson) => void
+  onAacClick?: (aacCode: string) => void
+  selectedAacCode?: string
   onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
   onMarkerMouseLeave?: () => void
   formParcelleIds?: string[]
@@ -82,6 +87,10 @@ type VisualisationMapProps = {
   onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
   pmtilesUrl: string
   projects: ProjectJson[]
+  /** Surfaces of every AAC, keyed by AAC code. */
+  aacSurfaces?: Record<string, number | null>
+  /** AACs the user can open in the sidebar. */
+  accessibleAacCodes?: string[]
 }
 
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
@@ -96,6 +105,8 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleClick,
       onParcelleMouseLeave,
       onMarkerClick,
+      onAacClick,
+      selectedAacCode,
       onMarkerMouseEnter,
       onMarkerMouseLeave,
       formParcelleIds = [],
@@ -115,6 +126,8 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onCulturesInViewportChange,
       pmtilesUrl,
       projects,
+      aacSurfaces = {},
+      accessibleAacCodes = [],
     },
     ref
   ) => {
@@ -133,6 +146,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
+    const aacPopupRef = useRef<Popup>(
+      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+    )
+    const currentAacCodeRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
 
     // Détermine les parcelles à mettre en évidence selon le mode
@@ -194,6 +211,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       }),
       [
         pmtilesUrl,
@@ -209,6 +227,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       ]
     )
 
@@ -274,6 +293,17 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       (e: MapLayerMouseEvent) => {
         // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
         if (!mapRef.current || isMarkerHovered) {
+          return
+        }
+
+        // The AAC border sits on top of the parcelles: its popup takes precedence.
+        if (
+          mapRef.current.getLayer(AAC_HIT_AREA_LAYER_ID) &&
+          mapRef.current.queryRenderedFeatures(e.point, { layers: [AAC_HIT_AREA_LAYER_ID] })
+            .length > 0
+        ) {
+          parcellePopupRef.current.remove()
+          currentParcelleIdRef.current = null
           return
         }
 
@@ -355,9 +385,36 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleMouseLeave?.()
     }, [onParcelleMouseLeave])
 
+    // Only the AACs of the user's territoires can be opened in the sidebar, and not while
+    // parcelles are being assigned.
+    const isAacClickable = useCallback(
+      (code: string) => !editMode && Boolean(onAacClick) && accessibleAacCodes.includes(code),
+      [editMode, onAacClick, accessibleAacCodes]
+    )
+
+    const getClickableAacCodeAt = useCallback(
+      (point: MapLayerMouseEvent['point']): string | undefined => {
+        if (!mapRef.current?.getLayer(AAC_HIT_AREA_LAYER_ID)) {
+          return undefined
+        }
+
+        const code = mapRef.current.queryRenderedFeatures(point, {
+          layers: [AAC_HIT_AREA_LAYER_ID],
+        })[0]?.properties?.CdAAC
+
+        return code && isAacClickable(code) ? code : undefined
+      },
+      [isAacClickable]
+    )
+
     const handleParcelleClick = useCallback(
       (e: MapLayerMouseEvent) => {
         if (!mapRef.current || !onParcelleClick) {
+          return
+        }
+
+        // Clicking a clickable AAC border opens the AAC rather than the parcelle beneath it.
+        if (getClickableAacCodeAt(e.point)) {
           return
         }
 
@@ -368,7 +425,59 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           onParcelleClick(feature)
         }
       },
-      [onParcelleClick, unavailableParcelleIds]
+      [onParcelleClick, unavailableParcelleIds, getClickableAacCodeAt]
+    )
+
+    const handleAacMouseMove = useCallback(
+      (e: MapLayerMouseEvent) => {
+        if (!mapRef.current || isMarkerHovered) {
+          return
+        }
+
+        const props = e.features?.[0]?.properties
+        const code = props?.CdAAC
+
+        if (!code) {
+          return
+        }
+
+        if (currentAacCodeRef.current !== code) {
+          const nom = props.NomDeAACUsage || props.NomDeAACAdministratif || code
+          aacPopupRef.current
+            .setLngLat(e.lngLat)
+            .setDOMContent(renderPopupAac(nom, code, aacSurfaces[code]))
+            .addTo(mapRef.current)
+
+          currentAacCodeRef.current = code
+        } else {
+          aacPopupRef.current.setLngLat(e.lngLat)
+        }
+
+        mapRef.current.getCanvas().style.cursor = isAacClickable(code) ? 'pointer' : 'not-allowed'
+      },
+      [aacSurfaces, isMarkerHovered, isAacClickable]
+    )
+
+    const handleAacMouseLeave = useCallback(() => {
+      aacPopupRef.current.remove()
+      currentAacCodeRef.current = null
+
+      if (mapRef.current) {
+        mapRef.current.getCanvas().style.cursor = ''
+      }
+    }, [])
+
+    const handleAacClick = useCallback(
+      (e: MapLayerMouseEvent) => {
+        const code = getClickableAacCodeAt(e.point)
+
+        if (code) {
+          aacPopupRef.current.remove()
+          currentAacCodeRef.current = null
+          onAacClick?.(code)
+        }
+      },
+      [getClickableAacCodeAt, onAacClick]
     )
 
     const { mapContainerRef, mapRef, map } = useMap(
@@ -524,6 +633,20 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         })
       }
     }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
+
+    useEffect(() => {
+      const map = mapRef.current
+
+      map?.on('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+      map?.on('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+      map?.on('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
+
+      return () => {
+        map?.off('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+        map?.off('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+        map?.off('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
+      }
+    }, [handleAacMouseMove, handleAacMouseLeave, handleAacClick])
 
     // Mise à jour du fond de carte. `setStyle` applique un diff synchrone qui retire les
     // sources et layers ajoutés par-dessus le fond de carte sans émettre d'événement : la
