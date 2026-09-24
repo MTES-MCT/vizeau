@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
-import { Map as MaplibreMap, setWorkerUrl } from 'maplibre-gl'
+import { Map as MaplibreMap, setWorkerUrl, addProtocol } from 'maplibre-gl'
+import { Protocol } from 'pmtiles'
 import type { MapOptions as MaplibreMapOptions } from 'maplibre-gl'
 // This URL syntax is used by Vite to auto-import some dependencies, cf. https://maplibre.org/maplibre-gl-js/docs/#installation
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -29,6 +30,9 @@ export function useMap(
   /** Called immediately after the map instance is created. */
   onMapCreated?: (map: MaplibreMap) => void
 ): UseMapResult {
+  const protocol = new Protocol()
+  addProtocol('pmtiles', protocol.tile)
+
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<MaplibreMap | null>(null)
   const optionsRef = useRef<MapOptions | null>(options)

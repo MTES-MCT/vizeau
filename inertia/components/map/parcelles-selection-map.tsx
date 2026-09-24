@@ -1,7 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { addProtocol, Popup, ScaleControl } from 'maplibre-gl'
+import { Popup, ScaleControl } from 'maplibre-gl'
 import type { AddLayerObject, MapLayerMouseEvent } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
 import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
@@ -12,9 +11,6 @@ import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
-
-const protocol = new Protocol()
-addProtocol('pmtiles', protocol.tile)
 
 export type SelectedParcelle = {
   rpgId: string

@@ -1,4 +1,6 @@
-import { VectorSourceSpecification } from 'maplibre-gl'
+import { AddLayerObject, FilterSpecification, VectorSourceSpecification } from 'maplibre-gl'
+
+const AAC_COLOR = '#000091'
 
 export const getCommunesLayer = () => {
   return [
@@ -31,7 +33,7 @@ export const getAacLayer = () => {
       'minzoom': 8,
       'filter': ['==', ['get', 'CdAAC'], ''],
       'paint': {
-        'fill-color': '#000091',
+        'fill-color': AAC_COLOR,
         'fill-opacity': 0.1,
       },
     },
@@ -42,7 +44,7 @@ export const getAacLayer = () => {
       'source-layer': 'aac',
       'minzoom': 8,
       'paint': {
-        'line-color': '#000091',
+        'line-color': AAC_COLOR,
         'line-width': 5,
         'line-opacity': 1,
       },
@@ -55,9 +57,42 @@ export const getAacLayer = () => {
       'source-layer': 'aac',
       'minzoom': 8,
       'paint': {
-        'line-color': '#000091',
+        'line-color': AAC_COLOR,
         'line-width': 12,
         'line-opacity': 0,
+      },
+    },
+  ]
+}
+
+/**
+ * Contour d'une seule AAC, pour la carte de repérage de sa fiche : les AAC voisines sont
+ * écartées par le filtre, et les couches restent visibles à tous les niveaux de zoom.
+ */
+export const getAacLocationLayers = (aacCode: string): AddLayerObject[] => {
+  const filter: FilterSpecification = ['==', ['get', 'CdAAC'], aacCode]
+
+  return [
+    {
+      'id': 'aac-location-fill',
+      'type': 'fill',
+      'source': 'aac',
+      'source-layer': 'aac',
+      'filter': filter,
+      'paint': {
+        'fill-color': AAC_COLOR,
+        'fill-opacity': 0.3,
+      },
+    },
+    {
+      'id': 'aac-location-outline',
+      'type': 'line',
+      'source': 'aac',
+      'source-layer': 'aac',
+      'filter': filter,
+      'paint': {
+        'line-color': AAC_COLOR,
+        'line-width': 2,
       },
     },
   ]
