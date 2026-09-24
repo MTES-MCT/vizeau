@@ -6,7 +6,12 @@ import type {
   Map as MaplibreMap,
   SourceSpecification,
 } from 'maplibre-gl'
-import { getParcellesLayers, getParcellesSource } from '~/components/map/styles/parcelles'
+import {
+  getParcellesLayers,
+  getParcellesSource,
+  PARCELLES_MIN_ZOOM,
+  PARCELLES_PROBE_LAYER_ID,
+} from '~/components/map/styles/parcelles'
 import {
   getAacLayer,
   getAacSource,
@@ -51,6 +56,8 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
+  /** AAC shown in the sidebar, highlighted on the map. */
+  selectedAacCode?: string
 }
 
 /** Feature states currently applied to the `parcelles` source. */
@@ -88,6 +95,7 @@ const toManagedLayers = (
 
 const parcellesLayerSpecs = getParcellesLayers()
 const isBioLayer = (spec: LayerSpecification) => spec.id.startsWith('parcellesbio')
+const isProbeLayer = (spec: LayerSpecification) => spec.id === PARCELLES_PROBE_LAYER_ID
 
 /**
  * Single declaration site for every source and layer the map needs. The order of this list,
@@ -121,12 +129,14 @@ const MAP_OVERLAYS: MapOverlay[] = [
     },
     layers: [
       ...toManagedLayers(
-        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec)),
+        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec) && !isProbeLayer(spec)),
         (state) => state.showParcelles && !state.showBioOnly
       ),
       // The bio layers are never hidden: they are kept transparent so that
       // `queryRenderedFeatures` can still detect bio parcelles under the cursor.
       ...toManagedLayers(parcellesLayerSpecs.filter(isBioLayer)),
+      // Never hidden nor filtered, so that hidden cultures are still detected in the viewport.
+      ...toManagedLayers(parcellesLayerSpecs.filter(isProbeLayer)),
     ],
   },
 ]
@@ -292,9 +302,15 @@ const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
         ]
 
   for (const layerId of PARCELLES_LAYER_IDS) {
-    if (map.getLayer(layerId)) {
+    if (layerId !== PARCELLES_PROBE_LAYER_ID && map.getLayer(layerId)) {
       map.setFilter(layerId, filter)
     }
+  }
+}
+
+const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
+  if (map.getLayer('aac-selected-fill')) {
+    map.setFilter('aac-selected-fill', ['==', ['get', 'CdAAC'], state.selectedAacCode ?? ''])
   }
 }
 
@@ -364,6 +380,20 @@ const isParcellesSourceLoaded = (map: MaplibreMap) => {
   }
 }
 
+/**
+ * Culture group codes present in the viewport, whatever the culture filter. `null` when the
+ * parcelles are not rendered at the current zoom level.
+ */
+export const getCulturesInViewport = (map: MaplibreMap): string[] | null => {
+  if (map.getZoom() < PARCELLES_MIN_ZOOM || !map.getLayer(PARCELLES_PROBE_LAYER_ID)) {
+    return null
+  }
+
+  const features = map.queryRenderedFeatures({ layers: [PARCELLES_PROBE_LAYER_ID] })
+
+  return dedupe(features.map((feature) => String(feature.properties?.code_group)))
+}
+
 export type ReconcileResult = {
   /** `true` when the `parcelles` tiles are not available yet, so the pass must be replayed. */
   parcellesSourcePending: boolean
@@ -373,7 +403,7 @@ export type ReconcileResult = {
 
 /**
  * Brings the map in line with the desired state: sources, layers, layer order, layer
- * visibility, culture filter, bio presentation and parcelle feature states.
+ * visibility, culture filter, bio presentation, AAC selection and parcelle feature states.
  *
  * The function is idempotent and is the only place where the map is configured. It must
  * be called after the map has loaded, after every `style.load` and whenever the desired
@@ -392,6 +422,7 @@ export const reconcileMap = (
   applyLayerVisibility(map, state)
   applyBioPresentation(map, state)
   applyCultureFilter(map, state)
+  applyAacSelection(map, state)
 
   const appliedFeatureStates = applyParcelleFeatureStates(
     map,
@@ -438,4 +469,5 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(state.visibleCultures),
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
+    state.selectedAacCode ?? '',
   ].join('|')

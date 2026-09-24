@@ -202,7 +202,7 @@ export default class ProjectStepsController {
     }
 
     createSuccessFlashMessage(session, "L'étape a été modifiée avec succès.")
-    return response.redirect().toPath(`/projets/${project.id}`)
+    return response.redirect().toPath(`/projets/${project.id}/etapes/${stepId}`)
   }
 
   async destroyStep({ request, response, session, bouncer }: HttpContext) {
@@ -220,7 +220,7 @@ export default class ProjectStepsController {
     await this.projectStepService.deleteStep(stepId, project)
 
     createSuccessFlashMessage(session, "L'étape a été supprimée.")
-    return response.redirect().toPath(`/projets/${project.id}`)
+    return response.redirect().back()
   }
 
   async downloadStepDocument({
@@ -309,7 +309,7 @@ export default class ProjectStepsController {
     )
 
     createSuccessFlashMessage(session, "L'étape a été marquée comme effectuée.")
-    return response.redirect().toPath(`/projets/${project.id}`)
+    return response.redirect().back()
   }
 
   async createTag({ auth, request, response, session, logger }: HttpContext) {

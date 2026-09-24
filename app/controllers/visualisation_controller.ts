@@ -105,6 +105,10 @@ export default class VisualisationController {
         if (!raw) return undefined
         return AacDto.fromRawSummary(raw)
       },
+      // Surfaces of every AAC, shown when hovering them on the map.
+      aacSurfaces: () => this.aacService.getAllSurfaces(),
+      // AACs the user can open in the sidebar by clicking them on the map.
+      accessibleAacCodes: userTerritoireCodes,
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)

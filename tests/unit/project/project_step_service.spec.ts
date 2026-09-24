@@ -1,9 +1,11 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import { DateTime } from 'luxon'
 import { ProjectStepService } from '#services/project_step_service'
 import { UserFactory } from '#database/factories/user_factory'
 import { ProjectFactory } from '#database/factories/project_factory'
 import { ProjectStepTagFactory } from '#database/factories/project_step_tag_factory'
+import { TerritoireFactory } from '#database/factories/territoire_factory'
 import ProjectStepDocument from '#models/project_step_document'
 
 test.group('ProjectStepService', (group) => {
@@ -141,5 +143,83 @@ test.group('ProjectStepService', (group) => {
     const found = await service.findDocument(doc.id, user.id)
 
     assert.isNull(found)
+  })
+
+  test('I can count urgent steps (overdue or due within 7 days) of my own projects', async ({
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const project = await ProjectFactory.merge({ userId: user.id }).create()
+    const service = new ProjectStepService()
+
+    // Overdue, not validated: counted
+    await service.createStep(project, {
+      title: 'Overdue',
+      date: DateTime.now().minus({ days: 2 }),
+      isValidated: false,
+    })
+    // Due in 3 days, not validated: counted
+    await service.createStep(project, {
+      title: 'Due soon',
+      date: DateTime.now().plus({ days: 3 }),
+      isValidated: false,
+    })
+    // Due in 3 days, but validated: not counted
+    await service.createStep(project, {
+      title: 'Done',
+      date: DateTime.now().plus({ days: 3 }),
+      isValidated: true,
+    })
+    // Due in 30 days, not validated: not counted
+    await service.createStep(project, {
+      title: 'Far away',
+      date: DateTime.now().plus({ days: 30 }),
+      isValidated: false,
+    })
+    // No date, not validated: not counted
+    await service.createStep(project, { title: 'No date', isValidated: false })
+
+    const count = await service.countUrgentStepsForUser(user.id)
+
+    assert.equal(count, 2)
+  })
+
+  test("I don't count urgent steps of another user's project", async ({ assert }) => {
+    const user = await UserFactory.create()
+    const otherUser = await UserFactory.create()
+    const project = await ProjectFactory.merge({ userId: otherUser.id }).create()
+    const service = new ProjectStepService()
+
+    await service.createStep(project, {
+      title: 'Overdue',
+      date: DateTime.now().minus({ days: 1 }),
+      isValidated: false,
+    })
+
+    const count = await service.countUrgentStepsForUser(user.id)
+
+    assert.equal(count, 0)
+  })
+
+  test("I count urgent steps of another user's project when we share a territoire", async ({
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const otherUser = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+    const project = await ProjectFactory.merge({ userId: otherUser.id }).create()
+    await project.related('territoires').attach([territoire.id])
+    const service = new ProjectStepService()
+
+    await service.createStep(project, {
+      title: 'Overdue',
+      date: DateTime.now().minus({ days: 1 }),
+      isValidated: false,
+    })
+
+    const count = await service.countUrgentStepsForUser(user.id)
+
+    assert.equal(count, 1)
   })
 })

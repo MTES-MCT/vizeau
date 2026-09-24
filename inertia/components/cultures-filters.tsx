@@ -6,16 +6,26 @@ import LegendItem from '~/ui/LegendItem'
 
 export default function CulturesFilters({
   visibleCultures,
+  culturesInViewport,
   onToggleCulture,
-  onToggleAllCultures,
+  onSetAllCulturesVisible,
 }: {
   visibleCultures: string[]
+  /** `null` pour afficher toutes les cultures. */
+  culturesInViewport: string[] | null
   onToggleCulture: (code: string) => void
-  onToggleAllCultures: () => void
+  onSetAllCulturesVisible: (visible: boolean) => void
 }) {
-  const culturesItems = values(GROUPES_CULTURAUX)
-  const allCodes = Object.keys(GROUPES_CULTURAUX)
-  const allVisible = visibleCultures.length === allCodes.length
+  const culturesItems = values(GROUPES_CULTURAUX).filter(
+    (culture) => !culturesInViewport || culturesInViewport.includes(String(culture.group_code))
+  )
+  const allVisible = culturesItems.every((culture) =>
+    visibleCultures.includes(String(culture.group_code))
+  )
+
+  if (culturesItems.length === 0) {
+    return <p className="fr-text--sm fr-mb-0">Aucune culture dans la zone visible de la carte.</p>
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -23,7 +33,7 @@ export default function CulturesFilters({
         <Button
           priority="tertiary no outline"
           size="small"
-          onClick={onToggleAllCultures}
+          onClick={() => onSetAllCulturesVisible(!allVisible)}
           iconId={allVisible ? 'fr-icon-eye-off-line' : 'fr-icon-eye-line'}
         >
           {allVisible ? 'Tout masquer' : 'Tout afficher'}

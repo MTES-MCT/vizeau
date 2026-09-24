@@ -270,7 +270,7 @@ export default class LogEntriesController {
       }
 
       createSuccessFlashMessage(session, "L'entrée de journal a été mise à jour avec succès.")
-      return response.redirect().toRoute('exploitations.get', [params.exploitationId])
+      return response.redirect().toRoute('log_entries.get', [params.exploitationId, id])
     } catch (error) {
       if (!hasLogEntryUpdateSucceeded) {
         logger.error(error, 'Error updating log entry:')
@@ -288,7 +288,7 @@ export default class LogEntriesController {
           session,
           "L'entrée de journal a été mise à jour mais une erreur est survenue lors de l'import des documents."
         )
-        return response.redirect().toRoute('exploitations.get', [params.exploitationId])
+        return response.redirect().toRoute('log_entries.get', [params.exploitationId, id])
       }
     }
 
@@ -345,7 +345,7 @@ export default class LogEntriesController {
       }
     }
 
-    return response.redirect().toRoute('exploitations.get', [params.exploitationId])
+    return response.redirect().back()
   }
 
   async createTagForExploitation({ auth, request, response, session, logger }: HttpContext) {

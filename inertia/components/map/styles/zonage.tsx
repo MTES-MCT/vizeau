@@ -1,7 +1,6 @@
 import { AddLayerObject, FilterSpecification, VectorSourceSpecification } from 'maplibre-gl'
 
-const AAC_FILL_COLOR = '#a6f2fa'
-const AAC_LINE_COLOR = '#009099'
+const AAC_COLOR = '#000091'
 
 export const getCommunesLayer = () => {
   return [
@@ -26,14 +25,16 @@ export const getCommunesLayer = () => {
 export const getAacLayer = () => {
   return [
     {
-      'id': 'aac-fill',
+      // Highlights the AAC shown in the sidebar; its filter is set by the map reconciler.
+      'id': 'aac-selected-fill',
       'type': 'fill',
       'source': 'aac',
       'source-layer': 'aac',
-      'minzoom': 12,
+      'minzoom': 8,
+      'filter': ['==', ['get', 'CdAAC'], ''],
       'paint': {
-        'fill-color': AAC_FILL_COLOR,
-        'fill-opacity': 0.3,
+        'fill-color': AAC_COLOR,
+        'fill-opacity': 0.1,
       },
     },
     {
@@ -43,9 +44,22 @@ export const getAacLayer = () => {
       'source-layer': 'aac',
       'minzoom': 8,
       'paint': {
-        'line-color': AAC_LINE_COLOR,
-        'line-width': 2,
+        'line-color': AAC_COLOR,
+        'line-width': 5,
         'line-opacity': 1,
+      },
+    },
+    {
+      // Transparent and wider than the outline, so that hovering the border is not a pixel hunt.
+      'id': 'aac-outline-hit-area',
+      'type': 'line',
+      'source': 'aac',
+      'source-layer': 'aac',
+      'minzoom': 8,
+      'paint': {
+        'line-color': AAC_COLOR,
+        'line-width': 12,
+        'line-opacity': 0,
       },
     },
   ]
@@ -66,7 +80,7 @@ export const getAacLocationLayers = (aacCode: string): AddLayerObject[] => {
       'source-layer': 'aac',
       'filter': filter,
       'paint': {
-        'fill-color': AAC_FILL_COLOR,
+        'fill-color': AAC_COLOR,
         'fill-opacity': 0.3,
       },
     },
@@ -77,7 +91,7 @@ export const getAacLocationLayers = (aacCode: string): AddLayerObject[] => {
       'source-layer': 'aac',
       'filter': filter,
       'paint': {
-        'line-color': AAC_LINE_COLOR,
+        'line-color': AAC_COLOR,
         'line-width': 2,
       },
     },

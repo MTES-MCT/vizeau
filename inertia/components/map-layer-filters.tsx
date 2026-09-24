@@ -59,7 +59,7 @@ export default function MapLayerFilters({
       <LegendItem
         label="AAC"
         hint="Aire d'alimentation de captage"
-        color="bg-[#a6f2fa]"
+        color="bg-[#000091]"
         checked={showAac}
         onChange={() => setShowAac((prev) => !prev)}
       />

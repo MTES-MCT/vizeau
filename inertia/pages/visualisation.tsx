@@ -8,7 +8,7 @@ import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
 import type { AacSummaryJson, ExploitationJson, ProjectJson } from '#types/models'
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { useCulturesFilter } from '~/hooks/use_cultures_filter'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { getCentroid } from '~/functions/map'
@@ -50,6 +50,8 @@ export type VisualisationPageProps = {
     aacDepassementsAlerte?: string
   }
   selectedAac?: AacSummaryJson
+  aacSurfaces: Record<string, number | null>
+  accessibleAacCodes: string[]
   pmtilesUrl: string
   projects: ProjectJson[]
 }
@@ -62,6 +64,8 @@ export default function VisualisationPage({
   aacMeta,
   aacQueryString,
   selectedAac,
+  aacSurfaces,
+  accessibleAacCodes,
   pmtilesUrl,
   projects,
 }: VisualisationPageProps) {
@@ -75,7 +79,13 @@ export default function VisualisationPage({
   const [showBioOnly, setShowBioOnly] = useState(false)
   const [showSage, setShowSage] = useState(false)
   const mapRef = useRef<VisualisationMapRef>(null)
-  const [visibleCultures, setVisibleCultures] = useState<string[]>(Object.keys(GROUPES_CULTURAUX))
+  const {
+    visibleCultures,
+    culturesInViewport,
+    toggleCulture,
+    setAllCulturesVisible,
+    handleCulturesInViewportChange,
+  } = useCulturesFilter()
   const [style, setStyle] = useState<string>('vector')
 
   // Selected exploitation in the sidebar
@@ -198,18 +208,16 @@ export default function VisualisationPage({
     [editMode]
   )
 
-  // Fonction pour toggle une culture
-  const toggleCulture = useCallback((code: string) => {
-    setVisibleCultures((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
-    )
-  }, [])
-
-  // Fonction pour toggle toutes les cultures
-  const toggleAllCultures = useCallback(() => {
-    const allCodes = Object.keys(GROUPES_CULTURAUX)
-    setVisibleCultures((prev) => (prev.length === allCodes.length ? [] : allCodes))
-  }, [])
+  // Opens the clicked AAC in the sidebar, like its link in the AAC list does.
+  const handleAacClick = useCallback(
+    (aacCode: string) => {
+      router.visit(`/visualisation?aacCode=${aacCode}&millesime=${millesime}`, {
+        preserveState: true,
+        preserveScroll: true,
+      })
+    },
+    [millesime]
+  )
 
   // When edit mode changes, we need to refresh the unavailable parcelles from the server.
   useEffect(() => {
@@ -409,6 +417,8 @@ export default function VisualisationPage({
             setIsMapLoading={setIsMapLoading}
             onParcelleClick={handleParcelleClick}
             onMarkerClick={handleMarkerClick}
+            onAacClick={handleAacClick}
+            selectedAacCode={selectedAac?.code}
             formParcelleIds={formParcelleIds}
             unavailableParcelleIds={unavailableParcellesIds}
             millesime={millesime}
@@ -424,8 +434,11 @@ export default function VisualisationPage({
             visibleCultures={visibleCultures}
             style={style}
             onZoomChange={setMapZoom}
+            onCulturesInViewportChange={handleCulturesInViewportChange}
             pmtilesUrl={pmtilesUrl}
             projects={projects}
+            aacSurfaces={aacSurfaces}
+            accessibleAacCodes={accessibleAacCodes}
           />
         }
         rightContent={
@@ -448,7 +461,8 @@ export default function VisualisationPage({
             parcellesZoomDisabled={mapZoom !== null && mapZoom < 10}
             visibleCultures={visibleCultures}
             onToggleCulture={toggleCulture}
-            onToggleAllCultures={toggleAllCultures}
+            onSetAllCulturesVisible={setAllCulturesVisible}
+            culturesInViewport={culturesInViewport}
           />
         }
       />

@@ -2,36 +2,69 @@ import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
 
 export type HeroProps =
-  | { isPublic: true; createExploitationUrl?: string }
-  | { isPublic?: false; createExploitationUrl: string }
+  { isPublic: true } | { isPublic?: false; urgentTasksCount: number; currentProjectsCount: number }
 
-function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUrl: string }) {
+type LoggedUserHeroContentProps = {
+  urgentTasksCount: number
+  currentProjectsCount: number
+}
+
+function LoggedUserHeroContent({
+  urgentTasksCount,
+  currentProjectsCount,
+}: LoggedUserHeroContentProps) {
   return (
-    <div className="w-full max-w-full min-[1440px]:max-w-[calc(55%_-_2rem)]">
-      <div className="fr-mb-6w flex flex-col">
-        <h1 className="fr-mb-1w">Pilotage de la protection des captages</h1>
-        <span
-          className="fr-text--lg fr-m-0"
-          style={{ color: fr.colors.decisions.text.mention.grey.default }}
+    <div className="w-full max-w-[60%] max-[1440px]:max-w-full min-[2100px]:max-w-full">
+      <h1 className="fr-mb-5w">Bonjour !</h1>
+      <div className="flex flex-col">
+        <p className="fr-h6">Qu’avez vous de prévu aujourd’hui ?</p>
+        <div
+          className="flex flex-col gap-2 fr-text--lg"
+          style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
         >
-          Des données structurées pour agir sur la protection de la ressource en eau.
-        </span>
-      </div>
-      <p>
-        L'application facilite l'accès, le traitement et le partage des données liées à{' '}
-        <strong>la qualité de l'eau aux captages</strong>. Elle produit un état des lieux clair et
-        directement exploitable pour la réalisation de <strong>l'étude des dangers</strong>. Un
-        outil simple pour appuyer les collectivités et services de l'État dans{' '}
-        <strong>la protection de la ressource en eau</strong>.
-      </p>
-      <div>
-        <Button
-          iconId="fr-icon-map-pin-user-line"
-          className="fr-m-1w"
-          linkProps={{ href: createExploitationUrl }}
-        >
-          Ajouter une exploitation agricole
-        </Button>
+          <div>
+            <span className="fr-icon-arrow-right-line" />{' '}
+            {urgentTasksCount > 0 ? (
+              <a
+                href="#prochaines-taches"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document
+                    .getElementById('prochaines-taches')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                <strong>
+                  {urgentTasksCount} tâche{urgentTasksCount > 1 ? 's' : ''} urgente
+                  {urgentTasksCount > 1 ? 's' : ''}
+                </strong>{' '}
+                à traiter
+              </a>
+            ) : (
+              <strong>Aucune tâche urgente à traiter</strong>
+            )}
+          </div>
+          <div>
+            <span className="fr-icon-arrow-right-line" />{' '}
+            {currentProjectsCount > 0 ? (
+              <a
+                href="#projets-en-cours"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document
+                    .getElementById('projets-en-cours')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                <strong>
+                  {currentProjectsCount} projet{currentProjectsCount > 1 ? 's' : ''} en cours
+                </strong>
+              </a>
+            ) : (
+              <>Aucun projet en cours</>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -70,7 +103,7 @@ function PublicHeroContent() {
   )
 }
 
-export default function Hero({ isPublic = false, createExploitationUrl }: HeroProps) {
+export default function Hero(props: HeroProps) {
   return (
     <div
       className="w-full relative overflow-hidden fr-px-4w fr-py-8w flex justify-center min-h-[60px]"
@@ -83,10 +116,13 @@ export default function Hero({ isPublic = false, createExploitationUrl }: HeroPr
       />
 
       <div className="fr-container relative">
-        {isPublic ? (
+        {props.isPublic ? (
           <PublicHeroContent />
         ) : (
-          <LoggedUserHeroContent createExploitationUrl={createExploitationUrl ?? ''} />
+          <LoggedUserHeroContent
+            urgentTasksCount={props.urgentTasksCount}
+            currentProjectsCount={props.currentProjectsCount}
+          />
         )}
       </div>
     </div>

@@ -2,8 +2,50 @@ import { type ModelAttributes } from '@adonisjs/lucid/types/model'
 import ProjectStep from '#models/project_step'
 import ProjectStepDocument from '#models/project_step_document'
 import type Project from '#models/project'
+import { DateTime } from 'luxon'
 
 export class ProjectStepService {
+  // Used on the home page: steps of the user's own projects, due within the next 7 days or overdue.
+  async countUrgentStepsForUser(userId: string): Promise<number> {
+    const deadline = DateTime.now().plus({ days: 7 }).toISODate() as string
+
+    const result = await ProjectStep.query()
+      .where('isValidated', false)
+      .whereNotNull('date')
+      .andWhere('date', '<=', deadline)
+      .whereHas('project', (projectQuery) => {
+        projectQuery.where((query) => {
+          query.where('userId', userId).orWhereHas('territoires', (territoireQuery) => {
+            territoireQuery.whereHas('users', (userQuery) => {
+              userQuery.where('users.id', userId)
+            })
+          })
+        })
+      })
+      .count('* as total')
+      .first()
+
+    return Number(result?.$extras?.total ?? 0)
+  }
+
+  // Used on the home page: all upcoming (non-validated) steps of projects accessible to the user, overdue first.
+  async getUpcomingStepsForUser(userId: string) {
+    return ProjectStep.query()
+      .where('isValidated', false)
+      .whereNotNull('date')
+      .whereHas('project', (projectQuery) => {
+        projectQuery.where((query) => {
+          query.where('userId', userId).orWhereHas('territoires', (territoireQuery) => {
+            territoireQuery.whereHas('users', (userQuery) => {
+              userQuery.where('users.id', userId)
+            })
+          })
+        })
+      })
+      .preload('project')
+      .orderBy('date', 'asc')
+  }
+
   async createStep(
     project: Project,
     data: Partial<ModelAttributes<ProjectStep>>,

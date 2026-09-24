@@ -62,6 +62,18 @@ export class ProjectService {
     })
   }
 
+  // Used on the home page.
+  async getCurrentProjects(userId: string): Promise<Project[]> {
+    return this.queryAccessibleProjects(userId)
+      .where('status', ProjectStatus.CURRENT)
+      .preload('steps')
+      .preload('parcelles')
+      .preload('exploitations')
+      .preload('captages')
+      .preload('territoires')
+      .orderBy('createdAt', 'desc')
+  }
+
   async listProjects(userId: string, filters: ProjectIndexFilters): Promise<ProjectIndexResult> {
     const { recherche, statut, typesActionExclus, statutsExclus, yearFrom, yearTo, page } = filters
 
