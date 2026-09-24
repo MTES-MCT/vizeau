@@ -161,6 +161,6 @@ test.group('Territoires - Index Route', (group) => {
     assert.equal(responseBody.component, 'territoires/index')
     assert.notProperty(responseBody.props, 'territoires')
     assert.notProperty(responseBody.props, 'meta')
-    assert.sameMembers(responseBody.deferredProps.default, ['territoires', 'meta'])
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
   })
 })

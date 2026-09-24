@@ -98,7 +98,7 @@ test.group('Aac - Index Route', (group) => {
 
     assert.notProperty(initial.body().props, 'aacs')
     assert.notProperty(initial.body().props, 'meta')
-    assert.sameMembers(initial.body().deferredProps.default, ['aacs', 'meta'])
+    assert.sameMembers(initial.body().deferredProps.aacs, ['aacs', 'meta'])
     assert.lengthOf(calls, 0)
 
     const reload = await client
