@@ -13,7 +13,7 @@ export class TerritoireService {
     })
   }
 
-  async getTerritoiresForUser(userId: string, page: number = 1, perPage: number = 20) {
+  private queryTerritoiresForUser(userId: string) {
     return (
       Territoire.query()
         .whereHas('users', (usersQuery) => {
@@ -29,7 +29,10 @@ export class TerritoireService {
             code ASC NULLS LAST,
             name ASC`
         )
-        .paginate(page, perPage)
     )
+  }
+
+  async getTerritoiresForUser(userId: string, page: number = 1, perPage: number = 20) {
+    return this.queryTerritoiresForUser(userId).paginate(page, perPage)
   }
 }

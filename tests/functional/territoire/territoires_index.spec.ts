@@ -5,9 +5,10 @@ import { TerritoireFactory } from '#database/factories/territoire_factory'
 import { inertiaApiClient } from '@adonisjs/inertia/plugins/api_client'
 import app from '@adonisjs/core/services/app'
 import { AacService } from '#services/aac_service'
+import { AacDto } from '../../../app/dto/aac_dto.js'
 
 function createMockAacService(): AacService {
-  return {
+  const mock = {
     async getAll(
       _page: number,
       _perPage: number,
@@ -39,7 +40,20 @@ function createMockAacService(): AacService {
         total: codes.length,
       }
     },
-  } as unknown as AacService
+    async getSummariesByCode(aacCodes: string[]) {
+      const summariesByCode: Record<string, unknown> = {}
+      if (aacCodes.length === 0) return summariesByCode
+
+      const { data } = await mock.getAll(1, aacCodes.length, undefined, undefined, aacCodes)
+      for (const row of data) {
+        const summary = AacDto.fromRawSummary(row)
+        summariesByCode[summary.code] = summary
+      }
+      return summariesByCode
+    },
+  }
+
+  return mock as unknown as AacService
 }
 
 test.group('Territoires - Index Route', (group) => {

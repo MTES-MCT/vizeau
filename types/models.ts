@@ -192,6 +192,18 @@ export type ExploitationJson = {
   territoires?: TerritoireJson[] | null
 }
 
+export type ProchainesTacheJson = {
+  id: string
+  titre: string
+  date: string
+  nomProjet?: string
+  projetId?: string
+  nomExploitation?: string
+  exploitationId?: string
+  // Only set for log-entry-sourced tasks: they can only be edited/completed/deleted by their author.
+  userId?: string
+}
+
 export type AacSummaryJson = {
   code: string
   nom: string

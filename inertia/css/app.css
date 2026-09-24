@@ -53,6 +53,7 @@ body {
       0 0 3px rgba(29, 124, 219, 0.4),
       0 0 5px rgba(29, 124, 219, 0.2);
   }
+
   50% {
     box-shadow:
       0 0 0 2px rgba(29, 124, 219, 0.6),
@@ -64,4 +65,13 @@ body {
 
 .editing-glow {
   animation: glow 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* DSFR ne fournit un breakpoint responsive que pour "md" sur les paddings.
+   On ajoute "lg" (62em, comme fr-col-lg-*) pour aligner padding et colonnes. */
+@media (min-width: 992px) {
+  .fr-px-lg-16w {
+    padding-left: 8rem !important;
+    padding-right: 8rem !important;
+  }
 }
