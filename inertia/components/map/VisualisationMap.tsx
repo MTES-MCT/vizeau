@@ -10,7 +10,7 @@ import {
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Marker, Popup, ScaleControl } from 'maplibre-gl'
-import type { LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
+import type { LngLatBounds, LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
 import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
