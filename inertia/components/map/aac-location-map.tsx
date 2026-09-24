@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { addProtocol } from 'maplibre-gl'
 import type { LngLatBoundsLike, StyleSpecification } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import vector from '~/components/map/styles/vector.json'
@@ -9,9 +7,6 @@ import { getAacLocationLayers, getAacSource } from '~/components/map/styles/zona
 import { useMap } from '~/hooks/use_map'
 import Loader from '~/ui/Loader'
 import { MapErrorBoundary } from './map-error-boundary'
-
-const protocol = new Protocol()
-addProtocol('pmtiles', protocol.tile)
 
 // Le JSON importé est typé plus largement que ce qu'attend MapLibre (tuples de coordonnées).
 const VECTOR_STYLE = vector as unknown as StyleSpecification

@@ -9,9 +9,8 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
-import { addProtocol, Marker, Popup, ScaleControl } from 'maplibre-gl'
+import { Marker, Popup, ScaleControl } from 'maplibre-gl'
 import type { LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import type { MapDesiredState } from '~/functions/map_reconciler'
@@ -38,9 +37,6 @@ const stylesMap: StylesMap = {
   'orthophoto': photo,
   'vector': vector,
 }
-
-const protocol = new Protocol()
-addProtocol('pmtiles', protocol.tile)
 
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
