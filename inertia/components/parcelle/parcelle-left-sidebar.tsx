@@ -43,7 +43,10 @@ export default function ParcelleLeftSidebar({
               href: '#',
               onClick: (e: React.MouseEvent) => {
                 e.preventDefault()
-                router.visit(`/visualisation?millesime=${parcelle.year}`)
+                router.visit(`/visualisation?millesime=${parcelle.year}`, {
+                  preserveScroll: true,
+                  preserveState: true,
+                })
               },
               style: {
                 cursor: 'pointer',
@@ -62,6 +65,7 @@ export default function ParcelleLeftSidebar({
                   `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}&tab=parcelles`,
                   {
                     preserveScroll: true,
+                    preserveState: true,
                   }
                 )
               },

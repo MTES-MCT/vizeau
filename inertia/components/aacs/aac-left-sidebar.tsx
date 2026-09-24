@@ -30,7 +30,10 @@ export default function AacLeftSidebar({ aac, millesime, mapRef }: AacLeftSideba
               href: '#',
               onClick: (e: React.MouseEvent) => {
                 e.preventDefault()
-                router.visit(`/visualisation?millesime=${millesime}&tab=aac`)
+                router.visit(`/visualisation?millesime=${millesime}&tab=aac`, {
+                  preserveScroll: true,
+                  preserveState: true,
+                })
               },
               style: {
                 cursor: 'pointer',
