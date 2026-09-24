@@ -77,7 +77,10 @@ test.group('Territoires - Index Route', (group) => {
 
     await user.related('territoires').attach([aacTerritoire.id, nonAacTerritoire.id])
 
-    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -123,7 +126,7 @@ test.group('Territoires - Index Route', (group) => {
     const response = await client
       .get(route('territoires.index', {}, { qs: { territoiresPage: 2 } }))
       .loginAs(user)
-      .withInertia()
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -143,7 +146,10 @@ test.group('Territoires - Index Route', (group) => {
     await user.related('territoires').attach([myTerritoire.id])
     await anotherUser.related('territoires').attach([otherTerritoire.id])
 
-    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -154,5 +160,21 @@ test.group('Territoires - Index Route', (group) => {
 
     assert.include(territoireIds, myTerritoire.id)
     assert.notInclude(territoireIds, otherTerritoire.id)
+  })
+
+  test('territoires and meta are deferred', async ({ assert, client, route }) => {
+    const user = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+
+    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+
+    response.assertStatus(200)
+
+    const responseBody = response.body()
+    assert.equal(responseBody.component, 'territoires/index')
+    assert.notProperty(responseBody.props, 'territoires')
+    assert.notProperty(responseBody.props, 'meta')
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
   })
 })

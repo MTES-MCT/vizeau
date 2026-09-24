@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import { Deferred, Head } from '@inertiajs/react'
 
 import { fr } from '@codegouvfr/react-dsfr'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
@@ -10,6 +10,7 @@ import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import type { AacSummaryJson } from '#types/models'
 import DepassementsListItem from '~/ui/DepassementsListItem'
 import { getAacListItemMetas } from '~/functions/aac'
+import Loader from '~/ui/Loader'
 
 export default function AacIndex({ aacs, meta, queryString }: any) {
   return (
@@ -34,64 +35,83 @@ export default function AacIndex({ aacs, meta, queryString }: any) {
         >
           Cette page référence l'ensemble des Aires d'Alimentation de Captage (AAC) connues par
           l'application.
-          <strong style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}>
+          <strong
+            style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
+            className="fr-px-1v"
+          >
             Pour consulter la qualité de l'eau et les données d'assolement, sélectionnez en priorité
-            une AAC{' '}
+            une AAC
           </strong>
           dans la liste ci-dessous. Qu'elles proviennent du référentiel national Sandre ou de
           territoires de travail non référencés (à venir), toutes les AAC sont consultables par tous
           les utilisateurs.
         </CallOut>
-        <>
+
+        <Deferred
+          data={['aacs', 'meta']}
+          fallback={
+            <div className="fr-my-4w">
+              <Loader />
+            </div>
+          }
+        >
           <h3 className="fr-text--lg fr-mb-0">
             Sélectionnez un territoire pour accéder aux données
           </h3>
           <AacsSearch queryString={queryString} reloadOnly={['aacs', 'meta', 'queryString']} />
-          {aacs.length === 0 ? (
-            <EmptyPlaceholder
-              label={
-                queryString?.aacRecherche && queryString?.aacCommune
-                  ? `Aucun résultat pour "${queryString.aacRecherche}" dans la commune "${queryString.aacCommune}"`
-                  : queryString?.aacRecherche
-                    ? `Aucun résultat trouvé pour "${queryString.aacRecherche}"`
-                    : queryString?.aacCommune
-                      ? `Aucun résultat pour la commune "${queryString.aacCommune}"`
-                      : 'Aucune AAC enregistrée'
-              }
-              pictogram={LocationFrance}
-            />
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                {aacs.map((aac: AacSummaryJson, index: number) => (
-                  <DepassementsListItem
-                    key={aac.code}
-                    title={aac.nom}
-                    priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                    linkProps={aac.code ? { href: `/aac/${aac.code}` } : undefined}
-                    depassementsAlerte={aac.depassements_alerte}
-                    depassementsReglementaires={aac.depassements_reglementaires}
-                    metas={getAacListItemMetas(aac)}
-                  />
-                ))}
-              </div>
-              {meta.lastPage > 1 && (
-                <div className="fr-mt-4w flex justify-center">
-                  <Pagination
-                    count={meta.lastPage}
-                    defaultPage={meta.currentPage}
-                    getPageLinkProps={(pageNumber) => {
-                      const params = new URLSearchParams(queryString)
-                      params.set('aacPage', String(pageNumber))
-                      return { href: `?${params.toString()}` }
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          )}
-        </>
+          <AacList aacs={aacs} meta={meta} queryString={queryString} />
+        </Deferred>
       </div>
     </Layout>
+  )
+}
+
+function AacList({ aacs, meta, queryString }: any) {
+  return (
+    <>
+      {aacs.length === 0 ? (
+        <EmptyPlaceholder
+          label={
+            queryString?.aacRecherche && queryString?.aacCommune
+              ? `Aucun résultat pour "${queryString.aacRecherche}" dans la commune "${queryString.aacCommune}"`
+              : queryString?.aacRecherche
+                ? `Aucun résultat trouvé pour "${queryString.aacRecherche}"`
+                : queryString?.aacCommune
+                  ? `Aucun résultat pour la commune "${queryString.aacCommune}"`
+                  : 'Aucune AAC enregistrée'
+          }
+          pictogram={LocationFrance}
+        />
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            {aacs.map((aac: AacSummaryJson, index: number) => (
+              <DepassementsListItem
+                key={aac.code}
+                title={aac.nom}
+                priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                linkProps={aac.code ? { href: `/aac/${aac.code}` } : undefined}
+                depassementsAlerte={aac.depassements_alerte}
+                depassementsReglementaires={aac.depassements_reglementaires}
+                metas={getAacListItemMetas(aac)}
+              />
+            ))}
+          </div>
+          {meta.lastPage > 1 && (
+            <div className="fr-mt-4w flex justify-center">
+              <Pagination
+                count={meta.lastPage}
+                defaultPage={meta.currentPage}
+                getPageLinkProps={(pageNumber) => {
+                  const params = new URLSearchParams(queryString)
+                  params.set('aacPage', String(pageNumber))
+                  return { href: `?${params.toString()}` }
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </>
   )
 }

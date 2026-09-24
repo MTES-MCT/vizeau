@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react'
+import { Deferred, Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
 import Layout from '~/ui/layouts/layout'
@@ -10,6 +10,7 @@ import type { TerritoireJson } from '#types/models'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import DepassementsListItem from '~/ui/DepassementsListItem'
 import { getAacListItemMetas } from '~/functions/aac'
+import Loader from '~/ui/Loader'
 
 export default function TerritoiresIndex({ territoires, meta }: any) {
   return (
@@ -43,46 +44,63 @@ export default function TerritoiresIndex({ territoires, meta }: any) {
             small
           />
         </div>
-        {territoires.length === 0 ? (
-          <EmptyPlaceholder
-            label="Aucun territoire associé à votre compte"
-            pictogram={LocationFrance}
-          />
-        ) : (
-          <>
-            <h3 className="fr-text--lg fr-mb-0">
-              Sélectionnez un territoire pour accéder aux données
-            </h3>
-            <div className="flex flex-col gap-2">
-              {territoires.map((territoire: TerritoireJson, index: number) => {
-                return (
-                  <DepassementsListItem
-                    key={territoire.code}
-                    title={territoire.nom}
-                    priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                    linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
-                    depassementsAlerte={territoire.depassements_alerte}
-                    depassementsReglementaires={territoire.depassements_reglementaires}
-                    metas={getAacListItemMetas(territoire)}
-                  />
-                )
-              })}
+        <Deferred
+          data={['territoires', 'meta']}
+          fallback={
+            <div className="fr-my-4w">
+              <Loader />
             </div>
-
-            {meta.lastPage > 1 && (
-              <div className="fr-mt-4w flex justify-center">
-                <Pagination
-                  count={meta.lastPage}
-                  defaultPage={meta.currentPage}
-                  getPageLinkProps={(pageNumber) => ({
-                    href: `?territoiresPage=${pageNumber}`,
-                  })}
-                />
-              </div>
-            )}
-          </>
-        )}
+          }
+        >
+          <TerritoiresList territoires={territoires} meta={meta} />
+        </Deferred>
       </div>
     </Layout>
+  )
+}
+
+function TerritoiresList({ territoires, meta }: any) {
+  return (
+    <>
+      {territoires.length === 0 ? (
+        <EmptyPlaceholder
+          label="Aucun territoire associé à votre compte"
+          pictogram={LocationFrance}
+        />
+      ) : (
+        <>
+          <h3 className="fr-text--lg fr-mb-0">
+            Sélectionnez un territoire pour accéder aux données
+          </h3>
+          <div className="flex flex-col gap-2">
+            {territoires.map((territoire: TerritoireJson, index: number) => {
+              return (
+                <DepassementsListItem
+                  key={territoire.code}
+                  title={territoire.nom}
+                  priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                  linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
+                  depassementsAlerte={territoire.depassements_alerte}
+                  depassementsReglementaires={territoire.depassements_reglementaires}
+                  metas={getAacListItemMetas(territoire)}
+                />
+              )
+            })}
+          </div>
+
+          {meta.lastPage > 1 && (
+            <div className="fr-mt-4w flex justify-center">
+              <Pagination
+                count={meta.lastPage}
+                defaultPage={meta.currentPage}
+                getPageLinkProps={(pageNumber) => ({
+                  href: `?territoiresPage=${pageNumber}`,
+                })}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </>
   )
 }
