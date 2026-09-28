@@ -8,6 +8,9 @@ export type AnalysesStats = {
 // Used to build the "territoires suivis à risque" home page widget.
 export type ConformiteRepartitionJson = {
   parTerritoire: Record<string, AnalysesStats>
+  // The first territoires with at least one dépassement, and how many there are in total.
+  territoireIdsARisque: string[]
+  totalTerritoiresARisque: number
 }
 
 export type SubstanceAlerteJson = {

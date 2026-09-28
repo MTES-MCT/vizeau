@@ -35,4 +35,8 @@ export class TerritoireService {
   async getTerritoiresForUser(userId: string, page: number = 1, perPage: number = 20) {
     return this.queryTerritoiresForUser(userId).paginate(page, perPage)
   }
+
+  async getAllTerritoiresForUser(userId: string) {
+    return this.queryTerritoiresForUser(userId)
+  }
 }

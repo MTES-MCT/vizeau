@@ -84,7 +84,12 @@ export type AacOverview = {
   conformiteStatsByAacCode: Map<string, AnalysesStats>
   substancesRepartition: SubstancesRepartitionJson
   captagesAlertes: CaptageAlerteJson[]
+  /** The first AAC codes (in input order) with at least one dépassement, and how many there are in total. */
+  aacCodesARisque: { codes: string[]; total: number }
 }
+
+/** How many territoires à risque the home page lists. */
+export const TERRITOIRES_A_RISQUE_LIMIT = 10
 
 function toAnalysesStats(row: Record<string, unknown>): AnalysesStats {
   return {
@@ -433,9 +438,11 @@ export class AacService {
         conformiteStatsByAacCode: new Map(),
         substancesRepartition: { tousTerritoires: [], parTerritoire: {} },
         captagesAlertes: [],
+        aacCodesARisque: { codes: [], total: 0 },
       }
     }
 
+    // Order is preserved: territoires à risque are listed in the same order as the input.
     const aacCodes = Array.from(new Set(territoires.map((t) => t.code)))
 
     const sql = `
@@ -519,6 +526,14 @@ export class AacService {
         JOIN date_flags df ON df.code_installation = ai.code
         GROUP BY ai.aac_code
       ),
+      -- COUNT(*) OVER () is evaluated before the LIMIT, so total counts every AAC à risque.
+      aac_a_risque AS (
+        SELECT aac_code, CAST(COUNT(*) OVER () AS INTEGER) AS total
+        FROM conformite
+        WHERE depassements_alerte > 0 OR depassements_reglementaires > 0
+        ORDER BY list_position($aacCodes, aac_code)
+        LIMIT $limitARisque
+      ),
       substances AS (
         SELECT
           ai.aac_code,
@@ -556,12 +571,15 @@ export class AacService {
         (
           SELECT list(c ORDER BY c.depassements_reglementaires DESC, c.depassements_alerte DESC, c.nom)
           FROM captages c
-        ) AS captages
+        ) AS captages,
+        (SELECT list(r.aac_code) FROM aac_a_risque r) AS aac_a_risque_codes,
+        (SELECT ANY_VALUE(r.total) FROM aac_a_risque r) AS aac_a_risque_total
     `
     const [row] = await this.duckdbService.query<Record<string, unknown>>(sql, {
       aacPath: getParquetPath(),
       analysesPath: getAnalysesRobinetPath(),
       aacCodes: this.duckdbService.list(aacCodes),
+      limitARisque: TERRITOIRES_A_RISQUE_LIMIT,
     })
 
     // list() over an empty set yields NULL rather than an empty list.
@@ -588,6 +606,10 @@ export class AacService {
         asRows(row?.substances).map(toSubstanceRow)
       ),
       captagesAlertes: asRows(row?.captages).map(toCaptageAlerte),
+      aacCodesARisque: {
+        codes: (row?.aac_a_risque_codes as string[] | null) ?? [],
+        total: Number(row?.aac_a_risque_total ?? 0),
+      },
     }
   }
 

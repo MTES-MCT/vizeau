@@ -20,11 +20,7 @@ export default function TerritoiresAlertes({
   conformiteRepartition,
 }: TerritoiresAlertesProps) {
   const territoiresAvecAlerte = territoires
-    .filter((territoire) => {
-      const stats = conformiteRepartition?.parTerritoire[territoire.id]
-
-      return (stats?.depassements_alerte ?? 0) > 0 || (stats?.depassements_reglementaires ?? 0) > 0
-    })
+    .filter((territoire) => conformiteRepartition?.territoireIdsARisque.includes(territoire.id))
     .map((territoire) => ({
       ...territoire,
       depassements_alerte:
@@ -117,7 +113,7 @@ export default function TerritoiresAlertes({
               }
             )}
           </div>
-          {territoiresAvecAlerte.length > 10 && (
+          {(conformiteRepartition?.totalTerritoiresARisque ?? 0) > territoiresAvecAlerte.length && (
             <span className="fr-text--xs">
               <span className="fr-icon--sm fr-icon-info-line fr-mr-1v" />
               Seuls les 10 premiers territoires à risque sont affichés

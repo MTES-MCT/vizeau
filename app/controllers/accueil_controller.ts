@@ -12,7 +12,6 @@ import { ProchainesTacheDto } from '../dto/prochaines_tache_dto.js'
 import { ProjectDto } from '../dto/project_dto.js'
 import type { ConformiteRepartitionJson } from '#types/captage'
 import type { ProchainesTacheJson } from '#types/models'
-import Territoire from '#models/territoire'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -117,14 +116,8 @@ export default class AccueilController {
   }
 
   private async loadAacData(userId: string, logger: Logger) {
-    // We only load the first 10 territoires to make the page fast
-    const territoireModelsPaginator = await this.territoireService.getTerritoiresForUser(
-      userId,
-      1,
-      10
-    )
-
-    const territoireModels = territoireModelsPaginator.serialize().data as Territoire[]
+    // Every territoire is needed to find the ones à risque; the AAC query limits what it returns.
+    const territoireModels = await this.territoireService.getAllTerritoiresForUser(userId)
 
     const territoiresAvecCode = territoireModels.filter(
       (territoire): territoire is typeof territoire & { code: string } => territoire.code !== null
@@ -134,6 +127,7 @@ export default class AccueilController {
       conformiteStatsByAacCode,
       substancesRepartition,
       captagesAlertes,
+      aacCodesARisque,
     } = await withAacFallback(
       logger,
       "vue d'ensemble AAC",
@@ -143,6 +137,7 @@ export default class AccueilController {
         conformiteStatsByAacCode: new Map(),
         substancesRepartition: { tousTerritoires: [], parTerritoire: {} },
         captagesAlertes: [],
+        aacCodesARisque: { codes: [], total: 0 },
       }
     )
 
@@ -159,6 +154,10 @@ export default class AccueilController {
           .filter((territoire) => conformiteStatsByAacCode.has(territoire.code))
           .map((territoire) => [territoire.id, conformiteStatsByAacCode.get(territoire.code)!])
       ),
+      territoireIdsARisque: territoiresAvecCode
+        .filter((territoire) => aacCodesARisque.codes.includes(territoire.code))
+        .map((territoire) => territoire.id),
+      totalTerritoiresARisque: aacCodesARisque.total,
     }
 
     return { territoires, conformiteRepartition, substancesRepartition, captagesAlertes }
