@@ -19,6 +19,13 @@ function getAnalysesRobinetPath(): string {
   return `s3://${getAacFilesS3Driver().options.bucket}/analyses_robinet.parquet`
 }
 
+/**
+ * AAC ordering (DuckDB dialect): codes are stored as strings but are numeric, so they are
+ * sorted as integers. AACs without a numeric code (rare) come last, sorted by name.
+ * Kept consistent with the `orderByCode` scope of the Territoire model.
+ */
+const SQL_ORDER_BY_CODE = 'TRY_CAST(code AS INTEGER) ASC NULLS LAST, code ASC NULLS LAST, nom ASC'
+
 // ---------------------------------------------------------------------------
 // Reusable SQL threshold-detection fragments (DuckDB dialect).
 // Centralised here to avoid divergence across queries.
@@ -298,7 +305,7 @@ export class AacService {
         'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($path) ' +
         where +
-        ' ORDER BY nom LIMIT $limit OFFSET $offset',
+        ` ORDER BY ${SQL_ORDER_BY_CODE} LIMIT $limit OFFSET $offset`,
       parameters
     )
 
@@ -993,11 +1000,11 @@ export class AacService {
   }
 
   /**
-   * Returns all AAC names ordered alphabetically.
+   * Returns all AAC names ordered by code.
    */
   async getAllNames() {
     return this.duckdbService.query<{ code: string; name: string }>(
-      'SELECT code, nom as name FROM read_parquet($path) ORDER BY nom',
+      `SELECT code, nom as name FROM read_parquet($path) ORDER BY ${SQL_ORDER_BY_CODE}`,
       { path: getParquetPath() }
     )
   }
