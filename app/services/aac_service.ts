@@ -216,6 +216,58 @@ function buildSubstancesRepartition(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Global search index (see AacService.getGlobalSearchIndex)
+// ---------------------------------------------------------------------------
+
+const GLOBAL_SEARCH_INDEX_TTL_MS = 60 * 60 * 1000
+
+type GlobalSearchAac = { code: string; nom: string }
+type GlobalSearchInstallation = {
+  code: string
+  nom: string
+  code_bss: string | null
+  aac_code: string
+}
+type GlobalSearchIndexEntry<T> = {
+  item: T
+  // Code that ranks the entry first when the query is exactly equal to it
+  code: string | null
+  searchText: string
+}
+type GlobalSearchIndex = {
+  aacs: GlobalSearchIndexEntry<GlobalSearchAac>[]
+  installations: GlobalSearchIndexEntry<GlobalSearchInstallation>[]
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+/**
+ * Returns the entries (already sorted by name) containing the query, the one whose code
+ * is exactly the query first, limited to `limit` items, along with the total number of matches.
+ */
+function searchInIndex<T>(
+  entries: GlobalSearchIndexEntry<T>[],
+  recherche: string,
+  limit: number
+): { data: T[]; total: number } {
+  const needle = normalizeSearchText(recherche.trim())
+  const matches = entries.filter((entry) => entry.searchText.includes(needle))
+  const exactMatchIndex = matches.findIndex(
+    (entry) => entry.code !== null && normalizeSearchText(entry.code) === needle
+  )
+  if (exactMatchIndex > 0) {
+    matches.unshift(...matches.splice(exactMatchIndex, 1))
+  }
+
+  return { data: matches.slice(0, limit).map((entry) => entry.item), total: matches.length }
+}
+
 /**
  * Service for querying the AAC dataset stored as a Parquet file in S3 via DuckDB.
  * Provides methods to get paginated lists of AACs with optional search filters,
@@ -225,6 +277,11 @@ function buildSubstancesRepartition(
  */
 @inject()
 export class AacService {
+  private static globalSearchIndex: {
+    promise: Promise<GlobalSearchIndex>
+    loadedAt: number
+  } | null = null
+
   constructor(protected duckdbService: DuckdbService) {}
 
   async getAll(
@@ -1022,6 +1079,98 @@ export class AacService {
       'SELECT code, nom as name FROM read_parquet($path) ORDER BY nom',
       { path: getParquetPath() }
     )
+  }
+
+  /**
+   * Used by the global search: AACs whose name or code matches the query (ignoring case and accents),
+   * ordered by name. An AAC whose code is exactly the query comes first: short codes such as "10"
+   * are contained in many other codes and would otherwise be cut off by the limit.
+   * Returns at most `limit` AACs, along with the total number of matches.
+   */
+  async searchAacs(
+    recherche: string,
+    limit: number
+  ): Promise<{ data: GlobalSearchAac[]; total: number }> {
+    const { aacs } = await this.getGlobalSearchIndex()
+    return searchInIndex(aacs, recherche, limit)
+  }
+
+  /**
+   * Used by the global search: installations whose name or BSS code matches the query
+   * (ignoring case and accents), ordered by name.
+   * An installation can belong to several AACs: it is returned once, with the first AAC code
+   * (needed to build the link to its page).
+   */
+  async searchInstallations(
+    recherche: string,
+    limit: number
+  ): Promise<{ data: GlobalSearchInstallation[]; total: number }> {
+    const { installations } = await this.getGlobalSearchIndex()
+    return searchInIndex(installations, recherche, limit)
+  }
+
+  /**
+   * The global search runs on every keystroke: querying the Parquet files on S3 each time would
+   * take up to a second and queue up on the shared DuckDB connection. The AACs and installations
+   * (a few thousand rows) are loaded once instead, then filtered in memory until the cache expires.
+   */
+  private getGlobalSearchIndex(): Promise<GlobalSearchIndex> {
+    const cached = AacService.globalSearchIndex
+    if (cached && Date.now() - cached.loadedAt < GLOBAL_SEARCH_INDEX_TTL_MS) {
+      return cached.promise
+    }
+
+    const promise = this.loadGlobalSearchIndex()
+    AacService.globalSearchIndex = { promise, loadedAt: Date.now() }
+    // Do not keep a failed load in cache, so that the next search retries
+    promise.catch(() => {
+      if (AacService.globalSearchIndex?.promise === promise) AacService.globalSearchIndex = null
+    })
+
+    return promise
+  }
+
+  private async loadGlobalSearchIndex(): Promise<GlobalSearchIndex> {
+    const [aacs, installations] = await Promise.all([
+      this.duckdbService.query<GlobalSearchAac>(
+        'SELECT code, nom FROM read_parquet($path) ORDER BY nom',
+        { path: getParquetPath() }
+      ),
+      this.duckdbService.query<GlobalSearchInstallation>(
+        `
+        SELECT
+          installation.code AS code,
+          installation.nom AS nom,
+          installation.code_bss AS code_bss,
+          min(aac_code) AS aac_code
+        FROM (SELECT code AS aac_code, unnest(installations) AS installation FROM read_parquet($path))
+        WHERE installation.code IS NOT NULL AND installation.nom IS NOT NULL
+        GROUP BY installation.code, installation.nom, installation.code_bss
+        ORDER BY nom
+        `,
+        { path: getParquetPath() }
+      ),
+    ])
+
+    return {
+      aacs: aacs.map((aac) => ({
+        item: aac,
+        code: aac.code,
+        searchText: normalizeSearchText(`${aac.nom} ${aac.code}`),
+      })),
+      installations: installations.map((installation) => ({
+        item: installation,
+        code: installation.code_bss,
+        searchText: normalizeSearchText(`${installation.nom} ${installation.code_bss ?? ''}`),
+      })),
+    }
+  }
+
+  /**
+   * Empties the global search cache, so that the next search reloads the AAC dataset.
+   */
+  static clearGlobalSearchIndex() {
+    AacService.globalSearchIndex = null
   }
 
   /**
