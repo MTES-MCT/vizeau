@@ -28,4 +28,21 @@ export class TerritoireService {
   async getAllTerritoiresForUser(userId: string) {
     return this.queryTerritoiresForUser(userId)
   }
+
+  /**
+   * Return true if at least one of the given territoires is inactive.
+   * Exploitations cannot be assigned to (or updated on) inactive territoires.
+   */
+  async hasInactiveTerritoires(territoireIds: string[]) {
+    if (territoireIds.length === 0) {
+      return false
+    }
+
+    const inactiveTerritoire = await Territoire.query()
+      .whereIn('id', territoireIds)
+      .where('isActive', false)
+      .first()
+
+    return inactiveTerritoire !== null
+  }
 }

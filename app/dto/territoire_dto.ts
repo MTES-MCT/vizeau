@@ -14,6 +14,7 @@ export class TerritoireDto {
       id: ter.id,
       nom: ter.nom ?? ter.name ?? 'Territoire sans nom',
       code: ter.code,
+      isActive: ter.isActive ?? true,
       typeLabel: ter.code ? 'AAC Sandre' : 'Autre territoire',
       aacHref: ter.code ? `/aac/${ter.code}` : null,
       surface: aacSummary?.surface ?? ter.surface ?? null,
