@@ -99,6 +99,7 @@ Quelques notes sur les variables d’environnement :
 - `USER_UPLOADS_S3_ENDPOINT` : L'URL de l’endpoint de l’espace de stockage, sans le nom du bucket. Pré-configuré pour l'hébergeur Scaleway.
 - `AAC_FILES_S3_*` : Idem pour le bucket qui contient les fichiers sensibles liés à la qualité de l'eau.
 - `USERS_TO_SEED` : Une chaine de caractères au format JSON représentant une liste d'utilisateurs à ajouter à la base de données lors de l'exécution de la commande `db:seed`. Utilisée pour ajouter des utilisateurs en production.
+- `DRY_RUN` : Si elle est définie (par exemple `DRY_RUN=1`), la commande `db:seed` n'écrit rien en base et affiche pour chaque seeder les changements qu'il appliquerait (lignes à créer, champs modifiés, rattachements ajoutés ou retirés). Elle ne se définit pas dans le `.env`, mais ponctuellement au lancement de la commande : `DRY_RUN=1 node ace db:seed`.
 
 Le reste dépend de la logique métier et sort du cadre de ce README.
 
@@ -118,6 +119,17 @@ cd build
 # Vous pouvez maintenant exécuter n'importe quelle commande de l'application via `ace`, par exemple pour seeder la base de données :
 node ace db:seed
 ```
+
+Pour prévisualiser les changements d'un seeder avant de l'appliquer, lancez-le d'abord avec la variable `DRY_RUN`. Aucune donnée n'est alors écrite :
+
+```bash
+# Tous les seeders
+DRY_RUN=1 node ace db:seed
+# Un seul seeder (dans le dossier `build`, les seeders sont compilés en `.js` ; en local, utilisez le fichier `.ts`)
+DRY_RUN=1 node ace db:seed --files database/seeders/7_territoire_seeder.js
+```
+
+Chaque seeder prévisualise ses changements à partir de l'état actuel de la base. Lors d'un aperçu de tous les seeders, un seeder ne voit donc pas les données qu'un seeder précédent aurait créées.
 
 ### Migration du bucket S3
 

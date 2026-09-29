@@ -30,6 +30,26 @@ export default class CultureGroupSeeder extends BaseSeeder {
       { code: '28', label: 'Divers' },
     ]
 
+    if (process.env.DRY_RUN) {
+      await this.previewChanges(groups)
+      return
+    }
+
     await CultureGroup.updateOrCreateMany('code', groups)
+  }
+
+  private async previewChanges(groups: Array<{ code: string; label: string }>) {
+    const currentGroups = await CultureGroup.all()
+    const existing = new Map(currentGroups.map((g) => [g.code, g]))
+
+    const toCreate = groups.filter((g) => !existing.has(g.code))
+    const toUpdate = groups
+      .filter((g) => existing.has(g.code) && existing.get(g.code)!.label !== g.label)
+      .map((g) => ({ code: g.code, from: existing.get(g.code)!.label, to: g.label }))
+
+    console.log(`\n[DRY RUN] Culture groups to create (${toCreate.length})`)
+    if (toCreate.length > 0) console.table(toCreate)
+    console.log(`\n[DRY RUN] Culture group labels to update (${toUpdate.length})`)
+    if (toUpdate.length > 0) console.table(toUpdate)
   }
 }
