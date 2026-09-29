@@ -10,6 +10,7 @@ export const controllers = {
   LogEntries: () => import('#controllers/log_entries_controller'),
   ProjectSteps: () => import('#controllers/project_steps_controller'),
   Projects: () => import('#controllers/projects_controller'),
+  Recherche: () => import('#controllers/recherche_controller'),
   Session: () => import('#controllers/session_controller'),
   Territoires: () => import('#controllers/territoires_controller'),
   Visualisation: () => import('#controllers/visualisation_controller'),

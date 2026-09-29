@@ -72,6 +72,7 @@ export type ScannedRoutes = {
     'projets.steps.tags.create': { paramsTuple?: []; params?: {} }
     'projets.steps.tags.destroy': { paramsTuple?: []; params?: {} }
     'territoires.index': { paramsTuple?: []; params?: {} }
+    'recherche.index': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'root': { paramsTuple?: []; params?: {} }
@@ -118,6 +119,7 @@ export type ScannedRoutes = {
     'projets.steps.edition': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.documents.download': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue,'documentId': ParamValue} }
     'territoires.index': { paramsTuple?: []; params?: {} }
+    'recherche.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'root': { paramsTuple?: []; params?: {} }
@@ -164,6 +166,7 @@ export type ScannedRoutes = {
     'projets.steps.edition': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.documents.download': { paramsTuple: [ParamValue,ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue,'documentId': ParamValue} }
     'territoires.index': { paramsTuple?: []; params?: {} }
+    'recherche.index': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'session.store': { paramsTuple?: []; params?: {} }

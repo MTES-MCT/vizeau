@@ -99,4 +99,7 @@ export interface ApiDefinition {
   territoires: {
     index: typeof routes['territoires.index']
   }
+  recherche: {
+    index: typeof routes['recherche.index']
+  }
 }

@@ -279,6 +279,8 @@ router
           .as('projets.steps.tags.destroy')
 
         router.get('territoires', [controllers.Territoires, 'index']).as('territoires.index')
+
+        router.get('recherche', [controllers.Recherche, 'index']).as('recherche.index')
       })
       .use(middleware.territoireAssignation())
   })

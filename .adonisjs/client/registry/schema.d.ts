@@ -823,4 +823,16 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/territoires_controller').default['index']>>>
     }
   }
+  'recherche.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/recherche'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/recherche').globalSearchValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/recherche_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/recherche_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
 }
