@@ -3,6 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { TerritoireService } from '#services/territoire_service'
 import Territoire from '#models/territoire'
 import { TerritoireFactory } from '#database/factories/territoire_factory'
+import { UserFactory } from '#database/factories/user_factory'
 
 test.group('Territoire service', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -50,5 +51,51 @@ test.group('Territoire service', (group) => {
     const territoireService = new TerritoireService()
 
     assert.isFalse(await territoireService.hasInactiveTerritoires([]))
+  })
+
+  test('it excludes inactive territoires from the territoires of a user by default', async ({
+    assert,
+  }) => {
+    const territoireService = new TerritoireService()
+    const activeTerritoire = await TerritoireFactory.create()
+    const inactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
+
+    const paginatedTerritoires = await territoireService.getTerritoiresForUser(user.id)
+    const allTerritoires = await territoireService.getAllTerritoiresForUser(user.id)
+
+    assert.deepEqual(
+      paginatedTerritoires.all().map((t) => t.id),
+      [activeTerritoire.id]
+    )
+    assert.deepEqual(
+      allTerritoires.map((t) => t.id),
+      [activeTerritoire.id]
+    )
+  })
+
+  test('it includes inactive territoires when asked to', async ({ assert }) => {
+    const territoireService = new TerritoireService()
+    const activeTerritoire = await TerritoireFactory.create()
+    const inactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
+
+    const paginatedTerritoires = await territoireService.getTerritoiresForUser(user.id, 1, 20, {
+      includeInactive: true,
+    })
+    const allTerritoires = await territoireService.getAllTerritoiresForUser(user.id, {
+      includeInactive: true,
+    })
+
+    assert.sameMembers(
+      paginatedTerritoires.all().map((t) => t.id),
+      [activeTerritoire.id, inactiveTerritoire.id]
+    )
+    assert.sameMembers(
+      allTerritoires.map((t) => t.id),
+      [activeTerritoire.id, inactiveTerritoire.id]
+    )
   })
 })
