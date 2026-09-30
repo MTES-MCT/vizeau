@@ -83,6 +83,12 @@ export class DuckdbService {
         await connection.run('INSTALL httpfs;')
         await connection.run('LOAD httpfs;')
 
+        // Keep HTTP metadata (HEAD) and Parquet footers in memory across queries, so they are not
+        // fetched from S3 again on every call. These caches do not detect a file being replaced
+        // on S3: restart the application after a data update.
+        await connection.run('SET enable_http_metadata_cache = true;')
+        await connection.run('SET parquet_metadata_cache = true;')
+
         // Copy the AAC S3 connection information as a DuckDB Secret.
         // DuckDB's S3 secret expects a bare host for ENDPOINT (no protocol) and
         // controls HTTPS separately via USE_SSL, unlike the AWS SDK / Drive
