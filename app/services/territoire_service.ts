@@ -18,8 +18,10 @@ export class TerritoireService {
     })
   }
 
-  private queryTerritoiresForUser(userId: string,
-                                  { includeInactive = false }: TerritoireQueryOptions) {
+  private queryTerritoiresForUser(
+    userId: string,
+    { includeInactive = false }: TerritoireQueryOptions
+  ) {
     return Territoire.query()
       .whereHas('users', (usersQuery) => {
         usersQuery.where('users.id', userId)
@@ -28,14 +30,17 @@ export class TerritoireService {
       .withScopes((scopes) => scopes.orderByCode())
   }
 
-  async getTerritoiresForUser(userId: string, page: number = 1, perPage: number = 20,
-                              options: TerritoireQueryOptions = {}) {
-    return this.queryTerritoiresForUser(userId,options).paginate(page, perPage)
+  async getTerritoiresForUser(
+    userId: string,
+    page: number = 1,
+    perPage: number = 20,
+    options: TerritoireQueryOptions = {}
+  ) {
+    return this.queryTerritoiresForUser(userId, options).paginate(page, perPage)
   }
 
-  async getAllTerritoiresForUser(userId: string,
-                                 options: TerritoireQueryOptions = {}) {
-    return this.queryTerritoiresForUser(userId,options)
+  async getAllTerritoiresForUser(userId: string, options: TerritoireQueryOptions = {}) {
+    return this.queryTerritoiresForUser(userId, options)
   }
 
   /**
