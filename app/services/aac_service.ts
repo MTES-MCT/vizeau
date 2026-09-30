@@ -303,7 +303,8 @@ export class AacService {
         'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($path) ' +
         where +
-        ' ORDER BY nom LIMIT $limit OFFSET $offset',
+        ' ORDER BY TRY_CAST(code AS INTEGER) ASC NULLS LAST, code ASC, nom ASC' +
+        ' LIMIT $limit OFFSET $offset',
       parameters
     )
 
