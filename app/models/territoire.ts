@@ -1,4 +1,4 @@
-import { beforeCreate, belongsTo, hasMany, manyToMany, scope } from '@adonisjs/lucid/orm'
+import { beforeCreate, belongsTo, column, hasMany, manyToMany, scope } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
@@ -10,6 +10,10 @@ export default class Territoire extends TerritoireSchema {
   static table = 'territoires'
   // Disable primary key generation by the DB
   static selfAssignPrimaryKey = true
+
+  // Exploitations cannot be assigned to or updated on an inactive territoire
+  @column()
+  declare isActive: boolean
 
   // Auto-generate UUID before DB insertion
   @beforeCreate()

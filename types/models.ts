@@ -31,6 +31,7 @@ export type TerritoireJson = {
   id: string
   nom: string
   code: string | null
+  isActive: boolean
   typeLabel: string
   aacHref: string | null
   surface: number | null
