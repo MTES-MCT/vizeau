@@ -2,15 +2,10 @@ import { Head, Deferred } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
 import type { TerritoireJson, ProchainesTacheJson, ProjectJson } from '#types/models'
-import type {
-  ConformiteRepartitionJson,
-  SubstancesRepartitionJson,
-  CaptageAlerteJson,
-} from '#types/captage'
+import type { ConformiteRepartitionJson, CaptageAlerteJson } from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
 import TerritoiresAlertes from '~/components/accueil/territoires-alertes'
-import SubstancesAlertes from '~/components/accueil/substances-alertes'
 import ProchainesTaches from '~/components/accueil/prochaines-taches'
 import ProjetsEnCours from '~/components/accueil/projets-en-cours'
 import CaptagesAlertes from '~/components/accueil/captages-alertes'
@@ -23,7 +18,6 @@ export type DashboardHomepageProps = {
   currentProjects: ProjectJson[]
   territoires?: TerritoireJson[]
   conformiteRepartition?: ConformiteRepartitionJson
-  substancesRepartition?: SubstancesRepartitionJson
   captagesAlertes?: CaptageAlerteJson[]
   prochainesTaches: ProchainesTacheJson[]
 }
@@ -43,7 +37,6 @@ export default function Accueil({
   currentProjects,
   territoires,
   conformiteRepartition,
-  substancesRepartition,
   captagesAlertes,
   prochainesTaches,
 }: DashboardHomepageProps) {
@@ -66,17 +59,6 @@ export default function Accueil({
                   Démarrer un nouveau projet
                 </Button>
               </SectionCard>
-              <Deferred
-                data={['territoires', 'substancesRepartition']}
-                fallback={<SectionCardLoader title="Top 5 des substances à risque" size="small" />}
-              >
-                {territoires && (
-                  <SubstancesAlertes
-                    territoires={territoires}
-                    substancesRepartition={substancesRepartition}
-                  />
-                )}
-              </Deferred>
               <Deferred
                 data={['territoires', 'conformiteRepartition']}
                 fallback={

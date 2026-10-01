@@ -7,6 +7,7 @@ import {
 import { inject } from '@adonisjs/core'
 import drive from '@adonisjs/drive/services/main'
 import type { S3Driver } from 'flydrive/drivers/s3'
+import logger from '@adonisjs/core/services/logger'
 import env from '#start/env'
 
 export function getAacFilesS3Driver(): S3Driver {
@@ -14,6 +15,12 @@ export function getAacFilesS3Driver(): S3Driver {
 }
 
 type DuckdbParameters = Record<string, DuckDBValue>
+
+const MB = 1024 * 1024
+
+function toMb(bytes: number | bigint): number {
+  return Math.round(Number(bytes) / MB)
+}
 
 function sqlEscape(value: string): string {
   return value.replace(/'/g, "''")
@@ -112,6 +119,14 @@ export class DuckdbService {
           );
         `)
 
+        if (env.get('DUCKDB_MEM_DEBUG') === true) {
+          const settingsResult = await connection.run(
+            "SELECT current_setting('memory_limit') AS memory_limit, current_setting('threads') AS threads"
+          )
+          const [settings] = await settingsResult.getRowObjects()
+          logger.info({ settings: normalizeValue(settings) }, 'DuckDB settings')
+        }
+
         return connection
       } catch (error) {
         DuckdbService.connectionPromise = null
@@ -131,9 +146,63 @@ export class DuckdbService {
     parameters?: DuckdbParameters
   ): Promise<T[]> {
     const connection = await this.getConnection()
+    const debug = env.get('DUCKDB_MEM_DEBUG') === true
+    const startedAt = performance.now()
+
+    if (debug) await this.logMemory(connection, 'before query', sql)
+
     const result = await connection.run(sql, parameters)
     const rows = await result.getRowObjects()
 
+    if (debug) {
+      await this.logMemory(connection, 'after query', sql, {
+        rowCount: rows.length,
+        durationMs: Math.round(performance.now() - startedAt),
+      })
+    }
+
     return rows.map((row) => normalizeValue(row) as T)
+  }
+
+  /**
+   * Logs the memory held by DuckDB's buffer manager. It only covers what DuckDB manages
+   * itself (hash tables, materialized CTEs, file cache), measured after the query.
+   */
+  private async logMemory(
+    connection: DuckDBConnection,
+    step: string,
+    sql: string,
+    extra: Record<string, unknown> = {}
+  ) {
+    const duckdbResult = await connection.run(
+      'SELECT tag, memory_usage_bytes, temporary_storage_bytes FROM duckdb_memory() ' +
+        'WHERE memory_usage_bytes > 0 OR temporary_storage_bytes > 0'
+    )
+    const duckdbRows = await duckdbResult.getRowObjects()
+    const duckdbByTag = Object.fromEntries(
+      duckdbRows.map((row) => [String(row.tag), toMb(row.memory_usage_bytes as bigint)])
+    )
+    const duckdbTotalBytes = duckdbRows.reduce(
+      (total, row) => total + Number(row.memory_usage_bytes),
+      0
+    )
+    const duckdbTemporaryBytes = duckdbRows.reduce(
+      (total, row) => total + Number(row.temporary_storage_bytes),
+      0
+    )
+
+    logger.info(
+      {
+        step,
+        sql: sql.replace(/\s+/g, ' ').trim().slice(0, 200),
+        memoryMb: {
+          duckdb: toMb(duckdbTotalBytes),
+          duckdbTemporary: toMb(duckdbTemporaryBytes),
+        },
+        duckdbByTagMb: duckdbByTag,
+        ...extra,
+      },
+      'DuckDB memory'
+    )
   }
 }
