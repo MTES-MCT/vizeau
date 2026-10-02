@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Select from '@codegouvfr/react-dsfr/Select'
 import Tag from '@codegouvfr/react-dsfr/Tag'
-import type { TerritoireJson } from '#types/models'
+import type { Data } from '@generated/data'
 import type { SubstancesRepartitionJson } from '#types/captage'
 import SectionCard from '~/ui/SectionCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export type SubstancesAlertesProps = {
-  territoires: TerritoireJson[]
+  territoires: Data.Territoire.Variants['forAac'][]
   substancesRepartition?: SubstancesRepartitionJson
 }
 
@@ -44,7 +44,7 @@ export default function SubstancesAlertes({
           <option value={TOUS_TERRITOIRES}>Tous mes territoires</option>
           {territoires.map((territoire) => (
             <option key={territoire.id} value={territoire.id}>
-              {territoire.nom}
+              {territoire.name ?? 'Territoire sans nom'}
             </option>
           ))}
         </Select>

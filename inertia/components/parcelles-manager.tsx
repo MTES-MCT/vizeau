@@ -2,11 +2,11 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
-import type { ExploitationJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 export type ParcellesManagerProps = {
   editMode: boolean
-  selectedExploitation?: ExploitationJson | undefined
+  selectedExploitation?: Data.Exploitation | undefined
   setData: (...args: unknown[]) => void
   setDefaults: (...args: unknown[]) => void
   setEditMode: (...args: unknown[]) => void

@@ -7,7 +7,8 @@ import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
 
 import VisualisationRightSide from '~/components/visualisation-right-side-bar'
-import type { AacSummaryJson, ExploitationJson, ProjectJson } from '#types/models'
+import type { AacSummaryJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { useCulturesFilter } from '~/hooks/use_cultures_filter'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
@@ -32,7 +33,7 @@ export type ParcelleFormData = {
 }
 
 export type VisualisationPageProps = {
-  filteredExploitations: ExploitationJson[]
+  filteredExploitations: Data.Exploitation[]
   queryString: Record<string, string | undefined>
   unavailableParcellesIds: string[]
   aacs: AacSummaryJson[]
@@ -53,7 +54,7 @@ export type VisualisationPageProps = {
   aacSurfaces: Record<string, number | null>
   accessibleAacCodes: string[]
   pmtilesUrl: string
-  projects: ProjectJson[]
+  projects: Data.Project[]
 }
 
 export default function VisualisationPage({
@@ -199,7 +200,7 @@ export default function VisualisationPage({
   )
 
   const handleMarkerClick = useCallback(
-    (exploitation: ExploitationJson) => {
+    (exploitation: Data.Exploitation) => {
       if (!editMode) {
         setSelectedExploitationId(exploitation.id)
         mapRef.current?.centerOnExploitation(exploitation)

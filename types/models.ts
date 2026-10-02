@@ -2,17 +2,8 @@ import { type CommuneInfo, type CultureInfo } from './aac.js'
 export type { CommuneInfo }
 
 // Used for frontend forms and requests where id may be missing or null
-export type ExploitationFormValues = Omit<ExploitationJson, 'id' | 'contacts'> & {
-  id?: string | null | undefined
-  contacts: ContactPayload[]
-}
-// Used for frontend forms and requests where id may be missing or null
-export type ContactPayload = Omit<ContactJson, 'id'> & {
+export type ContactPayload = {
   id?: string | null
-}
-
-export type ContactJson = {
-  id: string
   firstName: string | null
   lastName: string | null
   role: string | null
@@ -21,113 +12,8 @@ export type ContactJson = {
   phoneNumber: string | null
 }
 
-export type ExploitationTagJson = {
-  id: number
-  name: string
-  group: string
-}
-
-export type TerritoireJson = {
-  id: string
-  nom: string
-  code: string | null
-  isActive: boolean
-  typeLabel: string
-  aacHref: string | null
-  surface: number | null
-  nb_captages_actifs: number | null
-  nb_communes: number | null
-  date_maj: string | null
-  date_creation: string | null
-  bbox: [number, number, number, number] | null
-  communes: { nb_communes: number; communes: Record<string, CommuneInfo> } | null
-  nb_parcelles: number | null
-  depassements_alerte: number | null
-  depassements_reglementaires: number | null
-}
-
-export type LogEntryTagJson = {
-  id: number
-  name: string
-  userId: string
-  exploitationId: string
-  createdAt: string
-  updatedAt: string
-}
-
-export type LogEntryDocumentJson = {
-  id: number
-  name: string
-  logEntryId: string
-  sizeInBytes: number
-  href: string
-}
-
-export type LogEntryJson = {
-  id: string
-  title: string | null
-  notes: string | null
-  userId: string
-  exploitation?: ExploitationJson
-  exploitationId: string
-  createdAt: string
-  updatedAt: string
-  tags?: LogEntryTagJson[] | null
-  date: string | null
-  isCompleted: boolean
-  documents?: LogEntryDocumentJson[] | null
-}
-
-export type ParcelleJson = {
-  id: string
-  year: number
-  rpgId: string | null
-  exploitationId: string | null
-  surface: number | null
-  cultureCode: string | null
-  centroid: { x: number; y: number } | null
-  comment: string | null
-}
-
-export type CaptageFormJson = {
-  id: string
-  code: string
-  nom: string
-  etat: string
-  commune: string | null
-  type: string | null
-  prioritaire: boolean | null
-}
-
-export type CaptageJson = {
-  id: string
-  code: string
-  nom: string
-  code_bss: string
-  commune: string | null
-  type: string | null
-  etat: string
-  prioritaire: boolean
-}
-
-export type ProjectJson = {
-  id: string
-  name: string
-  description: string | null
-  actionType: string | null
-  status: 'to_be_started' | 'current' | 'completed' | 'abandoned'
-  closedAt: string | null
-  createdAt: string
-  updatedAt: string
-  territoires: TerritoireJson[]
-  parcelles: ParcelleJson[]
-  exploitations: ExploitationJson[]
-  captages: CaptageJson[]
-  steps: ProjectStepJson[]
-}
-
+// The projets list itself is typed on the frontend with the generated Data.Project type
 export type ProjetsTabsJson = {
-  projets: ProjectJson[]
   meta: {
     total: number
     perPage: number
@@ -146,51 +32,6 @@ export type ProjetsTabsJson = {
   availableActionTypes: string[]
   availableYearRange: { min: number; max: number }
   statusCounts: { to_be_started: number; current: number; completed: number; abandoned: number }
-}
-
-export type ProjectStepTagJson = {
-  id: number
-  name: string
-}
-
-export type ProjectStepDocumentJson = {
-  id: number
-  name: string
-  sizeInBytes: number
-  href: string
-}
-
-export type ProjectStepJson = {
-  id: string
-  title: string
-  note: string | null
-  date: string | null
-  isValidated: boolean
-  tags: ProjectStepTagJson[]
-  documents: ProjectStepDocumentJson[]
-  createdAt: string
-  updatedAt: string
-}
-
-export type ExploitationJson = {
-  id: string
-  name: string
-  formeJuridique: string | null
-  siret: string | null
-  denominationLegale: string | null
-  activite: string | null
-  addressLine1: string | null
-  addressLine2: string | null
-  postalCode: string | null
-  postalBox: string | null
-  commune: string | null
-  location: { x: number; y: number } | null
-  notes: string | null
-  contacts?: ContactJson[] | null
-  tags?: ExploitationTagJson[] | null
-  logEntries?: LogEntryJson[] | null
-  parcelles?: ParcelleJson[] | null
-  territoires?: TerritoireJson[] | null
 }
 
 export type ProchainesTacheJson = {
@@ -232,8 +73,9 @@ export type AacSummaryJson = {
   depassements_reglementaires: number
 }
 
+// Output of Transformer.paginate() with Lucid paginator metadata
 export type PaginatedJson<T> = {
-  meta: {
+  metadata: {
     total: number
     perPage: number
     currentPage: number

@@ -6,7 +6,7 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'
 
-import type { TerritoireJson } from '#types/models'
+import type { Data } from '@generated/data'
 import Alert from '@codegouvfr/react-dsfr/Alert'
 import DepassementsListItem from '~/ui/DepassementsListItem'
 import { getAacListItemMetas } from '~/functions/aac'
@@ -73,11 +73,11 @@ function TerritoiresList({ territoires, meta }: any) {
             Sélectionnez un territoire pour accéder aux données
           </h3>
           <div className="flex flex-col gap-2">
-            {territoires.map((territoire: TerritoireJson, index: number) => {
+            {territoires.map((territoire: Data.Territoire.Variants['forAac'], index: number) => {
               return (
                 <DepassementsListItem
                   key={territoire.code}
-                  title={territoire.nom}
+                  title={territoire.name ?? 'Territoire sans nom'}
                   priority={index % 2 === 0 ? 'primary' : 'secondary'}
                   linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
                   depassementsAlerte={territoire.depassements_alerte}

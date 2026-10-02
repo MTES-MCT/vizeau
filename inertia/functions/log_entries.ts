@@ -1,4 +1,4 @@
-import type { LogEntryJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 import { type AdditionalInfosProps } from '~/ui/ListItem'
 import { DateTime } from 'luxon'
@@ -18,7 +18,7 @@ export const severityColorMap: Record<
   success: fr.colors.decisions.text.default.info.default,
 }
 
-export function getLogEntryTitle(logEntry: LogEntryJson): string {
+export function getLogEntryTitle(logEntry: Data.LogEntry): string {
   if (logEntry.title) {
     return logEntry.title
   }
@@ -29,10 +29,10 @@ export function getLogEntryTitle(logEntry: LogEntryJson): string {
     return new Date(logEntry.date).toLocaleDateString()
   }
 
-  return new Date(logEntry.createdAt).toLocaleDateString()
+  return logEntry.createdAt ? new Date(logEntry.createdAt).toLocaleDateString() : ''
 }
 
-export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInfosProps['alert'] {
+export function getLogEntryDateDiffObject(logEntry: Data.LogEntry): AdditionalInfosProps['alert'] {
   if (!logEntry.date) {
     return {}
   }
@@ -85,7 +85,7 @@ export function getLogEntryDateDiffObject(logEntry: LogEntryJson): AdditionalInf
   }
 }
 
-export function getLogEntryAdditionalInfos(logEntry: LogEntryJson): AdditionalInfosProps {
+export function getLogEntryAdditionalInfos(logEntry: Data.LogEntry): AdditionalInfosProps {
   const additionalInfos: AdditionalInfosProps = {}
 
   if (logEntry.date) {

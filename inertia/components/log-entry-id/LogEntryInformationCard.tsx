@@ -3,7 +3,7 @@ import LabelInfo from '~/ui/LabelInfo'
 import SectionCard from '~/ui/SectionCard'
 import { fr } from '@codegouvfr/react-dsfr'
 import { getLogEntryAdditionalInfos, severityColorMap } from '~/functions/log_entries'
-import type { LogEntryJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router } from '@inertiajs/react'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
@@ -13,7 +13,7 @@ import { downloadCalendarEvent } from '~/functions/calendar'
 
 export type LogEntryInformationCardProps = {
   userName?: string
-  logEntry: LogEntryJson
+  logEntry: Data.LogEntry
   exploitationId: string
 }
 

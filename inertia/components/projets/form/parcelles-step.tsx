@@ -7,7 +7,7 @@ import ParcellesSelectionMap, {
 } from '~/components/map/parcelles-selection-map'
 import SectionCard from '~/ui/SectionCard'
 import type { ProjetFormData } from './projet-form'
-import type { ExploitationJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { getCultureByCode } from '~/functions/cultures-group'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
@@ -35,7 +35,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
 
   const handleParcelleToggle = useCallback(
     (parcelle: SelectedParcelle) => {
-      const linkedExploitation = (exploitations as ExploitationJson[]).find((exp) =>
+      const linkedExploitation = (exploitations as Data.Exploitation[]).find((exp) =>
         exp.parcelles?.some((p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId)
       )
       const linkedParcelle = linkedExploitation?.parcelles?.find(

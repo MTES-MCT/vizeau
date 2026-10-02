@@ -11,7 +11,8 @@ import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Marker, Popup, ScaleControl } from 'maplibre-gl'
 import type { LngLatBounds, LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
-import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
+import type { AacSummaryJson } from '#types/models'
+import type { Data } from '@generated/data'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
@@ -44,26 +45,26 @@ const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 const AAC_HIT_AREA_LAYER_ID = 'aac-outline-hit-area'
 
 export interface VisualisationMapRef {
-  centerOnExploitation: (exploitation: ExploitationJson) => void
-  centerOnParcelle: (parcelle: ParcelleJson) => void
+  centerOnExploitation: (exploitation: Data.Exploitation) => void
+  centerOnParcelle: (parcelle: Data.Parcelle) => void
   centerOnAac: (aac: AacSummaryJson) => void
   centerOnCoordinates: (coordinates: { x: number; y: number }) => void
 }
 
 type VisualisationMapProps = {
-  exploitations: ExploitationJson[]
-  selectedExploitation?: ExploitationJson
-  selectedParcelle?: ParcelleJson
+  exploitations: Data.Exploitation[]
+  selectedExploitation?: Data.Exploitation
+  selectedParcelle?: Data.Parcelle
   selectedParcelleId?: string
   isMapLoading: boolean
   setIsMapLoading: (isMapLoading: boolean) => void
   onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
-  onMarkerClick?: (exploitation: ExploitationJson) => void
+  onMarkerClick?: (exploitation: Data.Exploitation) => void
   onAacClick?: (aacCode: string) => void
   selectedAacCode?: string
-  onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
+  onMarkerMouseEnter?: (exploitation: Data.Exploitation) => void
   onMarkerMouseLeave?: () => void
   formParcelleIds?: string[]
   unavailableParcelleIds?: string[]
@@ -82,7 +83,7 @@ type VisualisationMapProps = {
   /** `null` lorsque les parcelles ne sont pas affichées au niveau de zoom courant. */
   onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
   pmtilesUrl: string
-  projects: ProjectJson[]
+  projects: Data.Project[]
   /** Surfaces of every AAC, keyed by AAC code. */
   aacSurfaces?: Record<string, number | null>
   /** AACs the user can open in the sidebar. */
@@ -228,7 +229,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     )
 
     useImperativeHandle(ref, () => ({
-      centerOnExploitation: (exploitation: ExploitationJson) => {
+      centerOnExploitation: (exploitation: Data.Exploitation) => {
         const map = mapRef.current
         if (map && exploitation.location) {
           const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
@@ -239,7 +240,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           })
         }
       },
-      centerOnParcelle: (parcelle: ParcelleJson) => {
+      centerOnParcelle: (parcelle: Data.Parcelle) => {
         const map = mapRef.current
         if (map && parcelle.centroid) {
           const coords: LngLatLike = [parcelle.centroid.x, parcelle.centroid.y]
@@ -325,7 +326,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           )
 
           const projectsWithThisParcelle = projects.filter((project) => {
-            return project.parcelles.some((p) => p.rpgId === id)
+            return project.parcelles?.some((p) => p.rpgId === id)
           })
 
           const popupContent = renderPopupParcelle(

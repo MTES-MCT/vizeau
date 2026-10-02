@@ -17,12 +17,13 @@ import { EventLoggerService } from '#services/event_logger_service'
 import Exploitation from '#models/exploitation'
 import LogEntry from '#models/log_entry'
 import User from '#models/user'
-import { LogEntryTagDto } from '../dto/log_entry_tag_dto.js'
 import { ExploitationService } from '#services/exploitation_service'
-import { LogEntryDto } from '../dto/log_entry_dto.js'
-import { ExploitationDto } from '../dto/exploitation_dto.js'
 import { LogEntryDocumentService } from '#services/log_entry_document_service'
 import { LogEntryCsvService } from '#services/log_entry_csv_service'
+import ExploitationTransformer from '#transformers/exploitation_transformer'
+import LogEntryTransformer from '#transformers/log_entry_transformer'
+import LogEntryTagTransformer from '#transformers/log_entry_tag_transformer'
+import UserTransformer from '#transformers/user_transformer'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -56,7 +57,7 @@ export default class LogEntriesController {
     const exploitation = await Exploitation.findOrFail(exploitationId)
 
     return inertia.render('journal/creation', {
-      exploitation: ExploitationDto.fromModel(exploitation),
+      exploitation: ExploitationTransformer.transform(exploitation),
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
           exploitationId,
@@ -64,7 +65,7 @@ export default class LogEntriesController {
           5
         )
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       },
       lastCreatedLogEntryTag: inertia.optional(async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
@@ -73,12 +74,12 @@ export default class LogEntriesController {
           1
         )
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       }),
       existingLogEntryTags: inertia.optional(async () => {
         const tags = await this.logEntryTagService.getTagsForLogEntry(request.qs().logEntryId)
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       }),
     })
   }
@@ -129,10 +130,10 @@ export default class LogEntriesController {
     const logEntryAuthor = await User.find(logEntry.userId)
 
     return inertia.render('journal/id', {
-      logEntry: LogEntryDto.fromModel(logEntry),
+      logEntry: LogEntryTransformer.transform(logEntry),
       isCreator: logEntry.userId === user.id,
-      exploitation: ExploitationDto.fromModel(exploitation),
-      user: logEntryAuthor?.serialize(),
+      exploitation: ExploitationTransformer.transform(exploitation),
+      user: logEntryAuthor ? UserTransformer.transform(logEntryAuthor) : undefined,
     })
   }
 
@@ -158,8 +159,8 @@ export default class LogEntriesController {
       .firstOrFail()
 
     return inertia.render('journal/edition', {
-      exploitation: ExploitationDto.fromModel(exploitation),
-      logEntry: LogEntryDto.fromModel(logEntry),
+      exploitation: ExploitationTransformer.transform(exploitation),
+      logEntry: LogEntryTransformer.transform(logEntry),
       isCreator: logEntry.userId === user.id,
       filteredLogEntryTags: async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
@@ -168,7 +169,7 @@ export default class LogEntriesController {
           5
         )
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       },
       lastCreatedLogEntryTag: inertia.optional(async () => {
         const tags = await this.logEntryTagService.getTagsForExploitation(
@@ -177,12 +178,12 @@ export default class LogEntriesController {
           1
         )
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       }),
       existingLogEntryTags: inertia.optional(async () => {
         const tags = await this.logEntryTagService.getTagsForLogEntry(request.qs().logEntryId)
 
-        return LogEntryTagDto.fromArray(tags)
+        return LogEntryTagTransformer.transform(tags)
       }),
     })
   }

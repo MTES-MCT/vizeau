@@ -1,6 +1,6 @@
-import type { ContactJson } from '#types/models'
+import type { Data } from '@generated/data'
 
-export function displayContactName(contact?: ContactJson) {
+export function displayContactName(contact?: Data.Contact) {
   if (!contact) {
     return 'Non renseigné'
   }
@@ -18,7 +18,7 @@ export function displayContactName(contact?: ContactJson) {
   return 'Non renseigné'
 }
 
-export function getMainContact(contacts?: ContactJson[]) {
+export function getMainContact(contacts?: Data.Contact[]) {
   if (contacts && contacts.length > 0) {
     return contacts[0]
   }

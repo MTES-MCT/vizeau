@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
-import type { TerritoireJson } from '#types/models'
+import type { Data } from '@generated/data'
 import type { ConformiteRepartitionJson } from '#types/captage'
 import { Link } from '@adonisjs/inertia/react'
 
@@ -11,7 +11,7 @@ import Tag from '@codegouvfr/react-dsfr/Tag'
 import '../../ui/ListItem/list-item.css'
 
 export type TerritoiresAlertesProps = {
-  territoires: TerritoireJson[]
+  territoires: Data.Territoire.Variants['forAac'][]
   conformiteRepartition?: ConformiteRepartitionJson
 }
 
@@ -57,7 +57,7 @@ export default function TerritoiresAlertes({
           <div className="flex flex-col gap-2">
             {territoiresAvecAlerte.map(
               ({
-                nom,
+                name,
                 id,
                 code,
                 surface,
@@ -78,7 +78,7 @@ export default function TerritoiresAlertes({
                     onClick={() => router.visit(`/aac/${code}`)}
                   >
                     <div className="flex gap-3">
-                      <strong>{nom}</strong>
+                      <strong>{name ?? 'Territoire sans nom'}</strong>
                       <Tag
                         small
                         style={{

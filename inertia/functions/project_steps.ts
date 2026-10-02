@@ -1,11 +1,11 @@
 import { DateTime } from 'luxon'
-import type { ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { type AdditionalInfosProps } from '~/ui/ListItem'
 import { severityColorMap } from '~/functions/log_entries'
 
 export { severityColorMap }
 
-export function getProjectStepTitle(step: ProjectStepJson): string {
+export function getProjectStepTitle(step: Data.ProjectStep): string {
   if (step.title) {
     return step.title
   }
@@ -16,10 +16,12 @@ export function getProjectStepTitle(step: ProjectStepJson): string {
     return new Date(step.date).toLocaleDateString()
   }
 
-  return new Date(step.createdAt).toLocaleDateString()
+  return step.createdAt ? new Date(step.createdAt).toLocaleDateString() : ''
 }
 
-export function getProjectStepDateDiffObject(step: ProjectStepJson): AdditionalInfosProps['alert'] {
+export function getProjectStepDateDiffObject(
+  step: Data.ProjectStep
+): AdditionalInfosProps['alert'] {
   if (!step.date) {
     return {}
   }
@@ -66,7 +68,7 @@ export function getProjectStepDateDiffObject(step: ProjectStepJson): AdditionalI
   }
 }
 
-export function getProjectStepAdditionalInfos(step: ProjectStepJson): AdditionalInfosProps {
+export function getProjectStepAdditionalInfos(step: Data.ProjectStep): AdditionalInfosProps {
   const additionalInfos: AdditionalInfosProps = {}
 
   if (step.date) {

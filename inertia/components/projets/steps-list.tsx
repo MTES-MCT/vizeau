@@ -8,7 +8,7 @@ import Timeline, { TimelineItem } from '~/ui/Timeline'
 import ListItem from '~/ui/ListItem'
 import AlertDrawer from '~/ui/AlertDrawer'
 import { MoreButtonProps } from '~/ui/MoreButton'
-import type { ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import {
   getProjectStepAdditionalInfos,
   getProjectStepTitle,
@@ -27,7 +27,7 @@ const completeStepModal = createModal({
 })
 
 export type StepsListProps = {
-  steps: ProjectStepJson[]
+  steps: Data.ProjectStep[]
   projectId: string
 }
 
@@ -109,10 +109,14 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
         additionalInfos={step.date ? additionalInfos : undefined}
         hasBorder={true}
         metas={[
-          {
-            content: `Créée le ${new Date(step.createdAt).toLocaleDateString()}`,
-            iconId: 'fr-icon-calendar-event-line',
-          },
+          ...(step.createdAt
+            ? [
+                {
+                  content: `Créée le ${new Date(step.createdAt).toLocaleDateString()}`,
+                  iconId: 'fr-icon-calendar-event-line',
+                },
+              ]
+            : []),
           ...(step.documents && step.documents.length > 0
             ? [
                 {

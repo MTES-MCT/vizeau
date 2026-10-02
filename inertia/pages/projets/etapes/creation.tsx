@@ -11,7 +11,7 @@ import ProjectStepForm from '~/components/projets/form/project-step-form'
 import { ProjectStepTagSelector } from '~/components/projets/form/ProjectStepTagSelector'
 import SmallSection from '~/ui/SmallSection'
 import { urlFor } from '~/client'
-import type { ProjectJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 export type ProjectStepFormData = {
   id?: string
@@ -22,7 +22,7 @@ export type ProjectStepFormData = {
   documents?: File[]
 }
 
-export default function ProjectStepCreationPage({ projet }: { projet: ProjectJson }) {
+export default function ProjectStepCreationPage({ projet }: { projet: Data.Project }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [tagInputValue, setTagInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<ProjectStepFormData>({

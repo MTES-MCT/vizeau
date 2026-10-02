@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import { ExploitationDto } from '../dto/exploitation_dto.js'
+import ExploitationTransformer from '#transformers/exploitation_transformer'
 import { ExploitationService } from '#services/exploitation_service'
 import env from '#start/env'
 import { EventLoggerService } from '#services/event_logger_service'
@@ -11,7 +11,7 @@ import { depassementsFiltersValidator } from '#validators/aac'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import Project from '#models/project'
-import { ProjectDto } from '../dto/project_dto.js'
+import ProjectTransformer from '#transformers/project_transformer'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -121,7 +121,7 @@ export default class VisualisationController {
               })
           })
 
-        return ExploitationDto.toJsonArray(results)
+        return ExploitationTransformer.transform(results)
       },
       projects: async () => {
         const projects = await Project.query()
@@ -136,7 +136,7 @@ export default class VisualisationController {
               })
           })
 
-        return ProjectDto.toJsonArray(projects)
+        return ProjectTransformer.transform(projects)
       },
       // Get the IDs of parcelles that are already assigned to other exploitations for the given year
       unavailableParcellesIds: inertia.optional(async () => {

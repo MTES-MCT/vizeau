@@ -1,11 +1,11 @@
 import ListItem from '~/ui/ListItem'
-import type { ParcelleJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { getCultureByCode } from '~/functions/cultures-group'
 
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 
 export type ProjetParcellesListProps = {
-  parcelles: ParcelleJson[]
+  parcelles: Data.Parcelle[]
 }
 
 export default function ProjetParcellesList({ parcelles }: ProjetParcellesListProps) {
