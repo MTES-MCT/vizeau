@@ -2,49 +2,42 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import User from '#models/user'
 import Env from '#start/env'
 
-type UserRow = { fullName?: string; email: string; password?: string }
-
+// Creates the admin and, outside production, a non-admin test user (7_territoire_seeder attaches
+// a few territoires to it, to test the cloisonnement par territoire).
+// Existing users are left untouched: use `node ace user:reset-password` to change a password.
+// Other users are created with `node ace user:seed --file`.
 export default class extends BaseSeeder {
   async run() {
-    // USERS_TO_SEED must be a JSON array of { email, fullName?, password? }
-    const usersToInject: UserRow[] = JSON.parse(Env.get('USERS_TO_SEED') || '[]')
-
-    const users: UserRow[] = [
+    const users = [
       {
         fullName: 'Jeanne Martin',
-        email: Env.get('ADMIN_EMAIL')!,
+        email: Env.get('ADMIN_EMAIL').toLowerCase(),
         password: Env.get('ADMIN_PASSWORD'),
       },
-      ...usersToInject.map((user) => ({
-        fullName: user.fullName,
-        email: user.email.toLowerCase(),
-        password: user.password,
-      })),
     ]
+    if (Env.get('NODE_ENV') !== 'production') {
+      users.push({
+        fullName: 'Pierre Dupont',
+        email: 'test@vizeau.beta.gouv.fr',
+        password: 'password',
+      })
+    }
 
-    if (process.env.DRY_RUN) {
-      await this.previewChanges(users)
+    const existingUsers = await User.query().whereIn(
+      'email',
+      users.map((user) => user.email)
+    )
+    const existingEmails = new Set(existingUsers.map((user) => user.email))
+    const newUsers = users.filter((user) => !existingEmails.has(user.email))
+
+    if (Env.get('DRY_RUN')) {
+      console.log(`\n[DRY RUN] Users to create (${newUsers.length})`)
+      if (newUsers.length > 0) {
+        console.table(newUsers.map(({ email, fullName }) => ({ email, fullName })))
+      }
       return
     }
 
-    await User.updateOrCreateMany('email', users)
-  }
-
-  // Passwords are hashed in DB, so they can't be compared and are never printed
-  private async previewChanges(users: UserRow[]) {
-    const currentUsers = await User.all()
-    const existing = new Map(currentUsers.map((u) => [u.email, u]))
-
-    const toCreate = users
-      .filter((u) => !existing.has(u.email))
-      .map((u) => ({ email: u.email, fullName: u.fullName }))
-    const toUpdate = users
-      .filter((u) => existing.has(u.email) && existing.get(u.email)!.fullName !== u.fullName)
-      .map((u) => ({ email: u.email, from: existing.get(u.email)!.fullName, to: u.fullName }))
-
-    console.log(`\n[DRY RUN] Users to create (${toCreate.length})`)
-    if (toCreate.length > 0) console.table(toCreate)
-    console.log(`\n[DRY RUN] User full names to update (${toUpdate.length})`)
-    if (toUpdate.length > 0) console.table(toUpdate)
+    await User.createMany(newUsers)
   }
 }

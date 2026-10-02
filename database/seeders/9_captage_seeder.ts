@@ -1,6 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Captage from '#models/captage'
 import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
+import Env from '#start/env'
 
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -21,7 +22,7 @@ export default class CaptageSeeder extends BaseSeeder {
   public async run() {
     const rows = await this.fetchCaptagesFromParquet()
 
-    if (process.env.DRY_RUN) {
+    if (Env.get('DRY_RUN')) {
       await this.previewChanges(rows)
       return
     }

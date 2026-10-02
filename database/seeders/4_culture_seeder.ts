@@ -2,6 +2,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Culture from '#models/culture'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import Env from '#start/env'
 
 type CultureRow = {
   code: string
@@ -19,7 +20,7 @@ export default class CultureSeeder extends BaseSeeder {
       readFileSync(path.join('inertia', 'data', 'cultures.json'), 'utf-8')
     )
 
-    if (process.env.DRY_RUN) {
+    if (Env.get('DRY_RUN')) {
       await this.previewChanges(cultures)
       return
     }

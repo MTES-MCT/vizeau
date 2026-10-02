@@ -52,8 +52,8 @@ export default await Env.create(new URL('../', import.meta.url), {
   // If set, enables the integration with the PMTiles server for map tile hosting
   PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
 
-  // If set, the string will be parsed as JSON and the content will be injected as users
-  USERS_TO_SEED: Env.schema.string.optional(),
+  // Set when running db:seed, never in the .env file: preview the changes without writing
+  DRY_RUN: Env.schema.boolean.optional(),
 
   /*
   |----------------------------------------------------------

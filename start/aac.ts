@@ -1,10 +1,11 @@
 import logger from '@adonisjs/core/services/logger'
 import { DuckdbService } from '#services/duckdb_service'
 import { AacService } from '#services/aac_service'
+import Env from '#start/env'
 
 // Warm up DuckDB connection, S3 secret, and both query paths at server startup.
 // Skipped in test/development to avoid slow/flaky external calls.
-if (process.env.NODE_ENV === 'production') {
+if (Env.get('NODE_ENV') === 'production') {
   logger.info('AAC warmup starting')
   try {
     const duckdbService = new DuckdbService()

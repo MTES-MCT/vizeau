@@ -2,12 +2,16 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Territoire from '#models/territoire'
 import User from '#models/user'
 import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
+import Env from '#start/env'
+
+// Non-admin test user created by 1_user_seeder outside production, with a few territoires
+const TEST_USER = { email: 'test@vizeau.beta.gouv.fr', territoireCodes: ['1', '2', '3'] }
 
 export default class TerritoireSeeder extends BaseSeeder {
   public async run() {
     const rows = await this.fetchTerritoiresFromParquet()
 
-    if (process.env.DRY_RUN) {
+    if (Env.get('DRY_RUN')) {
       await this.previewChanges(rows)
       return
     }
@@ -22,8 +26,18 @@ export default class TerritoireSeeder extends BaseSeeder {
     await this.queryTerritoiresToDeactivate(rows).update({ isActive: false })
 
     // Assign all territoires to the admin
-    const admin = await User.findByOrFail('email', process.env.ADMIN_EMAIL)
+    const admin = await User.findByOrFail('email', Env.get('ADMIN_EMAIL').toLowerCase())
     await admin.related('territoires').sync(territoires.map((t) => t.id))
+
+    // Outside production, attach a few territoires to the test user, without detaching any
+    const testUser = await User.findBy('email', TEST_USER.email)
+    if (Env.get('NODE_ENV') !== 'production' && testUser) {
+      const testTerritoires = territoires.filter((t) => TEST_USER.territoireCodes.includes(t.code!))
+      await testUser.related('territoires').sync(
+        testTerritoires.map((t) => t.id),
+        false
+      )
+    }
   }
 
   private async fetchTerritoiresFromParquet() {
@@ -67,7 +81,7 @@ export default class TerritoireSeeder extends BaseSeeder {
     const toDeactivate = territoiresToDeactivate.map((t) => ({ code: t.code, name: t.name }))
 
     // The admin sync detaches every territoire that is not in the parquet
-    const admin = await User.findByOrFail('email', process.env.ADMIN_EMAIL)
+    const admin = await User.findByOrFail('email', Env.get('ADMIN_EMAIL').toLowerCase())
     const adminTerritoires = await admin.related('territoires').query()
     const incoming = new Set(rows.map((r) => r.code))
     const adminCodes = new Set(adminTerritoires.map((t) => t.code))
@@ -91,5 +105,18 @@ export default class TerritoireSeeder extends BaseSeeder {
     if (toDetach.length > 0) console.table(toDetach)
     console.log(`\n[DRY RUN] Territoires to attach to admin "${admin.email}" (${toAttach.length})`)
     if (toAttach.length > 0) console.table(toAttach)
+
+    const testUser = await User.findBy('email', TEST_USER.email)
+    if (Env.get('NODE_ENV') !== 'production' && testUser) {
+      const testUserTerritoires = await testUser.related('territoires').query()
+      const testUserCodes = new Set(testUserTerritoires.map((t) => t.code))
+      const toAttachToTestUser = rows.filter(
+        (r) => TEST_USER.territoireCodes.includes(r.code) && !testUserCodes.has(r.code)
+      )
+      console.log(
+        `\n[DRY RUN] Territoires to attach to test user "${testUser.email}" (${toAttachToTestUser.length})`
+      )
+      if (toAttachToTestUser.length > 0) console.table(toAttachToTestUser)
+    }
   }
 }
