@@ -70,7 +70,7 @@ export class ProjectService {
       .preload('parcelles')
       .preload('exploitations')
       .preload('captages')
-      .preload('territoires')
+      .preload('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode()))
       .orderBy('createdAt', 'desc')
   }
 
@@ -240,7 +240,7 @@ export class ProjectService {
     await project.load('parcelles')
     await project.load('exploitations')
     await project.load('captages')
-    await project.load('territoires')
+    await project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode()))
     await project.load('steps')
 
     return project

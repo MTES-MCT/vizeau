@@ -80,4 +80,7 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // If true, DuckDB will write logs in the standard output
   DUCKDB_DEBUG: Env.schema.boolean.optional(),
+
+  // If true, logs DuckDB memory usage around each DuckDB query
+  DUCKDB_MEM_DEBUG: Env.schema.boolean.optional(),
 })

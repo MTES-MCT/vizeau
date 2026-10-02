@@ -492,7 +492,7 @@ export class TerritoireUserRelationSchema extends BaseModel {
 }
 
 export class TerritoireSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'id', 'name', 'parentTerritoireId', 'updatedAt'] as const
+  static $columns = ['code', 'createdAt', 'id', 'isActive', 'name', 'parentTerritoireId', 'updatedAt'] as const
   $columns = TerritoireSchema.$columns
   @column()
   declare code: string | null
@@ -500,6 +500,8 @@ export class TerritoireSchema extends BaseModel {
   declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare isActive: boolean
   @column()
   declare name: string | null
   @column()

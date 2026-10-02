@@ -181,7 +181,7 @@ export default class ProjectsController {
       ),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
@@ -366,7 +366,7 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
@@ -390,7 +390,7 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
     ])
 
     const pageInput = request.input('installationsPage') || '1'

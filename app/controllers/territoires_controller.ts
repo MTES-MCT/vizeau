@@ -38,7 +38,8 @@ export default class TerritoiresController {
     const territoiresPaginator = await this.territoireService.getTerritoiresForUser(
       userId,
       page,
-      PER_PAGE
+      PER_PAGE,
+      { includeInactive: true }
     )
 
     const rawTerritoires = territoiresPaginator.toJSON().data as any[]

@@ -6,8 +6,6 @@ import type {
   AnalysesPerYear,
   SubstanceItem,
   ChroniqueData,
-  SubstanceAlerteJson,
-  SubstancesRepartitionJson,
   CaptageAlerteJson,
 } from '#types/captage'
 
@@ -18,6 +16,13 @@ function getParquetPath(): string {
 function getAnalysesRobinetPath(): string {
   return `s3://${getAacFilesS3Driver().options.bucket}/analyses_robinet.parquet`
 }
+
+/**
+ * AAC ordering (DuckDB dialect): codes are stored as strings but are numeric, so they are
+ * sorted as integers. AACs without a numeric code (rare) come last, sorted by name.
+ * Kept consistent with the `orderByCode` scope of the Territoire model.
+ */
+const SQL_ORDER_BY_CODE = 'TRY_CAST(code AS INTEGER) ASC NULLS LAST, code ASC NULLS LAST, nom ASC'
 
 // ---------------------------------------------------------------------------
 // Reusable SQL threshold-detection fragments (DuckDB dialect).
@@ -82,7 +87,6 @@ function getCaptageStatePriority(state: string): number {
 export type AacOverview = {
   summariesByCode: Record<string, AacSummaryJson>
   conformiteStatsByAacCode: Map<string, AnalysesStats>
-  substancesRepartition: SubstancesRepartitionJson
   captagesAlertes: CaptageAlerteJson[]
   /** The first AAC codes (in input order) with at least one dépassement, and how many there are in total. */
   aacCodesARisque: { codes: string[]; total: number }
@@ -109,110 +113,6 @@ function toCaptageAlerte(row: Record<string, unknown>): CaptageAlerteJson {
     aac_nom: String(row.aac_nom ?? ''),
     depassements_alerte: Number(row.depassements_alerte ?? 0),
     depassements_reglementaires: Number(row.depassements_reglementaires ?? 0),
-  }
-}
-
-/** Per-AAC, per-substance analyses counts, as aggregated by the substances queries. */
-type SubstanceRow = {
-  aac_code: string
-  code_parametre: number
-  libelle_parametre: string
-  nb_dep_regl: number
-  nb_dep_alerte: number
-  nb_total: number
-  derniere_valeur: number
-  code_unite: string
-  // ISO date (YYYY-MM-DD), compared as a string to pick the most recent value
-  // when combining territoires — not exposed on SubstanceAlerteJson.
-  derniere_date: string
-}
-
-function toSubstanceRow(r: Record<string, unknown>): SubstanceRow {
-  return {
-    aac_code: String(r.aac_code),
-    code_parametre: Number(r.code_parametre),
-    libelle_parametre: String(r.libelle_parametre ?? ''),
-    nb_dep_regl: Number(r.nb_dep_regl ?? 0),
-    nb_dep_alerte: Number(r.nb_dep_alerte ?? 0),
-    nb_total: Number(r.nb_total ?? 0),
-    derniere_valeur: Number(r.derniere_valeur ?? 0),
-    code_unite: String(r.code_unite ?? ''),
-    derniere_date: String(r.derniere_date ?? ''),
-  }
-}
-
-function toSubstanceAlerte(row: Omit<SubstanceRow, 'aac_code'>): SubstanceAlerteJson | null {
-  if (row.nb_dep_regl === 0 && row.nb_dep_alerte === 0) return null
-
-  const isReglementaire = row.nb_dep_regl > 0
-  const depCount = isReglementaire ? row.nb_dep_regl : row.nb_dep_alerte
-
-  return {
-    code_parametre: row.code_parametre,
-    libelle_parametre: row.libelle_parametre,
-    taux_depassement: Math.round((1000 * depCount) / row.nb_total) / 10,
-    type: isReglementaire ? 'reglementaire' : 'alerte',
-    derniere_valeur: row.derniere_valeur,
-    code_unite: row.code_unite,
-  }
-}
-
-function top5Substances(substances: (SubstanceAlerteJson | null)[]): SubstanceAlerteJson[] {
-  return substances
-    .filter((s): s is SubstanceAlerteJson => s !== null)
-    .sort((a, b) => {
-      if (a.type !== b.type) return a.type === 'reglementaire' ? -1 : 1
-      return b.taux_depassement - a.taux_depassement
-    })
-    .slice(0, 5)
-}
-
-/**
- * Rank the top 5 substances at risk, across every territoire and for each one individually.
- * Réglementaire dépassements are always ranked before alerte-only ones, then by dépassement
- * rate descending.
- */
-function buildSubstancesRepartition(
-  territoires: { id: string; code: string }[],
-  rows: SubstanceRow[]
-): SubstancesRepartitionJson {
-  const rowsByAacCode = new Map<string, SubstanceRow[]>()
-  for (const row of rows) {
-    const list = rowsByAacCode.get(row.aac_code) ?? []
-    list.push(row)
-    rowsByAacCode.set(row.aac_code, list)
-  }
-
-  const parTerritoire: Record<string, SubstanceAlerteJson[]> = {}
-  for (const territoire of territoires) {
-    const territoireRows = rowsByAacCode.get(territoire.code) ?? []
-    parTerritoire[territoire.id] = top5Substances(territoireRows.map(toSubstanceAlerte))
-  }
-
-  // "Tous territoires": sum each substance's counts across every territoire before ranking,
-  // keeping the value/unit from whichever territoire has the most recent analysis.
-  const combinedByCodeParametre = new Map<number, Omit<SubstanceRow, 'aac_code'>>()
-  for (const row of rows) {
-    const existing = combinedByCodeParametre.get(row.code_parametre)
-    if (existing) {
-      existing.nb_dep_regl += row.nb_dep_regl
-      existing.nb_dep_alerte += row.nb_dep_alerte
-      existing.nb_total += row.nb_total
-      if (row.derniere_date > existing.derniere_date) {
-        existing.derniere_valeur = row.derniere_valeur
-        existing.code_unite = row.code_unite
-        existing.derniere_date = row.derniere_date
-      }
-    } else {
-      combinedByCodeParametre.set(row.code_parametre, { ...row })
-    }
-  }
-
-  return {
-    tousTerritoires: top5Substances(
-      Array.from(combinedByCodeParametre.values()).map(toSubstanceAlerte)
-    ),
-    parTerritoire,
   }
 }
 
@@ -360,7 +260,7 @@ export class AacService {
         'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($path) ' +
         where +
-        ' ORDER BY nom LIMIT $limit OFFSET $offset',
+        ` ORDER BY ${SQL_ORDER_BY_CODE} LIMIT $limit OFFSET $offset`,
       parameters
     )
 
@@ -493,7 +393,6 @@ export class AacService {
       return {
         summariesByCode: {},
         conformiteStatsByAacCode: new Map(),
-        substancesRepartition: { tousTerritoires: [], parTerritoire: {} },
         captagesAlertes: [],
         aacCodesARisque: { codes: [], total: 0 },
       }
@@ -520,27 +419,16 @@ export class AacService {
           installation.departement AS departement
         FROM (SELECT code AS aac_code, nom AS aac_nom, unnest(installations) AS installation FROM aac)
       ),
-      -- Single scan of the analyses, with the threshold flags evaluated once per row.
-      analyses AS MATERIALIZED (
-        SELECT
-          code_installation,
-          date_prelevement,
-          code_parametre,
-          libelle_parametre,
-          resultat_traduction,
-          code_unite,
-          COALESCE(${SQL_DEP_REGL}, false) AS dep_regl,
-          COALESCE(${SQL_DEP_ALERTE}, false) AS dep_alerte
-        FROM read_parquet($analysesPath)
-        WHERE code_installation IN (SELECT code FROM aac_installations)
-      ),
+      -- Single scan of the analyses: the threshold flags are evaluated once per row and
+      -- aggregated per date on the fly, so that the raw rows are never held in memory.
       date_flags AS MATERIALIZED (
         SELECT
           code_installation,
           date_prelevement,
-          BOOL_OR(dep_regl) AS dep_regl,
-          BOOL_OR(dep_alerte) AS dep_alerte
-        FROM analyses
+          BOOL_OR(COALESCE(${SQL_DEP_REGL}, false)) AS dep_regl,
+          BOOL_OR(COALESCE(${SQL_DEP_ALERTE}, false)) AS dep_alerte
+        FROM read_parquet($analysesPath)
+        WHERE code_installation IN (SELECT code FROM aac_installations)
         GROUP BY code_installation, date_prelevement
       ),
       -- Same rule as getConformiteStatsByInstallation: a date exceeding both thresholds
@@ -591,22 +479,6 @@ export class AacService {
         ORDER BY list_position($aacCodes, aac_code)
         LIMIT $limitARisque
       ),
-      substances AS (
-        SELECT
-          ai.aac_code,
-          CAST(an.code_parametre AS INTEGER) AS code_parametre,
-          ANY_VALUE(an.libelle_parametre) AS libelle_parametre,
-          CAST(COUNT(*) FILTER (WHERE an.dep_regl) AS INTEGER) AS nb_dep_regl,
-          CAST(COUNT(*) FILTER (WHERE an.dep_alerte) AS INTEGER) AS nb_dep_alerte,
-          CAST(COUNT(*) AS INTEGER) AS nb_total,
-          arg_max(an.resultat_traduction, an.date_prelevement) AS derniere_valeur,
-          arg_max(an.code_unite, an.date_prelevement) AS code_unite,
-          CAST(MAX(an.date_prelevement) AS VARCHAR) AS derniere_date
-        FROM analyses an
-        JOIN aac_installations ai ON ai.code = an.code_installation
-        WHERE an.resultat_traduction IS NOT NULL
-        GROUP BY ai.aac_code, an.code_parametre
-      ),
       captages AS (
         SELECT
           ai.code,
@@ -624,7 +496,6 @@ export class AacService {
       SELECT
         (SELECT list(s) FROM summaries s) AS summaries,
         (SELECT list(c) FROM conformite c) AS conformite,
-        (SELECT list(s) FROM substances s) AS substances,
         (
           SELECT list(c ORDER BY c.depassements_reglementaires DESC, c.depassements_alerte DESC, c.nom)
           FROM captages c
@@ -655,18 +526,17 @@ export class AacService {
       conformiteStatsByAacCode.set(conformiteRow.aac_code, toAnalysesStats(conformiteRow))
     }
 
+    const captagesAlertes = asRows(row?.captages).map(toCaptageAlerte)
+    const aacCodesARisque = {
+      codes: (row?.aac_a_risque_codes as string[] | null) ?? [],
+      total: Number(row?.aac_a_risque_total ?? 0),
+    }
+
     return {
       summariesByCode,
       conformiteStatsByAacCode,
-      substancesRepartition: buildSubstancesRepartition(
-        territoires,
-        asRows(row?.substances).map(toSubstanceRow)
-      ),
-      captagesAlertes: asRows(row?.captages).map(toCaptageAlerte),
-      aacCodesARisque: {
-        codes: (row?.aac_a_risque_codes as string[] | null) ?? [],
-        total: Number(row?.aac_a_risque_total ?? 0),
-      },
+      captagesAlertes,
+      aacCodesARisque,
     }
   }
 
@@ -1072,11 +942,11 @@ export class AacService {
   }
 
   /**
-   * Returns all AAC names ordered alphabetically.
+   * Returns all AAC names ordered by code.
    */
   async getAllNames() {
     return this.duckdbService.query<{ code: string; name: string }>(
-      'SELECT code, nom as name FROM read_parquet($path) ORDER BY nom',
+      `SELECT code, nom as name FROM read_parquet($path) ORDER BY ${SQL_ORDER_BY_CODE}`,
       { path: getParquetPath() }
     )
   }

@@ -104,10 +104,6 @@ export default class AccueilController {
         const aacData = await getAacData()
         return aacData.conformiteRepartition
       }, 'aac'),
-      substancesRepartition: inertia.defer(async () => {
-        const aacData = await getAacData()
-        return aacData.substancesRepartition
-      }, 'aac'),
       captagesAlertes: inertia.defer(async () => {
         const aacData = await getAacData()
         return aacData.captagesAlertes
@@ -125,7 +121,6 @@ export default class AccueilController {
     const {
       summariesByCode: aacSummariesByCode,
       conformiteStatsByAacCode,
-      substancesRepartition,
       captagesAlertes,
       aacCodesARisque,
     } = await withAacFallback(
@@ -135,7 +130,6 @@ export default class AccueilController {
       {
         summariesByCode: {},
         conformiteStatsByAacCode: new Map(),
-        substancesRepartition: { tousTerritoires: [], parTerritoire: {} },
         captagesAlertes: [],
         aacCodesARisque: { codes: [], total: 0 },
       }
@@ -160,7 +154,7 @@ export default class AccueilController {
       totalTerritoiresARisque: aacCodesARisque.total,
     }
 
-    return { territoires, conformiteRepartition, substancesRepartition, captagesAlertes }
+    return { territoires, conformiteRepartition, captagesAlertes }
   }
 
   async noTerritoire({ inertia, response, auth }: HttpContext) {
