@@ -7,9 +7,9 @@ import { ProjectStepService } from '#services/project_step_service'
 import { TerritoireService } from '#services/territoire_service'
 import { AacService } from '#services/aac_service'
 import { EventLoggerService } from '#services/event_logger_service'
-import { TerritoireDto } from '../dto/territoire_dto.js'
 import { ProchainesTacheDto } from '../dto/prochaines_tache_dto.js'
-import { ProjectDto } from '../dto/project_dto.js'
+import ProjectTransformer from '#transformers/project_transformer'
+import TerritoireTransformer from '#transformers/territoire_transformer'
 import type { ConformiteRepartitionJson } from '#types/captage'
 import type { ProchainesTacheJson } from '#types/models'
 
@@ -94,7 +94,7 @@ export default class AccueilController {
 
     return inertia.render('accueil', {
       urgentTasksCount: urgentLogEntriesCount + urgentProjectStepsCount,
-      currentProjects: ProjectDto.toJsonArray(currentProjects),
+      currentProjects: ProjectTransformer.transform(currentProjects),
       prochainesTaches,
       territoires: inertia.defer(async () => {
         const aacData = await getAacData()
@@ -135,12 +135,10 @@ export default class AccueilController {
       }
     )
 
-    const territoires = territoireModels.map((territoire) =>
-      TerritoireDto.fromModel(
-        territoire,
-        territoire.code ? aacSummariesByCode[territoire.code] : null
-      )
-    )
+    const territoires = TerritoireTransformer.transform(
+      territoireModels,
+      aacSummariesByCode
+    ).useVariant('forAac')
 
     const conformiteRepartition: ConformiteRepartitionJson = {
       parTerritoire: Object.fromEntries(

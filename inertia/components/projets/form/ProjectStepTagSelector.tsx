@@ -2,7 +2,7 @@ import { debounce } from 'lodash-es'
 import InputWithSelector, { OptionType } from '~/ui/InputWithSelector'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router, usePage } from '@inertiajs/react'
-import type { ProjectStepTagJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { Tag } from '@codegouvfr/react-dsfr/Tag'
 import { urlFor } from '~/client'
 
@@ -22,12 +22,12 @@ type ProjectStepTagSelectorProps = {
 }
 
 type ProjectStepTagPageProps = {
-  filteredProjectStepTags: ProjectStepTagJson[]
-  lastCreatedProjectStepTag?: ProjectStepTagJson[]
+  filteredProjectStepTags: Data.ProjectStepTag[]
+  lastCreatedProjectStepTag?: Data.ProjectStepTag[]
 }
 
 // Every tag fetched is cached for later retrieval
-const tagsCache: Record<number, ProjectStepTagJson> = {}
+const tagsCache: Record<number, Data.ProjectStepTag> = {}
 
 export function ProjectStepTagSelector({
   inputValue,
@@ -69,7 +69,7 @@ export function ProjectStepTagSelector({
     ],
   }))
 
-  const selectedTags: Array<ProjectStepTagJson | undefined> = values.map((id) => tagsCache[id])
+  const selectedTags: Array<Data.ProjectStepTag | undefined> = values.map((id) => tagsCache[id])
 
   const normalizedInput = inputValue ? inputValue.trim().toLowerCase() : ''
 

@@ -1,6 +1,6 @@
 import FileItemsList from '~/ui/FileItemList'
 import { router } from '@inertiajs/react'
-import type { LogEntryDocumentJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { useState } from 'react'
@@ -14,7 +14,7 @@ export function LogEntryDocumentList({
   documents,
   deleteDocumentUrl,
 }: {
-  documents: LogEntryDocumentJson[]
+  documents: Data.LogEntryDocument[]
   deleteDocumentUrl?: string
 }) {
   const [documentIdToDelete, setDocumentIdToDelete] = useState<number | null>(null)

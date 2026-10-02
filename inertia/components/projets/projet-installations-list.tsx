@@ -1,10 +1,10 @@
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import type { CaptageJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { stringToColor } from '~/functions/colors'
 import ListItem from '~/ui/ListItem'
 
 export type ProjetInstallationsListProps = {
-  captages: CaptageJson[]
+  captages: Data.Captage[]
 }
 
 export default function ProjetInstallationsList({ captages }: ProjetInstallationsListProps) {
@@ -27,17 +27,17 @@ export default function ProjetInstallationsList({ captages }: ProjetInstallation
                 message: 'Prioritaire',
                 iconId: 'fr-icon-info-fill',
               }),
-              ...(captage.etat && {
+              ...(captage.state && {
                 alert: {
-                  text: captage.etat,
-                  severity: captage.etat === 'ACTIF' ? 'success' : 'error',
+                  text: captage.state,
+                  severity: captage.state === 'ACTIF' ? 'success' : 'error',
                 },
               }),
             }}
             variant="compact"
             hasBorder
             priority={index % 2 === 1 ? 'secondary' : 'primary'}
-            title={captage.nom}
+            title={captage.name}
             tags={[
               ...(captage.type
                 ? [
@@ -51,17 +51,9 @@ export default function ProjetInstallationsList({ captages }: ProjetInstallation
             metas={[
               {
                 iconId: 'fr-icon-government-line',
-                content:
-                  captage.commune && captage.departement
-                    ? `${captage.commune} (${captage.departement})`
-                    : (captage.commune ?? captage.departement ?? 'Localisation inconnue'),
+                content: captage.commune ?? 'Localisation inconnue',
               },
             ]}
-            linkProps={
-              captage.aac_code
-                ? { href: `/aac/${captage.aac_code}/installations/${captage.code}` }
-                : undefined
-            }
           />
         </li>
       ))}

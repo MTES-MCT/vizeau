@@ -9,7 +9,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
 import { getProjectStepTitle } from '~/functions/project_steps'
-import type { ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import StepInfoCard from '~/components/projets/step-info-card'
 import { ProjectStepDocumentList } from '~/components/projets/ProjectStepDocumentList'
 import ProjectStepTagsCard from '~/components/projets/ProjectStepTagsCard'
@@ -21,7 +21,7 @@ type SingleProjectStepProps = {
     id: string
     name: string
   }
-  step: ProjectStepJson
+  step: Data.ProjectStep
 }
 
 export default function SingleProjectStep({ projet, step }: SingleProjectStepProps) {

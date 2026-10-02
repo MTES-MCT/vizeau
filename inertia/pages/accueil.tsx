@@ -1,7 +1,8 @@
 import { Head, Deferred } from '@inertiajs/react'
 import Layout from '~/ui/layouts/layout'
 
-import type { TerritoireJson, ProchainesTacheJson, ProjectJson } from '#types/models'
+import type { ProchainesTacheJson } from '#types/models'
+import type { Data } from '@generated/data'
 import type { ConformiteRepartitionJson, CaptageAlerteJson } from '#types/captage'
 import { router } from '@inertiajs/react'
 import Hero from '~/components/accueil/hero'
@@ -15,8 +16,8 @@ import Button from '@codegouvfr/react-dsfr/Button'
 
 export type DashboardHomepageProps = {
   urgentTasksCount: number
-  currentProjects: ProjectJson[]
-  territoires?: TerritoireJson[]
+  currentProjects: Data.Project[]
+  territoires?: Data.Territoire.Variants['forAac'][]
   conformiteRepartition?: ConformiteRepartitionJson
   captagesAlertes?: CaptageAlerteJson[]
   prochainesTaches: ProchainesTacheJson[]

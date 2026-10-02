@@ -1,4 +1,4 @@
-import type { ProjectJson, ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import SectionCard from '~/ui/SectionCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import CustomTag from '~/ui/CustomTag'
@@ -7,13 +7,13 @@ import { Card } from '@codegouvfr/react-dsfr/Card'
 import MetasList from '~/ui/MetasList'
 import { formatDateFr } from '~/functions/date'
 export type ProjetsEnCoursProps = {
-  projets: ProjectJson[]
+  projets: Data.Project[]
 }
 
-function getNextStep(steps: ProjectStepJson[]): ProjectStepJson | undefined {
+function getNextStep(steps: Data.ProjectStep[]): Data.ProjectStep | undefined {
   return steps
     .filter(
-      (step): step is ProjectStepJson & { date: string } => !step.isValidated && step.date !== null
+      (step): step is Data.ProjectStep & { date: string } => !step.isValidated && step.date !== null
     )
     .sort((a, b) => a.date.localeCompare(b.date))[0]
 }
@@ -29,11 +29,11 @@ export default function ProjetsEnCours({ projets }: ProjetsEnCoursProps) {
               name,
               description,
               actionType,
-              steps,
-              exploitations,
+              steps = [],
+              exploitations = [],
               updatedAt,
-              parcelles,
-              captages,
+              parcelles = [],
+              captages = [],
             }) => {
               const nextStep = getNextStep(steps)
 

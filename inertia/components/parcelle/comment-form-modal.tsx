@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
-import type { ParcelleJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import Input from '@codegouvfr/react-dsfr/Input'
 
 export type CommentFormProps = {
-  parcelle: ParcelleJson | null
+  parcelle: Data.Parcelle | null
   exploitationId: string
   handleCommentModal: ReturnType<typeof createModal>
   reloadProp?: string

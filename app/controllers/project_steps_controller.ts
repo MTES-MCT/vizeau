@@ -17,11 +17,11 @@ import {
   updateProjectStepPayloadValidator,
 } from '#validators/project_step'
 import { showProjectValidator } from '#validators/project'
-import { ProjectDto } from '../dto/project_dto.js'
-import { ProjectStepDto } from '../dto/project_step_dto.js'
-import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { ProjectStepCsvService } from '#services/project_step_csv_service'
+import ProjectTransformer from '#transformers/project_transformer'
+import ProjectStepTransformer from '#transformers/project_step_transformer'
+import ProjectStepTagTransformer from '#transformers/project_step_tag_transformer'
 
 @inject()
 export default class ProjectStepsController {
@@ -42,18 +42,18 @@ export default class ProjectStepsController {
     }
 
     return inertia.render('projets/etapes/creation', {
-      projet: ProjectDto.fromModel(project),
+      projet: ProjectTransformer.transform(project),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
           user.id,
           request.qs().tagSearch,
           5
         )
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       },
       lastCreatedProjectStepTag: inertia.optional(async () => {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       }),
     })
   }
@@ -121,11 +121,8 @@ export default class ProjectStepsController {
     const step = await this.projectStepService.getStepForProject(params.stepId, project)
 
     return inertia.render('projets/etapes/id', {
-      projet: {
-        id: project.id,
-        name: project.name,
-      },
-      step: ProjectStepDto.fromModel(step)!,
+      projet: ProjectTransformer.transform(project),
+      step: ProjectStepTransformer.transform(step),
     })
   }
 
@@ -140,19 +137,19 @@ export default class ProjectStepsController {
     const step = await this.projectStepService.getStepForProject(params.stepId, project)
 
     return inertia.render('projets/etapes/edition', {
-      projet: ProjectDto.fromModel(project),
-      step: ProjectStepDto.fromModel(step)!,
+      projet: ProjectTransformer.transform(project),
+      step: ProjectStepTransformer.transform(step),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
           user.id,
           request.qs().tagSearch,
           5
         )
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       },
       lastCreatedProjectStepTag: inertia.optional(async () => {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       }),
     })
   }

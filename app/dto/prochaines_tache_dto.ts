@@ -12,7 +12,6 @@ export class ProchainesTacheDto {
       projetId: step.projectId,
     }
   }
-
   static fromLogEntry(logEntry: LogEntry): ProchainesTacheJson {
     return {
       id: logEntry.id,

@@ -1,6 +1,6 @@
 import type { Map as MaplibreMap } from 'maplibre-gl'
 import type { Geometry } from 'geojson'
-import type { ParcelleJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 export function setParcellesHighlight(
   map: MaplibreMap | null,
@@ -96,7 +96,7 @@ export function getCentroid(geometry: Geometry): { x: number; y: number } | unde
 }
 
 export function getRpgIdsFromParcellesForYear(
-  parcelles: ParcelleJson[] | undefined,
+  parcelles: Data.Parcelle[] | undefined,
   year: string
 ): string[] {
   if (!parcelles || !parcelles.length) return []

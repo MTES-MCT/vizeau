@@ -2,6 +2,7 @@ import { ChangeEvent, useCallback, useState } from 'react'
 import { router } from '@inertiajs/react'
 
 import type { ProjetsTabsJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { debounce } from 'lodash-es'
 
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
@@ -19,7 +20,7 @@ export default function ProjetsTabs({
   availableActionTypes,
   availableYearRange,
   statusCounts,
-}: ProjetsTabsJson) {
+}: ProjetsTabsJson & { projets: Data.Project[] }) {
   // selectedTab drives which tab is visually active; initialised from the URL so that
   // browser back/forward and hard reloads restore the correct tab instantly.
   const [selectedTab, setSelectedTab] = useState(queryString.projetsStatut || 'all')

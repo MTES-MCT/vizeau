@@ -1,7 +1,7 @@
 import SectionCard from '~/ui/SectionCard'
 import { formatDateFr } from '~/functions/date'
 import { getProjectStepAdditionalInfos, severityColorMap } from '~/functions/project_steps'
-import type { ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import { router } from '@inertiajs/react'
 import LabelInfo from '~/ui/LabelInfo'
@@ -9,7 +9,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { urlFor } from '~/client'
 
 export type StepInfoCardProps = {
-  step: ProjectStepJson
+  step: Data.ProjectStep
   projectId: string
 }
 
