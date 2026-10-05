@@ -36,11 +36,7 @@ jobs:
 
     strategy:
       matrix:
-        # Figé sur 24.18.x : Node 24.20 est passé au parseur d'URL ada 4, qui
-        # fait échouer la validation des commandes ace via jsonschema 1.5.0
-        # ("Invalid command exported from ... Invalid URL").
-        # À dégeler à la prochaine upgrade de @adonisjs/core qui embarque le fix de @adonisjs/ace@14.1.1.
-        node-version: [24.18.x]
+        node-version: [24.x]
 
     services:
       postgres:
@@ -79,8 +75,7 @@ jobs:
 
     strategy:
       matrix:
-        # Voir le commentaire du job "test"
-        node-version: [24.18.x]
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v7
