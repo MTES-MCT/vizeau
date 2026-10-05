@@ -5,8 +5,8 @@ AdonisJS 7 est récent : ses API (transformers, `urlFor`, `#generated/*`) diffè
 
 Viz'eau est un projet de l'État français : privilégier au maximum les outils open source et/ou souverains, notamment pour toute nouvelle dépendance ou tout nouveau service.
 
-Le français est utilisé partout où c'est possible : code (modèles, variables, fonctions), commentaires, documentation, interface, messages de commit et PR.
-L'anglais n'est admis que pour les termes trop techniques pour être traduits naturellement (controller, middleware, transformer, seeder…) et pour ce qu'imposent les frameworks et outils.
+Tout ce qui est destiné à être lu par des humains est en français : commentaires, documentation, interface, messages de commit et PR. L'anglais n'y est admis que pour les termes trop techniques pour être traduits naturellement (controller, middleware, transformer, seeder…).
+Le code lui-même (variables, fonctions, classes) est écrit en anglais, mais les termes métier (AAC, territoire, captage, dépassement…) y restent en français.
 
 # Règles métier transverses
 
