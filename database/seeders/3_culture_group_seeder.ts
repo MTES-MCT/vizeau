@@ -1,5 +1,6 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import CultureGroup from '#models/culture_group'
+import Env from '#start/env'
 
 export default class CultureGroupSeeder extends BaseSeeder {
   public async run() {
@@ -30,7 +31,7 @@ export default class CultureGroupSeeder extends BaseSeeder {
       { code: '28', label: 'Divers' },
     ]
 
-    if (process.env.DRY_RUN) {
+    if (Env.get('DRY_RUN')) {
       await this.previewChanges(groups)
       return
     }
