@@ -3,7 +3,10 @@
 Monorepo AdonisJS 7 (TypeScript, Lucid, PostgreSQL) avec un frontend React servi par InertiaJS.
 AdonisJS 7 est récent : ses API (transformers, `urlFor`, `#generated/*`) diffèrent des v5/v6, vérifier la doc v7 en cas de doute.
 
-Le code et les nouveaux commentaires sont écrits en anglais, même si les modèles de données et certains commentaires existants sont en français. Les termes métier (AAC, territoire, captage, dépassement…) restent en français dans une phrase anglaise.
+Viz'eau est un projet de l'État français : privilégier au maximum les outils open source et/ou souverains, notamment pour toute nouvelle dépendance ou tout nouveau service.
+
+Le français est utilisé partout où c'est possible : code (modèles, variables, fonctions), commentaires, documentation, interface, messages de commit et PR.
+L'anglais n'est admis que pour les termes trop techniques pour être traduits naturellement (controller, middleware, transformer, seeder…) et pour ce qu'imposent les frameworks et outils.
 
 # Règles métier transverses
 
