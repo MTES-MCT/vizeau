@@ -2,7 +2,7 @@ import { inject } from '@adonisjs/core'
 import logger from '@adonisjs/core/services/logger'
 import type { LucidModel, ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import ProjectStep from '#models/project_step'
-import { AacService } from '#services/aac_service'
+import { AacService, withAacFallback } from '#services/aac_service'
 import { ExploitationService } from '#services/exploitation_service'
 import { LogEntryService } from '#services/log_entry_service'
 import { ProjectService } from '#services/project_service'
@@ -30,20 +30,6 @@ async function fetchWithTotal<Model extends LucidModel>(
 }
 
 /**
- * Les résultats AAC et points de prélèvement proviennent du jeu de données AAC (DuckDB sur S3) :
- * si la source distante est indisponible, on renvoie ces thématiques vides plutôt que de faire
- * échouer toute la recherche.
- */
-async function withAacFallback<T>(label: string, query: () => Promise<SearchResult<T>>) {
-  try {
-    return await query()
-  } catch (error) {
-    logger.error({ err: error }, `Données AAC indisponibles (recherche générale : ${label})`)
-    return { data: [], total: 0 } as SearchResult<T>
-  }
-}
-
-/**
  * Recherche générale : interroge chaque thématique en parallèle, dans le périmètre accessible
  * à l'utilisateur (le même que sur le reste de l'application, fourni par les services de chaque domaine).
  */
@@ -60,9 +46,19 @@ export class GlobalSearchService {
     const [exploitations, aacs, installations, projects, projectSteps, logEntries] =
       await Promise.all([
         this.searchExploitations(query, userId),
-        withAacFallback('AAC', () => this.aacService.searchAacs(query, GLOBAL_SEARCH_LIMIT)),
-        withAacFallback('installations', () =>
-          this.aacService.searchInstallations(query, GLOBAL_SEARCH_LIMIT)
+        // Les résultats AAC et points de prélèvement proviennent du jeu de données AAC : s'il est
+        // indisponible, on renvoie ces thématiques vides plutôt que de faire échouer toute la recherche.
+        withAacFallback(
+          logger,
+          'recherche générale : AAC',
+          () => this.aacService.searchAacs(query, GLOBAL_SEARCH_LIMIT),
+          { data: [], total: 0 }
+        ),
+        withAacFallback(
+          logger,
+          'recherche générale : installations',
+          () => this.aacService.searchInstallations(query, GLOBAL_SEARCH_LIMIT),
+          { data: [], total: 0 }
         ),
         this.searchProjects(query, userId),
         this.searchProjectSteps(query, userId),

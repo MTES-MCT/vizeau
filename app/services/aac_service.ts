@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import type { Logger } from '@adonisjs/core/logger'
 import { DuckdbService, getAacFilesS3Driver } from '#services/duckdb_service'
 import { AacDto, type AacSummaryJson } from '../dto/aac_dto.js'
 import type {
@@ -81,6 +82,24 @@ function normalizeString(value: unknown): string | null {
 
 function getCaptageStatePriority(state: string): number {
   return state.toUpperCase() === 'ACTIF' ? 0 : 1
+}
+
+/**
+ * Le jeu de données AAC (DuckDB sur S3) est une source distante : si elle est indisponible ou
+ * trop lente, les appelants dégradent la fonctionnalité concernée plutôt que d'échouer entièrement.
+ */
+export async function withAacFallback<T>(
+  logger: Logger,
+  label: string,
+  query: () => Promise<T>,
+  fallback: T
+): Promise<T> {
+  try {
+    return await query()
+  } catch (error) {
+    logger.error({ err: error }, `Données AAC indisponibles (${label})`)
+    return fallback
+  }
 }
 
 /** Everything the home page needs about a user's territoires, see getOverviewForTerritoires. */
