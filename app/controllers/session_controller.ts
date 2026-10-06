@@ -1,7 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { errors } from '@adonisjs/auth'
-import User from '#models/user'
+import { errors as limiterErrors } from '@adonisjs/limiter'
 import { EventLoggerService } from '#services/event_logger_service'
+import { LoginService } from '#services/login_service'
+import { loginValidator } from '#validators/session'
 import { inject } from '@adonisjs/core'
 
 const redirectAfterLogin = '/accueil'
@@ -14,7 +16,10 @@ const EVENTS = {
 
 @inject()
 export default class SessionController {
-  constructor(public eventLogger: EventLoggerService) {}
+  constructor(
+    public eventLogger: EventLoggerService,
+    public loginService: LoginService
+  ) {}
 
   async index({ inertia, auth, response }: HttpContext) {
     // Try to authenticate via an existing session.
@@ -39,10 +44,10 @@ export default class SessionController {
   }
 
   async store({ auth, request, response, session }: HttpContext) {
-    const { email, password } = request.only(['email', 'password'])
+    const { email, password } = await request.validateUsing(loginValidator)
 
     try {
-      const user = await User.verifyCredentials(email.toLowerCase(), password)
+      const user = await this.loginService.attempt(email, password, request.ip())
       this.eventLogger.logEvent({ userId: user.id, ...EVENTS.LOGIN })
       await auth.use('web').login(user, !!request.input('remember_me'))
 
@@ -51,6 +56,16 @@ export default class SessionController {
       if (error instanceof errors.E_INVALID_CREDENTIALS) {
         session.flash('error', {
           message: error.message,
+          code: error.code,
+          context: 'login',
+        })
+        return response.redirect().back()
+      }
+
+      if (error instanceof limiterErrors.E_TOO_MANY_REQUESTS) {
+        const minutes = Math.ceil(error.response.availableIn / 60)
+        session.flash('error', {
+          message: `Trop de tentatives de connexion. Veuillez réessayer dans ${minutes} minute${minutes > 1 ? 's' : ''}.`,
           code: error.code,
           context: 'login',
         })
