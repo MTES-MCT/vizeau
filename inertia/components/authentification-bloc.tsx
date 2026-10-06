@@ -36,6 +36,14 @@ export default function AuthentificationBloc() {
             className="fr-my-3w"
           />
         )}
+        {flash?.error?.code === 'E_TOO_MANY_REQUESTS' && (
+          <Alert
+            description={flash.error.message}
+            severity="error"
+            title="Connexion temporairement bloquée"
+            className="fr-my-3w"
+          />
+        )}
         <Form className="w-full fr-mt-1w" route={'session.store'}>
           <Input
             label="Adresse e-mail"

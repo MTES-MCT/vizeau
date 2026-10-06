@@ -83,4 +83,12 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // If true, logs DuckDB memory usage around each DuckDB query
   DUCKDB_MEM_DEBUG: Env.schema.boolean.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the limiter package
+  |----------------------------------------------------------
+  */
+  // Defaults to database, memory is used by the tests
+  LIMITER_STORE: Env.schema.enum.optional(['database', 'memory'] as const),
 })
