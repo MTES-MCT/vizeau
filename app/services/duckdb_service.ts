@@ -80,7 +80,9 @@ export class DuckdbService {
 
     DuckdbService.connectionPromise = (async () => {
       try {
-        const instance = await DuckDBInstance.create(':memory:')
+        // Par défaut, DuckDB s'accorde 80 % de la mémoire du conteneur, ce qui laisse trop peu de
+        // place à Node dans la limite de 500 Mo. Les fichiers AAC sont assez petits pour cette valeur.
+        const instance = await DuckDBInstance.create(':memory:', { memory_limit: '150MB' })
         const connection = await instance.connect()
 
         if (env.get('DUCKDB_DEBUG') === true) {
@@ -165,8 +167,9 @@ export class DuckdbService {
   }
 
   /**
-   * Logs the memory held by DuckDB's buffer manager. It only covers what DuckDB manages
-   * itself (hash tables, materialized CTEs, file cache), measured after the query.
+   * Logs the memory held by DuckDB's buffer manager (hash tables, materialized CTEs, file cache),
+   * along with the memory of the whole Node process (RSS), which also includes what DuckDB
+   * allocates outside its buffer manager.
    */
   private async logMemory(
     connection: DuckDBConnection,
@@ -191,11 +194,17 @@ export class DuckdbService {
       0
     )
 
+    // Mémoire de tout le process, y compris ce que DuckDB alloue hors de son buffer manager
+    const { rss, heapUsed, external } = process.memoryUsage()
+
     logger.info(
       {
         step,
         sql: sql.replace(/\s+/g, ' ').trim().slice(0, 200),
         memoryMb: {
+          rss: toMb(rss),
+          nodeHeap: toMb(heapUsed),
+          nodeExternal: toMb(external),
           duckdb: toMb(duckdbTotalBytes),
           duckdbTemporary: toMb(duckdbTemporaryBytes),
         },
