@@ -4,6 +4,7 @@ import { headerFooterDisplayItem } from '@codegouvfr/react-dsfr/Display'
 import { Footer } from '@codegouvfr/react-dsfr/Footer'
 import { fr } from '@codegouvfr/react-dsfr'
 import { usePage } from '@inertiajs/react'
+import SearchModal, { searchModal } from '~/components/recherche-globale/search-modal'
 
 export default function Layout({
   children,
@@ -15,7 +16,8 @@ export default function Layout({
   isMapLayout?: boolean
   isPublicPage?: boolean
 }>) {
-  const { url } = usePage<any>()
+  const { url, props } = usePage<any>()
+  const isAuthenticated = Boolean(props.user)
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
 
@@ -107,7 +109,23 @@ export default function Layout({
                   </Button>,
                 ]
         }
+        renderSearchInput={
+          isAuthenticated
+            ? ({ className, id, placeholder, type }) => (
+                <input
+                  className={className}
+                  id={id}
+                  placeholder={placeholder}
+                  type={type}
+                  value=""
+                  readOnly
+                  onClick={() => searchModal.open()}
+                />
+              )
+            : undefined
+        }
       />
+      {isAuthenticated && <SearchModal />}
       <main className={`flex flex-col flex-1 ${isMapLayout ? 'overflow-hidden' : ''}`}>
         {children}
       </main>

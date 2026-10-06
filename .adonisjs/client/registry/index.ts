@@ -414,6 +414,12 @@ const routes = {
     tokens: [{"old":"/territoires","type":0,"val":"territoires","end":""}],
     types: placeholder as Registry['territoires.index']['types'],
   },
+  'recherche.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/recherche',
+    tokens: [{"old":"/recherche","type":0,"val":"recherche","end":""}],
+    types: placeholder as Registry['recherche.index']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

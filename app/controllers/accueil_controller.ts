@@ -5,7 +5,7 @@ import { LogEntryService } from '#services/log_entry_service'
 import { ProjectService } from '#services/project_service'
 import { ProjectStepService } from '#services/project_step_service'
 import { TerritoireService } from '#services/territoire_service'
-import { AacService } from '#services/aac_service'
+import { AacService, withAacFallback } from '#services/aac_service'
 import { EventLoggerService } from '#services/event_logger_service'
 import { ProchainesTacheDto } from '../dto/prochaines_tache_dto.js'
 import ProjectTransformer from '#transformers/project_transformer'
@@ -16,25 +16,6 @@ import type { ProchainesTacheJson } from '#types/models'
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
   PAGE_VIEW: { name: 'accueil_page_viewed' },
-}
-
-/**
- * Les widgets alimentés par le jeu de données AAC (DuckDB sur S3) sont accessoires :
- * si la source distante est indisponible ou trop lente, on dégrade le widget concerné
- * plutôt que de renvoyer une 500 sur toute la page d'accueil.
- */
-async function withAacFallback<T>(
-  logger: Logger,
-  label: string,
-  query: () => Promise<T>,
-  fallback: T
-): Promise<T> {
-  try {
-    return await query()
-  } catch (error) {
-    logger.error({ err: error }, `Données AAC indisponibles (${label})`)
-    return fallback
-  }
 }
 
 @inject()
@@ -112,6 +93,8 @@ export default class AccueilController {
   }
 
   private async loadAacData(userId: string, logger: Logger) {
+    // Les widgets AAC sont accessoires : en cas d'indisponibilité, on les dégrade plutôt que de
+    // renvoyer une 500 sur toute la page d'accueil.
     // Every territoire is needed to find the ones à risque; the AAC query limits what it returns.
     const territoireModels = await this.territoireService.getAllTerritoiresForUser(userId)
 
