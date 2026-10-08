@@ -85,10 +85,6 @@ export class DuckdbService {
         const instance = await DuckDBInstance.create(':memory:', { memory_limit: '150MB' })
         const connection = await instance.connect()
 
-        if (env.get('DUCKDB_DEBUG') === true) {
-          await connection.run("CALL enable_logging(storage = 'stdout');")
-        }
-
         await connection.run('INSTALL httpfs;')
         await connection.run('LOAD httpfs;')
 
@@ -120,6 +116,15 @@ export class DuckdbService {
             URL_STYLE 'path'
           );
         `)
+
+        // Activée après le CREATE SECRET : le log des requêtes SQL contiendrait sinon la clé S3.
+        // Les logs HTTP (une ligne par appel à S3, reliée à sa requête SQL par le query_id)
+        // contiennent l'identifiant de la clé et des signatures temporaires, mais pas le secret.
+        if (env.get('DUCKDB_DEBUG') === true) {
+          await connection.run(
+            "CALL enable_logging(['QueryLog', 'HTTP'], level = 'debug', storage = 'stdout');"
+          )
+        }
 
         if (env.get('DUCKDB_MEM_DEBUG') === true) {
           const settingsResult = await connection.run(
