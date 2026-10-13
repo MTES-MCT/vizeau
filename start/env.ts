@@ -84,6 +84,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   // If true, logs DuckDB memory usage around each DuckDB query
   DUCKDB_MEM_DEBUG: Env.schema.boolean.optional(),
 
+  // Maximum number of DuckDB queries running at the same time (3 if not set)
+  DUCKDB_MAX_CONCURRENT_QUERIES: Env.schema.number.optional(),
+
   /*
   |----------------------------------------------------------
   | Variables for configuring the limiter package
