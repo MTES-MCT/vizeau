@@ -19,6 +19,19 @@ function getAnalysesRobinetPath(): string {
 }
 
 /**
+ * Agrégats d'analyses_robinet.parquet par installation et par date de prélèvement : une ligne
+ * par couple (`code_installation`, `date_prelevement`), avec `dep_regl` et `dep_alerte` vrais si
+ * au moins une mesure de cette date dépasse le seuil (mêmes règles que SQL_DEP_REGL et
+ * SQL_DEP_ALERTE, appliquées par le projet de génération). Une date en dépassement réglementaire
+ * et d'alerte a les deux indicateurs à vrai.
+ * Environ 250 000 lignes en un seul row group : les requêtes qui ne comptent que des dates le
+ * lisent plutôt que les 50 millions de lignes d'analyses_robinet.parquet.
+ */
+function getAnalysesParDatePath(): string {
+  return `s3://${getAacFilesS3Driver().options.bucket}/analyses_robinet_par_date.parquet`
+}
+
+/**
  * AAC ordering (DuckDB dialect): codes are stored as strings but are numeric, so they are
  * sorted as integers. AACs without a numeric code (rare) come last, sorted by name.
  * Kept consistent with the `orderByCode` scope of the Territoire model.
@@ -28,6 +41,8 @@ const SQL_ORDER_BY_CODE = 'TRY_CAST(code AS INTEGER) ASC NULLS LAST, code ASC NU
 // ---------------------------------------------------------------------------
 // Reusable SQL threshold-detection fragments (DuckDB dialect).
 // Centralised here to avoid divergence across queries.
+// Les indicateurs d'analyses_robinet_par_date.parquet sont calculés par le projet de génération
+// avec ces mêmes règles : les garder alignées.
 // ---------------------------------------------------------------------------
 
 /** Row exceeds the réglementaire threshold: limite_qualite encodes a ≤X value. */
@@ -62,6 +77,22 @@ const SQL_STATUT_CASE =
   ` WHEN ${SQL_DEP_ALERTE_LTEQ} THEN 'dep_alerte'` +
   ` WHEN ${SQL_DEP_ALERTE_RANGE} THEN 'dep_alerte'` +
   ` ELSE 'conforme' END`
+
+/**
+ * Filtres sur l'année de prélèvement, exprimés en intervalles de dates : contrairement à
+ * date_part('year', …), ils permettent à DuckDB d'écarter les row groups grâce à leurs min/max.
+ */
+const SQL_YEAR_FROM = 'date_prelevement >= make_date($yearMin, 1, 1)'
+const SQL_YEAR_TO = 'date_prelevement < make_date($yearMax + 1, 1, 1)'
+const SQL_YEAR_RANGE = `${SQL_YEAR_FROM} AND ${SQL_YEAR_TO}`
+
+/**
+ * Pour analyses_robinet.parquet, au-delà de ce nombre d'installations, le filtre reste `= ANY($installationCodes)` : la liste
+ * couvre alors presque tous les row groups, et comparer chaque ligne à des milliers de
+ * paramètres ralentit la requête (dashboard sur toutes les AAC : 300 ms à chaud avec `= ANY`,
+ * 440 ms avec `IN`). Mesures dans optimisation-data.md, étape 7.
+ */
+const INSTALLATION_CODES_IN_LIST_MAX = 1000
 
 type CaptageSeedRow = {
   code: string
@@ -111,16 +142,15 @@ export type AacOverview = {
   aacCodesARisque: { codes: string[]; total: number }
 }
 
+/** Nombre de dates de prélèvement d'une installation, voir getDateCountsByInstallation. */
+type DateCounts = { total: number; reglementaires: number; alerte: number; alerteSeule: number }
+
+function sumBy<T>(items: T[], value: (item: T) => number): number {
+  return items.reduce((total, item) => total + value(item), 0)
+}
+
 /** How many territoires à risque the home page lists. */
 export const TERRITOIRES_A_RISQUE_LIMIT = 10
-
-function toAnalysesStats(row: Record<string, unknown>): AnalysesStats {
-  return {
-    total: Number(row.total ?? 0),
-    depassements_alerte: Number(row.depassements_alerte ?? 0),
-    depassements_reglementaires: Number(row.depassements_reglementaires ?? 0),
-  }
-}
 
 function toCaptageAlerte(row: Record<string, unknown>): CaptageAlerteJson {
   return {
@@ -339,6 +369,36 @@ export class AacService {
   }
 
   /**
+   * Filtre d'analyses_robinet.parquet sur une liste d'installations, écrit
+   * `code_installation IN ($installationCode_0, …)` avec un paramètre par code.
+   * analyses_robinet.parquet étant trié par installation, DuckDB
+   * compare alors chaque code aux min/max des row groups et ne lit que ceux qui le contiennent.
+   * Avec `= ANY($installationCodes)`, il ne retient que l'intervalle [code min, code max] : les
+   * installations d'une AAC étant souvent dans plusieurs départements, il lisait presque tout
+   * le fichier. Gardé au-delà de INSTALLATION_CODES_IN_LIST_MAX installations.
+   * Inutile pour analyses_robinet_par_date.parquet, en un seul row group : `= ANY` y suffit.
+   */
+  private installationCodesFilter(installationCodes: string[]): {
+    sql: string
+    parameters: Record<string, string | ReturnType<DuckdbService['list']>>
+  } {
+    const distinctCodes = Array.from(new Set(installationCodes))
+
+    if (distinctCodes.length > INSTALLATION_CODES_IN_LIST_MAX) {
+      return {
+        sql: 'code_installation = ANY($installationCodes)',
+        parameters: { installationCodes: this.duckdbService.list(distinctCodes) },
+      }
+    }
+
+    const parameters = Object.fromEntries(
+      distinctCodes.map((code, index) => [`installationCode_${index}`, code])
+    )
+    const placeholders = Object.keys(parameters).map((name) => `$${name}`)
+    return { sql: `code_installation IN (${placeholders.join(', ')})`, parameters }
+  }
+
+  /**
    * Get aggregate conformity stats (dépassements d'alerte, dépassements réglementaires),
    * over all recorded history, for each of the given installation codes individually.
    * A date exceeding both thresholds is counted only under réglementaire (same priority
@@ -347,39 +407,18 @@ export class AacService {
   async getConformiteStatsByInstallation(
     installationCodes: string[]
   ): Promise<Map<string, AnalysesStats>> {
-    const statsByInstallation = new Map<string, AnalysesStats>()
-    if (installationCodes.length === 0) return statsByInstallation
+    const countsByInstallation = await this.getDateCountsByInstallation(installationCodes)
 
-    const sql = `
-      WITH date_flags AS (
-        SELECT
-          code_installation,
-          date_prelevement,
-          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
-          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
-        FROM read_parquet($path)
-        WHERE code_installation = ANY($installationCodes)
-        GROUP BY code_installation, date_prelevement
-      )
-      SELECT
-        code_installation,
-        CAST(COUNT(*) AS INTEGER) AS total,
-        CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
-        CAST(COUNT(*) FILTER (WHERE dep_alerte AND NOT dep_regl) AS INTEGER) AS depassements_alerte
-      FROM date_flags
-      GROUP BY code_installation
-    `
-    const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
-      path: getAnalysesRobinetPath(),
-      installationCodes: this.duckdbService.list(installationCodes),
-    })
-
-    for (const row of rows) {
-      if (typeof row.code_installation !== 'string') continue
-      statsByInstallation.set(row.code_installation, toAnalysesStats(row))
-    }
-
-    return statsByInstallation
+    return new Map(
+      Array.from(countsByInstallation, ([code, counts]) => [
+        code,
+        {
+          total: counts.total,
+          depassements_reglementaires: counts.reglementaires,
+          depassements_alerte: counts.alerteSeule,
+        },
+      ])
+    )
   }
 
   /**
@@ -388,11 +427,11 @@ export class AacService {
    * across all recorded history. Used to filter the AAC list by dépassement type.
    */
   async getInstallationCodesWithDepassement(type: 'reglementaire' | 'alerte'): Promise<string[]> {
-    const condition = type === 'reglementaire' ? SQL_DEP_REGL : SQL_DEP_ALERTE
+    const column = type === 'reglementaire' ? 'dep_regl' : 'dep_alerte'
 
     const rows = await this.duckdbService.query<Record<string, unknown>>(
-      `SELECT DISTINCT code_installation FROM read_parquet($path) WHERE ${condition}`,
-      { path: getAnalysesRobinetPath() }
+      `SELECT DISTINCT code_installation FROM read_parquet($path) WHERE ${column}`,
+      { path: getAnalysesParDatePath() }
     )
 
     return rows
@@ -401,9 +440,25 @@ export class AacService {
   }
 
   /**
-   * Get everything the home page needs about the given territoires' AACs in a single
-   * DuckDB statement: each Parquet file is read once, filtered to the territoires' AAC
-   * codes, instead of once per widget. `summariesByCode` matches getSummariesByCode.
+   * Lit toutes les colonnes d'analyses_robinet_par_date.parquet, pour le préchauffage
+   * (`start/aac.ts`) : le fichier entier (environ 600 Ko, 3 requêtes HTTP) est ensuite dans le
+   * cache de fichiers de DuckDB, et les requêtes suivantes ne font plus d'appel à S3.
+   */
+  async preloadAnalysesParDate(): Promise<void> {
+    await this.duckdbService.query(
+      'SELECT COUNT(DISTINCT code_installation) AS installations, MAX(date_prelevement) AS date_max, ' +
+        'BOOL_OR(dep_regl) AS dep_regl, BOOL_OR(dep_alerte) AS dep_alerte FROM read_parquet($path)',
+      { path: getAnalysesParDatePath() }
+    )
+  }
+
+  /**
+   * Get everything the home page needs about the given territoires' AACs. `summariesByCode`
+   * matches getSummariesByCode.
+   *
+   * Deux requêtes DuckDB simples (les AAC, puis les analyses agrégées par installation),
+   * combinées ici : réunies en une seule requête SQL (CTE matérialisées, jointures, list()),
+   * elles dépassaient la limite mémoire de DuckDB dès quelques centaines d'AAC.
    */
   async getOverviewForTerritoires(
     territoires: { id: string; code: string }[]
@@ -420,143 +475,152 @@ export class AacService {
     // Order is preserved: territoires à risque are listed in the same order as the input.
     const aacCodes = Array.from(new Set(territoires.map((t) => t.code)))
 
-    const sql = `
-      WITH aac AS MATERIALIZED (
-        SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles,
-               surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile,
-               bbox, installations
-        FROM read_parquet($aacPath)
-        WHERE code = ANY($aacCodes)
-      ),
-      aac_installations AS MATERIALIZED (
-        SELECT
-          aac_code,
-          aac_nom,
-          installation.code AS code,
-          installation.nom AS nom,
-          installation.commune AS commune,
-          installation.departement AS departement
-        FROM (SELECT code AS aac_code, nom AS aac_nom, unnest(installations) AS installation FROM aac)
-      ),
-      -- Single scan of the analyses: the threshold flags are evaluated once per row and
-      -- aggregated per date on the fly, so that the raw rows are never held in memory.
-      date_flags AS MATERIALIZED (
-        SELECT
-          code_installation,
-          date_prelevement,
-          BOOL_OR(COALESCE(${SQL_DEP_REGL}, false)) AS dep_regl,
-          BOOL_OR(COALESCE(${SQL_DEP_ALERTE}, false)) AS dep_alerte
-        FROM read_parquet($analysesPath)
-        WHERE code_installation IN (SELECT code FROM aac_installations)
-        GROUP BY code_installation, date_prelevement
-      ),
-      -- Same rule as getConformiteStatsByInstallation: a date exceeding both thresholds
-      -- is only counted under réglementaire.
-      installation_stats AS MATERIALIZED (
-        SELECT
-          code_installation,
-          CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
-          CAST(COUNT(*) FILTER (WHERE dep_alerte AND NOT dep_regl) AS INTEGER) AS depassements_alerte
-        FROM date_flags
-        GROUP BY code_installation
-      ),
-      summaries AS (
-        SELECT
-          a.code, a.nom, a.surface, a.nb_captages_actifs, a.date_maj, a.date_creation, a.communes,
-          a.nb_parcelles, a.surface_agricole_bio, a.surface_agricole_ppe, a.surface_agricole_ppr,
-          a.surface_agricole_utile, a.bbox,
-          CAST(COALESCE(s.depassements_alerte, 0) AS INTEGER) AS depassements_alerte,
-          CAST(COALESCE(s.depassements_reglementaires, 0) AS INTEGER) AS depassements_reglementaires
-        FROM aac a
-        LEFT JOIN (
-          SELECT
-            ai.aac_code,
-            SUM(ist.depassements_alerte) AS depassements_alerte,
-            SUM(ist.depassements_reglementaires) AS depassements_reglementaires
-          FROM aac_installations ai
-          JOIN installation_stats ist ON ist.code_installation = ai.code
-          GROUP BY ai.aac_code
-        ) s ON s.aac_code = a.code
-      ),
-      -- Unlike installation_stats, alerte counts every date exceeding the alerte
-      -- threshold, réglementaire or not.
-      conformite AS (
-        SELECT
-          ai.aac_code,
-          CAST(COUNT(*) AS INTEGER) AS total,
-          CAST(COUNT(*) FILTER (WHERE df.dep_regl) AS INTEGER) AS depassements_reglementaires,
-          CAST(COUNT(*) FILTER (WHERE df.dep_alerte) AS INTEGER) AS depassements_alerte
-        FROM (SELECT DISTINCT aac_code, code FROM aac_installations) ai
-        JOIN date_flags df ON df.code_installation = ai.code
-        GROUP BY ai.aac_code
-      ),
-      -- COUNT(*) OVER () is evaluated before the LIMIT, so total counts every AAC à risque.
-      aac_a_risque AS (
-        SELECT aac_code, CAST(COUNT(*) OVER () AS INTEGER) AS total
-        FROM conformite
-        WHERE depassements_alerte > 0 OR depassements_reglementaires > 0
-        ORDER BY list_position($aacCodes, aac_code)
-        LIMIT $limitARisque
-      ),
-      captages AS (
-        SELECT
-          ai.code,
-          ai.nom,
-          ai.commune,
-          ai.departement,
-          ai.aac_code,
-          ai.aac_nom,
-          ist.depassements_reglementaires,
-          ist.depassements_alerte
-        FROM installation_stats ist
-        JOIN aac_installations ai ON ai.code = ist.code_installation
-        WHERE ist.depassements_reglementaires > 0 OR ist.depassements_alerte > 0
-      )
-      SELECT
-        (SELECT list(s) FROM summaries s) AS summaries,
-        (SELECT list(c) FROM conformite c) AS conformite,
-        (
-          SELECT list(c ORDER BY c.depassements_reglementaires DESC, c.depassements_alerte DESC, c.nom)
-          FROM captages c
-        ) AS captages,
-        (SELECT list(r.aac_code) FROM aac_a_risque r) AS aac_a_risque_codes,
-        (SELECT ANY_VALUE(r.total) FROM aac_a_risque r) AS aac_a_risque_total
-    `
-    const [row] = await this.duckdbService.query<Record<string, unknown>>(sql, {
-      aacPath: getParquetPath(),
-      analysesPath: getAnalysesRobinetPath(),
-      aacCodes: this.duckdbService.list(aacCodes),
-      limitARisque: TERRITOIRES_A_RISQUE_LIMIT,
-    })
+    const aacRows = await this.duckdbService.query<Record<string, unknown>>(
+      `SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles,
+              surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile,
+              bbox, installations
+       FROM read_parquet($path)
+       WHERE code = ANY($aacCodes)`,
+      { path: getParquetPath(), aacCodes: this.duckdbService.list(aacCodes) }
+    )
 
-    // list() over an empty set yields NULL rather than an empty list.
-    const asRows = (value: unknown): Record<string, unknown>[] =>
-      Array.isArray(value) ? (value as Record<string, unknown>[]) : []
+    // Une ligne par installation de chaque AAC, comme l'unnest(installations) en SQL
+    const aacInstallations = aacRows.flatMap(({ installations, code, nom }) =>
+      (Array.isArray(installations) ? (installations as Record<string, unknown>[]) : []).map(
+        (installation) => ({
+          aac_code: code,
+          aac_nom: nom,
+          code: installation.code,
+          nom: installation.nom,
+          commune: installation.commune,
+          departement: installation.departement,
+        })
+      )
+    )
+
+    const installationCodes = Array.from(
+      new Set(
+        aacInstallations
+          .map((installation) => installation.code)
+          .filter((code): code is string => typeof code === 'string')
+      )
+    )
+    const datesByInstallation = await this.getDateCountsByInstallation(installationCodes)
+
+    const installationsByAacCode = Map.groupBy(
+      aacInstallations,
+      (installation) => installation.aac_code as string
+    )
 
     const summariesByCode: Record<string, AacSummaryJson> = {}
-    for (const summaryRow of asRows(row?.summaries)) {
-      const summary = AacDto.fromRawSummary(summaryRow)
+    for (const { installations, ...aacRow } of aacRows) {
+      const counts = (installationsByAacCode.get(aacRow.code as string) ?? []).map((installation) =>
+        datesByInstallation.get(installation.code as string)
+      )
+      const summary = AacDto.fromRawSummary({
+        ...aacRow,
+        depassements_alerte: sumBy(counts, (c) => c?.alerteSeule ?? 0),
+        depassements_reglementaires: sumBy(counts, (c) => c?.reglementaires ?? 0),
+      })
       summariesByCode[summary.code] = summary
     }
 
+    // Unlike the summaries, alerte counts every date exceeding the alerte threshold,
+    // réglementaire or not. AACs without any analysis are left out.
     const conformiteStatsByAacCode = new Map<string, AnalysesStats>()
-    for (const conformiteRow of asRows(row?.conformite)) {
-      if (typeof conformiteRow.aac_code !== 'string') continue
-      conformiteStatsByAacCode.set(conformiteRow.aac_code, toAnalysesStats(conformiteRow))
+    for (const [aacCode, installations] of installationsByAacCode) {
+      const counts = Array.from(
+        new Set(installations.map((installation) => installation.code as string))
+      )
+        .map((code) => datesByInstallation.get(code))
+        .filter((c) => c !== undefined)
+      if (counts.length === 0) continue
+
+      conformiteStatsByAacCode.set(aacCode, {
+        total: sumBy(counts, (c) => c.total),
+        depassements_alerte: sumBy(counts, (c) => c.alerte),
+        depassements_reglementaires: sumBy(counts, (c) => c.reglementaires),
+      })
     }
 
-    const captagesAlertes = asRows(row?.captages).map(toCaptageAlerte)
-    const aacCodesARisque = {
-      codes: (row?.aac_a_risque_codes as string[] | null) ?? [],
-      total: Number(row?.aac_a_risque_total ?? 0),
-    }
+    const codesARisque = aacCodes.filter((code) => {
+      const stats = conformiteStatsByAacCode.get(code)
+      return (
+        stats !== undefined &&
+        (stats.depassements_alerte > 0 || stats.depassements_reglementaires > 0)
+      )
+    })
+
+    const captagesAlertes = aacInstallations
+      .flatMap((installation) => {
+        const counts = datesByInstallation.get(installation.code as string)
+        if (!counts || (counts.reglementaires === 0 && counts.alerteSeule === 0)) return []
+        return [
+          toCaptageAlerte({
+            ...installation,
+            depassements_reglementaires: counts.reglementaires,
+            depassements_alerte: counts.alerteSeule,
+          }),
+        ]
+      })
+      // Noms comparés en binaire, comme le faisait l'ORDER BY de DuckDB
+      .sort(
+        (a, b) =>
+          b.depassements_reglementaires - a.depassements_reglementaires ||
+          b.depassements_alerte - a.depassements_alerte ||
+          (a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : 0)
+      )
 
     return {
       summariesByCode,
       conformiteStatsByAacCode,
       captagesAlertes,
-      aacCodesARisque,
+      aacCodesARisque: {
+        codes: codesARisque.slice(0, TERRITOIRES_A_RISQUE_LIMIT),
+        total: codesARisque.length,
+      },
     }
+  }
+
+  /**
+   * Compte, pour chaque installation, les dates de prélèvement : au total, avec un dépassement
+   * réglementaire, avec un dépassement d'alerte, et avec un dépassement d'alerte seulement
+   * (une date en dépassement réglementaire et d'alerte compte en réglementaire).
+   * Les installations sans analyse sont absentes du résultat.
+   */
+  private async getDateCountsByInstallation(
+    installationCodes: string[]
+  ): Promise<Map<string, DateCounts>> {
+    const countsByInstallation = new Map<string, DateCounts>()
+    if (installationCodes.length === 0) return countsByInstallation
+
+    const sql = `
+      SELECT
+        code_installation,
+        CAST(COUNT(*) AS INTEGER) AS total,
+        CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS reglementaires,
+        CAST(COUNT(*) FILTER (WHERE dep_alerte) AS INTEGER) AS alerte,
+        CAST(COUNT(*) FILTER (WHERE dep_alerte AND NOT dep_regl) AS INTEGER) AS alerte_seule
+      FROM read_parquet($path)
+      WHERE code_installation = ANY($installationCodes)
+      GROUP BY code_installation
+    `
+    const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
+      path: getAnalysesParDatePath(),
+      installationCodes: this.duckdbService.list(Array.from(new Set(installationCodes))),
+    })
+
+    for (const row of rows) {
+      if (typeof row.code_installation !== 'string') continue
+      countsByInstallation.set(row.code_installation, {
+        total: Number(row.total),
+        reglementaires: Number(row.reglementaires),
+        alerte: Number(row.alerte),
+        alerteSeule: Number(row.alerte_seule),
+      })
+    }
+
+    return countsByInstallation
   }
 
   /**
@@ -640,7 +704,7 @@ export class AacService {
         'FROM read_parquet($path) ' +
         'WHERE code_installation = $installationCode AND date_prelevement IS NOT NULL ' +
         'ORDER BY year DESC',
-      { path: getAnalysesRobinetPath(), installationCode }
+      { path: getAnalysesParDatePath(), installationCode }
     )
     return rows.map((r) => String(r.year))
   }
@@ -673,24 +737,16 @@ export class AacService {
     yearMax: number
   ): Promise<AnalysesStats> {
     const sql = `
-      WITH date_flags AS (
-        SELECT
-          date_prelevement,
-          BOOL_OR(${SQL_DEP_REGL}) AS dep_regl,
-          BOOL_OR(${SQL_DEP_ALERTE}) AS dep_alerte
-        FROM read_parquet($path)
-        WHERE code_installation = $installationCode
-          AND date_part('year', date_prelevement) BETWEEN $yearMin AND $yearMax
-        GROUP BY date_prelevement
-      )
       SELECT
         CAST(COUNT(*) AS INTEGER) AS total,
         CAST(COUNT(*) FILTER (WHERE dep_regl) AS INTEGER) AS depassements_reglementaires,
         CAST(COUNT(*) FILTER (WHERE dep_alerte) AS INTEGER) AS depassements_alerte
-      FROM date_flags
+      FROM read_parquet($path)
+      WHERE code_installation = $installationCode
+        AND ${SQL_YEAR_RANGE}
     `
     const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
-      path: getAnalysesRobinetPath(),
+      path: getAnalysesParDatePath(),
       installationCode,
       yearMin,
       yearMax,
@@ -715,10 +771,10 @@ export class AacService {
       `SELECT MIN(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_min,
               MAX(CAST(date_part('year', date_prelevement) AS INTEGER)) AS year_max
        FROM read_parquet($path)
-       WHERE code_installation = ANY($installationCodes) AND date_prelevement IS NOT NULL`,
+       WHERE code_installation = ANY($installationCodes)`,
       {
-        path: getAnalysesRobinetPath(),
-        installationCodes: this.duckdbService.list(installationCodes),
+        path: getAnalysesParDatePath(),
+        installationCodes: this.duckdbService.list(Array.from(new Set(installationCodes))),
       }
     )
     const row = rows[0] ?? {}
@@ -745,26 +801,19 @@ export class AacService {
     yearMax: number
   ): Promise<AnalysesPerYear[]> {
     const sql = `
-      WITH date_flags AS (
-        SELECT
-          date_prelevement,
-          BOOL_OR(${SQL_DEP_ANY}) AS date_a_dep
-        FROM read_parquet($path)
-        WHERE code_installation = $installationCode
-          AND date_part('year', date_prelevement) BETWEEN $yearMin AND $yearMax
-        GROUP BY date_prelevement
-      )
       SELECT
         CAST(date_part('year', date_prelevement) AS INTEGER) AS annee,
         CAST(COUNT(*) AS INTEGER) AS total,
-        CAST(COUNT(*) FILTER (WHERE date_a_dep) AS INTEGER) AS avec_dep,
-        CAST(COUNT(*) FILTER (WHERE NOT date_a_dep) AS INTEGER) AS sans_dep
-      FROM date_flags
+        CAST(COUNT(*) FILTER (WHERE dep_regl OR dep_alerte) AS INTEGER) AS avec_dep,
+        CAST(COUNT(*) FILTER (WHERE NOT (dep_regl OR dep_alerte)) AS INTEGER) AS sans_dep
+      FROM read_parquet($path)
+      WHERE code_installation = $installationCode
+        AND ${SQL_YEAR_RANGE}
       GROUP BY annee
       ORDER BY annee
     `
     const rows = await this.duckdbService.query<Record<string, unknown>>(sql, {
-      path: getAnalysesRobinetPath(),
+      path: getAnalysesParDatePath(),
       installationCode,
       yearMin,
       yearMax,
@@ -798,7 +847,7 @@ export class AacService {
         ROUND(MAX(resultat_traduction), 4) AS max_value
       FROM read_parquet($path)
       WHERE code_installation = $installationCode
-        AND date_part('year', date_prelevement) BETWEEN $yearMin AND $yearMax
+        AND ${SQL_YEAR_RANGE}
         AND resultat_traduction IS NOT NULL
       GROUP BY code_parametre
       ORDER BY nb_dep_regl DESC, nb_dep_alerte DESC, libelle_parametre
@@ -845,7 +894,7 @@ export class AacService {
       FROM read_parquet($path)
       WHERE code_installation = $installationCode
         AND CAST(code_parametre AS INTEGER) = $codeParametre
-        AND date_part('year', date_prelevement) BETWEEN $yearMin AND $yearMax
+        AND ${SQL_YEAR_RANGE}
         AND resultat_traduction IS NOT NULL
     `
 
@@ -857,7 +906,7 @@ export class AacService {
       FROM read_parquet($path)
       WHERE code_installation = $installationCode
         AND CAST(code_parametre AS INTEGER) = $codeParametre
-        AND date_part('year', date_prelevement) BETWEEN $yearMin AND $yearMax
+        AND ${SQL_YEAR_RANGE}
         AND resultat_traduction IS NOT NULL
       ORDER BY date_prelevement
     `
@@ -912,21 +961,19 @@ export class AacService {
   ): Promise<{ nb_analyses: number; nb_parametres: number }> {
     if (installationCodes.length === 0) return { nb_analyses: 0, nb_parametres: 0 }
 
-    const conditions = [
-      'code_installation = ANY($installationCodes)',
-      'date_prelevement IS NOT NULL',
-    ]
+    const installationFilter = this.installationCodesFilter(installationCodes)
+    const conditions = [installationFilter.sql, 'date_prelevement IS NOT NULL']
     const parameters: Record<string, number | string | ReturnType<DuckdbService['list']>> = {
       path: getAnalysesRobinetPath(),
-      installationCodes: this.duckdbService.list(installationCodes),
+      ...installationFilter.parameters,
     }
     if (yearFrom !== undefined) {
-      conditions.push("date_part('year', date_prelevement) >= $yearFrom")
-      parameters.yearFrom = yearFrom
+      conditions.push(SQL_YEAR_FROM)
+      parameters.yearMin = yearFrom
     }
     if (yearTo !== undefined) {
-      conditions.push("date_part('year', date_prelevement) <= $yearTo")
-      parameters.yearTo = yearTo
+      conditions.push(SQL_YEAR_TO)
+      parameters.yearMax = yearTo
     }
 
     const rows = await this.duckdbService.query<Record<string, unknown>>(
@@ -948,15 +995,13 @@ export class AacService {
       return []
     }
 
+    const installationFilter = this.installationCodesFilter(installationCodes)
     return this.duckdbService.query(
       'SELECT "code_insee", "nom_commune", "code_installation", "nom_installation", "date_prelevement", "heure_prelevement", "code_brgm", "resultat", "code_unite", "libelle_parametre", "limite_qualite", "reference_qualite", "captage_prioritaire" ' +
         'FROM read_parquet($path) ' +
-        'WHERE "code_installation" = ANY($installationCodes) ' +
+        `WHERE ${installationFilter.sql} ` +
         'ORDER BY "date_prelevement" DESC NULLS LAST',
-      {
-        path: getAnalysesRobinetPath(),
-        installationCodes: this.duckdbService.list(installationCodes),
-      }
+      { path: getAnalysesRobinetPath(), ...installationFilter.parameters }
     )
   }
 
