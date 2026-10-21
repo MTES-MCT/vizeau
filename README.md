@@ -2,7 +2,7 @@
 
 ## Prérequis
 
-- Node.js 22 LTS ou supérieur
+- Node.js 24.22.1 ou supérieur (LTS 24)
 - PostgreSQL 16.9 ou supérieur
 
 ## Exécution en mode développement
