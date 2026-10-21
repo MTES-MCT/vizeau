@@ -5,7 +5,7 @@
   "type": "module",
   "license": "UNLICENSED",
   "engines": {
-    "node": "^24.22.1"
+    "node": "^24.22.0"
   },
   "scripts": {
     "start": "cd build && node bin/server.js",
