@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 /// <reference path="../manifest.d.ts" />
 
-import type { ExtractBody, ExtractErrorResponse, ExtractQuery, ExtractQueryForGet, ExtractResponse } from '@tuyau/core/types'
+import type { ExtractBody, ExtractErrorResponse, ExtractQuery, ExtractQueryForGet, ExtractRawResponse, ExtractResponse } from '@tuyau/core/types'
 import type { InferInput, SimpleError } from '@vinejs/vine/types'
 
 export type ParamValue = string | number | bigint | boolean
@@ -17,6 +17,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['publicIndex']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['publicIndex']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['publicIndex']>>>
     }
   }
   'session.index': {
@@ -29,6 +30,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/session_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['index']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/session_controller').default['index']>>>
     }
   }
   'session.store': {
@@ -41,6 +43,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/session').loginValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/session_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/session_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'session.delete': {
@@ -53,6 +56,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/session_controller').default['delete']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['delete']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/session_controller').default['delete']>>>
     }
   }
   'noTerritoire': {
@@ -65,6 +69,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['noTerritoire']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['noTerritoire']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['noTerritoire']>>>
     }
   }
   'accueil': {
@@ -77,6 +82,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['index']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/accueil_controller').default['index']>>>
     }
   }
   'visualisation.index': {
@@ -89,6 +95,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').depassementsFiltersValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'visualisation.assignParcellesToExploitation': {
@@ -101,6 +108,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/parcelle').assignParcellesToExploitationValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['assignParcellesToExploitation']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['assignParcellesToExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/visualisation_controller').default['assignParcellesToExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'exploitations.index': {
@@ -113,6 +121,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['index']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['index']>>>
     }
   }
   'exploitations.create': {
@@ -125,6 +134,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['create']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['create']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['create']>>>
     }
   }
   'exploitations.edition': {
@@ -137,6 +147,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getForEdition']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getForEdition']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getForEdition']>>>
     }
   }
   'exploitations.getBySiret': {
@@ -149,6 +160,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getBySiret']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getBySiret']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['getBySiret']>>>
     }
   }
   'exploitations.get': {
@@ -161,6 +173,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['get']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['get']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['get']>>>
     }
   }
   'exploitations.store': {
@@ -173,6 +186,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/create_exploitation').createExploitationValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'exploitations.edit': {
@@ -185,6 +199,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/create_exploitation').updateExploitationValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['edit']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'exploitations.destroy': {
@@ -197,6 +212,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['destroy']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['destroy']>>>
     }
   }
   'exploitations.detachParcelle': {
@@ -209,6 +225,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/parcelle').detachParcelleValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['detachParcelle']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['detachParcelle']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['detachParcelle']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'parcelles.note.update': {
@@ -221,6 +238,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/parcelle').updateParcelleNoteValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelleNote']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelleNote']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelleNote']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'parcelles.export': {
@@ -233,6 +251,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportParcellesCsv']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportParcellesCsv']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportParcellesCsv']>>>
     }
   }
   'exploitations.export': {
@@ -245,6 +264,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportExploitationCsv']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportExploitationCsv']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['exportExploitationCsv']>>>
     }
   }
   'log_entries.index': {
@@ -257,6 +277,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['index']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['index']>>>
     }
   }
   'log_entries.export': {
@@ -269,6 +290,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['exportCsv']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['exportCsv']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['exportCsv']>>>
     }
   }
   'log_entries.get': {
@@ -281,6 +303,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['get']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['get']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['get']>>>
     }
   }
   'log_entries.edition': {
@@ -293,6 +316,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['getForEdition']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['getForEdition']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['getForEdition']>>>
     }
   }
   'log_entries.create': {
@@ -305,6 +329,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry').createLogEntryValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['create']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['create']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['create']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.complete': {
@@ -317,6 +342,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry').completeLogEntryValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['complete']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['complete']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['complete']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.edit': {
@@ -329,6 +355,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry').updateLogEntryValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['edit']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.destroy': {
@@ -341,6 +368,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry').destroyLogEntryValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.createTagForExploitation': {
@@ -353,6 +381,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry_tag').createLogEntryTagValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['createTagForExploitation']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['createTagForExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['createTagForExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.destroyTagForExploitation': {
@@ -365,6 +394,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry_tag').deleteLogEntryTagValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyTagForExploitation']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyTagForExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyTagForExploitation']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.downloadDocument': {
@@ -377,6 +407,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/log_entry').downloadDocumentValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['downloadDocument']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['downloadDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['downloadDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'log_entries.destroyDocument': {
@@ -389,6 +420,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/log_entry').destroyDocumentValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyDocument']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/log_entries_controller').default['destroyDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.index': {
@@ -401,6 +433,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').depassementsFiltersValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.show': {
@@ -413,6 +446,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['show']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['show']>>>
     }
   }
   'aac.analysesSummary': {
@@ -425,6 +459,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').analysesSummaryValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesSummary']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesSummary']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesSummary']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.export.infoGenerale': {
@@ -437,6 +472,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportInfoGenerale']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportInfoGenerale']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportInfoGenerale']>>>
     }
   }
   'aac.export.captages': {
@@ -449,6 +485,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCaptages']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCaptages']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCaptages']>>>
     }
   }
   'aac.export.assolement': {
@@ -461,6 +498,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportAssolement']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportAssolement']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportAssolement']>>>
     }
   }
   'aac.export.cultureEvolution': {
@@ -473,6 +511,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCultureEvolution']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCultureEvolution']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportCultureEvolution']>>>
     }
   }
   'aac.export.qualite': {
@@ -485,6 +524,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportQualiteEau']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportQualiteEau']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['exportQualiteEau']>>>
     }
   }
   'aac.showInstallation': {
@@ -497,6 +537,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['showInstallation']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['showInstallation']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['showInstallation']>>>
     }
   }
   'aac.substances': {
@@ -509,6 +550,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').yearRangeValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substances']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substances']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substances']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.substanceChronique': {
@@ -521,6 +563,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').yearRangeValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substanceChronique']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substanceChronique']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['substanceChronique']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.analysesPerYear': {
@@ -533,6 +576,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').yearRangeValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesPerYear']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesPerYear']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesPerYear']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.analysesYears': {
@@ -545,6 +589,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesYears']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesYears']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesYears']>>>
     }
   }
   'aac.analysesStats': {
@@ -557,6 +602,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').yearRangeValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesStats']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesStats']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analysesStats']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'aac.analyses': {
@@ -569,6 +615,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/aac').analysesValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analyses']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analyses']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/aac_controller').default['analyses']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.index': {
@@ -581,6 +628,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').indexProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.create': {
@@ -593,6 +641,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['create']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['create']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['create']>>>
     }
   }
   'projets.edition': {
@@ -605,6 +654,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['getForEdition']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['getForEdition']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['getForEdition']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.show': {
@@ -617,6 +667,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['show']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.store': {
@@ -629,6 +680,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project').createProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.update': {
@@ -641,6 +693,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project').updateProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.destroy': {
@@ -653,6 +706,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project').destroyProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['destroy']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.exploitations.export': {
@@ -665,6 +719,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['exportExploitationsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.export': {
@@ -677,6 +732,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['exportStepsCsv']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['exportStepsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['exportStepsCsv']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.create.form': {
@@ -689,6 +745,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project').showProjectValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStepForm']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStepForm']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStepForm']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.get': {
@@ -701,6 +758,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project_step').showProjectStepValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStep']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStep']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStep']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.edition': {
@@ -713,6 +771,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project_step').showProjectStepValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStepForEdition']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStepForEdition']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['getStepForEdition']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.create': {
@@ -725,6 +784,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project').showProjectValidator)>|InferInput<(typeof import('#validators/project_step').createProjectStepPayloadValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStep']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStep']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createStep']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.complete': {
@@ -737,6 +797,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').completeProjectStepValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['completeStep']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['completeStep']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['completeStep']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.edit': {
@@ -749,6 +810,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').showProjectStepValidator)>|InferInput<(typeof import('#validators/project_step').updateProjectStepPayloadValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['editStep']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['editStep']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['editStep']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.destroy': {
@@ -761,6 +823,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').showProjectStepValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyStep']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyStep']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyStep']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.documents.download': {
@@ -773,6 +836,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/project_step').downloadProjectStepDocumentValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['downloadStepDocument']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['downloadStepDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['downloadStepDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.documents.destroy': {
@@ -785,6 +849,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').destroyProjectStepDocumentValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyDocument']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyDocument']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.tags.create': {
@@ -797,6 +862,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').createProjectStepTagValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createTag']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createTag']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['createTag']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'projets.steps.tags.destroy': {
@@ -809,6 +875,7 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/project_step').deleteProjectStepTagValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyTag']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyTag']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/project_steps_controller').default['destroyTag']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'territoires.index': {
@@ -821,6 +888,7 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/territoires_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/territoires_controller').default['index']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/territoires_controller').default['index']>>>
     }
   }
   'recherche.index': {
@@ -833,6 +901,7 @@ export interface Registry {
       query: ExtractQueryForGet<InferInput<(typeof import('#validators/recherche').globalSearchValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/recherche_controller').default['index']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/recherche_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/recherche_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
 }
