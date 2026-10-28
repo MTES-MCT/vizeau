@@ -116,6 +116,54 @@ export const AvecGroupes = () => {
   return <SingleSelectMenu label="Sélectionner un pays" options={options} onChange={handleChange} />
 }
 
+export const AvecRecherche = () => {
+  const substances = [
+    'Atrazine',
+    'Atrazine déséthyl',
+    'Bentazone',
+    'Chlortoluron',
+    'Glyphosate',
+    'AMPA',
+    'Métolachlore',
+    'ESA métolachlore',
+    'OXA métolachlore',
+    'Nitrates',
+    'Nitrites',
+    'Ammonium',
+    'Simazine',
+    'Terbuthylazine',
+    'Diuron',
+    'Isoproturon',
+    'Chloridazone',
+    'Desphényl chloridazone',
+    'Métazachlore',
+    'Dimétachlore',
+  ]
+  const groups = ['En dépassement', 'Sans dépassement', 'Non détectée']
+
+  const [options, setOptions] = useState<OptionType<string>[]>(
+    substances.map((label, index) => ({
+      value: `substance-${index}`,
+      label,
+      isSelected: false,
+      group: groups[index % groups.length],
+      iconId: index % groups.length === 0 ? 'fr-icon-warning-fill' : undefined,
+    }))
+  )
+
+  const handleChange = (selected: OptionType<string>) => {
+    setOptions((prev) => prev.map((opt) => ({ ...opt, isSelected: opt.value === selected.value })))
+  }
+
+  return (
+    <SingleSelectMenu
+      label="Sélectionner une substance"
+      options={options}
+      onChange={handleChange}
+    />
+  )
+}
+
 export const SansLibellé = () => {
   const [options, setOptions] = useState<OptionType<string>[]>([
     { value: 'option1', label: 'Option 1', isSelected: false },
