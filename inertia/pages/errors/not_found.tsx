@@ -3,6 +3,7 @@ import { ButtonsGroup } from '@codegouvfr/react-dsfr/ButtonsGroup'
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError'
 
 import Layout from '~/ui/layouts/layout'
+import OvoidPictogram from '~/ui/OvoidPictogram'
 
 export default function NotFound() {
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL
@@ -45,7 +46,7 @@ export default function NotFound() {
             />
           </div>
           <div className="fr-col-12 fr-col-md-3 fr-col-offset-md-1 fr-px-6w fr-px-md-0 fr-py-0 flex justify-center">
-            <TechnicalError fontSize="10rem" aria-hidden="true" />
+            <OvoidPictogram pictogram={TechnicalError} />
           </div>
         </div>
       </div>
