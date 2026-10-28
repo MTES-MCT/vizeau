@@ -2,6 +2,11 @@
 
 # This script is ran by Scalingo after each deployment.
 
+# Depuis @swc/core 1.16, le binaire natif est extrait dans un cache dont tous les dossiers parents
+# doivent être protégés, ce que les conteneurs de build Scalingo ne respectent pas (ERR_SWC_NATIVE_CACHE).
+# À supprimer quand SWC aura corrigé ce comportement.
+export SWC_NATIVE_BINDING_CACHE_SKIP_SECURITY_CHECK=1
+
 # Build the AdonisJS application
 node ace build
 cd build
