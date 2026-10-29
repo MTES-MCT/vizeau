@@ -1,5 +1,5 @@
 import type { LayerSpecification, VectorSourceSpecification } from 'maplibre-gl'
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 
 const defaultOpacity = 0.5
 const selectedOpacity = 1

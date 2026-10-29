@@ -12,7 +12,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import CommentFormModal from './comment-form-modal'
-import { getCultureByCode } from '~/functions/cultures-group'
+import { getCultureByCode } from '~/functions/cultures_group'
 
 const handleCommentModal = createModal({
   id: 'add-comment-modal',
