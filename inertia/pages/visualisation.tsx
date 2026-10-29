@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
-import VisualisationMap, { VisualisationMapRef } from '~/components/map/VisualisationMap'
+import VisualisationMap, { VisualisationMapRef } from '~/components/map/visualisation-map'
 import Layout from '~/ui/layouts/layout'
 import MapLayout from '~/ui/layouts/MapLayout'
 import VisualisationLeftSideBar from '~/components/visualisation-left-side-bar'
