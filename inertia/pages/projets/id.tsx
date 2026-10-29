@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import TruncatedText from '~/ui/TruncatedText'
 import ProjetInfosCard from '~/components/projets/projet-infos-card'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'

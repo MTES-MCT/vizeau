@@ -6,16 +6,16 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { useState } from 'react'
 
 const deleteDocumentModal = createModal({
-  id: 'delete-project-step-document-modal',
+  id: 'delete-document-modal',
   isOpenedByDefault: false,
 })
 
-export function ProjectStepDocumentList({
+export default function LogEntryDocumentList({
   documents,
   deleteDocumentUrl,
 }: {
-  documents: Data.ProjectStepDocument[]
-  deleteDocumentUrl: string
+  documents: Data.LogEntryDocument[]
+  deleteDocumentUrl?: string
 }) {
   const [documentIdToDelete, setDocumentIdToDelete] = useState<number | null>(null)
 
@@ -27,9 +27,11 @@ export function ProjectStepDocumentList({
           href: document.href,
           size: document.sizeInBytes,
           format: 'PDF',
-          deletable: true,
+          deletable: deleteDocumentUrl !== undefined,
         }))}
         onDelete={(_, index) => {
+          if (!deleteDocumentUrl) return
+
           setDocumentIdToDelete(documents[index].id)
           deleteDocumentModal.open()
         }}
@@ -42,6 +44,8 @@ export function ProjectStepDocumentList({
           {
             children: 'Supprimer le document',
             onClick: () => {
+              if (!deleteDocumentUrl) return
+
               router.delete(deleteDocumentUrl, {
                 data: { documentId: documentIdToDelete },
                 onSuccess: () => {

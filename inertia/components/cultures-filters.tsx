@@ -1,5 +1,5 @@
 import { values } from 'lodash-es'
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 
 import Button from '@codegouvfr/react-dsfr/Button'
 import LegendItem from '~/ui/LegendItem'

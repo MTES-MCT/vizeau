@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import type { LngLatBounds } from 'maplibre-gl'
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 
 type HiddenCulture = {
   /** Zone visible au moment où la culture a été masquée. */

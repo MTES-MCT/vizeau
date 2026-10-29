@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { values } from 'lodash-es'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 
 import Input from '@codegouvfr/react-dsfr/Input'
 export default {

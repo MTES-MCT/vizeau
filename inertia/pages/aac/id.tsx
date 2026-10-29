@@ -1,7 +1,7 @@
 import { Head, usePage } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import TruncatedText from '~/ui/TruncatedText'
@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react'
 import AacTerritoireSection from '~/components/aac-id/aac-territoire-section'
 import AacAgricultureSection from '~/components/aac-id/aac-agriculture-section'
 import AacCaptages from '~/components/aac-id/aac-captages'
-import { AacActionCard } from '~/components/aac-id/AacActionCard'
+import AacActionCard from '~/components/aac-id/aac-action-card'
 import SignalErrorContact from '~/components/signal-error-contact'
 import type { AacJson } from '#types/aac'
 

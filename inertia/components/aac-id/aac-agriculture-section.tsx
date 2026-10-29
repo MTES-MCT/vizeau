@@ -8,7 +8,7 @@ import EvolutiveChartLine from '~/ui/Charts/EvolutiveChartLine'
 import ResumeCard from '~/ui/ResumeCard'
 import SectionCard from '~/ui/SectionCard'
 import SmallSection from '~/ui/SmallSection'
-import { getCultureColorByLabel } from '~/functions/cultures-group'
+import { getCultureColorByLabel } from '~/functions/cultures_group'
 import AacCulturesRepartition from './aac-cultures-repartition'
 
 import type { AacJson } from '#types/aac'

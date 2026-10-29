@@ -13,7 +13,7 @@ import { startReactDsfr } from '@codegouvfr/react-dsfr/spa'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import { Toaster } from './ui/Toaster'
-import { MatomoTrackerInjector } from '~/components/matomo-tracker-injector'
+import MatomoTrackerInjector from '~/components/matomo-tracker-injector'
 import { client } from '~/client'
 import { Link, TuyauProvider } from '@adonisjs/inertia/react'
 import { FlashMessages, showFlashToasts } from '~/functions/flash_messages'
