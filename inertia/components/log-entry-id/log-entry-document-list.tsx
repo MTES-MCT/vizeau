@@ -10,7 +10,7 @@ const deleteDocumentModal = createModal({
   isOpenedByDefault: false,
 })
 
-export function LogEntryDocumentList({
+export default function LogEntryDocumentList({
   documents,
   deleteDocumentUrl,
 }: {

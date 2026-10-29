@@ -3,7 +3,7 @@ import SingleSelectMenu, { OptionType } from '~/ui/SingleSelectMenu'
 import Loader from '~/ui/Loader'
 import type { SubstanceItem, ChroniqueData } from '#types/captage'
 import { useFetch } from '~/hooks/use_fetch'
-import { SubstanceDetail } from './substance-detail'
+import SubstanceDetail from './substance-detail'
 
 type Props = {
   aacCode: string

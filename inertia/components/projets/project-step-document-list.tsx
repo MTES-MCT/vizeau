@@ -10,7 +10,7 @@ const deleteDocumentModal = createModal({
   isOpenedByDefault: false,
 })
 
-export function ProjectStepDocumentList({
+export default function ProjectStepDocumentList({
   documents,
   deleteDocumentUrl,
 }: {

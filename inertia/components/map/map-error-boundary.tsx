@@ -18,6 +18,6 @@ function MapErrorFallback() {
   )
 }
 
-export function MapErrorBoundary({ children }: PropsWithChildren) {
+export default function MapErrorBoundary({ children }: PropsWithChildren) {
   return <ErrorBoundary FallbackComponent={MapErrorFallback}>{children}</ErrorBoundary>
 }

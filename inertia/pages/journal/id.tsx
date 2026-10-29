@@ -13,7 +13,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { getLogEntryTitle } from '~/functions/log_entries'
 import TruncatedText from '~/ui/TruncatedText'
 import SectionCard from '~/ui/SectionCard'
-import { LogEntryDocumentList } from '~/components/log-entry-id/log-entry-document-list'
+import LogEntryDocumentList from '~/components/log-entry-id/log-entry-document-list'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { urlFor } from '~/client'
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Head, useForm, router } from '@inertiajs/react'
-import { LogEntryForm } from '~/components/exploitation-id/log-entry-form'
+import LogEntryForm from '~/components/exploitation-id/log-entry-form'
 import Layout from '~/ui/layouts/layout'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { fr } from '@codegouvfr/react-dsfr'

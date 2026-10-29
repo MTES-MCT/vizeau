@@ -6,7 +6,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import SmallSection from '~/ui/SmallSection'
 import { useRef, useState } from 'react'
-import { ProjectStepTagSelector } from '~/components/projets/form/project-step-tag-selector'
+import ProjectStepTagSelector from '~/components/projets/form/project-step-tag-selector'
 
 type FirstEntryStepProps = {
   data: ProjetFormData

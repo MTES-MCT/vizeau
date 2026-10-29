@@ -27,7 +27,7 @@ import vector from '~/components/map/styles/vector.json'
 
 import { getRpgIdsFromParcellesForYear } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
-import { MapErrorBoundary } from './map-error-boundary'
+import MapErrorBoundary from './map-error-boundary'
 import Loader from '~/ui/Loader'
 
 type StylesMap = {
