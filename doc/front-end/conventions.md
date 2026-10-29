@@ -1,6 +1,6 @@
 # Conventions
 
-Le code existant ne respecte pas toujours ces conventions : elles s'appliquent au nouveau code, et au code existant quand on le modifie.
+Le code existant respecte ces conventions, à une exception près : de nombreux composants et pages sont encore typés avec `any` (voir [Typage](#typage)). Les corriger au passage quand on modifie un fichier.
 
 ## Langue
 
@@ -20,6 +20,11 @@ Le code existant ne respecte pas toujours ces conventions : elles s'appliquent a
 
 Les composants eux-mêmes sont nommés en PascalCase et exportés par défaut (`export default function ExploitationsList`), quel que soit le nom du fichier.
 
+Deux exceptions :
+
+- un fichier qui regroupe plusieurs petits composants liés les exporte par leur nom (`components/flash-message.tsx` exporte `FlashMessage` et `FlashMessages`) ;
+- un fichier de `components/` qui ne contient pas de composant (configuration, constantes) suit la convention de `functions/` : snake_case (`components/projets/form/steps_config.ts`).
+
 ## Où ranger le code
 
 | Dossier      | Quoi                                                                              | Exemple                                        |
@@ -28,8 +33,6 @@ Les composants eux-mêmes sont nommés en PascalCase et exportés par défaut (`
 | `lib/`       | Fonctions qui appellent un service externe ou produisent un fichier à télécharger | API Adresse, vérification de SIRET, export CSV |
 | `hooks/`     | Hooks React réutilisés par plusieurs composants                                   | `useMap`, `useFetch`                           |
 | `data/`      | Référentiels statiques en JSON                                                    | `cultures.json`                                |
-
-Le dossier `utils/` est amené à disparaître : ne rien y ajouter, et ranger le nouveau code dans `functions/`.
 
 Une fonction utilisée par un seul composant reste dans le fichier du composant. Elle ne rejoint `functions/` que lorsqu'un second composant en a besoin.
 
@@ -79,7 +82,7 @@ Dans `inertia/pages/territoires/captages.tsx` :
 ```tsx
 import { Head } from '@inertiajs/react'
 import type { Data } from '@generated/data'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 
 export default function TerritoireCaptages({ captages }: { captages: Data.Captage[] }) {
   return (

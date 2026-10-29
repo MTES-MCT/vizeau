@@ -7,7 +7,7 @@ Les données métier (parcelles, zonages) sont servies sous forme de fichiers [P
 
 | Composant                                    | Utilisé dans                                                        | Rôle                                                                  |
 | -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `components/map/VisualisationMap.tsx`        | `pages/visualisation.tsx`                                           | Carte principale : exploitations, parcelles, zonages, filtres, popups |
+| `components/map/visualisation-map.tsx`       | `pages/visualisation.tsx`                                           | Carte principale : exploitations, parcelles, zonages, filtres, popups |
 | `components/map/parcelles-selection-map.tsx` | Formulaire de projet (`components/projets/form/parcelles-step.tsx`) | Sélection de parcelles sur une carte simplifiée                       |
 | `components/map/aac-location-map.tsx`        | Page d'une AAC (`components/aac-id/aac-map-section.tsx`)            | Petite carte de repérage non interactive, centrée sur une AAC         |
 
@@ -93,7 +93,7 @@ Quand le fond de carte contient la couche `water-name-lakeline` (noms des plans 
 
 Les parcelles sont la couche la plus riche, et la plus lourde : elles ne s'affichent qu'à partir du zoom 10 (`PARCELLES_MIN_ZOOM`).
 
-- **Couleur** : chaque parcelle est colorée selon son groupe de cultures (`code_group`), avec les couleurs de `GROUPES_CULTURAUX` (`functions/cultures-group.tsx`).
+- **Couleur** : chaque parcelle est colorée selon son groupe de cultures (`code_group`), avec les couleurs de `GROUPES_CULTURAUX` (`functions/cultures_group.tsx`).
 - **Surbrillance et indisponibilité** : passent par les [feature states](https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setfeaturestate) `highlighted` et `unavailable`, qui modifient l'opacité. L'identifiant utilisé est `id_parcel`.
 - **Parcelles bio** : leurs couches ne sont jamais masquées, seulement rendues transparentes, pour qu'on puisse toujours les détecter sous le curseur.
 - **Couche sonde** (`parcelles-probe`) : couche invisible et jamais filtrée, qui sert à lister les cultures présentes à l'écran, y compris celles masquées par le filtre.

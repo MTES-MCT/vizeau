@@ -69,7 +69,7 @@ Un fichier CSS dédié (`ui/AlertDrawer/custom.css`, par exemple) n'est justifi�
 
 ## Les layouts
 
-Chaque page s'enveloppe dans `Layout` (`ui/layouts/layout.tsx`), qui affiche l'en-tête, la navigation, la recherche globale et le pied de page.
+Chaque page s'enveloppe dans `Layout` (`ui/layouts/Layout/index.tsx`), qui affiche l'en-tête, la navigation, la recherche globale et le pied de page.
 
 | Prop           | Effet                                                                               |
 | -------------- | ----------------------------------------------------------------------------------- |
@@ -95,7 +95,7 @@ npm run storybook
 
 ### Écrire une story
 
-La story se place dans le dossier du composant (`ui/Divider/divider.stories.tsx`) :
+La story se place dans le dossier du composant (`ui/Divider/divider.stories.tsx`). Seule exception : `ui/cultures-pictos.stories.tsx`, un catalogue des pictogrammes de cultures qui n'est rattaché à aucun composant.
 
 ```tsx
 import Divider, { DividerProps } from './index.js'

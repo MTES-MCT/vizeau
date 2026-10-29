@@ -35,7 +35,6 @@ Tout le code front se trouve dans `inertia/`, importé via l'alias `~` (`~/ui/Lo
 | `hooks/`          | Hooks React (`use_map`, `use_fetch`, `use_global_search`…)                                                                            |
 | `functions/`      | Fonctions utilitaires sans appel réseau : formatage, couleurs, calculs liés à la carte                                                |
 | `lib/`            | Fonctions qui appellent un service externe ou produisent un fichier (API Adresse, vérification de SIRET, export CSV)                  |
-| `utils/`          | Ancien dossier de constantes, amené à disparaître : ne rien y ajouter                                                                 |
 | `data/`           | Référentiels statiques en JSON (codes NAF, cultures)                                                                                  |
 | `css/app.css`     | Import de Tailwind et quelques styles globaux                                                                                         |
 

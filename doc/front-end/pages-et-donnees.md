@@ -46,7 +46,7 @@ Elle s'enveloppe dans le `Layout` commun et définit son titre avec `Head` (le s
 // inertia/pages/journal/creation.tsx
 import { Head } from '@inertiajs/react'
 import type { Data } from '@generated/data'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 
 export default function TaskCreationPage({ exploitation }: { exploitation: Data.Exploitation }) {
   return (
