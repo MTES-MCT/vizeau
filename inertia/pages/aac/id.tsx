@@ -1,7 +1,7 @@
 import { Head, usePage } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import TruncatedText from '~/ui/TruncatedText'

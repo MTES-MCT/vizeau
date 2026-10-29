@@ -1,5 +1,5 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import { Head, router } from '@inertiajs/react'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 import { fr } from '@codegouvfr/react-dsfr'

@@ -1,4 +1,4 @@
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import { FormEvent, useRef, useState } from 'react'
 import { Head, router, useForm } from '@inertiajs/react'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'

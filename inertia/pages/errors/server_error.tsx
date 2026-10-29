@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react'
 import { ButtonsGroup } from '@codegouvfr/react-dsfr/ButtonsGroup'
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import OvoidPictogram from '~/ui/OvoidPictogram'
 
 // Le message de l'erreur n'est volontairement pas affiché : il peut contenir des détails techniques

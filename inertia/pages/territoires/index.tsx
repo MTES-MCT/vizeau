@@ -1,7 +1,7 @@
 import { Deferred, Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination'

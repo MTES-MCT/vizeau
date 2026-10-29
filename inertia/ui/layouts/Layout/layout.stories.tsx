@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { JSX } from 'react/jsx-runtime'
-import Layout from './layout'
+import Layout from './index'
 
 export default {
   title: 'ui/layouts/Layout',

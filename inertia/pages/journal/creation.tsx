@@ -1,4 +1,4 @@
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import { useState, FormEvent } from 'react'
 import { Head, useForm, router } from '@inertiajs/react'
 import LogEntryForm from '~/components/exploitation-id/log-entry-form'
