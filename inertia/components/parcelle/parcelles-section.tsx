@@ -1,10 +1,10 @@
 import SmallSection from '~/ui/SmallSection'
 import ExploitationParcellesList from './exploitations-parcelles-list'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import type { ParcelleJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 export type ParcellesSectionProps = {
-  parcelles: ParcelleJson[]
+  parcelles: Data.Parcelle[]
   exploitationId: string
 }
 

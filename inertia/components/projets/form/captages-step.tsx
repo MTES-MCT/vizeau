@@ -97,11 +97,11 @@ export default function CaptagesStep({ data, setData }: CaptagesStepProps) {
               <CheckboxCard
                 key={installation.code}
                 value={installation.code}
-                title={installation.nom}
+                title={installation.name}
                 metas={[
                   { iconId: 'fr-icon-government-line', content: installation.commune },
-                  ...(installation.etat === 'ACTIF'
-                    ? [{ iconId: 'fr-icon-checkbox-fill', content: installation.etat }]
+                  ...(installation.state === 'ACTIF'
+                    ? [{ iconId: 'fr-icon-checkbox-fill', content: installation.state }]
                     : []),
                 ]}
                 isSelected={selectedCaptages.has(installation.code)}

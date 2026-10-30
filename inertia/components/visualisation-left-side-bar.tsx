@@ -1,6 +1,7 @@
 import { ChangeEvent, RefObject, useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
-import type { AacSummaryJson, ExploitationJson, ParcelleJson } from '#types/models'
+import type { AacSummaryJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
 import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'
@@ -34,11 +35,11 @@ export default function VisualisationLeftSideBar({
   aacQueryString,
   selectedAac,
 }: {
-  exploitations: ExploitationJson[]
+  exploitations: Data.Exploitation[]
   queryString?: { recherche?: string; tab?: string }
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void
-  selectedExploitation?: ExploitationJson
-  selectedParcelle: ParcelleJson | undefined
+  selectedExploitation?: Data.Exploitation
+  selectedParcelle: Data.Parcelle | undefined
   selectedExploitationTab: string
   setSelectedExploitationTab: (tab: string) => void
   isMapLoading: boolean

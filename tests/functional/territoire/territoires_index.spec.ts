@@ -5,9 +5,10 @@ import { TerritoireFactory } from '#database/factories/territoire_factory'
 import { inertiaApiClient } from '@adonisjs/inertia/plugins/api_client'
 import app from '@adonisjs/core/services/app'
 import { AacService } from '#services/aac_service'
+import { AacDto } from '../../../app/dto/aac_dto.js'
 
 function createMockAacService(): AacService {
-  return {
+  const mock = {
     async getAll(
       _page: number,
       _perPage: number,
@@ -33,11 +34,26 @@ function createMockAacService(): AacService {
           surface_agricole_ppe: null,
           surface_agricole_ppr: null,
           surface_agricole_utile: null,
+          depassements_alerte: code === '12345' ? 2 : 0,
+          depassements_reglementaires: code === '12345' ? 1 : 0,
         })),
         total: codes.length,
       }
     },
-  } as unknown as AacService
+    async getSummariesByCode(aacCodes: string[]) {
+      const summariesByCode: Record<string, unknown> = {}
+      if (aacCodes.length === 0) return summariesByCode
+
+      const { data } = await mock.getAll(1, aacCodes.length, undefined, undefined, aacCodes)
+      for (const row of data) {
+        const summary = AacDto.fromRawSummary(row)
+        summariesByCode[summary.code] = summary
+      }
+      return summariesByCode
+    },
+  }
+
+  return mock as unknown as AacService
 }
 
 test.group('Territoires - Index Route', (group) => {
@@ -61,7 +77,10 @@ test.group('Territoires - Index Route', (group) => {
 
     await user.related('territoires').attach([aacTerritoire.id, nonAacTerritoire.id])
 
-    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -81,17 +100,17 @@ test.group('Territoires - Index Route', (group) => {
     assert.isDefined(territoireWithAacLink)
     assert.isDefined(territoireWithoutAacLink)
     assert.equal(territoireWithAacLink.code, '12345')
-    assert.equal(territoireWithAacLink.aacHref, '/aac/12345')
-    assert.equal(territoireWithAacLink.typeLabel, 'AAC Sandre')
     assert.equal(territoireWithAacLink.surface, 150.5)
     assert.equal(territoireWithAacLink.nb_communes, 2)
     assert.equal(territoireWithAacLink.nb_captages_actifs, 3)
+    assert.equal(territoireWithAacLink.depassements_alerte, 2)
+    assert.equal(territoireWithAacLink.depassements_reglementaires, 1)
     assert.isNull(territoireWithoutAacLink.code)
-    assert.isNull(territoireWithoutAacLink.aacHref)
-    assert.equal(territoireWithoutAacLink.typeLabel, 'Autre territoire')
     assert.isNull(territoireWithoutAacLink.surface)
     assert.isNull(territoireWithoutAacLink.nb_communes)
     assert.isNull(territoireWithoutAacLink.nb_captages_actifs)
+    assert.isNull(territoireWithoutAacLink.depassements_alerte)
+    assert.isNull(territoireWithoutAacLink.depassements_reglementaires)
   })
 
   test('user gets paginated territoires', async ({ assert, client, route }) => {
@@ -103,7 +122,7 @@ test.group('Territoires - Index Route', (group) => {
     const response = await client
       .get(route('territoires.index', {}, { qs: { territoiresPage: 2 } }))
       .loginAs(user)
-      .withInertia()
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -123,7 +142,10 @@ test.group('Territoires - Index Route', (group) => {
     await user.related('territoires').attach([myTerritoire.id])
     await anotherUser.related('territoires').attach([otherTerritoire.id])
 
-    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
 
     response.assertStatus(200)
 
@@ -134,5 +156,21 @@ test.group('Territoires - Index Route', (group) => {
 
     assert.include(territoireIds, myTerritoire.id)
     assert.notInclude(territoireIds, otherTerritoire.id)
+  })
+
+  test('territoires and meta are deferred', async ({ assert, client, route }) => {
+    const user = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+
+    const response = await client.get(route('territoires.index')).loginAs(user).withInertia()
+
+    response.assertStatus(200)
+
+    const responseBody = response.body()
+    assert.equal(responseBody.component, 'territoires/index')
+    assert.notProperty(responseBody.props, 'territoires')
+    assert.notProperty(responseBody.props, 'meta')
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
   })
 })

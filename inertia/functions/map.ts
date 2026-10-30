@@ -1,8 +1,9 @@
-import type maplibre from 'maplibre-gl'
-import type { ParcelleJson } from '#types/models'
+import type { Map as MaplibreMap } from 'maplibre-gl'
+import type { Geometry } from 'geojson'
+import type { Data } from '@generated/data'
 
 export function setParcellesHighlight(
-  map: maplibre.Map | null,
+  map: MaplibreMap | null,
   parcelleIds: string[],
   highlighted: boolean = true
 ) {
@@ -60,7 +61,7 @@ function getRingCentroid(ring: number[][]): { x: number; y: number; area: number
   }
 }
 
-export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number } | undefined {
+export function getCentroid(geometry: Geometry): { x: number; y: number } | undefined {
   if (geometry.type === 'Polygon') {
     return getRingCentroid(geometry.coordinates[0])
   }
@@ -95,7 +96,7 @@ export function getCentroid(geometry: GeoJSON.Geometry): { x: number; y: number 
 }
 
 export function getRpgIdsFromParcellesForYear(
-  parcelles: ParcelleJson[] | undefined,
+  parcelles: Data.Parcelle[] | undefined,
   year: string
 ): string[] {
   if (!parcelles || !parcelles.length) return []

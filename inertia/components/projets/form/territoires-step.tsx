@@ -32,7 +32,7 @@ export default function TerritoiresStep({ data, setData }: TerritoiresStepProps)
       />
       <div className="flex flex-col gap-3">
         {territoires.data.map((territoire) => {
-          let title = territoire.nom
+          let title = territoire.name
 
           if (!title && territoire.code) {
             title = `AAC ${territoire.code}`
@@ -52,10 +52,10 @@ export default function TerritoiresStep({ data, setData }: TerritoiresStepProps)
           )
         })}
 
-        {territoires.meta.lastPage > 1 && (
+        {territoires.metadata.lastPage > 1 && (
           <Pagination
-            count={territoires.meta.lastPage}
-            defaultPage={territoires.meta.currentPage}
+            count={territoires.metadata.lastPage}
+            defaultPage={territoires.metadata.currentPage}
             showFirstLast={true}
             getPageLinkProps={(pageNumber) => ({
               href: '#',

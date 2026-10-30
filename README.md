@@ -2,7 +2,7 @@
 
 ## Prérequis
 
-- Node.js 22 LTS ou supérieur
+- Node.js 24.22.1 ou supérieur (LTS 24)
 - PostgreSQL 16.9 ou supérieur
 
 ## Exécution en mode développement
@@ -30,6 +30,8 @@
    ```bash
    node ace db:seed
    ```
+
+   En plus de l'admin (`ADMIN_EMAIL`), qui a accès à tous les territoires, un utilisateur de test `test@vizeau.beta.gouv.fr` (mot de passe `password`) est créé avec les territoires 1, 2 et 3, pour tester le cloisonnement par territoire. Il n'est jamais créé en production. Les autres comptes se créent avec `node ace user:seed --file` (voir [doc/commandes.md](doc/commandes.md)).
 
 6. Démarrez l’application :
 
@@ -77,52 +79,7 @@ Elles ne sont pas destinées à un déploiement en production réel pour des rai
 
 ## Exécution en production
 
-Lisez d’abord ce guide pour apprendre à construire le bundle de production, à gérer les migrations de base de données et les journaux de l’application :
-[https://docs.adonisjs.com/guides/getting-started/deployment](https://docs.adonisjs.com/guides/getting-started/deployment)
-
-Les déploiements doivent être effectués automatiquement à l’aide de pipelines CI/CD.
-
-Quelques notes sur les variables d’environnement :
-
-- `APP_KEY` : Chaîne aléatoire utilisée pour le chiffrement.
-  En production, elle doit contenir **au moins 32 caractères**.
-- `DB_*` : Paramètres de connexion à la base de données (hôte, port, utilisateur, mot de passe, nom de la base).
-  Les valeurs par défaut correspondent à la configuration Docker, **changez leurs valeurs en production**.
-- `ADMIN_*` : Identifiants de l’administrateur initial. **Changez ces valeurs en production**.
-- `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
-- `PMTILES_URL` : URL de base de la source des tuiles vectorielles. Probablement un bucket S3.
-- `DRIVE_DISK` : Le disque de stockage à utiliser pour les fichiers téléchargés. En production, il doit être défini sur `spaces`.
-- `SPACES_KEY` : Le nom de votre clef d'accès à votre bucket S3.
-- `SPACES_SECRET` : La valeur de votre clef d'accès à votre bucket S3.
-- `SPACES_REGION` : La région de votre bucket S3. Pré-configuré pour l'hébergeur Scaleway à Paris.
-- `SPACES_BUCKET` : Le nom de votre bucket.
-- `SPACES_ENDPOINT` : L'URL de l’endpoint de l’espace de stockage, sans le nom du bucket. Pré-configuré pour l'hébergeur Scaleway.
-- `USERS_TO_SEED` : Une chaine de caractères au format JSON représentant une liste d'utilisateurs à ajouter à la base de données lors de l'exécution de la commande `db:seed`. Utilisée pour ajouter des utilisateurs en production.
-
-Le reste dépend de la logique métier et sort du cadre de ce README.
-
-## Migration en production
-
-La pipeline CI/CD est configurée pour construire le bundle de production et le déployer sur l'environnement distant de développement à chaque mise à jour de la branche `main`.
-Même chose pour la production, mais à partir de la branche `stable`.
-
-Les migrations de schéma de la base de données se font automatiquement. Si pour une raison ou une autre, vous avez besoin d'accéder à un shell sur un des environnements, voici comment faire :
-
-```bash
-# Remplacez vizeau-dev par le nom de votre application Scalingo, et la région si nécessaire
-scalingo -a vizeau-dev --region osc-fr1 run "NODE_ENV=production bash"
-# Une fois connecté, naviguez jusqu'au répertoire de l'application
-cd build
-
-# Vous pouvez maintenant exécuter n'importe quelle commande de l'application via `ace`, par exemple pour seeder la base de données :
-node ace db:seed
-```
-
-### Migration du bucket S3
-
-Nous stockons divers fichiers en lecture seule dans un bucket S3 sur Scaleway, notamment les tuiles vectorielles utilisées pour les cartes, ou les fichiers parquet recensant les AACs.
-Les buckets sont suffixés par le nom de l'environnement. Lorsqu'un fichier doit être mis à jour, nous faisons d'abord nos tests sur les bucket `*-dev`.
-Lors de la mise en production, il faut vérifier que le fichier équivalent dans `*-prod` est bien à jour.
+Cf. [doc/deploiement.md](doc/deploiement.md)
 
 ## Exécution de Storybook
 

@@ -15,6 +15,18 @@ export const http = defineConfig({
   useAsyncLocalStorage: false,
 
   /**
+   * L'application est déployée derrière les routeurs Scalingo, qui transmettent
+   * l'IP du client dans l'en-tête X-Real-IP. Sans cela, request.ip() renverrait
+   * l'IP du routeur pour toutes les requêtes, ce qui fausserait la limitation des
+   * tentatives de connexion.
+   * Attention : l'en-tête peut être falsifié si l'application est exposée sans
+   * reverse proxy qui le réécrit.
+   */
+  getIp(request, originalFn) {
+    return request.header('x-real-ip') ?? originalFn()
+  },
+
+  /**
    * Manage cookies configuration. The settings for the session id cookie are
    * defined inside the "config/session.ts" file.
    */

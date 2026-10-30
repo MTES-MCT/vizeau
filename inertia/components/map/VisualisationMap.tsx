@@ -9,14 +9,16 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
-import maplibre, { type LngLatLike, MapGeoJSONFeature } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
-import type { AacSummaryJson, ExploitationJson, ParcelleJson, ProjectJson } from '#types/models'
+import { Marker, Popup, ScaleControl } from 'maplibre-gl'
+import type { LngLatBounds, LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
+import type { AacSummaryJson } from '#types/models'
+import type { Data } from '@generated/data'
 import PopupExploitation from '~/components/map/popup-exploitation'
-import type { MapDesiredState } from '~/functions/map_reconciler'
+import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 
 import { renderPopupParcelle } from './popup-parcelle'
+import { renderPopupAac } from './popup-aac'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 import photo from '~/components/map/styles/photo.json'
@@ -38,30 +40,31 @@ const stylesMap: StylesMap = {
   'vector': vector,
 }
 
-const protocol = new Protocol()
-maplibre.addProtocol('pmtiles', protocol.tile)
-
 const markerColor = fr.colors.decisions.artwork.major.blueFrance.default
 
+const AAC_HIT_AREA_LAYER_ID = 'aac-outline-hit-area'
+
 export interface VisualisationMapRef {
-  centerOnExploitation: (exploitation: ExploitationJson) => void
-  centerOnParcelle: (parcelle: ParcelleJson) => void
+  centerOnExploitation: (exploitation: Data.Exploitation) => void
+  centerOnParcelle: (parcelle: Data.Parcelle) => void
   centerOnAac: (aac: AacSummaryJson) => void
   centerOnCoordinates: (coordinates: { x: number; y: number }) => void
 }
 
 type VisualisationMapProps = {
-  exploitations: ExploitationJson[]
-  selectedExploitation?: ExploitationJson
-  selectedParcelle?: ParcelleJson
+  exploitations: Data.Exploitation[]
+  selectedExploitation?: Data.Exploitation
+  selectedParcelle?: Data.Parcelle
   selectedParcelleId?: string
   isMapLoading: boolean
   setIsMapLoading: (isMapLoading: boolean) => void
   onParcelleClick?: (parcelleFeature: MapGeoJSONFeature) => void
   onParcelleMouseMove?: (parcelleProperties: { [name: string]: any }) => void
   onParcelleMouseLeave?: () => void
-  onMarkerClick?: (exploitation: ExploitationJson) => void
-  onMarkerMouseEnter?: (exploitation: ExploitationJson) => void
+  onMarkerClick?: (exploitation: Data.Exploitation) => void
+  onAacClick?: (aacCode: string) => void
+  selectedAacCode?: string
+  onMarkerMouseEnter?: (exploitation: Data.Exploitation) => void
   onMarkerMouseLeave?: () => void
   formParcelleIds?: string[]
   unavailableParcelleIds?: string[]
@@ -77,8 +80,14 @@ type VisualisationMapProps = {
   showSage?: boolean
   style?: string
   onZoomChange?: (zoom: number) => void
+  /** `null` lorsque les parcelles ne sont pas affichées au niveau de zoom courant. */
+  onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
   pmtilesUrl: string
-  projects: ProjectJson[]
+  projects: Data.Project[]
+  /** Surfaces of every AAC, keyed by AAC code. */
+  aacSurfaces?: Record<string, number | null>
+  /** AACs the user can open in the sidebar. */
+  accessibleAacCodes?: string[]
 }
 
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
@@ -93,6 +102,8 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleClick,
       onParcelleMouseLeave,
       onMarkerClick,
+      onAacClick,
+      selectedAacCode,
       onMarkerMouseEnter,
       onMarkerMouseLeave,
       formParcelleIds = [],
@@ -109,21 +120,33 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       showSage = false,
       style = 'vector',
       onZoomChange,
+      onCulturesInViewportChange,
       pmtilesUrl,
       projects,
+      aacSurfaces = {},
+      accessibleAacCodes = [],
     },
     ref
   ) => {
-    const markersRef = useRef<maplibre.Marker[]>([])
+    const onCulturesInViewportChangeRef = useRef(onCulturesInViewportChange)
+    onCulturesInViewportChangeRef.current = onCulturesInViewportChange
+    // Les cultures sont relevées au premier `idle` suivant un déplacement, une fois les tuiles
+    // de la nouvelle zone chargées : un relevé plus tôt manquerait des cultures présentes.
+    const culturesInViewportPendingRef = useRef(true)
+    const markersRef = useRef<Marker[]>([])
     // Exploitation whose marker is currently hovered, used both to highlight its parcelles and
     // to avoid showing the parcelle popup at the same time as the exploitation one.
     const [hoveredExploitationId, setHoveredExploitationId] = useState<string | null>(null)
     const isMarkerHovered = hoveredExploitationId !== null
     // The popup is created once and will be hidden/shown on demand, with its contents updated.
-    const parcellePopupRef = useRef<maplibre.Popup>(
-      new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+    const parcellePopupRef = useRef<Popup>(
+      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
+    const aacPopupRef = useRef<Popup>(
+      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+    )
+    const currentAacCodeRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
 
     // Détermine les parcelles à mettre en évidence selon le mode
@@ -185,6 +208,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       }),
       [
         pmtilesUrl,
@@ -200,11 +224,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds,
+        selectedAacCode,
       ]
     )
 
     useImperativeHandle(ref, () => ({
-      centerOnExploitation: (exploitation: ExploitationJson) => {
+      centerOnExploitation: (exploitation: Data.Exploitation) => {
         const map = mapRef.current
         if (map && exploitation.location) {
           const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
@@ -215,7 +240,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           })
         }
       },
-      centerOnParcelle: (parcelle: ParcelleJson) => {
+      centerOnParcelle: (parcelle: Data.Parcelle) => {
         const map = mapRef.current
         if (map && parcelle.centroid) {
           const coords: LngLatLike = [parcelle.centroid.x, parcelle.centroid.y]
@@ -262,9 +287,20 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     }, [exploitations])
 
     const handleParcelleMouseMove = useCallback(
-      (e: maplibre.MapLayerMouseEvent) => {
+      (e: MapLayerMouseEvent) => {
         // If a marker is hovered, we don't show parcelle popup to avoid showing two popups at the same time
         if (!mapRef.current || isMarkerHovered) {
+          return
+        }
+
+        // The AAC border sits on top of the parcelles: its popup takes precedence.
+        if (
+          mapRef.current.getLayer(AAC_HIT_AREA_LAYER_ID) &&
+          mapRef.current.queryRenderedFeatures(e.point, { layers: [AAC_HIT_AREA_LAYER_ID] })
+            .length > 0
+        ) {
+          parcellePopupRef.current.remove()
+          currentParcelleIdRef.current = null
           return
         }
 
@@ -290,7 +326,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           )
 
           const projectsWithThisParcelle = projects.filter((project) => {
-            return project.parcelles.some((p) => p.rpgId === id)
+            return project.parcelles?.some((p) => p.rpgId === id)
           })
 
           const popupContent = renderPopupParcelle(
@@ -346,9 +382,36 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleMouseLeave?.()
     }, [onParcelleMouseLeave])
 
+    // Only the AACs of the user's territoires can be opened in the sidebar, and not while
+    // parcelles are being assigned.
+    const isAacClickable = useCallback(
+      (code: string) => !editMode && Boolean(onAacClick) && accessibleAacCodes.includes(code),
+      [editMode, onAacClick, accessibleAacCodes]
+    )
+
+    const getClickableAacCodeAt = useCallback(
+      (point: MapLayerMouseEvent['point']): string | undefined => {
+        if (!mapRef.current?.getLayer(AAC_HIT_AREA_LAYER_ID)) {
+          return undefined
+        }
+
+        const code = mapRef.current.queryRenderedFeatures(point, {
+          layers: [AAC_HIT_AREA_LAYER_ID],
+        })[0]?.properties?.CdAAC
+
+        return code && isAacClickable(code) ? code : undefined
+      },
+      [isAacClickable]
+    )
+
     const handleParcelleClick = useCallback(
-      (e: maplibre.MapLayerMouseEvent) => {
+      (e: MapLayerMouseEvent) => {
         if (!mapRef.current || !onParcelleClick) {
+          return
+        }
+
+        // Clicking a clickable AAC border opens the AAC rather than the parcelle beneath it.
+        if (getClickableAacCodeAt(e.point)) {
           return
         }
 
@@ -359,7 +422,59 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           onParcelleClick(feature)
         }
       },
-      [onParcelleClick, unavailableParcelleIds]
+      [onParcelleClick, unavailableParcelleIds, getClickableAacCodeAt]
+    )
+
+    const handleAacMouseMove = useCallback(
+      (e: MapLayerMouseEvent) => {
+        if (!mapRef.current || isMarkerHovered) {
+          return
+        }
+
+        const props = e.features?.[0]?.properties
+        const code = props?.CdAAC
+
+        if (!code) {
+          return
+        }
+
+        if (currentAacCodeRef.current !== code) {
+          const nom = props.NomDeAACUsage || props.NomDeAACAdministratif || code
+          aacPopupRef.current
+            .setLngLat(e.lngLat)
+            .setDOMContent(renderPopupAac(nom, code, aacSurfaces[code]))
+            .addTo(mapRef.current)
+
+          currentAacCodeRef.current = code
+        } else {
+          aacPopupRef.current.setLngLat(e.lngLat)
+        }
+
+        mapRef.current.getCanvas().style.cursor = isAacClickable(code) ? 'pointer' : 'not-allowed'
+      },
+      [aacSurfaces, isMarkerHovered, isAacClickable]
+    )
+
+    const handleAacMouseLeave = useCallback(() => {
+      aacPopupRef.current.remove()
+      currentAacCodeRef.current = null
+
+      if (mapRef.current) {
+        mapRef.current.getCanvas().style.cursor = ''
+      }
+    }, [])
+
+    const handleAacClick = useCallback(
+      (e: MapLayerMouseEvent) => {
+        const code = getClickableAacCodeAt(e.point)
+
+        if (code) {
+          aacPopupRef.current.remove()
+          currentAacCodeRef.current = null
+          onAacClick?.(code)
+        }
+      },
+      [getClickableAacCodeAt, onAacClick]
     )
 
     const { mapContainerRef, mapRef, map } = useMap(
@@ -377,7 +492,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       (createdMap) => {
         createdMap.on('load', () => {
           createdMap.addControl(
-            new maplibre.ScaleControl({
+            new ScaleControl({
               maxWidth: 100,
               unit: 'metric',
             }),
@@ -391,10 +506,22 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         // Ensures the map is not blocked in loading state after any loading event
         createdMap.on('idle', () => {
           setIsMapLoading(false)
+
+          if (culturesInViewportPendingRef.current) {
+            culturesInViewportPendingRef.current = false
+            onCulturesInViewportChangeRef.current?.(
+              getCulturesInViewport(createdMap),
+              createdMap.getBounds()
+            )
+          }
         })
 
         createdMap.on('zoomend', () => {
           onZoomChange?.(createdMap.getZoom())
+        })
+
+        createdMap.on('moveend', () => {
+          culturesInViewportPendingRef.current = true
         })
       }
     )
@@ -412,7 +539,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         if (exploitation.location) {
           const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
 
-          const popup = new maplibre.Popup({
+          const popup = new Popup({
             closeButton: false,
             closeOnClick: false,
             offset: 25,
@@ -420,7 +547,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             className: 'custom-popup',
           })
 
-          const marker = new maplibre.Marker({
+          const marker = new Marker({
             draggable: false,
             color: markerColor,
           })
@@ -504,6 +631,20 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       }
     }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave, showBioOnly])
 
+    useEffect(() => {
+      const map = mapRef.current
+
+      map?.on('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+      map?.on('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+      map?.on('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
+
+      return () => {
+        map?.off('mousemove', AAC_HIT_AREA_LAYER_ID, handleAacMouseMove)
+        map?.off('mouseleave', AAC_HIT_AREA_LAYER_ID, handleAacMouseLeave)
+        map?.off('click', AAC_HIT_AREA_LAYER_ID, handleAacClick)
+      }
+    }, [handleAacMouseMove, handleAacMouseLeave, handleAacClick])
+
     // Mise à jour du fond de carte. `setStyle` applique un diff synchrone qui retire les
     // sources et layers ajoutés par-dessus le fond de carte sans émettre d'événement : la
     // reconciliation doit donc être relancée dans la foulée pour les remettre en place.
@@ -539,6 +680,11 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     useEffect(() => {
       parcellePopupRef.current.remove()
       currentParcelleIdRef.current = null
+    }, [millesime])
+
+    // Les cultures présentes dans la zone visible dépendent du millésime affiché.
+    useEffect(() => {
+      culturesInViewportPendingRef.current = true
     }, [millesime])
 
     return (

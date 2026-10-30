@@ -13,13 +13,14 @@ import {
   showProjectValidator,
   updateProjectValidator,
 } from '#validators/project'
-import { ProjectDto } from '../dto/project_dto.js'
-import { ExploitationDto } from '../dto/exploitation_dto.js'
-import { CaptageDto } from '../dto/captage_dto.js'
-import { ProjectStepTagDto } from '../dto/project_step_tag_dto.js'
-import { TerritoireDto } from '../dto/territoire_dto.js'
 import { createErrorFlashMessage, createSuccessFlashMessage } from '../helpers/flash_message.js'
 import { ProjectStepTagService } from '#services/project_step_tag_service'
+import { ExploitationCsvService } from '#services/exploitation_csv_service'
+import ProjectTransformer from '#transformers/project_transformer'
+import ExploitationTransformer from '#transformers/exploitation_transformer'
+import ProjectStepTagTransformer from '#transformers/project_step_tag_transformer'
+import CaptageTransformer from '#transformers/captage_transformer'
+import TerritoireTransformer from '#transformers/territoire_transformer'
 
 @inject()
 export default class ProjectsController {
@@ -29,7 +30,8 @@ export default class ProjectsController {
     public projectService: ProjectService,
     public exploitationService: ExploitationService,
     public projectStepTagService: ProjectStepTagService,
-    public territoireService: TerritoireService
+    public territoireService: TerritoireService,
+    public exploitationCsvService: ExploitationCsvService
   ) {}
 
   async index({ auth, inertia, request }: HttpContext) {
@@ -62,11 +64,9 @@ export default class ProjectsController {
       page,
     })
 
-    const serializedProjects = ProjectDto.fromPaginator(result.projects)
-
     return inertia.render('projets/index', {
-      projets: serializedProjects.data,
-      meta: serializedProjects.meta,
+      projets: ProjectTransformer.transform(result.projects.all()),
+      meta: result.projects.getMeta(),
       projetsCount: result.projetsCount,
       availableActionTypes: result.availableActionTypes,
       availableYearRange: result.availableYearRange,
@@ -131,9 +131,9 @@ export default class ProjectsController {
               commentQuery.where('userId', user.id)
             })
           })
-        return ExploitationDto.toJsonArray(results)
+        return ExploitationTransformer.transform(results)
       },
-      installations: CaptageDto.toFormJsonArray(captageRows),
+      installations: CaptageTransformer.transform(captageRows),
       installationsMeta: {
         total,
         perPage: ProjectsController.INSTALLATIONS_PER_PAGE,
@@ -145,7 +145,10 @@ export default class ProjectsController {
         installationsPage: String(page),
         showActifOnly: showActifOnlyInput,
       },
-      territoires: TerritoireDto.fromPaginator(paginatedTerritoires),
+      territoires: TerritoireTransformer.paginate(
+        paginatedTerritoires.all(),
+        paginatedTerritoires.getMeta()
+      ),
       pmtilesUrl: env.get('PMTILES_URL', ''),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
@@ -153,11 +156,11 @@ export default class ProjectsController {
           request.qs().tagSearch,
           5
         )
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       },
       lastCreatedProjectStepTag: inertia.optional(async () => {
         const tags = await this.projectStepTagService.getTagsForUser(user.id, undefined, 1)
-        return ProjectStepTagDto.fromArray(tags)
+        return ProjectStepTagTransformer.transform(tags)
       }),
     })
   }
@@ -179,14 +182,15 @@ export default class ProjectsController {
       ),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
     ])
 
     return inertia.render('projets/id', {
-      projet: ProjectDto.fromModel(project),
+      // Depth 2 is needed to serialize the tags and documents of the steps
+      projet: ProjectTransformer.transform(project).depth(2),
     })
   }
 
@@ -364,7 +368,7 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
       project.load('steps', (query) =>
         query.preload('tags').preload('documents').orderBy('createdAt', 'desc')
       ),
@@ -388,7 +392,7 @@ export default class ProjectsController {
       project.load('parcelles'),
       project.load('exploitations'),
       project.load('captages'),
-      project.load('territoires'),
+      project.load('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode())),
     ])
 
     const pageInput = request.input('installationsPage') || '1'
@@ -428,7 +432,7 @@ export default class ProjectsController {
     )
 
     return inertia.render('projets/edition', {
-      projet: ProjectDto.fromModel(project),
+      projet: ProjectTransformer.transform(project),
       exploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations('', user.id)
@@ -437,9 +441,9 @@ export default class ProjectsController {
               commentQuery.where('userId', user.id)
             })
           })
-        return ExploitationDto.toJsonArray(results)
+        return ExploitationTransformer.transform(results)
       },
-      installations: CaptageDto.toFormJsonArray(captageRows),
+      installations: CaptageTransformer.transform(captageRows),
       installationsMeta: {
         total,
         perPage: ProjectsController.INSTALLATIONS_PER_PAGE,
@@ -451,7 +455,10 @@ export default class ProjectsController {
         installationsPage: String(page),
         showActifOnly: showActifOnlyInput,
       },
-      territoires: TerritoireDto.fromPaginator(paginatedTerritoires),
+      territoires: TerritoireTransformer.paginate(
+        paginatedTerritoires.all(),
+        paginatedTerritoires.getMeta()
+      ),
       pmtilesUrl: env.get('PMTILES_URL', ''),
     })
   }
@@ -647,5 +654,26 @@ export default class ProjectsController {
     createSuccessFlashMessage(session, `Le projet a été supprimé avec succès.`)
 
     return response.redirect().toPath(`/projets`)
+  }
+
+  async exportExploitationsCsv({ bouncer, request, response }: HttpContext) {
+    const { params } = await request.validateUsing(showProjectValidator)
+    const project = await this.projectService.findProjectOrFail(params.projectId)
+
+    if (await bouncer.with('ProjectPolicy').denies('readWrite', project)) {
+      return response.forbidden("Impossible d'exporter les données du projet")
+    }
+
+    await project.load('exploitations', (query) => query.preload('contacts'))
+    const csv = this.exploitationCsvService.generateCsv(project.exploitations)
+
+    const safeName = project.name.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 50)
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = `exploitations-${safeName}-${date}.csv`
+
+    return response
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(csv)
   }
 }

@@ -1,6 +1,6 @@
 import FileItemsList from '~/ui/FileItemList'
 import { router } from '@inertiajs/react'
-import type { ProjectStepDocumentJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { useState } from 'react'
@@ -14,7 +14,7 @@ export function ProjectStepDocumentList({
   documents,
   deleteDocumentUrl,
 }: {
-  documents: ProjectStepDocumentJson[]
+  documents: Data.ProjectStepDocument[]
   deleteDocumentUrl: string
 }) {
   const [documentIdToDelete, setDocumentIdToDelete] = useState<number | null>(null)

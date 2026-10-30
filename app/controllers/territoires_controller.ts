@@ -2,7 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
 import { TerritoireService } from '#services/territoire_service'
-import { AacDto, type AacSummaryJson } from '../dto/aac_dto.js'
+import TerritoireTransformer from '#transformers/territoire_transformer'
 
 const PER_PAGE = 20
 
@@ -18,54 +18,43 @@ export default class TerritoiresController {
     const pageInput = request.input('territoiresPage') || request.input('page') || '1'
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
 
+    // Calcul partagé entre les deux props différées pour ne l'exécuter qu'une fois
+    let territoiresPromise: ReturnType<typeof this.getTerritoires> | undefined
+    const getTerritoires = () => (territoiresPromise ??= this.getTerritoires(user.id, page))
+
+    return inertia.render('territoires/index', {
+      territoires: inertia.defer(async () => {
+        const { territoires } = await getTerritoires()
+        return territoires
+      }, 'territoires'),
+      meta: inertia.defer(async () => {
+        const { meta } = await getTerritoires()
+        return meta
+      }, 'territoires'),
+    })
+  }
+
+  private async getTerritoires(userId: string, page: number) {
     const territoiresPaginator = await this.territoireService.getTerritoiresForUser(
-      user.id,
+      userId,
       page,
-      PER_PAGE
+      PER_PAGE,
+      { includeInactive: true }
     )
 
-    const rawTerritoires = territoiresPaginator.toJSON().data as any[]
+    const territoireModels = territoiresPaginator.all()
 
     // Fetch AAC data for territoires that have a code (fields live in the
     // Parquet dataset, not on the `territoires` table).
-    const aacCodes = rawTerritoires.map((t: any) => t.code).filter(Boolean) as string[]
-    let aacByCode: Record<string, AacSummaryJson> = {}
-    if (aacCodes.length > 0) {
-      const { data } = await this.aacService.getAll(
-        1,
-        aacCodes.length,
-        undefined,
-        undefined,
-        aacCodes
-      )
-      for (const row of data) {
-        const summary = AacDto.fromRawSummary(row)
-        aacByCode[summary.code] = summary
-      }
-    }
+    const aacCodes = territoireModels
+      .map((territoire) => territoire.code)
+      .filter((code): code is string => code !== null)
+    const aacByCode = await this.aacService.getSummariesByCode(aacCodes)
 
-    const territoires = rawTerritoires.map((territoire: any) => {
-      const aac = territoire.code ? aacByCode[territoire.code] : null
-      return {
-        id: territoire.id,
-        nom: territoire.nom ?? territoire.name ?? 'Territoire sans nom',
-        code: territoire.code,
-        typeLabel: territoire.code ? 'AAC Sandre' : 'Autre territoire',
-        aacHref: territoire.code ? `/aac/${territoire.code}` : null,
-        surface: aac?.surface ?? null,
-        nb_captages_actifs: aac?.nb_captages_actifs ?? null,
-        nb_communes: aac?.nb_communes ?? null,
-        date_maj: aac?.date_maj ?? null,
-        date_creation: aac?.date_creation ?? null,
-        bbox: aac?.bbox ?? null,
-        communes: aac?.communes ?? null,
-        nb_parcelles: aac?.nb_parcelles ?? null,
-      }
-    })
+    const territoires = TerritoireTransformer.transform(territoireModels, aacByCode).useVariant(
+      'forAac'
+    )
 
-    return inertia.render('territoires/index', {
-      territoires,
-      meta: territoiresPaginator.getMeta(),
-    })
+    return { territoires, meta: territoiresPaginator.getMeta() }
   }
 }

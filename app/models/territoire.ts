@@ -1,4 +1,4 @@
-import { beforeCreate, belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import { beforeCreate, belongsTo, column, hasMany, manyToMany, scope } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
@@ -11,11 +11,28 @@ export default class Territoire extends TerritoireSchema {
   // Disable primary key generation by the DB
   static selfAssignPrimaryKey = true
 
+  // Exploitations cannot be assigned to or updated on an inactive territoire
+  @column()
+  declare isActive: boolean
+
   // Auto-generate UUID before DB insertion
   @beforeCreate()
   static assignUuid(territoire: Territoire) {
     territoire.id = randomUUID()
   }
+
+  /*
+    Order by code as integer if it exists, otherwise by name.
+    Codes are stored as strings but are numeric, so a plain string sort would put "10" before "2".
+    Territoires without a code (rare) appear after those with codes, sorted alphabetically by name.
+   */
+  static orderByCode = scope((query) => {
+    query.orderByRaw(
+      `CASE WHEN territoires.code ~ '^[0-9]+$' THEN territoires.code::int END ASC NULLS LAST,
+        territoires.code ASC NULLS LAST,
+        territoires.name ASC`
+    )
+  })
 
   @belongsTo(() => Territoire)
   declare parentTerritoire: BelongsTo<typeof Territoire>

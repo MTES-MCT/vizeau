@@ -30,6 +30,11 @@ const meta = {
       description:
         "Liste des options. Une seule peut avoir `isSelected: true`.\n\nModèle :\n[\n  {\n    value: string | number,\n    label: string,\n    isSelected: boolean,\n    iconId?: string,  // identifiant de l'icône à afficher à gauche du label\n    group?: string,\n  }\n]",
     },
+    initialSelectedOption: {
+      control: 'object',
+      description:
+        "Option présélectionnée. Doit être une des options de la liste. Si `null`, aucune option n'est présélectionnée.",
+    },
     onChange: {
       control: false,
       description: "Callback appelé lors de la sélection d'une option.",
@@ -109,6 +114,54 @@ export const AvecGroupes = () => {
   }
 
   return <SingleSelectMenu label="Sélectionner un pays" options={options} onChange={handleChange} />
+}
+
+export const AvecRecherche = () => {
+  const substances = [
+    'Atrazine',
+    'Atrazine déséthyl',
+    'Bentazone',
+    'Chlortoluron',
+    'Glyphosate',
+    'AMPA',
+    'Métolachlore',
+    'ESA métolachlore',
+    'OXA métolachlore',
+    'Nitrates',
+    'Nitrites',
+    'Ammonium',
+    'Simazine',
+    'Terbuthylazine',
+    'Diuron',
+    'Isoproturon',
+    'Chloridazone',
+    'Desphényl chloridazone',
+    'Métazachlore',
+    'Dimétachlore',
+  ]
+  const groups = ['En dépassement', 'Sans dépassement', 'Non détectée']
+
+  const [options, setOptions] = useState<OptionType<string>[]>(
+    substances.map((label, index) => ({
+      value: `substance-${index}`,
+      label,
+      isSelected: false,
+      group: groups[index % groups.length],
+      iconId: index % groups.length === 0 ? 'fr-icon-warning-fill' : undefined,
+    }))
+  )
+
+  const handleChange = (selected: OptionType<string>) => {
+    setOptions((prev) => prev.map((opt) => ({ ...opt, isSelected: opt.value === selected.value })))
+  }
+
+  return (
+    <SingleSelectMenu
+      label="Sélectionner une substance"
+      options={options}
+      onChange={handleChange}
+    />
+  )
 }
 
 export const SansLibellé = () => {

@@ -2,36 +2,69 @@ import { fr } from '@codegouvfr/react-dsfr'
 import Button from '@codegouvfr/react-dsfr/Button'
 
 export type HeroProps =
-  | { isPublic: true; createExploitationUrl?: string }
-  | { isPublic?: false; createExploitationUrl: string }
+  { isPublic: true } | { isPublic?: false; urgentTasksCount: number; currentProjectsCount: number }
 
-function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUrl: string }) {
+type LoggedUserHeroContentProps = {
+  urgentTasksCount: number
+  currentProjectsCount: number
+}
+
+function LoggedUserHeroContent({
+  urgentTasksCount,
+  currentProjectsCount,
+}: LoggedUserHeroContentProps) {
   return (
     <div className="w-full max-w-[60%] max-[1440px]:max-w-full min-[2100px]:max-w-full">
-      <div className="fr-mb-6w flex flex-col">
-        <h1 className="fr-mb-1w">Pilotage de la protection des captages</h1>
-        <span
-          className="fr-text--lg fr-m-0"
-          style={{ color: fr.colors.decisions.text.mention.grey.default }}
+      <h1 className="fr-mb-5w">Bonjour !</h1>
+      <div className="flex flex-col">
+        <p className="fr-h6">Qu’avez vous de prévu aujourd’hui ?</p>
+        <div
+          className="flex flex-col gap-2 fr-text--lg"
+          style={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default }}
         >
-          Des données structurées pour agir sur la protection de la ressource en eau.
-        </span>
-      </div>
-      <p>
-        L'application facilite l'accès, le traitement et le partage des données liées à{' '}
-        <strong>la qualité de l'eau aux captages</strong>. Elle produit un état des lieux clair et
-        directement exploitable pour la réalisation de <strong>l'étude des dangers</strong>. Un
-        outil simple pour appuyer les collectivités et services de l'État dans{' '}
-        <strong>la protection de la ressource en eau</strong>.
-      </p>
-      <div>
-        <Button
-          iconId="fr-icon-map-pin-user-line"
-          className="fr-m-1w"
-          linkProps={{ href: createExploitationUrl }}
-        >
-          Ajouter une exploitation agricole
-        </Button>
+          <div>
+            <span className="fr-icon-arrow-right-line" />{' '}
+            {urgentTasksCount > 0 ? (
+              <a
+                href="#prochaines-taches"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document
+                    .getElementById('prochaines-taches')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                <strong>
+                  {urgentTasksCount} tâche{urgentTasksCount > 1 ? 's' : ''} urgente
+                  {urgentTasksCount > 1 ? 's' : ''}
+                </strong>{' '}
+                à traiter
+              </a>
+            ) : (
+              <strong>Aucune tâche urgente à traiter</strong>
+            )}
+          </div>
+          <div>
+            <span className="fr-icon-arrow-right-line" />{' '}
+            {currentProjectsCount > 0 ? (
+              <a
+                href="#projets-en-cours"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document
+                    .getElementById('projets-en-cours')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                <strong>
+                  {currentProjectsCount} projet{currentProjectsCount > 1 ? 's' : ''} en cours
+                </strong>
+              </a>
+            ) : (
+              <>Aucun projet en cours</>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -39,7 +72,7 @@ function LoggedUserHeroContent({ createExploitationUrl }: { createExploitationUr
 
 function PublicHeroContent() {
   return (
-    <div className="w-full max-w-[60%] max-[1440px]:max-w-full min-[2100px]:max-w-full">
+    <div className="max-w-[700px] min-[1440px]:max-w-[calc(55%_-_2rem)]">
       <div className="fr-mb-6w flex flex-col">
         <h1 className="fr-mb-1w">
           Protéger la ressource d'eau en France, du diagnostic à l'action
@@ -60,12 +93,6 @@ function PublicHeroContent() {
       <div className="flex flex-col gap-2">
         <div className="flex gap-4">
           <Button linkProps={{ href: 'mailto:vizeau@beta.gouv.fr' }}>Demander un accès</Button>
-          {/* À afficher une fois la vidéo disponible */}
-          {/* <Button
-            priority="secondary"
-            nativeButtonProps={{ type: 'button' }}>
-            Voir la démo
-          </Button> */}
         </div>
         <div className="fr-text--sm fr-mt-1v">
           <span className="fr-icon-lock-unlock-line fr-icon--sm fr-mr-1w" />
@@ -76,25 +103,26 @@ function PublicHeroContent() {
   )
 }
 
-export default function Hero({ isPublic = false, createExploitationUrl }: HeroProps) {
+export default function Hero(props: HeroProps) {
   return (
     <div
       className="w-full relative overflow-hidden fr-px-4w fr-py-8w flex justify-center min-h-[60px]"
       style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
     >
-      {/* Image toujours ancrée en bas à droite, taille responsive.
-          En format tablette et moins : opacité réduite, taille fixée à la hauteur du parent. */}
       <img
-        className="pointer-events-none absolute bottom-0 right-0 h-full max-h-full object-contain object-bottom max-[1670px]:max-w-none max-[1670px]:opacity-15 min-[2100px]:h-[40vw] min-[2100px]:max-h-none min-[2100px]:max-w-none min-[2100px]:opacity-20"
+        className="pointer-events-none absolute right-0 bottom-0 h-full w-auto max-w-none object-contain object-bottom opacity-10 min-[1440px]:h-auto min-[1440px]:w-[45%] min-[1440px]:opacity-100"
         src="/Illustration-hero.webp"
         alt="Illustration hero"
       />
 
       <div className="fr-container relative">
-        {isPublic ? (
+        {props.isPublic ? (
           <PublicHeroContent />
         ) : (
-          <LoggedUserHeroContent createExploitationUrl={createExploitationUrl ?? ''} />
+          <LoggedUserHeroContent
+            urgentTasksCount={props.urgentTasksCount}
+            currentProjectsCount={props.currentProjectsCount}
+          />
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@ import { RefObject } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { router } from '@inertiajs/react'
-import type { ExploitationJson, ParcelleJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { VisualisationMapRef } from '~/components/map/VisualisationMap'
 import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
@@ -20,8 +20,8 @@ const handleCommentModal = createModal({
 })
 
 export type ParcelleLeftSidebarProps = {
-  parcelle: ParcelleJson
-  exploitation: ExploitationJson
+  parcelle: Data.Parcelle
+  exploitation: Data.Exploitation
   mapRef: RefObject<VisualisationMapRef | null>
 }
 
@@ -43,7 +43,10 @@ export default function ParcelleLeftSidebar({
               href: '#',
               onClick: (e: React.MouseEvent) => {
                 e.preventDefault()
-                router.visit(`/visualisation?millesime=${parcelle.year}`)
+                router.visit(`/visualisation?millesime=${parcelle.year}`, {
+                  preserveScroll: true,
+                  preserveState: true,
+                })
               },
               style: {
                 cursor: 'pointer',
@@ -62,6 +65,7 @@ export default function ParcelleLeftSidebar({
                   `/visualisation?exploitationId=${exploitation.id}&millesime=${parcelle.year}&tab=parcelles`,
                   {
                     preserveScroll: true,
+                    preserveState: true,
                   }
                 )
               },

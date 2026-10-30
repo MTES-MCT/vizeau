@@ -83,6 +83,7 @@ export default function ChroniquesParSubstances({
   ) : (
     <div className="w-[300px]">
       <SingleSelectMenu
+        initialSelectedOption={substanceOptions.find((opt) => opt.isSelected)}
         options={substanceOptions}
         onChange={(option) => setSelectedCode(option.value)}
       />

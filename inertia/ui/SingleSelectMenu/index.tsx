@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useId } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback, useId } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { groupBy } from 'lodash-es'
 
@@ -16,6 +16,7 @@ export type SingleSelectMenuProps<T extends string | number> = {
   label?: string
   hint?: string
   placeholder?: string
+  initialSelectedOption?: OptionType<T> | null
   options: OptionType<T>[]
   onChange: (option: OptionType<T>) => void
 }
@@ -45,15 +46,55 @@ export default function SingleSelectMenu<T extends string | number>({
   label,
   hint,
   placeholder = 'Sélectionner une option',
+  initialSelectedOption,
   options,
   onChange,
 }: SingleSelectMenuProps<T>) {
-  const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const triggerId = `triggerId-${useId()}`
+  const baseId = useId()
+  const triggerId = `triggerId-${baseId}`
+  const listboxId = `listbox-${baseId}`
 
-  const selectedOption = options.find((opt) => opt.isSelected)
-  const closeDropdown = useCallback(() => setIsOpen(false), [])
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [activeIndex, setActiveIndex] = useState(-1)
+
+  const selectedOption =
+    initialSelectedOption !== undefined
+      ? initialSelectedOption
+      : (options.find((opt) => opt.isSelected) ?? null)
+
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm) return options
+    return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
+  }, [searchTerm, options])
+
+  const filteredOptionsByGroup = useMemo(
+    () => groupBy(filteredOptions, (opt) => opt.group ?? ''),
+    [filteredOptions]
+  )
+
+  // Ordre d'affichage (groupes compris), utilisé pour la navigation au clavier
+  const orderedOptions = useMemo(
+    () => Object.values(filteredOptionsByGroup).flat(),
+    [filteredOptionsByGroup]
+  )
+
+  const getOptionId = useCallback((value: T) => `${baseId}-option-${value}`, [baseId])
+  const activeOption = orderedOptions[activeIndex]
+  const activeOptionId = activeOption ? getOptionId(activeOption.value) : undefined
+
+  const openDropdown = () => {
+    setIsOpen(true)
+    // La recherche est vide à l'ouverture : orderedOptions contient toutes les options
+    setActiveIndex(orderedOptions.findIndex((opt) => opt.value === selectedOption?.value))
+  }
+
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false)
+    setSearchTerm('')
+    setActiveIndex(-1)
+  }, [])
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -67,6 +108,12 @@ export default function SingleSelectMenu<T extends string | number>({
     }
   }, [isOpen, closeDropdown])
 
+  useEffect(() => {
+    if (activeOptionId) {
+      document.getElementById(activeOptionId)?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [activeOptionId])
+
   const handleSelect = (value: T) => {
     const option = options.find((opt) => opt.value === value)
     if (!option) return
@@ -74,7 +121,37 @@ export default function SingleSelectMenu<T extends string | number>({
     closeDropdown()
   }
 
-  const optionsByGroup = groupBy(options, (opt) => opt.group ?? '')
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault()
+        openDropdown()
+      }
+      return
+    }
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault()
+        setActiveIndex((index) => Math.min(index + 1, orderedOptions.length - 1))
+        break
+      case 'ArrowUp':
+        event.preventDefault()
+        setActiveIndex((index) => Math.max(index - 1, 0))
+        break
+      case 'Enter':
+        event.preventDefault()
+        if (activeOption) handleSelect(activeOption.value)
+        break
+      case 'Escape':
+        event.preventDefault()
+        closeDropdown()
+        break
+      case 'Tab':
+        closeDropdown()
+        break
+    }
+  }
 
   return (
     <div ref={containerRef} className="fr-select-group" style={{ marginBottom: 0 }}>
@@ -86,40 +163,42 @@ export default function SingleSelectMenu<T extends string | number>({
       )}
 
       <div style={{ position: 'relative' }}>
-        <button
+        {/* Fermé, le champ affiche la sélection ; ouvert, il sert de recherche
+            et la sélection passe en placeholder pour pouvoir taper directement */}
+        <input
           id={triggerId}
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
+          type="text"
+          className="fr-select"
+          value={isOpen ? searchTerm : (selectedOption?.label ?? '')}
+          placeholder={isOpen && selectedOption ? selectedOption.label : placeholder}
+          onChange={(e) => {
+            if (!isOpen) setIsOpen(true)
+            setSearchTerm(e.target.value)
+            setActiveIndex(0)
+          }}
+          onClick={() => {
+            if (!isOpen) openDropdown()
+          }}
+          onKeyDown={handleKeyDown}
+          role="combobox"
+          aria-autocomplete="list"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          className="fr-select"
+          aria-controls={listboxId}
+          aria-activedescendant={isOpen ? activeOptionId : undefined}
           style={{
-            appearance: 'none',
-            WebkitAppearance: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
             width: '100%',
             textAlign: 'left',
-            cursor: 'pointer',
+            cursor: 'text',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
-        >
-          <span
-            style={{
-              color: selectedOption
-                ? fr.colors.decisions.text.default.grey.default
-                : fr.colors.decisions.text.mention.grey.default,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
-        </button>
+        />
 
         {isOpen && (
           <div
+            id={listboxId}
             className="absolute shadow-lg flex flex-col gap-1"
             style={{
               top: '100%',
@@ -135,20 +214,22 @@ export default function SingleSelectMenu<T extends string | number>({
             role="listbox"
             aria-label={label}
           >
-            {options.length > 0 ? (
-              Object.keys(optionsByGroup).map((groupName) => (
+            {filteredOptions.length > 0 ? (
+              Object.keys(filteredOptionsByGroup).map((groupName) => (
                 <div
                   key={groupName}
                   role="group"
                   aria-labelledby={groupName ? `single-select-group-${groupName}` : undefined}
                 >
                   {groupName && <GroupHeader groupName={groupName} />}
-                  {optionsByGroup[groupName].map((option, index, arr) => (
+                  {filteredOptionsByGroup[groupName].map((option, index, arr) => (
                     <SingleSelectItem
                       key={option.value}
+                      id={getOptionId(option.value)}
                       item={option}
                       iconId={option.iconId}
                       isLast={index === arr.length - 1}
+                      isActive={option === activeOption}
                       onSelect={handleSelect}
                     />
                   ))}

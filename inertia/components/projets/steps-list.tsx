@@ -8,12 +8,13 @@ import Timeline, { TimelineItem } from '~/ui/Timeline'
 import ListItem from '~/ui/ListItem'
 import AlertDrawer from '~/ui/AlertDrawer'
 import { MoreButtonProps } from '~/ui/MoreButton'
-import type { ProjectStepJson } from '#types/models'
+import type { Data } from '@generated/data'
 import {
   getProjectStepAdditionalInfos,
   getProjectStepTitle,
   severityColorMap,
 } from '~/functions/project_steps'
+import { downloadCalendarEvent } from '~/functions/calendar'
 
 const deleteStepModal = createModal({
   id: 'delete-project-step-modal',
@@ -26,7 +27,7 @@ const completeStepModal = createModal({
 })
 
 export type StepsListProps = {
-  steps: ProjectStepJson[]
+  steps: Data.ProjectStep[]
   projectId: string
 }
 
@@ -84,6 +85,20 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
       })
     }
 
+    if (step.date && additionalInfos.alert?.severity !== 'error') {
+      actions.push({
+        label: 'Ajouter à mon calendrier',
+        iconId: 'fr-icon-calendar-event-line',
+        onClick: () => {
+          downloadCalendarEvent({
+            date: step.date,
+            title: step.title,
+            description: step.note,
+          })
+        },
+      })
+    }
+
     const listItem: ReactNode = (
       <ListItem
         variant="compact"
@@ -94,10 +109,14 @@ export default function StepsList({ steps, projectId }: StepsListProps) {
         additionalInfos={step.date ? additionalInfos : undefined}
         hasBorder={true}
         metas={[
-          {
-            content: `Créée le ${new Date(step.createdAt).toLocaleDateString()}`,
-            iconId: 'fr-icon-calendar-event-line',
-          },
+          ...(step.createdAt
+            ? [
+                {
+                  content: `Créée le ${new Date(step.createdAt).toLocaleDateString()}`,
+                  iconId: 'fr-icon-calendar-event-line',
+                },
+              ]
+            : []),
           ...(step.documents && step.documents.length > 0
             ? [
                 {

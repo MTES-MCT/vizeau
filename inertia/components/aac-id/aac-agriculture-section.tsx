@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-
+import type { Chart as ChartJS } from 'chart.js'
+import { useRef } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { flatMap, keys, map, sortBy, uniq, filter } from 'lodash-es'
 
@@ -12,6 +13,7 @@ import AacCulturesRepartition from './aac-cultures-repartition'
 
 import type { AacJson } from '#types/aac'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import { useExportGraph } from '~/hooks/use_export_graph'
 
 export type AacAgricultureSectionProps = Pick<
   AacJson,
@@ -38,6 +40,22 @@ export default function AacAgricultureSection({
   surface_agricole_ppe,
   culture_evolution,
 }: AacAgricultureSectionProps) {
+  const culturesChartRef = useRef<ChartJS<'doughnut'> | undefined>(undefined)
+  const cultureEvolutionChartRef = useRef<ChartJS<'line'> | undefined>(undefined)
+  const bioEvolutionChartRef = useRef<ChartJS<'line'> | undefined>(undefined)
+
+  const handleExportCulturesGraph = useExportGraph(culturesChartRef, 'repartition-cultures.png', {
+    showLegend: true,
+  })
+  const handleExportCultureEvolutionGraph = useExportGraph(
+    cultureEvolutionChartRef,
+    'evolution-cultures.png'
+  )
+  const handleExportBioEvolutionGraph = useExportGraph(
+    bioEvolutionChartRef,
+    'evolution-agriculture-bio.png'
+  )
+
   const bioEvolutiveChartData = useMemo(() => {
     const sorted = [...(surface_agricole_bio?.evolution ?? [])].sort((a, b) => a.annee - b.annee)
 
@@ -120,12 +138,16 @@ export default function AacAgricultureSection({
           title="Répartition des types de cultures"
           iconId="fr-icon-seedling-line"
           priority="secondary"
+          actionLabel="Exporter le graphique"
+          actionIcon="fr-icon-download-line"
+          handleAction={handleExportCulturesGraph}
           hasBorder
         >
           <AacCulturesRepartition
             surface_agricole_ppe={surface_agricole_ppe}
             surface_agricole_ppr={surface_agricole_ppr}
             surface_agricole_utile={surface_agricole_utile}
+            ref={culturesChartRef}
           />
         </SmallSection>
 
@@ -134,11 +156,15 @@ export default function AacAgricultureSection({
             title="Évolution des types de cultures"
             iconId="fr-icon-seedling-line"
             priority="secondary"
+            actionLabel="Exporter le graphique"
+            actionIcon="fr-icon-download-line"
+            handleAction={handleExportCultureEvolutionGraph}
             hasBorder
           >
             {cultureEvolutionChartData.labels.length > 0 &&
             cultureEvolutionChartData.datasets.length > 0 ? (
               <EvolutiveChartLine
+                ref={cultureEvolutionChartRef}
                 chartItems={cultureEvolutionChartData}
                 unit="ha"
                 legendSize="sm"
@@ -157,9 +183,17 @@ export default function AacAgricultureSection({
             title="Évolution de l'agriculture biologique"
             iconId="fr-icon-leaf-line"
             priority="secondary"
+            actionLabel="Exporter le graphique"
+            actionIcon="fr-icon-download-line"
+            handleAction={handleExportBioEvolutionGraph}
             hasBorder
           >
-            <EvolutiveChartLine unit="ha" chartItems={bioEvolutiveChartData} legendSize="sm" />
+            <EvolutiveChartLine
+              ref={bioEvolutionChartRef}
+              unit="ha"
+              chartItems={bioEvolutiveChartData}
+              legendSize="sm"
+            />
           </SmallSection>
         )}
       </div>

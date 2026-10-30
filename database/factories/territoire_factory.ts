@@ -12,4 +12,7 @@ export const TerritoireFactory = factory
   .state('nonAAC', (territoire) => {
     territoire.code = null
   })
+  .state('inactive', (territoire) => {
+    territoire.isActive = false
+  })
   .build()

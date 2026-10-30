@@ -1,6 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import CheckboxCard from '~/ui/CheckboxCard'
 import { STEPS, STEP_KEYS } from '~/components/projets/form/steps_config'
+import type { ProjetFormData } from '~/components/projets/form/projet-form'
 
 const OPTIONAL_STEPS = [
   STEPS[STEP_KEYS.PARCELLES],
@@ -11,9 +12,29 @@ const OPTIONAL_STEPS = [
 type ConsolidationsStepProps = {
   stepsList: number[]
   setStepsList: React.Dispatch<React.SetStateAction<number[]>>
+  setData: React.Dispatch<React.SetStateAction<ProjetFormData>>
 }
 
-export default function ConsolidationsStep({ stepsList, setStepsList }: ConsolidationsStepProps) {
+export default function ConsolidationsStep({
+  stepsList,
+  setStepsList,
+  setData,
+}: ConsolidationsStepProps) {
+  const clearStepData = (stepKey: number) => {
+    setData((prev) => {
+      if (stepKey === STEP_KEYS.PARCELLES) {
+        return { ...prev, parcelles: { ...prev.parcelles, items: [] } }
+      }
+      if (stepKey === STEP_KEYS.EXPLOITATIONS) {
+        return { ...prev, exploitations: [] }
+      }
+      if (stepKey === STEP_KEYS.CAPTAGES) {
+        return { ...prev, captages: [] }
+      }
+      return prev
+    })
+  }
+
   const handleToggle = (stepKey: number, checked: boolean) => {
     setStepsList((prev) => {
       const baseSteps = prev.filter((step) => step <= STEP_KEYS.CONSOLIDATIONS)
@@ -26,6 +47,10 @@ export default function ConsolidationsStep({ stepsList, setStepsList }: Consolid
 
       return [...baseSteps, ...newOptional]
     })
+
+    if (!checked) {
+      clearStepData(stepKey)
+    }
   }
 
   return (

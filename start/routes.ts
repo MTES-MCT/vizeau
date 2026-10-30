@@ -17,6 +17,7 @@ router.get('/', [controllers.Accueil, 'publicIndex']).as('root')
 router.get('login', [controllers.Session, 'index'])
 router.post('login', [controllers.Session, 'store'])
 
+router.get('accessibilite', ({ inertia }) => inertia.render('accessibilite', {}))
 // Protected routes
 router
   .group(() => {
@@ -226,6 +227,15 @@ router
         router.patch('projets/:projectId', [controllers.Projects, 'update']).as('projets.update')
         router.delete('projets/:projectId', [controllers.Projects, 'destroy']).as('projets.destroy')
         router
+          .get('projets/:projectId/exploitations/export', [
+            controllers.Projects,
+            'exportExploitationsCsv',
+          ])
+          .as('projets.exploitations.export')
+        router
+          .get('projets/:projectId/etapes/export', [controllers.ProjectSteps, 'exportStepsCsv'])
+          .as('projets.steps.export')
+        router
           .get('projets/:projectId/etapes/creation', [controllers.ProjectSteps, 'createStepForm'])
           .as('projets.steps.create.form')
         router
@@ -269,6 +279,8 @@ router
           .as('projets.steps.tags.destroy')
 
         router.get('territoires', [controllers.Territoires, 'index']).as('territoires.index')
+
+        router.get('recherche', [controllers.Recherche, 'index']).as('recherche.index')
       })
       .use(middleware.territoireAssignation())
   })

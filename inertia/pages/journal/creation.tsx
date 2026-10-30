@@ -8,7 +8,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import TruncatedText from '~/ui/TruncatedText'
 import { urlFor } from '~/client'
-import type { ExploitationJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 export type LogEntryFormData = {
   id?: string
@@ -22,7 +22,7 @@ export type LogEntryFormData = {
   }>
 }
 
-export default function TaskCreationPage({ exploitation }: { exploitation: ExploitationJson }) {
+export default function TaskCreationPage({ exploitation }: { exploitation: Data.Exploitation }) {
   const [inputValue, setInputValue] = useState('')
   const { data, setData, post, resetAndClearErrors } = useForm<LogEntryFormData>({
     title: '',

@@ -4,10 +4,10 @@ import LocationFrance from '@codegouvfr/react-dsfr/picto/LocationFrance'
 import { router } from '@inertiajs/react'
 import type { AacSummaryJson } from '#types/models'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import ListItem from '~/ui/ListItem'
-import { formatDateFr } from '~/functions/date'
 import { fr } from '@codegouvfr/react-dsfr'
 import AacsSearch from './aacs-search'
+import DepassementsListItem from '~/ui/DepassementsListItem'
+import { getAacListItemMetas } from '~/functions/aac'
 
 type AACsLeftSidebarProps = {
   aacs: AacSummaryJson[]
@@ -15,6 +15,8 @@ type AACsLeftSidebarProps = {
     aacRecherche: string
     aacCommune: string
     aacPage: string
+    aacDepassementsReglementaires?: string
+    aacDepassementsAlerte?: string
   }
   meta: {
     total: number
@@ -82,23 +84,18 @@ export default function AACsLeftSidebar({
                   const isSelected = selectedAac?.code === aac.code
 
                   return (
-                    <ListItem
+                    <DepassementsListItem
                       key={aac.code}
                       title={aac.nom}
+                      priority={isSelected ? 'primary' : index % 2 === 0 ? 'primary' : 'secondary'}
                       linkProps={{
                         href: `/visualisation?aacCode=${aac.code}&millesime=${millesime}`,
                         preserveState: true,
                         preserveScroll: true,
                       }}
-                      priority={isSelected ? 'primary' : index % 2 === 0 ? 'primary' : 'secondary'}
-                      metas={[
-                        { content: `${formatDateFr(aac.date_maj)}`, iconId: 'fr-icon-time-line' },
-                        { content: `${Math.round(aac.surface)} ha`, iconId: 'fr-icon-ruler-line' },
-                        {
-                          content: `${aac.communes.nb_communes} commune${aac.communes.nb_communes > 1 ? 's' : ''}`,
-                          iconId: 'fr-icon-government-line',
-                        },
-                      ]}
+                      depassementsAlerte={aac.depassements_alerte}
+                      depassementsReglementaires={aac.depassements_reglementaires}
+                      metas={getAacListItemMetas(aac)}
                     />
                   )
                 })}

@@ -459,6 +459,17 @@ export class ProjectSchema extends BaseModel {
   declare userId: string
 }
 
+export class RateLimitSchema extends BaseModel {
+  static $columns = ['expire', 'key', 'points'] as const
+  $columns = RateLimitSchema.$columns
+  @column()
+  declare expire: bigint | number | null
+  @column({ isPrimary: true })
+  declare key: string
+  @column()
+  declare points: number
+}
+
 export class RememberMeTokenSchema extends BaseModel {
   static $columns = ['createdAt', 'expiresAt', 'hash', 'id', 'tokenableId', 'updatedAt'] as const
   $columns = RememberMeTokenSchema.$columns
@@ -492,7 +503,7 @@ export class TerritoireUserRelationSchema extends BaseModel {
 }
 
 export class TerritoireSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'id', 'name', 'parentTerritoireId', 'updatedAt'] as const
+  static $columns = ['code', 'createdAt', 'id', 'isActive', 'name', 'parentTerritoireId', 'updatedAt'] as const
   $columns = TerritoireSchema.$columns
   @column()
   declare code: string | null
@@ -500,6 +511,8 @@ export class TerritoireSchema extends BaseModel {
   declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare isActive: boolean
   @column()
   declare name: string | null
   @column()

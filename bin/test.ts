@@ -52,11 +52,20 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
       ...{
         setup: runnerHooks.setup,
         teardown: runnerHooks.teardown.concat([() => app.terminate()]),
+        /**
+         * Japa only sets "process.exitCode" when the run fails. Any handle left
+         * open by a failed setup hook (a database pool, an HTTP server, ...)
+         * then keeps the process alive forever instead of reporting the
+         * failure, which is exactly how the CI used to hang. Force the exit so
+         * the runner always terminates with the right status code.
+         */
+        forceExit: true,
       },
     })
   })
   .run(() => run())
-  .catch((error) => {
+  .catch(async (error) => {
     process.exitCode = 1
-    prettyPrintError(error)
+    await prettyPrintError(error)
+    process.exit(1)
   })

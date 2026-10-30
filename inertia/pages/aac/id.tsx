@@ -7,6 +7,7 @@ import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import TruncatedText from '~/ui/TruncatedText'
 import AacInformationsCard from '~/components/aac-id/aac-informations-card'
 import AacCommunesCard from '~/components/aac-id/aac-communes-card'
+import AacMapSection from '~/components/aac-id/aac-map-section'
 import { map } from 'lodash-es'
 import { useEffect, useState } from 'react'
 import AacTerritoireSection from '~/components/aac-id/aac-territoire-section'
@@ -16,7 +17,14 @@ import { AacActionCard } from '~/components/aac-id/AacActionCard'
 import SignalErrorContact from '~/components/signal-error-contact'
 import type { AacJson } from '#types/aac'
 
-export default function AacShow({ aac }: { aac: AacJson }) {
+export type AacShowProps = {
+  aac: AacJson
+  /** Vrai lorsque l'AAC est un territoire de l'utilisateur, seul cas où la carte lui est ouverte. */
+  isTerritoire: boolean
+  pmtilesUrl: string
+}
+
+export default function AacShow({ aac, isTerritoire, pmtilesUrl }: AacShowProps) {
   const communeArray = map(aac.communes?.communes ?? {}, (info, nom) => ({ nom, ...info }))
 
   const { url } = usePage()
@@ -72,6 +80,12 @@ export default function AacShow({ aac }: { aac: AacJson }) {
           <aside className="flex flex-col gap-4">
             <AacInformationsCard {...aac} />
             <AacCommunesCard communes={communeArray} />
+            <AacMapSection
+              aacCode={aac.code}
+              bbox={aac.bbox}
+              pmtilesUrl={pmtilesUrl}
+              canOpenMap={isTerritoire}
+            />
             <AacActionCard code={aac.code} />
             <SignalErrorContact />
           </aside>

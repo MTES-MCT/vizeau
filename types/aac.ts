@@ -40,6 +40,8 @@ export type InstallationInfo = {
   code_ppe: string
   prioritaire: boolean
   captages_rattaches: CaptageRattache[]
+  depassements_alerte?: number
+  depassements_reglementaires?: number
 }
 
 export type AacAnalysesSummaryJson = {

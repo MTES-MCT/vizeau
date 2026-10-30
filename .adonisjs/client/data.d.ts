@@ -6,10 +6,95 @@
 /// <reference path="./manifest.d.ts" />
 import type { InferData, InferVariants } from '@adonisjs/core/types/transformers'
 import type { InferSharedProps, InferFlashData } from '@adonisjs/inertia/types'
+import type CaptageTransformer from '#transformers/captage_transformer'
+import type ContactTransformer from '#transformers/contact_transformer'
+import type CultureGroupTransformer from '#transformers/culture_group_transformer'
+import type CultureTransformer from '#transformers/culture_transformer'
+import type EventLogTransformer from '#transformers/event_log_transformer'
+import type ExploitationTagTransformer from '#transformers/exploitation_tag_transformer'
+import type ExploitationTransformer from '#transformers/exploitation_transformer'
+import type LogEntryDocumentTransformer from '#transformers/log_entry_document_transformer'
+import type LogEntryTagTransformer from '#transformers/log_entry_tag_transformer'
+import type LogEntryTransformer from '#transformers/log_entry_transformer'
+import type ParcelleCommentTransformer from '#transformers/parcelle_comment_transformer'
+import type ParcelleTransformer from '#transformers/parcelle_transformer'
+import type ProjectStepDocumentTransformer from '#transformers/project_step_document_transformer'
+import type ProjectStepTagTransformer from '#transformers/project_step_tag_transformer'
+import type ProjectStepTransformer from '#transformers/project_step_transformer'
+import type ProjectTransformer from '#transformers/project_transformer'
+import type TerritoireTransformer from '#transformers/territoire_transformer'
 import type UserTransformer from '#transformers/user_transformer'
 import type InertiaMiddleware from '#middleware/inertia_middleware'
 
 export namespace Data {
+  export type Captage = InferData<CaptageTransformer>
+  export namespace Captage {
+    export type Variants = InferVariants<CaptageTransformer>
+  }
+  export type Contact = InferData<ContactTransformer>
+  export namespace Contact {
+    export type Variants = InferVariants<ContactTransformer>
+  }
+  export type CultureGroup = InferData<CultureGroupTransformer>
+  export namespace CultureGroup {
+    export type Variants = InferVariants<CultureGroupTransformer>
+  }
+  export type Culture = InferData<CultureTransformer>
+  export namespace Culture {
+    export type Variants = InferVariants<CultureTransformer>
+  }
+  export type EventLog = InferData<EventLogTransformer>
+  export namespace EventLog {
+    export type Variants = InferVariants<EventLogTransformer>
+  }
+  export type ExploitationTag = InferData<ExploitationTagTransformer>
+  export namespace ExploitationTag {
+    export type Variants = InferVariants<ExploitationTagTransformer>
+  }
+  export type Exploitation = InferData<ExploitationTransformer>
+  export namespace Exploitation {
+    export type Variants = InferVariants<ExploitationTransformer>
+  }
+  export type LogEntryDocument = InferData<LogEntryDocumentTransformer>
+  export namespace LogEntryDocument {
+    export type Variants = InferVariants<LogEntryDocumentTransformer>
+  }
+  export type LogEntryTag = InferData<LogEntryTagTransformer>
+  export namespace LogEntryTag {
+    export type Variants = InferVariants<LogEntryTagTransformer>
+  }
+  export type LogEntry = InferData<LogEntryTransformer>
+  export namespace LogEntry {
+    export type Variants = InferVariants<LogEntryTransformer>
+  }
+  export type ParcelleComment = InferData<ParcelleCommentTransformer>
+  export namespace ParcelleComment {
+    export type Variants = InferVariants<ParcelleCommentTransformer>
+  }
+  export type Parcelle = InferData<ParcelleTransformer>
+  export namespace Parcelle {
+    export type Variants = InferVariants<ParcelleTransformer>
+  }
+  export type ProjectStepDocument = InferData<ProjectStepDocumentTransformer>
+  export namespace ProjectStepDocument {
+    export type Variants = InferVariants<ProjectStepDocumentTransformer>
+  }
+  export type ProjectStepTag = InferData<ProjectStepTagTransformer>
+  export namespace ProjectStepTag {
+    export type Variants = InferVariants<ProjectStepTagTransformer>
+  }
+  export type ProjectStep = InferData<ProjectStepTransformer>
+  export namespace ProjectStep {
+    export type Variants = InferVariants<ProjectStepTransformer>
+  }
+  export type Project = InferData<ProjectTransformer>
+  export namespace Project {
+    export type Variants = InferVariants<ProjectTransformer>
+  }
+  export type Territoire = InferData<TerritoireTransformer>
+  export namespace Territoire {
+    export type Variants = InferVariants<TerritoireTransformer>
+  }
   export type User = InferData<UserTransformer>
   export namespace User {
     export type Variants = InferVariants<UserTransformer>

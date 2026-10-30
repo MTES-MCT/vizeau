@@ -28,6 +28,6 @@ export default defineConfig({
     },
   },
   ssr: {
-    noExternal: ['@codegouvfr/react-dsfr'],
+    noExternal: ['@codegouvfr/react-dsfr', 'maplibre-gl'],
   },
 })

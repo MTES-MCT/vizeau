@@ -1,16 +1,17 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import { ExploitationDto } from '../dto/exploitation_dto.js'
+import ExploitationTransformer from '#transformers/exploitation_transformer'
 import { ExploitationService } from '#services/exploitation_service'
 import env from '#start/env'
 import { EventLoggerService } from '#services/event_logger_service'
 import { assignParcellesToExploitationValidator } from '#validators/parcelle'
 import { ParcelleService } from '#services/parcelle_service'
 import { createErrorFlashMessage } from '../helpers/flash_message.js'
+import { depassementsFiltersValidator } from '#validators/aac'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import Project from '#models/project'
-import { ProjectDto } from '../dto/project_dto.js'
+import ProjectTransformer from '#transformers/project_transformer'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -55,6 +56,8 @@ export default class VisualisationController {
     const aacRecherche = request.input('aacRecherche') || undefined
     const aacCommune = request.input('aacCommune') || undefined
     const aacCode = request.input('aacCode') || undefined
+    const { aacDepassementsReglementaires = false, aacDepassementsAlerte = false } =
+      await request.validateUsing(depassementsFiltersValidator)
 
     // Memoize the DuckDB/S3 query so it only runs once even when both aacs
     // and aacMeta are resolved in the same partial reload.
@@ -66,7 +69,9 @@ export default class VisualisationController {
           AAC_PER_PAGE,
           aacRecherche,
           aacCommune,
-          userTerritoireCodes
+          userTerritoireCodes,
+          aacDepassementsReglementaires,
+          aacDepassementsAlerte
         )
       }
       return aacResultPromise
@@ -91,6 +96,8 @@ export default class VisualisationController {
         aacRecherche: aacRecherche ?? '',
         aacCommune: aacCommune ?? '',
         aacPage: String(aacPage),
+        aacDepassementsReglementaires: String(aacDepassementsReglementaires),
+        aacDepassementsAlerte: String(aacDepassementsAlerte),
       }),
       selectedAac: async () => {
         if (!aacCode || !userTerritoireCodes.includes(aacCode.toString())) return undefined
@@ -98,6 +105,10 @@ export default class VisualisationController {
         if (!raw) return undefined
         return AacDto.fromRawSummary(raw)
       },
+      // Surfaces of every AAC, shown when hovering them on the map.
+      aacSurfaces: () => this.aacService.getAllSurfaces(),
+      // AACs the user can open in the sidebar by clicking them on the map.
+      accessibleAacCodes: userTerritoireCodes,
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)
@@ -110,7 +121,7 @@ export default class VisualisationController {
               })
           })
 
-        return ExploitationDto.toJsonArray(results)
+        return ExploitationTransformer.transform(results)
       },
       projects: async () => {
         const projects = await Project.query()
@@ -125,7 +136,7 @@ export default class VisualisationController {
               })
           })
 
-        return ProjectDto.toJsonArray(projects)
+        return ProjectTransformer.transform(projects)
       },
       // Get the IDs of parcelles that are already assigned to other exploitations for the given year
       unavailableParcellesIds: inertia.optional(async () => {

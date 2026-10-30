@@ -52,32 +52,46 @@ export default await Env.create(new URL('../', import.meta.url), {
   // If set, enables the integration with the PMTiles server for map tile hosting
   PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
 
-  // If set, the string will be parsed as JSON and the content will be injected as users
-  USERS_TO_SEED: Env.schema.string.optional(),
+  // Set when running db:seed, never in the .env file: preview the changes without writing
+  DRY_RUN: Env.schema.boolean.optional(),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring the drive package
   |----------------------------------------------------------
   */
-  DRIVE_DISK: Env.schema.enum(['spaces'] as const),
-  SPACES_KEY: Env.schema.string(),
-  SPACES_SECRET: Env.schema.string(),
-  SPACES_REGION: Env.schema.string(),
-  SPACES_BUCKET: Env.schema.string(),
-  SPACES_ENDPOINT: Env.schema.string(),
+  DRIVE_DISK: Env.schema.enum(['userUploadsS3', 'spaces'] as const),
+  USER_UPLOADS_S3_ACCESS_KEY: Env.schema.string(),
+  USER_UPLOADS_S3_SECRET_KEY: Env.schema.string(),
+  USER_UPLOADS_S3_REGION: Env.schema.string(),
+  USER_UPLOADS_S3_BUCKET: Env.schema.string(),
+  USER_UPLOADS_S3_ENDPOINT: Env.schema.string(),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring the AAC parquet file
   |----------------------------------------------------------
   */
-  S3_ACCESS_KEY: Env.schema.string(),
-  S3_SECRET_KEY: Env.schema.string(),
-  S3_REGION: Env.schema.string(),
-  S3_BUCKET: Env.schema.string(),
-  S3_ENDPOINT: Env.schema.string(),
+  AAC_FILES_S3_ACCESS_KEY: Env.schema.string(),
+  AAC_FILES_S3_SECRET_KEY: Env.schema.string(),
+  AAC_FILES_S3_REGION: Env.schema.string(),
+  AAC_FILES_S3_BUCKET: Env.schema.string(),
+  AAC_FILES_S3_ENDPOINT: Env.schema.string(),
 
   // If true, DuckDB will write logs in the standard output
   DUCKDB_DEBUG: Env.schema.boolean.optional(),
+
+  // If true, logs DuckDB memory usage around each DuckDB query
+  DUCKDB_MEM_DEBUG: Env.schema.boolean.optional(),
+
+  // Maximum number of DuckDB queries running at the same time (3 if not set)
+  DUCKDB_MAX_CONCURRENT_QUERIES: Env.schema.number.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the limiter package
+  |----------------------------------------------------------
+  */
+  // Defaults to database, memory is used by the tests
+  LIMITER_STORE: Env.schema.enum.optional(['database', 'memory'] as const),
 })

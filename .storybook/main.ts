@@ -15,7 +15,8 @@ const config: StorybookConfig = {
   },
   staticDirs: ['../public'],
   viteFinal: async (viteConfig) => {
-    // Alias pour mocker @inertiajs/react dans Storybook
+    // Alias pour mocker @inertiajs/react dans Storybook.
+    // Nécessaire pour initialiser les composants qui agissent sur la navigation via Inertia.
     viteConfig.resolve = viteConfig.resolve || {}
     viteConfig.resolve.alias = {
       ...viteConfig.resolve.alias,

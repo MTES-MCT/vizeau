@@ -6,13 +6,23 @@ Toutes les commandes se lancent avec `node ace <commande>`.
 
 ## `user:seed`
 
-Crée ou met à jour les utilisateurs définis dans la variable d'environnement `USERS_TO_SEED`.
+Crée les utilisateurs d'un fichier JSON qui n'existent pas encore. Les utilisateurs existants (même email) sont ignorés et listés.
 
 ```bash
-node ace user:seed
+node ace user:seed --file users.json
 ```
 
-La variable `USERS_TO_SEED` doit contenir un tableau JSON :
+Avec `--reset-passwords`, les utilisateurs existants sont aussi mis à jour, et leur mot de passe est écrasé par celui du batch.
+
+```bash
+node ace user:seed --file users.json --reset-passwords
+```
+
+Avec `--dry-run`, la commande affiche les comptes à créer, ignorer ou mettre à jour, sans rien écrire.
+
+Pour créer des comptes sur Scalingo, voir [deploiement.md](deploiement.md).
+
+Le fichier contient un tableau JSON, validé avant toute écriture :
 
 ```json
 [{ "email": "foo@bar.com", "fullName": "Foo Bar", "password": "secret" }]
@@ -22,11 +32,13 @@ La variable `USERS_TO_SEED` doit contenir un tableau JSON :
 
 ## `user:assign-territoires`
 
-Assigne les territoires aux utilisateurs définis dans `USERS_TO_SEED`, en se basant sur les champs `territoireCodes` (codes SANDRE) et/ou `territoireIds` (UUIDs).
+Assigne les territoires aux utilisateurs d'un fichier JSON, sans jamais en retirer, en se basant sur les champs `territoireCodes` (codes SANDRE) et/ou `territoireIds` (UUIDs).
 
 ```bash
-node ace user:assign-territoires
+node ace user:assign-territoires --file users.json
 ```
+
+Chaque utilisateur affiche le nombre de territoires nouvellement rattachés, et les codes ou ids introuvables. Avec `--dry-run`, rien n'est écrit.
 
 ```json
 [{ "email": "foo@bar.com", "territoireCodes": ["AAC001"], "territoireIds": ["uuid-..."] }]

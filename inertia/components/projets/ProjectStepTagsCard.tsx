@@ -2,10 +2,10 @@ import TagsList from '~/ui/TagsList'
 import { omit } from 'lodash-es'
 import SectionCard from '~/ui/SectionCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import type { ProjectStepTagJson } from '#types/models'
+import type { Data } from '@generated/data'
 
 type ProjectStepTagsCardProps = {
-  tags?: ProjectStepTagJson[] | null
+  tags?: Data.ProjectStepTag[] | null
 }
 
 export default function ProjectStepTagsCard({ tags }: ProjectStepTagsCardProps) {

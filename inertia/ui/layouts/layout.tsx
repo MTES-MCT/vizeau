@@ -4,6 +4,7 @@ import { headerFooterDisplayItem } from '@codegouvfr/react-dsfr/Display'
 import { Footer } from '@codegouvfr/react-dsfr/Footer'
 import { fr } from '@codegouvfr/react-dsfr'
 import { usePage } from '@inertiajs/react'
+import SearchModal, { searchModal } from '~/components/recherche-globale/search-modal'
 
 export default function Layout({
   children,
@@ -15,7 +16,8 @@ export default function Layout({
   isMapLayout?: boolean
   isPublicPage?: boolean
 }>) {
-  const { url } = usePage<any>()
+  const { url, props } = usePage<any>()
+  const isAuthenticated = Boolean(props.user)
   const pathname = url.split('?')[0]
   const isLoginPage = url === '/login'
 
@@ -52,14 +54,19 @@ export default function Layout({
                   isActive: pathname.startsWith('/exploitations'),
                 },
                 {
-                  linkProps: { href: '/territoires' },
-                  text: 'Mes territoires',
-                  isActive: pathname.startsWith('/territoires'),
-                },
-                {
-                  linkProps: { href: '/aac' },
-                  text: 'AAC',
-                  isActive: pathname.startsWith('/aac'),
+                  menuLinks: [
+                    {
+                      linkProps: { href: '/territoires' },
+                      text: 'Depuis mes territoires suivis',
+                      isActive: pathname.startsWith('/territoires'),
+                    },
+                    {
+                      linkProps: { href: '/aac' },
+                      text: 'Depuis le référentiel AAC',
+                      isActive: pathname.startsWith('/aac'),
+                    },
+                  ],
+                  text: 'Qualité de l’eau & assolement',
                 },
                 {
                   linkProps: { href: '/projets' },
@@ -68,7 +75,7 @@ export default function Layout({
                 },
                 {
                   linkProps: { href: '/visualisation' },
-                  text: 'Visualisation',
+                  text: 'Carte',
                   isActive: pathname.startsWith('/visualisation'),
                 },
               ]
@@ -102,15 +109,34 @@ export default function Layout({
                   </Button>,
                 ]
         }
+        renderSearchInput={
+          isAuthenticated
+            ? ({ className, id, placeholder, type }) => (
+                <input
+                  className={className}
+                  id={id}
+                  placeholder={placeholder}
+                  type={type}
+                  value=""
+                  readOnly
+                  onClick={() => searchModal.open()}
+                />
+              )
+            : undefined
+        }
       />
+      {isAuthenticated && <SearchModal />}
       <main className={`flex flex-col flex-1 ${isMapLayout ? 'overflow-hidden' : ''}`}>
         {children}
       </main>
       {!hideFooter && (
         <Footer
-          accessibility="fully compliant"
+          accessibility="non compliant"
           bottomItems={[headerFooterDisplayItem]}
           contentDescription=""
+          accessibilityLinkProps={{
+            href: '/accessibilite',
+          }}
         />
       )}
     </div>

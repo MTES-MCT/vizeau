@@ -7,11 +7,11 @@ import { LogEntryFactory } from '#database/factories/log_entry_factory'
 test.group('LogEntryDocumentService', () => {
   test('I can upload a file', async ({ cleanup, assert }) => {
     /*
-     * Fake the "spaces" disk and restore the fake
+     * Fake the "userUploadsS3" disk and restore the fake
      * after the test finishes
      */
-    const fakeDisk = drive.fake('spaces')
-    cleanup(() => drive.restore('spaces'))
+    const fakeDisk = drive.fake('userUploadsS3')
+    cleanup(() => drive.restore('userUploadsS3'))
 
     /*
      * Generate a fake in-memory PDF file
@@ -35,8 +35,8 @@ test.group('LogEntryDocumentService', () => {
   })
 
   test('I can delete a file', async ({ cleanup }) => {
-    const fakeDisk = drive.fake('spaces')
-    cleanup(() => drive.restore('spaces'))
+    const fakeDisk = drive.fake('userUploadsS3')
+    cleanup(() => drive.restore('userUploadsS3'))
 
     /*
      * Generate a fake in-memory PDF file
@@ -58,8 +58,8 @@ test.group('LogEntryDocumentService', () => {
   })
 
   test('I can create a document record', async ({ cleanup, assert }) => {
-    const fakeDisk = drive.fake('spaces')
-    cleanup(() => drive.restore('spaces'))
+    const fakeDisk = drive.fake('userUploadsS3')
+    cleanup(() => drive.restore('userUploadsS3'))
     const logEntry = await LogEntryFactory.with('author').with('exploitation').create()
 
     /*

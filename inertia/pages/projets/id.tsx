@@ -19,6 +19,7 @@ import Input from '@codegouvfr/react-dsfr/Input'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import StepsList from '~/components/projets/steps-list'
+import ProjetExportCard from '~/components/projets/projet-export-card'
 
 const deleteProjetModal = createModal({
   id: 'delete-projet-modal',
@@ -79,6 +80,11 @@ export default function ShowProjet({ projet }: any) {
         <section className="grid grid-cols-[350px_1fr] gap-4">
           <aside className="flex flex-col gap-4">
             <ProjetInfosCard projet={projet} />
+            <ProjetExportCard
+              projectId={projet.id}
+              hasSteps={projet.steps.length > 0}
+              hasExploitations={projet.exploitations.length > 0}
+            />
             <DeleteAlert
               title="Supprimer ce projet"
               description="Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible."

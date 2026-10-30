@@ -4,6 +4,7 @@ import { LogEntryService } from '#services/log_entry_service'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { LogEntryTagFactory } from '#database/factories/log_entry_tag_factory'
+import { TerritoireFactory } from '#database/factories/territoire_factory'
 import { DateTime } from 'luxon'
 import LogEntryDocument from '#models/log_entry_document'
 
@@ -244,5 +245,102 @@ test.group('LogEntryService', (group) => {
       fetchedLogEntryJson.data.find((entry) => entry.id === logEntry.id),
       undefined
     )
+  })
+
+  test('I can count my urgent log entries (overdue or due within 7 days)', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+    const exploitation = await ExploitationFactory.create()
+    await exploitation.related('territoires').attach([territoire.id])
+    const logEntryService = new LogEntryService()
+
+    // Overdue, not completed: counted
+    await logEntryService.createLogEntry({
+      notes: 'Overdue',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().minus({ days: 2 }),
+      isCompleted: false,
+    })
+    // Due in 3 days, not completed: counted
+    await logEntryService.createLogEntry({
+      notes: 'Due soon',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().plus({ days: 3 }),
+      isCompleted: false,
+    })
+    // Due in 3 days, but completed: not counted
+    await logEntryService.createLogEntry({
+      notes: 'Done',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().plus({ days: 3 }),
+      isCompleted: true,
+    })
+    // Due in 30 days, not completed: not counted
+    await logEntryService.createLogEntry({
+      notes: 'Far away',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().plus({ days: 30 }),
+      isCompleted: false,
+    })
+    // No date: not counted
+    await logEntryService.createLogEntry({
+      notes: 'No date',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      isCompleted: false,
+    })
+
+    const count = await logEntryService.countUrgentLogEntriesForUser(user.id)
+
+    assert.equal(count, 2)
+  })
+
+  test("I don't count urgent log entries from an exploitation outside my territoires", async ({
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const exploitation = await ExploitationFactory.create()
+    const logEntryService = new LogEntryService()
+
+    await logEntryService.createLogEntry({
+      notes: 'Overdue',
+      userId: user.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().minus({ days: 1 }),
+      isCompleted: false,
+    })
+
+    const count = await logEntryService.countUrgentLogEntriesForUser(user.id)
+
+    assert.equal(count, 0)
+  })
+
+  test("I count another user's urgent log entries when we share a territoire", async ({
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const otherUser = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+    const exploitation = await ExploitationFactory.create()
+    await exploitation.related('territoires').attach([territoire.id])
+    const logEntryService = new LogEntryService()
+
+    await logEntryService.createLogEntry({
+      notes: 'Overdue',
+      userId: otherUser.id,
+      exploitationId: exploitation.id,
+      date: DateTime.now().minus({ days: 1 }),
+      isCompleted: false,
+    })
+
+    const count = await logEntryService.countUrgentLogEntriesForUser(user.id)
+
+    assert.equal(count, 1)
   })
 })

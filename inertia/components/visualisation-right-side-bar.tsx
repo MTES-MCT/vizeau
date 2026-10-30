@@ -21,7 +21,8 @@ export default function VisualisationRightSideBar({
   parcellesZoomDisabled = false,
   visibleCultures,
   onToggleCulture,
-  onToggleAllCultures,
+  onSetAllCulturesVisible,
+  culturesInViewport = null,
 }: {
   showParcelles?: boolean
   showAac?: boolean
@@ -41,7 +42,8 @@ export default function VisualisationRightSideBar({
   parcellesZoomDisabled?: boolean
   visibleCultures?: string[]
   onToggleCulture?: (code: string) => void
-  onToggleAllCultures?: () => void
+  onSetAllCulturesVisible?: (visible: boolean) => void
+  culturesInViewport?: string[] | null
 }) {
   return (
     <div className="flex flex-col gap-2 fr-p-1w">
@@ -77,11 +79,12 @@ export default function VisualisationRightSideBar({
         priority="secondary"
         hasBorder
       >
-        {visibleCultures && onToggleCulture && onToggleAllCultures && (
+        {visibleCultures && onToggleCulture && onSetAllCulturesVisible && (
           <CulturesFilters
             visibleCultures={visibleCultures}
+            culturesInViewport={culturesInViewport}
             onToggleCulture={onToggleCulture}
-            onToggleAllCultures={onToggleAllCultures}
+            onSetAllCulturesVisible={onSetAllCulturesVisible}
           />
         )}
       </SmallSection>

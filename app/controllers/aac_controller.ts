@@ -2,9 +2,15 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
-import { analysesSummaryValidator, analysesValidator, yearRangeValidator } from '#validators/aac'
+import {
+  analysesSummaryValidator,
+  analysesValidator,
+  depassementsFiltersValidator,
+  yearRangeValidator,
+} from '#validators/aac'
 import type { AacAnalysesSummaryJson } from '#types/aac'
 import { AacCsvService } from '#services/aac_csv_service'
+import env from '#start/env'
 
 const PER_PAGE = 20
 
@@ -24,30 +30,73 @@ export default class AacController {
     const page = Math.max(1, Number.parseInt(pageInput, 10) || 1)
     const recherche = rechercheInput || undefined
     const commune = communeInput || undefined
+    const {
+      aacDepassementsReglementaires: depassementsReglementaires = false,
+      aacDepassementsAlerte: depassementsAlerte = false,
+    } = await request.validateUsing(depassementsFiltersValidator)
 
-    const { data, total } = await this.aacService.getAll(page, PER_PAGE, recherche, commune)
-    const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
+    // Requête partagée entre les deux props différées pour ne l'exécuter qu'une fois
+    let aacsPromise: ReturnType<AacService['getAll']> | undefined
+    const getAacs = () =>
+      (aacsPromise ??= this.aacService.getAll(
+        page,
+        PER_PAGE,
+        recherche,
+        commune,
+        undefined,
+        depassementsReglementaires,
+        depassementsAlerte
+      ))
 
     return inertia.render('aac/index', {
-      aacs: data.map(AacDto.fromRawSummary),
-      meta: { total, perPage: PER_PAGE, currentPage: page, lastPage },
+      aacs: inertia.defer(async () => {
+        const aacsWithMeta = await getAacs()
+        return aacsWithMeta.data.map(AacDto.fromRawSummary)
+      }, 'aacs'),
+      meta: inertia.defer(async () => {
+        const { total } = await getAacs()
+        const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
+        return { total, perPage: PER_PAGE, currentPage: page, lastPage }
+      }, 'aacs'),
       queryString: {
         aacRecherche: recherche ?? '',
         aacCommune: commune ?? '',
         aacPage: String(page),
+        aacDepassementsReglementaires: String(depassementsReglementaires),
+        aacDepassementsAlerte: String(depassementsAlerte),
       },
     })
   }
 
-  async show({ params, inertia, response }: HttpContext) {
+  async show({ params, inertia, response, auth }: HttpContext) {
     const raw = await this.aacService.getByCode(params.code)
 
     if (!raw) {
       return response.abort(`AAC avec le code "${params.code}" introuvable`, 404)
     }
 
+    const aac = AacDto.fromRaw(raw)
+
+    const conformiteByInstallation = await this.aacService.getConformiteStatsByInstallation(
+      aac.installations.map((installation) => installation.code)
+    )
+    aac.installations = aac.installations.map((installation) => ({
+      ...installation,
+      depassements_alerte:
+        conformiteByInstallation.get(installation.code)?.depassements_alerte ?? 0,
+      depassements_reglementaires:
+        conformiteByInstallation.get(installation.code)?.depassements_reglementaires ?? 0,
+    }))
+
+    // L'AAC n'est un territoire de l'utilisateur que s'il y est rattaché : lui seul peut
+    // rebondir vers la carte, dont les données sont restreintes à ses territoires.
+    const user = auth.getUserOrFail()
+    const isTerritoire = user.territoires.some((territoire) => territoire.code === aac.code)
+
     return inertia.render('aac/id', {
-      aac: AacDto.fromRaw(raw),
+      aac,
+      isTerritoire,
+      pmtilesUrl: env.get('PMTILES_URL', ''),
     })
   }
 

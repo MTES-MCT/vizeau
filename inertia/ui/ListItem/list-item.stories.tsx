@@ -251,3 +251,22 @@ export const infosAdditionnellesAvecSucces = {
     },
   } as ListItemProps,
 }
+
+export const AvecOnClick = {
+  args: {
+    priority: 'primary',
+    hasBorder: true,
+    variant: 'compact',
+    title: `Parcelle RPG 4567`,
+    tags: ['colza'],
+    metas: [
+      {
+        content: `11 ha`,
+        iconId: 'fr-icon-ruler-line',
+      },
+    ],
+    onClick: () => {
+      console.log('une action')
+    },
+  },
+}

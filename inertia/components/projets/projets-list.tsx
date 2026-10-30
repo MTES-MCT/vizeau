@@ -1,9 +1,9 @@
 import ListItem from '~/ui/ListItem'
-import type { ProjectJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { formatDateFr } from '~/functions/date'
 
 export type ProjetsListProps = {
-  projets: ProjectJson[]
+  projets: Data.Project[]
   projetStatuts: Record<string, { label: string; iconId: string }>
 }
 
@@ -15,9 +15,9 @@ export default function ProjetsList({ projets, projetStatuts }: ProjetsListProps
       description,
       actionType,
       status,
-      parcelles,
-      captages,
-      exploitations,
+      parcelles = [],
+      captages = [],
+      exploitations = [],
       closedAt,
       updatedAt,
     } = projet

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, forwardRef } from 'react'
 
 import { brightStringToColor } from '~/functions/colors'
 import { fr } from '@codegouvfr/react-dsfr'
@@ -20,7 +20,10 @@ export type AacCommunesRepartitionProps = {
   }
 }
 
-export default function AacCommunesRepartition({ communes }: AacCommunesRepartitionProps) {
+export default forwardRef<
+  import('chart.js').Chart<'doughnut'> | undefined,
+  AacCommunesRepartitionProps
+>(function AacCommunesRepartition({ communes }: AacCommunesRepartitionProps, chartRef) {
   const communeRepartitionItems = useMemo(() => {
     const allCommunesPresent = Object.keys(communes.communes).length >= communes.nb_communes
 
@@ -82,7 +85,7 @@ export default function AacCommunesRepartition({ communes }: AacCommunesRepartit
   return (
     <div className="flex w-full flex-wrap items-center gap-2">
       <div className="min-h-[200px] h-full min-w-0 sm:min-w-[300px] flex-[1_1_250px] flex justify-center items-center">
-        <Doughnut chartItems={communesChartItems} unit="hectares" hideLegend />
+        <Doughnut ref={chartRef} chartItems={communesChartItems} unit="hectares" hideLegend />
       </div>
       <div className="min-w-0 sm:min-w-[300px] flex-1">
         {communeProgressBarsItems.map((item) => (
@@ -90,6 +93,7 @@ export default function AacCommunesRepartition({ communes }: AacCommunesRepartit
             <LabeledProgressBar
               label={item.label}
               size="sm"
+
               progressBarValues={{
                 value: item.value,
                 total: item.total,
@@ -101,4 +105,4 @@ export default function AacCommunesRepartition({ communes }: AacCommunesRepartit
       </div>
     </div>
   )
-}
+})

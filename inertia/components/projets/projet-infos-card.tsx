@@ -1,6 +1,6 @@
 import SectionCard from '~/ui/SectionCard'
 import LabelInfo from '~/ui/LabelInfo'
-import type { ProjectJson } from '#types/models'
+import type { Data } from '@generated/data'
 import { formatDateFr } from '~/functions/date'
 import CustomTag from '~/ui/CustomTag'
 
@@ -27,7 +27,7 @@ const projetStatuts = {
   },
 }
 
-export default function ProjetInfosCard({ projet }: { projet: ProjectJson }) {
+export default function ProjetInfosCard({ projet }: { projet: Data.Project }) {
   const { status, actionType, createdAt, closedAt, updatedAt } = projet
 
   return (

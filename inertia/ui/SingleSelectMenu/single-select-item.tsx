@@ -2,21 +2,27 @@ import { fr } from '@codegouvfr/react-dsfr'
 import { OptionType } from './index'
 
 export type SingleSelectItemProps<T extends string | number> = {
+  id?: string
   item: OptionType<T>
   iconId?: string
   isLast?: boolean
+  isActive?: boolean
   onSelect: (value: T) => void
 }
 
 export default function SingleSelectItem<T extends string | number>({
+  id,
   item,
   iconId,
   isLast,
+  isActive,
   onSelect,
 }: SingleSelectItemProps<T>) {
   return (
     <button
+      id={id}
       type="button"
+      tabIndex={-1}
       onClick={() => onSelect(item.value)}
       className="flex items-center justify-between fr-p-2v w-full"
       style={{
@@ -26,6 +32,7 @@ export default function SingleSelectItem<T extends string | number>({
         color: item.isSelected
           ? fr.colors.decisions.text.actionHigh.blueFrance.default
           : fr.colors.decisions.text.default.grey.default,
+        background: isActive ? fr.colors.decisions.background.alt.blueFrance.default : undefined,
         textAlign: 'left',
         cursor: 'pointer',
       }}

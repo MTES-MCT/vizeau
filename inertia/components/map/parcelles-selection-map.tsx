@@ -7,8 +7,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import maplibre from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
+import { Popup, ScaleControl } from 'maplibre-gl'
+import type { MapLayerMouseEvent } from 'maplibre-gl'
 import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
 import type { MapDesiredState } from '~/functions/map_reconciler'
 import { useMap } from '~/hooks/use_map'
@@ -21,9 +21,6 @@ import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
-
-const protocol = new Protocol()
-maplibre.addProtocol('pmtiles', protocol.tile)
 
 /** Every culture group is visible: the selection map does not filter parcelles by culture. */
 const ALL_CULTURE_CODES = Object.keys(GROUPES_CULTURAUX)
@@ -72,8 +69,8 @@ const ParcellesSelectionMapContent = forwardRef<
   const [isMapLoading, setIsMapLoading] = useState(true)
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const currentParcelleIdRef = useRef<string | null>(null)
-  const parcellePopupRef = useRef<maplibre.Popup>(
-    new maplibre.Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+  const parcellePopupRef = useRef<Popup>(
+    new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
   const initialBboxRef = useRef<[number, number, number, number] | undefined>(initialBbox)
   // Keep ref in sync for use in stable callbacks
@@ -95,10 +92,7 @@ const ParcellesSelectionMapContent = forwardRef<
     },
     (createdMap) => {
       createdMap.on('load', () => {
-        createdMap.addControl(
-          new maplibre.ScaleControl({ maxWidth: 100, unit: 'metric' }),
-          'bottom-left'
-        )
+        createdMap.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
 
         // Center on the provided territoire bbox when available
         if (initialBboxRef.current) {
@@ -139,7 +133,7 @@ const ParcellesSelectionMapContent = forwardRef<
   useMapReconciler(map, desiredMapState)
 
   const handleParcelleMouseMove = useCallback(
-    (e: maplibre.MapLayerMouseEvent) => {
+    (e: MapLayerMouseEvent) => {
       if (!mapRef.current) return
       const props = e.features?.[0]?.properties
       if (!props) return
@@ -180,7 +174,7 @@ const ParcellesSelectionMapContent = forwardRef<
   }, [])
 
   const handleParcelleClick = useCallback(
-    (e: maplibre.MapLayerMouseEvent) => {
+    (e: MapLayerMouseEvent) => {
       if (!mapRef.current) return
       const feature = e.features?.[0]
       if (!feature?.properties) return

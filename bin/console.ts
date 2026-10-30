@@ -15,6 +15,15 @@ import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
 
 /**
+ * Ace has no safety net of its own: without this listener an unhandled
+ * rejection would only print a warning and leave the process running.
+ */
+process.on('unhandledRejection', async (error) => {
+  await prettyPrintError(error)
+  process.exit(1)
+})
+
+/**
  * URL to the application root. AdonisJS need it to resolve
  * paths to file and directories for scaffolding commands
  */
@@ -41,7 +50,8 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   })
   .ace()
   .handle(process.argv.splice(2))
-  .catch((error) => {
+  .catch(async (error) => {
     process.exitCode = 1
-    prettyPrintError(error)
+    await prettyPrintError(error)
+    process.exit(1)
   })

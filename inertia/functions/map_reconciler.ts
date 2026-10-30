@@ -1,6 +1,17 @@
-import type maplibre from 'maplibre-gl'
-import type { AddLayerObject, FilterSpecification, LayerSpecification } from 'maplibre-gl'
-import { getParcellesLayers, getParcellesSource } from '~/components/map/styles/parcelles'
+import type {
+  AddLayerObject,
+  DataDrivenPropertyValueSpecification,
+  FilterSpecification,
+  LayerSpecification,
+  Map as MaplibreMap,
+  SourceSpecification,
+} from 'maplibre-gl'
+import {
+  getParcellesLayers,
+  getParcellesSource,
+  PARCELLES_MIN_ZOOM,
+  PARCELLES_PROBE_LAYER_ID,
+} from '~/components/map/styles/parcelles'
 import {
   getAacLayer,
   getAacSource,
@@ -19,7 +30,7 @@ const BASEMAP_ANCHOR_LAYER_ID = 'water-name-lakeline'
 const PARCELLES_SOURCE_ID = 'parcelles'
 const PARCELLES_SOURCE_LAYER = 'parcelles'
 
-const BIO_FILL_OPACITY: maplibre.DataDrivenPropertyValueSpecification<number> = [
+const BIO_FILL_OPACITY: DataDrivenPropertyValueSpecification<number> = [
   'case',
   ['boolean', ['feature-state', 'unavailable'], false],
   0.3,
@@ -45,6 +56,8 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
+  /** AAC shown in the sidebar, highlighted on the map. */
+  selectedAacCode?: string
 }
 
 /** Feature states currently applied to the `parcelles` source. */
@@ -60,7 +73,7 @@ export const EMPTY_FEATURE_STATES: AppliedFeatureStates = {
 
 type ManagedSource = {
   id: string
-  build: (state: MapDesiredState) => maplibre.SourceSpecification
+  build: (state: MapDesiredState) => SourceSpecification
 }
 
 type ManagedLayer = {
@@ -82,6 +95,7 @@ const toManagedLayers = (
 
 const parcellesLayerSpecs = getParcellesLayers()
 const isBioLayer = (spec: LayerSpecification) => spec.id.startsWith('parcellesbio')
+const isProbeLayer = (spec: LayerSpecification) => spec.id === PARCELLES_PROBE_LAYER_ID
 
 /**
  * Single declaration site for every source and layer the map needs. The order of this list,
@@ -115,12 +129,14 @@ const MAP_OVERLAYS: MapOverlay[] = [
     },
     layers: [
       ...toManagedLayers(
-        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec)),
+        parcellesLayerSpecs.filter((spec) => !isBioLayer(spec) && !isProbeLayer(spec)),
         (state) => state.showParcelles && !state.showBioOnly
       ),
       // The bio layers are never hidden: they are kept transparent so that
       // `queryRenderedFeatures` can still detect bio parcelles under the cursor.
       ...toManagedLayers(parcellesLayerSpecs.filter(isBioLayer)),
+      // Never hidden nor filtered, so that hidden cultures are still detected in the viewport.
+      ...toManagedLayers(parcellesLayerSpecs.filter(isProbeLayer)),
     ],
   },
 ]
@@ -143,7 +159,7 @@ const getLayerIdsOfSource = (sourceId: string): string[] =>
 /** Layers backed by the `parcelles` source, in stacking order. */
 export const PARCELLES_LAYER_IDS = getLayerIdsOfSource(PARCELLES_SOURCE_ID)
 
-const getAnchorLayerId = (map: maplibre.Map): string | undefined =>
+const getAnchorLayerId = (map: MaplibreMap): string | undefined =>
   map.getLayer(BASEMAP_ANCHOR_LAYER_ID) ? BASEMAP_ANCHOR_LAYER_ID : undefined
 
 /**
@@ -151,11 +167,11 @@ const getAnchorLayerId = (map: maplibre.Map): string | undefined =>
  * state, typically after a millesime change or a pmtiles host change.
  */
 const isSourceOutdated = (
-  source: NonNullable<ReturnType<maplibre.Map['getSource']>>,
-  spec: maplibre.SourceSpecification
+  source: NonNullable<ReturnType<MaplibreMap['getSource']>>,
+  spec: SourceSpecification
 ): boolean => 'url' in spec && 'url' in source && source.url !== spec.url
 
-const removeSource = (map: maplibre.Map, sourceId: string) => {
+const removeSource = (map: MaplibreMap, sourceId: string) => {
   for (const layerId of getLayerIdsOfSource(sourceId)) {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId)
@@ -170,7 +186,7 @@ const removeSource = (map: maplibre.Map, sourceId: string) => {
  * so that the following steps rebuild them. Returns the ids of the sources that were (re)created,
  * since MapLibre drops the feature states attached to a source together with the source itself.
  */
-const syncSources = (map: maplibre.Map, state: MapDesiredState): Set<string> => {
+const syncSources = (map: MaplibreMap, state: MapDesiredState): Set<string> => {
   const createdSourceIds = new Set<string>()
 
   for (const { id, build } of MANAGED_SOURCES) {
@@ -197,7 +213,7 @@ const syncSources = (map: maplibre.Map, state: MapDesiredState): Set<string> => 
  * Layers whose source is not available in the current style are skipped, and the layers
  * are only moved when their current order deviates from the declared one.
  */
-const ensureLayers = (map: maplibre.Map) => {
+const ensureLayers = (map: MaplibreMap) => {
   const anchorLayerId = getAnchorLayerId(map)
 
   const availableLayers = MANAGED_LAYERS.filter(({ spec }) => {
@@ -221,7 +237,7 @@ const ensureLayers = (map: maplibre.Map) => {
 }
 
 const isLayerOrderCorrect = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   availableLayers: ManagedLayer[],
   anchorLayerId: string | undefined
 ) => {
@@ -247,7 +263,7 @@ const isLayerOrderCorrect = (
   return true
 }
 
-const applyLayerVisibility = (map: maplibre.Map, state: MapDesiredState) => {
+const applyLayerVisibility = (map: MaplibreMap, state: MapDesiredState) => {
   for (const { spec, isVisible } of MANAGED_LAYERS) {
     if (!isVisible || !map.getLayer(spec.id)) {
       continue
@@ -261,7 +277,7 @@ const applyLayerVisibility = (map: maplibre.Map, state: MapDesiredState) => {
  * The bio layers stay in the style even when hidden: they are kept transparent so that
  * `queryRenderedFeatures` can still detect bio parcelles under the cursor.
  */
-const applyBioPresentation = (map: maplibre.Map, state: MapDesiredState) => {
+const applyBioPresentation = (map: MaplibreMap, state: MapDesiredState) => {
   if (map.getLayer('parcellesbio-fill')) {
     map.setPaintProperty(
       'parcellesbio-fill',
@@ -275,7 +291,7 @@ const applyBioPresentation = (map: maplibre.Map, state: MapDesiredState) => {
   }
 }
 
-const applyCultureFilter = (map: maplibre.Map, state: MapDesiredState) => {
+const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
   const filter: FilterSpecification =
     state.visibleCultures.length === 0
       ? ['==', ['get', 'id_parcel'], '']
@@ -286,13 +302,19 @@ const applyCultureFilter = (map: maplibre.Map, state: MapDesiredState) => {
         ]
 
   for (const layerId of PARCELLES_LAYER_IDS) {
-    if (map.getLayer(layerId)) {
+    if (layerId !== PARCELLES_PROBE_LAYER_ID && map.getLayer(layerId)) {
       map.setFilter(layerId, filter)
     }
   }
 }
 
-const areParcellesLayersReady = (map: maplibre.Map) =>
+const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
+  if (map.getLayer('aac-selected-fill')) {
+    map.setFilter('aac-selected-fill', ['==', ['get', 'CdAAC'], state.selectedAacCode ?? ''])
+  }
+}
+
+const areParcellesLayersReady = (map: MaplibreMap) =>
   Boolean(
     map.getSource(PARCELLES_SOURCE_ID) &&
     map.getLayer('parcelles-fill') &&
@@ -300,7 +322,7 @@ const areParcellesLayersReady = (map: maplibre.Map) =>
   )
 
 const setFeatureStates = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   parcelleIds: string[],
   state: { highlighted?: boolean; unavailable?: boolean }
 ) => {
@@ -324,7 +346,7 @@ const getHighlightedParcelleIds = (state: MapDesiredState): string[] =>
  * recreated, since MapLibre drops the feature states along with the source.
  */
 const applyParcelleFeatureStates = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previous: AppliedFeatureStates
 ): AppliedFeatureStates => {
@@ -346,7 +368,7 @@ const applyParcelleFeatureStates = (
   return { highlighted, unavailable }
 }
 
-const isParcellesSourceLoaded = (map: maplibre.Map) => {
+const isParcellesSourceLoaded = (map: MaplibreMap) => {
   if (!map.getSource(PARCELLES_SOURCE_ID)) {
     return false
   }
@@ -358,6 +380,20 @@ const isParcellesSourceLoaded = (map: maplibre.Map) => {
   }
 }
 
+/**
+ * Culture group codes present in the viewport, whatever the culture filter. `null` when the
+ * parcelles are not rendered at the current zoom level.
+ */
+export const getCulturesInViewport = (map: MaplibreMap): string[] | null => {
+  if (map.getZoom() < PARCELLES_MIN_ZOOM || !map.getLayer(PARCELLES_PROBE_LAYER_ID)) {
+    return null
+  }
+
+  const features = map.queryRenderedFeatures({ layers: [PARCELLES_PROBE_LAYER_ID] })
+
+  return dedupe(features.map((feature) => String(feature.properties?.code_group)))
+}
+
 export type ReconcileResult = {
   /** `true` when the `parcelles` tiles are not available yet, so the pass must be replayed. */
   parcellesSourcePending: boolean
@@ -367,14 +403,14 @@ export type ReconcileResult = {
 
 /**
  * Brings the map in line with the desired state: sources, layers, layer order, layer
- * visibility, culture filter, bio presentation and parcelle feature states.
+ * visibility, culture filter, bio presentation, AAC selection and parcelle feature states.
  *
  * The function is idempotent and is the only place where the map is configured. It must
  * be called after the map has loaded, after every `style.load` and whenever the desired
  * state changes.
  */
 export const reconcileMap = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
 ): ReconcileResult => {
@@ -386,6 +422,7 @@ export const reconcileMap = (
   applyLayerVisibility(map, state)
   applyBioPresentation(map, state)
   applyCultureFilter(map, state)
+  applyAacSelection(map, state)
 
   const appliedFeatureStates = applyParcelleFeatureStates(
     map,
@@ -398,7 +435,7 @@ export const reconcileMap = (
 
 /** Re-applies the parcelles state once the source tiles are available. */
 export const reapplyParcellesSourceState = (
-  map: maplibre.Map,
+  map: MaplibreMap,
   state: MapDesiredState,
   previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
 ): AppliedFeatureStates => {
@@ -432,4 +469,5 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(state.visibleCultures),
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
+    state.selectedAacCode ?? '',
   ].join('|')

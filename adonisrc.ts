@@ -63,6 +63,8 @@ export default defineConfig({
     () => import('@adonisjs/inertia/inertia_provider'),
     () => import('@adonisjs/drive/drive_provider'),
     () => import('@adonisjs/bouncer/bouncer_provider'),
+    () => import('#providers/api_provider'),
+    () => import('@adonisjs/limiter/limiter_provider'),
   ],
 
   /*
