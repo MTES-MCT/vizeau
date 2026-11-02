@@ -1,14 +1,14 @@
 ---
 name: onboard-users
-description: 'Create VizEau user accounts in the local database from a contact list (account request form, CSV, SANDRE export or JSON): build the users batch with generated passwords, check the territoire codes and the emails already in the database, run user:seed and user:assign-territoires, verify the territoires, and hand over the credentials and the batch file. Use when the user asks to onboard, create, add or seed users/accounts, or hands over a contacts / account requests file to turn into accounts.'
+description: 'Create VizEau user accounts in the local database from a contact list (account request form, CSV, SANDRE export or JSON): build the users batch with generated passwords, check the territoire codes and the emails already in the database, run user:seed and user:territoires, verify the territoires, and hand over the credentials and the batch file. Use when the user asks to onboard, create, add or seed users/accounts, or hands over a contacts / account requests file to turn into accounts.'
 ---
 
 Turns a contact list into VizEau accounts linked to their territoires, in the
 **local database only**. The mechanism already exists in the app: a JSON
 batch (type `UserSeeds` in `app/services/user_service.ts`, validated by
 `app/validators/user_seed.ts`) is read with `--file` by `node ace user:seed`
-(creates the new emails only) and `node ace user:assign-territoires` (attach
-territoires, never detaches). This skill builds the batch, checks it, runs it
+(creates the new emails only) and `node ace user:territoires` (attaches the
+territoires, never detaches without `--sync`). This skill builds the batch, checks it, runs it
 locally, and hands over the batch file.
 
 **Talk to the user in French.**
@@ -134,14 +134,13 @@ After the user agrees:
 node ace user:seed --file tmp/onboarding/<name>.json
 # only if the user accepted to reset the existing accounts:
 # node ace user:seed --file tmp/onboarding/<name>.json --reset-passwords
-node ace user:assign-territoires --file tmp/onboarding/<name>.json
+node ace user:territoires --file tmp/onboarding/<name>.json
 ```
 
 ## 6. Verify
 
 `user:seed` should list every user as created, none as skipped, and
-`user:assign-territoires` print the number of territoires newly attached to
-each user. Then:
+`user:territoires` print the territoires newly attached to each user (`+`). Then:
 
 ```bash
 node --env-file=.env .claude/skills/onboard-users/check_codes.mjs tmp/onboarding/<name>.json --verify
@@ -150,15 +149,14 @@ node --env-file=.env .claude/skills/onboard-users/check_codes.mjs tmp/onboarding
 It checks that every user of the batch exists and has one territoire per
 known code and id (exit code 1 on a mismatch). A user who existed before the
 batch may have more territoires than expected: that's not an error, since
-`user:assign-territoires` never detaches. Report any other mismatch.
+`user:territoires --file` never detaches without `--sync`. Report any other mismatch.
 
 ## 7. Fix a mistake after the run
 
-`user:assign-territoires` never detaches. If a wrong territoire was attached,
-delete the rows from `territoire_user_relations` for those users and codes,
-and remove the code from the user in `<name>.json` so the delivered batch
-stays right. Don't rebuild the
-batch (new passwords).
+If a wrong territoire was attached, detach it with
+`node ace user:territoires <email> --remove <code>` (`--add` to attach a
+forgotten one), and fix the codes of the user in `<name>.json` so the delivered
+batch stays right. Don't rebuild the batch (new passwords).
 
 ## 8. Hand over
 
@@ -169,7 +167,7 @@ Tell the user:
 - `tmp/onboarding/<name>_credentials.md`: the credentials to send; it holds
   plain-text passwords and should be deleted once sent;
 - `tmp/onboarding/<name>.json`: the batch, to give to `user:seed` and
-  `user:assign-territoires` with `--file`, same passwords as the local
+  `user:territoires` with `--file`, same passwords as the local
   accounts. Just give the path, no remote instructions;
 - the input file, if it sits in the project root: it holds personal data and
   should be moved or deleted.

@@ -71,12 +71,12 @@ Remplacer `vizeau-dev` par l'application cible et `users.json` par le nom du bat
 scalingo -a vizeau-dev --region osc-fr1 run --file users.json \
   "cd build && export NODE_ENV=production \
    && node ace user:seed --file /tmp/uploads/users.json \
-   && node ace user:assign-territoires --file /tmp/uploads/users.json"
+   && node ace user:territoires --file /tmp/uploads/users.json"
 ```
 
-Pour prévisualiser, ajouter `--dry-run` aux deux commandes : rien n'est écrit. Les territoires ne sont prévisualisés que pour les comptes qui existent déjà.
+Pour prévisualiser, ajouter `--dry-run` aux deux commandes : rien n'est écrit. Les territoires ne sont prévisualisés que pour les comptes qui existent déjà : les autres sont signalés `not found`.
 
 - `user:seed` ne crée que les nouveaux comptes. Un email listé `Skip` existait déjà : son compte n'est pas modifié et les identifiants envoyés ne fonctionneront pas pour lui.
-- `user:assign-territoires` affiche `Territoire codes not found` pour les codes absents du référentiel AAC de l'environnement.
+- `user:territoires` affiche `Territoires not found` pour les codes absents du référentiel AAC de l'environnement.
 
 Importer le même batch sur dev et sur prod donne les mêmes mots de passe aux deux environnements.

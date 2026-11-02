@@ -5,7 +5,7 @@
 // Prints: codes missing from territoires (with the users affected), inactive codes,
 // emails that already exist (user:seed would skip them),
 // and the territoire name of each code passed to --show, to review ambiguous codes.
-// With --verify, after user:seed and user:assign-territoires: checks that every user of the
+// With --verify, after user:seed and user:territoires --file: checks that every user of the
 // batch exists and has one relation per known code and id, and prints the mismatches.
 
 import { readFileSync } from 'node:fs'

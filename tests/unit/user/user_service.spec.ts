@@ -3,6 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import hash from '@adonisjs/core/services/hash'
 import UserService from '#services/user_service'
 import User from '#models/user'
+import type Territoire from '#models/territoire'
 import { UserFactory } from '#database/factories/user_factory'
 import { TerritoireFactory } from '#database/factories/territoire_factory'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
@@ -153,8 +154,10 @@ test.group('User service | readUserSeeds', (group) => {
   })
 })
 
-test.group('User service | assignTerritoires', (group) => {
+test.group('User service | updateTerritoires', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  const ids = (territoires: Territoire[]) => territoires.map((t) => t.id)
 
   test('it attaches the territoires given by code and by id', async ({ assert }) => {
     const user = await UserFactory.merge({ email: 'user@example.com' }).create()
@@ -163,82 +166,182 @@ test.group('User service | assignTerritoires', (group) => {
     const otherTerritoire = await TerritoireFactory.create()
     const unknownId = '00000000-0000-4000-8000-000000000000'
 
-    const result = await new UserService().assignTerritoires([
-      {
-        email: 'USER@example.com',
-        territoireCodes: [byCode.code!, 'unknown'],
-        territoireIds: [byId.id, unknownId],
-      },
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'USER@example.com', add: [byCode.code!, 'unknown', byId.id, unknownId] },
     ])
 
     await user.load('territoires')
-    const territoireIds = user.territoires.map((t) => t.id)
-    assert.sameMembers(territoireIds, [byCode.id, byId.id])
-    assert.notInclude(territoireIds, otherTerritoire.id)
-    assert.deepEqual(result, [
-      {
-        email: 'user@example.com',
-        userFound: true,
-        attached: 2,
-        notFoundCodes: ['unknown'],
-        notFoundIds: [unknownId],
-      },
-    ])
+    assert.sameMembers(ids(user.territoires), [byCode.id, byId.id])
+    assert.notInclude(ids(user.territoires), otherTerritoire.id)
+    assert.equal(result.email, 'user@example.com')
+    assert.isTrue(result.userFound)
+    assert.sameMembers(ids(result.attached), [byCode.id, byId.id])
+    assert.lengthOf(result.detached, 0)
+    assert.sameMembers(ids(result.territoires), [byCode.id, byId.id])
+    assert.deepEqual(result.notFound, ['unknown', unknownId])
   })
 
-  test('it never detaches and only counts new territoires', async ({ assert }) => {
+  test('it only reports the territoires that are newly attached', async ({ assert }) => {
     const user = await UserFactory.merge({ email: 'user@example.com' }).with('territoires').create()
     const [alreadyAssigned] = user.territoires
     const newTerritoire = await TerritoireFactory.create()
 
-    const [result] = await new UserService().assignTerritoires([
-      { email: 'user@example.com', territoireIds: [alreadyAssigned.id, newTerritoire.id] },
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'user@example.com', add: [alreadyAssigned.id, newTerritoire.id] },
     ])
 
     await user.load('territoires')
-    assert.sameMembers(
-      user.territoires.map((t) => t.id),
-      [alreadyAssigned.id, newTerritoire.id]
-    )
-    assert.equal(result.attached, 1)
+    assert.sameMembers(ids(user.territoires), [alreadyAssigned.id, newTerritoire.id])
+    assert.deepEqual(ids(result.attached), [newTerritoire.id])
   })
 
-  test('it attaches a territoire once when the email is duplicated', async ({ assert }) => {
-    const user = await UserFactory.merge({ email: 'user@example.com' }).create()
-    const territoire = await TerritoireFactory.create()
+  test('it attaches and detaches in the same call', async ({ assert }) => {
+    const user = await UserFactory.merge({ email: 'user@example.com' })
+      .with('territoires', 2)
+      .create()
+    const [toRemove, toKeep] = user.territoires
+    const toAdd = await TerritoireFactory.create()
+    const notAssigned = await TerritoireFactory.create()
 
-    const result = await new UserService().assignTerritoires([
-      { email: 'user@example.com', territoireIds: [territoire.id] },
-      { email: 'USER@example.com', territoireCodes: [territoire.code!] },
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'user@example.com', add: [toAdd.code!], remove: [toRemove.code!, notAssigned.id] },
     ])
 
     await user.load('territoires')
-    assert.lengthOf(user.territoires, 1)
-    assert.deepEqual(
-      result.map((r) => r.attached),
-      [1, 0]
+    assert.sameMembers(ids(user.territoires), [toKeep.id, toAdd.id])
+    assert.deepEqual(ids(result.attached), [toAdd.id])
+    assert.deepEqual(ids(result.detached), [toRemove.id])
+    assert.sameMembers(ids(result.territoires), [toKeep.id, toAdd.id])
+  })
+
+  test('it leaves the other users untouched', async ({ assert }) => {
+    const territoire = await TerritoireFactory.create()
+    const user = await UserFactory.merge({ email: 'user@example.com' }).create()
+    const otherUser = await UserFactory.merge({ email: 'other@example.com' }).create()
+    await user.related('territoires').attach([territoire.id])
+    await otherUser.related('territoires').attach([territoire.id])
+
+    await new UserService().updateTerritoires([
+      { email: 'user@example.com', remove: [territoire.id] },
+    ])
+
+    await user.load('territoires')
+    await otherUser.load('territoires')
+    assert.lengthOf(user.territoires, 0)
+    assert.deepEqual(ids(otherUser.territoires), [territoire.id])
+  })
+
+  test('it syncs the territoires to the exact given list', async ({ assert }) => {
+    const user = await UserFactory.merge({ email: 'user@example.com' })
+      .with('territoires', 2)
+      .create()
+    const [toKeep, toDetach] = user.territoires
+    const toAttach = await TerritoireFactory.create()
+
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'user@example.com', sync: [toKeep.code!, toAttach.id] },
+    ])
+
+    await user.load('territoires')
+    assert.sameMembers(ids(user.territoires), [toKeep.id, toAttach.id])
+    assert.deepEqual(ids(result.attached), [toAttach.id])
+    assert.deepEqual(ids(result.detached), [toDetach.id])
+  })
+
+  test('it detaches everything when syncing an empty list', async ({ assert }) => {
+    const user = await UserFactory.merge({ email: 'user@example.com' })
+      .with('territoires', 2)
+      .create()
+
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'user@example.com', sync: [] },
+    ])
+
+    await user.load('territoires')
+    assert.lengthOf(user.territoires, 0)
+    assert.lengthOf(result.detached, 2)
+  })
+
+  test('it rejects a sync with an unknown territoire and writes nothing', async ({ assert }) => {
+    const user = await UserFactory.merge({ email: 'user@example.com' }).with('territoires').create()
+    const [assigned] = user.territoires
+    const other = await UserFactory.merge({ email: 'other@example.com' }).create()
+    const territoire = await TerritoireFactory.create()
+
+    await assert.rejects(
+      () =>
+        new UserService().updateTerritoires([
+          { email: 'other@example.com', add: [territoire.id] },
+          { email: 'user@example.com', sync: ['unknown'] },
+        ]),
+      /Territoires not found, nothing synced: unknown/
     )
+
+    await user.load('territoires')
+    await other.load('territoires')
+    assert.deepEqual(ids(user.territoires), [assigned.id])
+    assert.lengthOf(other.territoires, 0)
+  })
+
+  test('it rejects inconsistent changes', async ({ assert }) => {
+    const territoire = await TerritoireFactory.create()
+    const service = new UserService()
+
+    await assert.rejects(
+      () =>
+        service.updateTerritoires([
+          { email: 'user@example.com', sync: [territoire.id] },
+          { email: 'USER@example.com', add: [territoire.code!] },
+        ]),
+      /"user@example\.com": sync cannot be combined with add or remove/
+    )
+    await assert.rejects(
+      () =>
+        service.updateTerritoires([
+          { email: 'user@example.com', add: [territoire.id], remove: [territoire.id] },
+        ]),
+      /"user@example\.com": both added and removed/
+    )
+  })
+
+  test('it merges the changes of a duplicated email', async ({ assert }) => {
+    const user = await UserFactory.merge({ email: 'user@example.com' }).create()
+    const first = await TerritoireFactory.create()
+    const second = await TerritoireFactory.create()
+
+    const results = await new UserService().updateTerritoires([
+      { email: 'user@example.com', add: [first.id] },
+      { email: 'USER@example.com', add: [first.code!, second.code!] },
+    ])
+
+    await user.load('territoires')
+    assert.sameMembers(ids(user.territoires), [first.id, second.id])
+    assert.lengthOf(results, 1)
+    assert.lengthOf(results[0].attached, 2)
   })
 
   test('it writes nothing with dryRun', async ({ assert }) => {
-    const user = await UserFactory.merge({ email: 'user@example.com' }).create()
+    const user = await UserFactory.merge({ email: 'user@example.com' }).with('territoires').create()
+    const [assigned] = user.territoires
     const territoire = await TerritoireFactory.create()
 
-    const [result] = await new UserService().assignTerritoires(
-      [{ email: 'user@example.com', territoireIds: [territoire.id] }],
+    const [result] = await new UserService().updateTerritoires(
+      [{ email: 'user@example.com', add: [territoire.id], remove: [assigned.id] }],
       { dryRun: true }
     )
 
     await user.load('territoires')
-    assert.lengthOf(user.territoires, 0)
-    assert.equal(result.attached, 1)
+    assert.deepEqual(ids(user.territoires), [assigned.id])
+    assert.deepEqual(ids(result.attached), [territoire.id])
+    assert.deepEqual(ids(result.detached), [assigned.id])
+    assert.deepEqual(ids(result.territoires), [territoire.id])
   })
 
-  test('it skips the users that do not exist', async ({ assert }) => {
+  test('it reports the users that do not exist', async ({ assert }) => {
     const territoire = await TerritoireFactory.create()
 
-    const [result] = await new UserService().assignTerritoires([
-      { email: 'missing@example.com', territoireIds: [territoire.id] },
+    const [result] = await new UserService().updateTerritoires([
+      { email: 'missing@example.com', add: [territoire.id] },
     ])
 
     await territoire.load('users')
