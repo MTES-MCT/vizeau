@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-export function MatomoTrackerInjector() {
+export default function MatomoTrackerInjector() {
   useEffect(() => {
     const matomoUrl = import.meta.env.VITE_MATOMO_URL
     if (!matomoUrl) {

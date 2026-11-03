@@ -1,6 +1,6 @@
 import ListItem from '~/ui/ListItem'
 import type { Data } from '@generated/data'
-import { getCultureByCode } from '~/functions/cultures-group'
+import { getCultureByCode } from '~/functions/cultures_group'
 
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 

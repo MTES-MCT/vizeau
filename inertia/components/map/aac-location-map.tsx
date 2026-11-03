@@ -6,7 +6,7 @@ import vector from '~/components/map/styles/vector.json'
 import { getAacLocationLayers, getAacSource } from '~/components/map/styles/zonage'
 import { useMap } from '~/hooks/use_map'
 import Loader from '~/ui/Loader'
-import { MapErrorBoundary } from './map-error-boundary'
+import MapErrorBoundary from './map-error-boundary'
 
 // Le JSON importé est typé plus largement que ce qu'attend MapLibre (tuples de coordonnées).
 const VECTOR_STYLE = vector as unknown as StyleSpecification

@@ -1,4 +1,4 @@
-import { GROUPES_CULTURAUX } from '~/functions/cultures-group'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 import CustomTag from '../ui/CustomTag'
 
 export type GroupeCultureTagProps = {

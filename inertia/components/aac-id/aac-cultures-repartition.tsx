@@ -5,7 +5,7 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import Doughnut from '~/ui/Charts/Doughnut'
 import DataVisualization from '@codegouvfr/react-dsfr/picto/DataVisualization'
 import { orderBy } from 'lodash-es'
-import { getCultureCategoryColor } from '~/functions/cultures-group'
+import { getCultureCategoryColor } from '~/functions/cultures_group'
 import type { AacJson } from '#types/aac'
 
 type SurfaceAgricole =

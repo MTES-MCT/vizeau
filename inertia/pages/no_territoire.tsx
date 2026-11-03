@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 
 export default function NoTerritoire() {

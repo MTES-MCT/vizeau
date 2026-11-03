@@ -3,7 +3,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import { router } from '@inertiajs/react'
 import type { Data } from '@generated/data'
-import { VisualisationMapRef } from '~/components/map/VisualisationMap'
+import { VisualisationMapRef } from '~/components/map/visualisation-map'
 import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
 import CustomTag from '~/ui/CustomTag'
@@ -12,7 +12,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import CommentFormModal from './comment-form-modal'
-import { getCultureByCode } from '~/functions/cultures-group'
+import { getCultureByCode } from '~/functions/cultures_group'
 
 const handleCommentModal = createModal({
   id: 'add-comment-modal',

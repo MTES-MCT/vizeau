@@ -1,5 +1,5 @@
 import { Head, Deferred } from '@inertiajs/react'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 
 import type { ProchainesTacheJson } from '#types/models'
 import type { Data } from '@generated/data'

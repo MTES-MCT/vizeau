@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
 import Toast from '~/ui/Toaster'

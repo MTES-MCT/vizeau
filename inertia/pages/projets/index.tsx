@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import { router } from '@inertiajs/react'
 
 import { fr } from '@codegouvfr/react-dsfr'

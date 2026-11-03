@@ -3,7 +3,7 @@ import { Head, useForm, usePage, router } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 
 import ProjetForm, {
   ProjetFormData,

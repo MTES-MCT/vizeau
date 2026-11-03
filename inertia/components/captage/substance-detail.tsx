@@ -5,7 +5,7 @@ import ResumeCard from '~/ui/ResumeCard'
 import Loader from '~/ui/Loader'
 import Divider from '~/ui/Divider'
 import type { ChroniqueData } from '#types/captage'
-import { formatUnite, SubstanceScatterChart } from './substance-scatter-chart'
+import SubstanceScatterChart, { formatUnite } from './substance-scatter-chart'
 import LabelInfo from '~/ui/LabelInfo'
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
   headerContent?: React.ReactNode
 }
 
-export function SubstanceDetail({ chronique, loading, headerContent }: Props) {
+export default function SubstanceDetail({ chronique, loading, headerContent }: Props) {
   const unite = chronique ? formatUnite(chronique.info.code_unite) : ''
   const [leftOpen, setLeftOpen] = useState(true)
 

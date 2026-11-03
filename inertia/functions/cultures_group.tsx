@@ -1,5 +1,5 @@
 import { has } from 'lodash-es'
-import { groupColors } from '~/utils/group-colors'
+import { groupColors } from '~/functions/group_colors'
 import cultures from '../data/cultures.json'
 
 export type GroupeCulturauxItem = {

@@ -29,7 +29,7 @@ type ProjectStepTagPageProps = {
 // Every tag fetched is cached for later retrieval
 const tagsCache: Record<number, Data.ProjectStepTag> = {}
 
-export function ProjectStepTagSelector({
+export default function ProjectStepTagSelector({
   inputValue,
   setInputValue,
   values,

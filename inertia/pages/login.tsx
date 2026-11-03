@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react'
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import AuthentificationBloc from '~/components/authentification-bloc'
 
 export default function Login() {

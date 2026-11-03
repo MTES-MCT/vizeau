@@ -30,7 +30,7 @@ export function formatUnite(code: string): string {
   return code === 'SANS OBJET' ? '' : code
 }
 
-export function SubstanceScatterChart({ data }: { data: ChroniqueData }) {
+export default function SubstanceScatterChart({ data }: { data: ChroniqueData }) {
   const { info, series } = data
   const unite = formatUnite(info.code_unite)
 

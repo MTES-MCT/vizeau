@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
-import Layout from '~/ui/layouts/layout'
+import Layout from '~/ui/layouts/Layout'
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb'
 import TruncatedText from '~/ui/TruncatedText'
 import SmallSection from '~/ui/SmallSection'

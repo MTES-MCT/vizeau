@@ -51,7 +51,7 @@ async function downloadCsv(url: string) {
   }, 1000)
 }
 
-export function AacActionCard({ code }: { code: string }) {
+export default function AacActionCard({ code }: { code: string }) {
   const [exportUrl, setExportUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
