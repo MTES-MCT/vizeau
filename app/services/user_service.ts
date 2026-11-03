@@ -1,6 +1,7 @@
 import User from '#models/user'
 import Territoire from '#models/territoire'
 import { userSeedsValidator } from '#validators/user_seed'
+import db from '@adonisjs/lucid/services/db'
 import { errors } from '@vinejs/vine'
 import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
@@ -21,14 +22,28 @@ export type SeedUsersResult = {
   existing: string[]
 }
 
-export type AssignTerritoiresResult = Array<{
+// Changes to the territoires of a user. A territoire is referenced by its AAC code or its UUID.
+export type TerritoiresChange = {
+  email: string
+  add?: string[]
+  remove?: string[]
+  // Exact list of the user's territoires, like Lucid's sync(): the others are detached.
+  // Cannot be combined with add or remove.
+  sync?: string[]
+}
+
+export type TerritoiresChangeResult = {
   email: string
   userFound: boolean
-  // Territoires newly attached to the user (already attached ones are not counted)
-  attached: number
-  notFoundCodes: string[]
-  notFoundIds: string[]
-}>
+  attached: Territoire[]
+  detached: Territoire[]
+  // Territoires of the user once the changes are applied, ordered by code
+  territoires: Territoire[]
+  // References matching no territoire
+  notFound: string[]
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export default class UserService {
   /**
@@ -96,60 +111,143 @@ export default class UserService {
   }
 
   /**
-   * Attaches the territoires of the batch to its users, never detaches.
-   * territoireCodes is useful for AACs from the SANDRE national referential, while territoireIds
-   * can be used for any existing territoire. Both are read when present. With dryRun, nothing
-   * is written.
+   * Attaches and detaches the territoires of users, referenced by AAC code or UUID.
+   * Changes given several times for the same email are merged. Unknown references are
+   * reported in notFound and ignored, except with sync: detaching from an incomplete list
+   * would remove territoires by mistake, so the whole call is rejected. Users that don't exist
+   * are reported with userFound false. Everything is written in a single transaction, and
+   * nothing with dryRun.
    */
-  async assignTerritoires(
-    usersToSeed: UserSeeds,
+  async updateTerritoires(
+    changes: TerritoiresChange[],
     { dryRun = false }: { dryRun?: boolean } = {}
-  ): Promise<AssignTerritoiresResult> {
-    const codes = usersToSeed.flatMap((u) => u.territoireCodes ?? [])
-    const ids = usersToSeed.flatMap((u) => u.territoireIds ?? [])
-    const territoires = await Territoire.query().whereIn('code', codes).orWhereIn('id', ids)
-    const idByCode = new Map(territoires.map((t) => [t.code, t.id]))
-    const knownIds = new Set(territoires.map((t) => t.id))
+  ): Promise<TerritoiresChangeResult[]> {
+    const changesByEmail = this.mergeTerritoiresChanges(changes)
+    const refs = [...changesByEmail.values()].flatMap((c) => [...c.add, ...c.remove, ...c.sync])
+    const resolved = await this.resolveTerritoires(refs)
 
-    const emails = usersToSeed.map((u) => u.email.toLowerCase().trim())
-    const users = await User.query().whereIn('email', emails).preload('territoires')
-    const userByEmail = new Map(users.map((u) => [u.email, u]))
-    // Kept up to date, so that an email listed twice doesn't attach a territoire twice
-    const currentIdsByEmail = new Map(
-      users.map((u) => [u.email, new Set(u.territoires.map((t) => t.id))])
-    )
-
-    const result: AssignTerritoiresResult = []
-    for (const userData of usersToSeed) {
-      const email = userData.email.toLowerCase().trim()
-      const userCodes = userData.territoireCodes ?? []
-      const userIds = userData.territoireIds ?? []
-      const territoireIds = new Set([
-        ...userCodes.filter((c) => idByCode.has(c)).map((c) => idByCode.get(c)!),
-        ...userIds.filter((id) => knownIds.has(id)),
-      ])
-      const entry = {
-        email,
-        userFound: false,
-        attached: 0,
-        notFoundCodes: userCodes.filter((c) => !idByCode.has(c)),
-        notFoundIds: userIds.filter((id) => !knownIds.has(id)),
-      }
-      result.push(entry)
-
-      const user = userByEmail.get(email)
-      if (!user) continue
-
-      const currentIds = currentIdsByEmail.get(email)!
-      const newIds = [...territoireIds].filter((id) => !currentIds.has(id))
-      if (!dryRun && newIds.length > 0) {
-        await user.related('territoires').attach(newIds)
-      }
-      newIds.forEach((id) => currentIds.add(id))
-      entry.userFound = true
-      entry.attached = newIds.length
+    const unknownSyncRefs = [...changesByEmail.values()]
+      .flatMap((c) => [...c.sync])
+      .filter((ref) => !resolved.has(ref))
+    if (unknownSyncRefs.length > 0) {
+      throw new Error(
+        `Territoires not found, nothing synced: ${[...new Set(unknownSyncRefs)].join(', ')}`
+      )
     }
-    return result
+
+    return db.transaction(async (trx) => {
+      const users = await User.query({ client: trx })
+        .whereIn('email', [...changesByEmail.keys()])
+        .preload('territoires')
+      const userByEmail = new Map(users.map((u) => [u.email, u]))
+
+      // Every territoire involved, ordered by code, to order the lists of the result
+      const involvedIds = new Set([
+        ...[...resolved.values()].map((t) => t.id),
+        ...users.flatMap((u) => u.territoires.map((t) => t.id)),
+      ])
+      const orderedTerritoires = await Territoire.query({ client: trx })
+        .whereIn('id', [...involvedIds])
+        .withScopes((scopes) => scopes.orderByCode())
+      const pick = (ids: Set<string>) => orderedTerritoires.filter((t) => ids.has(t.id))
+      const resolveIds = (_refs: Set<string>) =>
+        new Set([..._refs].filter((ref) => resolved.has(ref)).map((ref) => resolved.get(ref)!.id))
+
+      const results: TerritoiresChangeResult[] = []
+      for (const [email, change] of changesByEmail) {
+        const notFound = [...change.add, ...change.remove].filter((ref) => !resolved.has(ref))
+        const user = userByEmail.get(email)
+        if (!user) {
+          results.push({
+            email,
+            userFound: false,
+            attached: [],
+            detached: [],
+            territoires: [],
+            notFound,
+          })
+          continue
+        }
+
+        const currentIds = new Set(user.territoires.map((t) => t.id))
+        const toAttach = change.isSync ? resolveIds(change.sync) : resolveIds(change.add)
+        const attachedIds = new Set([...toAttach].filter((id) => !currentIds.has(id)))
+        const detachedIds = change.isSync
+          ? new Set([...currentIds].filter((id) => !toAttach.has(id)))
+          : new Set([...resolveIds(change.remove)].filter((id) => currentIds.has(id)))
+        const finalIds = new Set(
+          [...currentIds, ...attachedIds].filter((id) => !detachedIds.has(id))
+        )
+
+        if (!dryRun) {
+          if (attachedIds.size > 0) {
+            await user.related('territoires').attach([...attachedIds], trx)
+          }
+          if (detachedIds.size > 0) {
+            await user.related('territoires').detach([...detachedIds], trx)
+          }
+        }
+
+        results.push({
+          email,
+          userFound: true,
+          attached: pick(attachedIds),
+          detached: pick(detachedIds),
+          territoires: pick(finalIds),
+          notFound,
+        })
+      }
+      return results
+    })
+  }
+
+  /**
+   * Merges the changes by lowercased email, and checks that they are consistent.
+   */
+  private mergeTerritoiresChanges(changes: TerritoiresChange[]) {
+    const byEmail = new Map<
+      string,
+      { add: Set<string>; remove: Set<string>; sync: Set<string>; isSync: boolean }
+    >()
+    for (const change of changes) {
+      const email = change.email.toLowerCase().trim()
+      if (!byEmail.has(email)) {
+        byEmail.set(email, { add: new Set(), remove: new Set(), sync: new Set(), isSync: false })
+      }
+      const merged = byEmail.get(email)!
+      const trim = (refs?: string[]) => (refs ?? []).map((ref) => ref.trim()).filter(Boolean)
+      trim(change.add).forEach((ref) => merged.add.add(ref))
+      trim(change.remove).forEach((ref) => merged.remove.add(ref))
+      trim(change.sync).forEach((ref) => merged.sync.add(ref))
+      merged.isSync ||= change.sync !== undefined
+    }
+
+    for (const [email, change] of byEmail) {
+      if (change.isSync && (change.add.size > 0 || change.remove.size > 0)) {
+        throw new Error(`"${email}": sync cannot be combined with add or remove`)
+      }
+      const both = [...change.add].filter((ref) => change.remove.has(ref))
+      if (both.length > 0) {
+        throw new Error(`"${email}": both added and removed: ${both.join(', ')}`)
+      }
+    }
+    return byEmail
+  }
+
+  /**
+   * Finds the territoires referenced by AAC code or UUID, keyed by reference.
+   */
+  private async resolveTerritoires(refs: string[]): Promise<Map<string, Territoire>> {
+    const ids = refs.filter((ref) => UUID_REGEX.test(ref))
+    const codes = refs.filter((ref) => !UUID_REGEX.test(ref))
+    const territoires = await Territoire.query().whereIn('code', codes).orWhereIn('id', ids)
+
+    const resolved = new Map<string, Territoire>()
+    for (const territoire of territoires) {
+      if (territoire.code) resolved.set(territoire.code, territoire)
+      resolved.set(territoire.id, territoire)
+    }
+    return resolved
   }
 
   /**

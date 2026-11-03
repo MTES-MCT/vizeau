@@ -19,7 +19,7 @@
 // --exclude-email removes people from the batch (e.g. none of their codes exist).
 //
 // Outputs, in --out-dir (default tmp/onboarding):
-//   <name>.json              the batch, read by user:seed and user:assign-territoires with --file
+//   <name>.json              the batch, read by user:seed and user:territoires with --file
 //   <name>_credentials.md    name / email / password blocks, to send to the users
 // Passwords are never printed on stdout.
 
