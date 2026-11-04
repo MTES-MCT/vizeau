@@ -239,6 +239,25 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])
 
+  const hasAacSelector = aacs.length > 1
+
+  const millesimeSelect = (
+    <Select
+      label=""
+      className="fr-mb-0 w-40"
+      nativeSelectProps={{
+        value: millesime,
+        onChange: (e) => handleMillesimeChange(e.target.value),
+      }}
+    >
+      {RPG_YEARS.map((m) => (
+        <option key={m} value={m}>
+          RPG {m}
+        </option>
+      ))}
+    </Select>
+  )
+
   return (
     <div className="flex flex-col h-full w-full relative">
       {isMapLoading && (
@@ -260,54 +279,44 @@ const ParcellesSelectionMapContent = forwardRef<
             <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
             Cliquez sur une parcelle pour la sélectionner ou la désélectionner
           </div>
-          <Button
-            type="button"
-            priority="tertiary no outline"
-            size="small"
-            iconId={areOptionsVisible ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
-            iconPosition="right"
-            nativeButtonProps={{
-              'aria-expanded': areOptionsVisible,
-              'aria-controls': 'parcelles-map-options',
-            }}
-            onClick={() => onOptionsVisibleChange(!areOptionsVisible)}
-          >
-            {areOptionsVisible ? 'Masquer les options' : 'Options'}
-          </Button>
+          {/* Une seule AAC : pas de sélecteur d'AAC, le millésime reste dans le bandeau */}
+          {hasAacSelector ? (
+            <Button
+              type="button"
+              priority="tertiary no outline"
+              size="small"
+              iconId={areOptionsVisible ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+              iconPosition="right"
+              nativeButtonProps={{
+                'aria-expanded': areOptionsVisible,
+                'aria-controls': 'parcelles-map-options',
+              }}
+              onClick={() => onOptionsVisibleChange(!areOptionsVisible)}
+            >
+              {areOptionsVisible ? 'Masquer les options' : 'Options'}
+            </Button>
+          ) : (
+            millesimeSelect
+          )}
         </div>
 
-        {areOptionsVisible && (
+        {hasAacSelector && areOptionsVisible && (
           <div id="parcelles-map-options" className="flex flex-wrap gap-x-4 fr-pb-2v fr-pt-4v">
-            {aacs.length > 1 && (
-              <Select
-                label=""
-                className="fr-mb-0 flex-1 min-w-48"
-                nativeSelectProps={{
-                  value: selectedAacId,
-                  onChange: (e) => handleAacChange(e.target.value),
-                }}
-              >
-                {aacs.map((aac) => (
-                  <option key={aac.id} value={aac.id}>
-                    {aac.label}
-                  </option>
-                ))}
-              </Select>
-            )}
             <Select
               label=""
-              className="fr-mb-0 w-40"
+              className="fr-mb-0 flex-1 min-w-48"
               nativeSelectProps={{
-                value: millesime,
-                onChange: (e) => handleMillesimeChange(e.target.value),
+                value: selectedAacId,
+                onChange: (e) => handleAacChange(e.target.value),
               }}
             >
-              {RPG_YEARS.map((m) => (
-                <option key={m} value={m}>
-                  RPG {m}
+              {aacs.map((aac) => (
+                <option key={aac.id} value={aac.id}>
+                  {aac.label}
                 </option>
               ))}
             </Select>
+            {millesimeSelect}
           </div>
         )}
       </div>
