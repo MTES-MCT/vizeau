@@ -19,6 +19,10 @@ interface PopupParcelleProps {
   isEditMode?: boolean
   isOwnParcelle?: boolean
   projectsWithThisParcelle?: Data.Project[]
+  /** Numéro PACAGE de la parcelle : absent s'il n'est pas recherché, null s'il est inconnu. */
+  pacage?: string | null
+  /** Nom de la commune : absent tant qu'il n'est pas résolu, null s'il est introuvable. */
+  commune?: string | null
 }
 
 function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
@@ -52,6 +56,8 @@ export default function PopupParcelle({
   isParcelleUnavailable = false,
   isEditMode = false,
   isOwnParcelle = false,
+  pacage,
+  commune,
 }: PopupParcelleProps) {
   const { label: cultureLabel, color: cultureColor } = getCultureByCode(cultureCode)
 
@@ -59,6 +65,7 @@ export default function PopupParcelle({
     <div
       style={{
         minWidth: '200px',
+        maxWidth: '300px',
         backgroundColor: fr.colors.decisions.background.default.grey.default,
         fontFamily: 'Marianne, arial, sans-serif',
       }}
@@ -79,6 +86,14 @@ export default function PopupParcelle({
         )}
       </div>
       <div className="flex flex-col gap-1 fr-mt-1w">
+        {commune !== undefined && (
+          <LabelInfo
+            label="Commune"
+            icon="fr-icon-government-line"
+            size="sm"
+            info={commune ?? 'Inconnue'}
+          />
+        )}
         <LabelInfo
           label="Surface"
           icon="fr-icon-ruler-line"
@@ -86,6 +101,9 @@ export default function PopupParcelle({
           info={`${parseFloat(surfParc).toFixed(2)} Ha`}
         />
         <LabelInfo label="Millésime" icon="fr-icon-calendar-line" size="sm" info={millesime} />
+        {pacage !== undefined && (
+          <LabelInfo label="PACAGE" icon="fr-icon-hashtag" size="sm" info={pacage ?? 'Inconnu'} />
+        )}
         {isEditMode && !isOwnParcelle && <StatusBadge isAvailable={!isParcelleUnavailable} />}
         {isBio && (
           <div className="fr-mt-1w">
@@ -130,7 +148,9 @@ export function renderPopupParcelle(
   isBio?: boolean,
   isEditMode?: boolean,
   isOwnParcelle?: boolean,
-  projectsWithThisParcelle?: Data.Project[]
+  projectsWithThisParcelle?: Data.Project[],
+  pacage?: string | null,
+  commune?: string | null
 ): HTMLDivElement {
   const container = document.createElement('div')
   const root = createRoot(container)
@@ -145,6 +165,8 @@ export function renderPopupParcelle(
       isOwnParcelle={isOwnParcelle}
       isParcelleUnavailable={isParcelleUnavailable}
       projectsWithThisParcelle={projectsWithThisParcelle}
+      pacage={pacage}
+      commune={commune}
     />
   )
   return container

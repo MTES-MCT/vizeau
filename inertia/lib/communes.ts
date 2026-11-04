@@ -30,3 +30,26 @@ export async function getAddressFromCoords({
 
   return adresses.features[0]
 }
+
+/**
+ * Nom de la commune contenant le point, via l'API Géo (découpage administratif).
+ * Renvoie null si le point est hors commune ou si l'appel échoue.
+ */
+export async function getCommuneNameFromCoords({
+  lat,
+  lon,
+}: {
+  lat: number
+  lon: number
+}): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://geo.api.gouv.fr/communes?lat=${lat}&lon=${lon}&fields=nom&format=json`
+    )
+    if (!response.ok) return null
+    const communes: Array<{ nom: string }> = await response.json()
+    return communes[0]?.nom ?? null
+  } catch {
+    return null
+  }
+}
