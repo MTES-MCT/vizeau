@@ -13,6 +13,7 @@ import {
   TerritoiresStep,
 } from '~/components/projets/form'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
+import type { Data } from '@generated/data'
 
 // Attach components to steps (done here to avoid circular imports)
 STEPS[STEP_KEYS.GENERAL_INFOS].component = GeneralInfosStep
@@ -22,6 +23,16 @@ STEPS[STEP_KEYS.CONSOLIDATIONS].component = ConsolidationsStep
 STEPS[STEP_KEYS.PARCELLES].component = ParcellesStep
 STEPS[STEP_KEYS.EXPLOITATIONS].component = ExploitationsStep
 STEPS[STEP_KEYS.CAPTAGES].component = CaptagesStep
+
+/*
+ * Props communes aux pages projets/creation et projets/edition, lues par les étapes du formulaire
+ * via usePage(). Seules celles effectivement utilisées par les étapes sont typées ici.
+ */
+export type ProjetFormPageProps = {
+  pmtilesUrl: string
+  exploitations: Data.Exploitation[]
+  aacs: Data.Territoire.Variants['forEmprise'][]
+}
 
 export type ProjetFormErrors = {
   projectName?: string

@@ -8,8 +8,7 @@ import ParcellesSelectionMap, {
   Bbox,
 } from '~/components/map/parcelles-selection-map'
 import SectionCard from '~/ui/SectionCard'
-import type { ProjetFormData } from './projet-form'
-import type { Data } from '@generated/data'
+import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
 import { getCultureByCode } from '~/functions/cultures_group'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
@@ -21,12 +20,11 @@ type ParcellesStepProps = {
 
 export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const mapRef = useRef<ParcellesSelectionMapHandle>(null)
-  const { pmtilesUrl, exploitations, aacs } =
-    usePage<InferPageProps<ProjectsController, 'create'>>().props
+  const { pmtilesUrl, exploitations, aacs } = usePage<ProjetFormPageProps>().props
   // Seules les AAC dont l'emprise est connue permettent de centrer la carte
   const aacEmprises = useMemo<AacEmprise[]>(
     () =>
-      (aacs as Data.Territoire.Variants['forEmprise'][]).flatMap((aac) =>
+      aacs.flatMap((aac) =>
         aac.bbox
           ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
           : []
@@ -51,7 +49,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
 
   const handleParcelleToggle = useCallback(
     (parcelle: SelectedParcelle) => {
-      const linkedExploitation = (exploitations as Data.Exploitation[]).find((exp) =>
+      const linkedExploitation = exploitations.find((exp) =>
         exp.parcelles?.some((p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId)
       )
       const linkedParcelle = linkedExploitation?.parcelles?.find(
