@@ -10,6 +10,8 @@ import type {
   CaptageAlerteJson,
 } from '#types/captage'
 
+export type AacEmprise = Pick<AacSummaryJson, 'bbox'>
+
 function getParquetPath(): string {
   return `s3://${getAacFilesS3Driver().options.bucket}/aac.parquet`
 }
@@ -366,6 +368,28 @@ export class AacService {
     }
 
     return summariesByCode
+  }
+
+  /**
+   * Emprise (bbox) de chaque AAC demandée, indexée par code.
+   * Requête volontairement légère, sans les statistiques de conformité de getSummariesByCode :
+   * elle sert uniquement à centrer une carte.
+   */
+  async getEmprisesByCode(aacCodes: string[]): Promise<Record<string, AacEmprise>> {
+    const emprisesByCode: Record<string, AacEmprise> = {}
+    if (aacCodes.length === 0) return emprisesByCode
+
+    const rows = await this.duckdbService.query<Record<string, unknown>>(
+      'SELECT code, bbox FROM read_parquet($path) WHERE code = ANY($aacCodes)',
+      { path: getParquetPath(), aacCodes: this.duckdbService.list(aacCodes) }
+    )
+    for (const row of rows) {
+      emprisesByCode[row.code as string] = {
+        bbox: (row.bbox ?? null) as AacEmprise['bbox'],
+      }
+    }
+
+    return emprisesByCode
   }
 
   /**
