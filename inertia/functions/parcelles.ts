@@ -125,9 +125,26 @@ export function updateParcelle(
   return { ...state, byYear }
 }
 
-/** Bascule la case d'une parcelle. */
+/**
+ * Bascule la case d'une parcelle. Un groupe PACAGE dont plus aucune parcelle n'est cochée
+ * est retiré, comme si son PACAGE l'avait été : son onglet n'aurait plus rien à afficher.
+ */
 export function toggleParcelle(state: ParcellesState, key: string): ParcellesState {
-  return updateParcelle(state, key, (parcelle) => ({ ...parcelle, checked: !parcelle.checked }))
+  const toggled = updateParcelle(state, key, (parcelle) => ({
+    ...parcelle,
+    checked: !parcelle.checked,
+  }))
+  let next = toggled
+  for (const [year, bucket] of Object.entries(toggled.byYear)) {
+    if (bucket.pacageGroups.every((group) => getCheckedGroupParcelles(group).length > 0)) continue
+    next = updateYearParcelles(next, Number(year), (current) => ({
+      ...current,
+      pacageGroups: current.pacageGroups.filter(
+        (group) => getCheckedGroupParcelles(group).length > 0
+      ),
+    }))
+  }
+  return next
 }
 
 /** Ensemble des clés déjà présentes (tous millésimes), pour dédoublonner. */
