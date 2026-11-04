@@ -140,7 +140,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     const isMarkerHovered = hoveredExploitationId !== null
     // The popup is created once and will be hidden/shown on demand, with its contents updated.
     const parcellePopupRef = useRef<Popup>(
-      new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
+      new Popup({ closeButton: false, offset: 10, maxWidth: 'none', className: 'custom-popup' })
     )
     const currentParcelleIdRef = useRef<string | null>(null)
     const aacPopupRef = useRef<Popup>(
