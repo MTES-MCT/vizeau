@@ -1,3 +1,5 @@
+import type { Data } from '@generated/data'
+
 export type StepParcelle = {
   /** Clé unifiée : `${year}:${rpgId}`, ou `manual:${id}` pour une parcelle enregistrée sans identifiant RPG. */
   key: string
@@ -154,4 +156,69 @@ export function getAllParcelleKeys(state: ParcellesState): Set<string> {
     for (const parcelle of bucketParcelles(bucket)) keys.add(parcelle.key)
   }
   return keys
+}
+
+// Reconstruit l'état des parcelles du formulaire à partir des parcelles déjà rattachées à l'exploitation.
+export function parcellesStateFromExploitation(parcelles?: Data.Parcelle[] | null): ParcellesState {
+  const state = emptyParcellesState()
+  if (!parcelles || parcelles.length === 0) return state
+
+  const byYear: Record<number, YearParcelles> = {}
+  for (const parcelle of parcelles) {
+    const stepParcelle: StepParcelle = {
+      key: parcelle.rpgId
+        ? rpgParcelleKey(parcelle.year, parcelle.rpgId)
+        : manualParcelleKey(parcelle.id),
+      rpgId: parcelle.rpgId,
+      surface: parcelle.surface,
+      cultureCode: parcelle.cultureCode,
+      centroid: parcelle.centroid ?? undefined,
+      year: parcelle.year,
+      // TODO : reprendre `pacage` quand le ParcelleTransformer l'exposera.
+      checked: true,
+    }
+    const bucket = byYear[parcelle.year] ?? emptyYearParcelles()
+    bucket.manualParcelles.push(stepParcelle)
+    byYear[parcelle.year] = bucket
+  }
+
+  return { ...state, byYear }
+}
+
+/** Parcelle cliquée sur une carte, telle que lue dans les tuiles RPG. */
+export type MapParcelle = {
+  rpgId: string
+  surface: number | null
+  cultureCode: string | null
+  centroid: { x: number; y: number } | undefined
+  isBio?: boolean
+}
+
+/**
+ * Clic sur la carte : bascule une parcelle déjà connue. Une parcelle inconnue est ajoutée
+ * et cochée, donc visible dans « Sélectionnées ».
+ */
+export function toggleMapParcelle(
+  state: ParcellesState,
+  parcelle: MapParcelle,
+  year: number
+): ParcellesState {
+  const key = rpgParcelleKey(year, parcelle.rpgId)
+  if (getAllParcelleKeys(state).has(key)) return toggleParcelle(state, key)
+
+  const added: StepParcelle = {
+    key,
+    rpgId: parcelle.rpgId,
+    surface: parcelle.surface,
+    cultureCode: parcelle.cultureCode,
+    centroid: parcelle.centroid,
+    year,
+    isBio: parcelle.isBio,
+    addedAt: Date.now(),
+    checked: true,
+  }
+  return updateYearParcelles(state, year, (bucket) => ({
+    ...bucket,
+    manualParcelles: [...bucket.manualParcelles, added],
+  }))
 }
