@@ -9,8 +9,19 @@ import { renderPopupParcelle } from './popup-parcelle'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
+import { Button } from '@codegouvfr/react-dsfr/Button'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
+
+export type Bbox = [number, number, number, number]
+
+export type AacEmprise = {
+  id: string
+  label: string
+  bbox: Bbox
+}
+
+const BOUNDS_PADDING = 40
 
 export type SelectedParcelle = {
   rpgId: string
@@ -25,6 +36,14 @@ type ParcellesSelectionMapProps = {
   selectedParcelleIds: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
+  /** AAC sur lesquelles centrer la carte : un sélecteur s'affiche s'il y en a plusieurs. */
+  aacs?: AacEmprise[]
+  /** AAC affichée à l'ouverture de la carte, à défaut la France entière. */
+  selectedAacId?: string
+  onAacChange?: (aacId: string) => void
+  /** Affichage des sélecteurs du bandeau, contrôlé par le parent car la carte est recréée au changement de millésime. */
+  areOptionsVisible: boolean
+  onOptionsVisibleChange: (visible: boolean) => void
 }
 
 export type ParcellesSelectionMapHandle = {
@@ -41,10 +60,16 @@ const ParcellesSelectionMapContent = forwardRef<
     selectedParcelleIds,
     onParcelleToggle,
     handleMillesimeChange,
+    aacs = [],
+    selectedAacId,
+    onAacChange,
+    areOptionsVisible,
+    onOptionsVisibleChange,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
   const [isMapLoading, setIsMapLoading] = useState(true)
+  const initialBbox = aacs.find((aac) => aac.id === selectedAacId)?.bbox
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const previousSelectedRef = useRef<Set<string>>(new Set())
   const currentParcelleIdRef = useRef<string | null>(null)
@@ -78,8 +103,9 @@ const ParcellesSelectionMapContent = forwardRef<
   const { mapContainerRef, mapRef } = useMap(
     {
       style: vector as any,
-      center: [2.24, 46.54],
-      zoom: 5,
+      ...(initialBbox
+        ? { bounds: initialBbox, fitBoundsOptions: { padding: BOUNDS_PADDING } }
+        : { center: [2.24, 46.54], zoom: 5 }),
       maxZoom: 17.5,
       trackResize: true,
       attributionControl: { compact: true },
@@ -186,6 +212,14 @@ const ParcellesSelectionMapContent = forwardRef<
     },
   }))
 
+  const handleAacChange = (aacId: string) => {
+    const aac = aacs.find((item) => item.id === aacId)
+    if (aac) {
+      mapRef.current?.fitBounds(aac.bbox, { padding: BOUNDS_PADDING, duration: 800 })
+    }
+    onAacChange?.(aacId)
+  }
+
   // Attach / detach event listeners when handlers change
   useEffect(() => {
     const events = [
@@ -215,30 +249,67 @@ const ParcellesSelectionMapContent = forwardRef<
       <div ref={mapContainerRef} className="flex justify-between h-full w-full editing-glow" />
 
       <div
-        className="absolute left-0 right-0 top-0 fr-text--sm flex items-center fr-px-6v fr-py-1v shadow-md"
+        className="absolute left-0 right-0 top-0 fr-text--sm fr-p-2v shadow-md"
         style={{
           backgroundColor: fr.colors.decisions.background.contrast.info.default,
           color: fr.colors.decisions.text.default.info.default,
         }}
       >
-        <div className="flex gap-1 w-full justify-center">
-          <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-          Cliquez sur une parcelle pour la sélectionner ou la désélectionner
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex gap-1 fr-pl-2w justify-center">
+            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
+            Cliquez sur une parcelle pour la sélectionner ou la désélectionner
+          </div>
+          <Button
+            type="button"
+            priority="tertiary no outline"
+            size="small"
+            iconId={areOptionsVisible ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+            iconPosition="right"
+            nativeButtonProps={{
+              'aria-expanded': areOptionsVisible,
+              'aria-controls': 'parcelles-map-options',
+            }}
+            onClick={() => onOptionsVisibleChange(!areOptionsVisible)}
+          >
+            {areOptionsVisible ? 'Masquer les options' : 'Options'}
+          </Button>
         </div>
-        <Select
-          label=""
-          className="w-40"
-          nativeSelectProps={{
-            value: millesime,
-            onChange: (e) => handleMillesimeChange(e.target.value),
-          }}
-        >
-          {RPG_YEARS.map((m) => (
-            <option key={m} value={m}>
-              RPG {m}
-            </option>
-          ))}
-        </Select>
+
+        {areOptionsVisible && (
+          <div id="parcelles-map-options" className="flex flex-wrap gap-x-4 fr-pb-2v fr-pt-4v">
+            {aacs.length > 1 && (
+              <Select
+                label=""
+                className="fr-mb-0 flex-1 min-w-48"
+                nativeSelectProps={{
+                  value: selectedAacId,
+                  onChange: (e) => handleAacChange(e.target.value),
+                }}
+              >
+                {aacs.map((aac) => (
+                  <option key={aac.id} value={aac.id}>
+                    {aac.label}
+                  </option>
+                ))}
+              </Select>
+            )}
+            <Select
+              label=""
+              className="fr-mb-0 w-40"
+              nativeSelectProps={{
+                value: millesime,
+                onChange: (e) => handleMillesimeChange(e.target.value),
+              }}
+            >
+              {RPG_YEARS.map((m) => (
+                <option key={m} value={m}>
+                  RPG {m}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
       </div>
     </div>
   )

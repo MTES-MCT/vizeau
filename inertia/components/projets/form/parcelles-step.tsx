@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
 import ParcellesSelectionMap, {
   SelectedParcelle,
   ParcellesSelectionMapHandle,
+  AacEmprise,
+  Bbox,
 } from '~/components/map/parcelles-selection-map'
 import SectionCard from '~/ui/SectionCard'
 import type { ProjetFormData } from './projet-form'
@@ -19,8 +21,22 @@ type ParcellesStepProps = {
 
 export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const mapRef = useRef<ParcellesSelectionMapHandle>(null)
-  const { pmtilesUrl, exploitations } =
+  const { pmtilesUrl, exploitations, aacs } =
     usePage<InferPageProps<ProjectsController, 'create'>>().props
+  // Seules les AAC dont l'emprise est connue permettent de centrer la carte
+  const aacEmprises = useMemo<AacEmprise[]>(
+    () =>
+      (aacs as Data.Territoire.Variants['forEmprise'][]).flatMap((aac) =>
+        aac.bbox
+          ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
+          : []
+      ),
+    [aacs]
+  )
+  // Première AAC par défaut ; conservée au changement de millésime, qui recrée la carte
+  const [selectedAacId, setSelectedAacId] = useState(aacEmprises[0]?.id)
+  const [areMapOptionsVisible, setAreMapOptionsVisible] = useState(true)
+
   const { millesime, items: allSelectedParcelles } = data.parcelles
 
   const selectedParcelles = useMemo(
@@ -86,6 +102,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
             selectedParcelleIds={selectedParcelleIds}
             onParcelleToggle={handleParcelleToggle}
             handleMillesimeChange={handleMillesimeChange}
+            aacs={aacEmprises}
+            selectedAacId={selectedAacId}
+            onAacChange={setSelectedAacId}
+            areOptionsVisible={areMapOptionsVisible}
+            onOptionsVisibleChange={setAreMapOptionsVisible}
           />
         </div>
 
