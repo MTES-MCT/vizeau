@@ -2,6 +2,7 @@ import { ChangeEvent, RefObject, useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
 import type { AacSummaryJson } from '#types/models'
 import type { Data } from '@generated/data'
+import type { ParcellesState } from '~/functions/parcelles'
 import { VisualisationMapRef } from '~/components/map/visualisation-map'
 import ExploitationLeftSidebar from './exploitation-id/exploitation-left-sidebar'
 import ParcelleLeftSidebar from './parcelle/parcelle-left-sidebar'
@@ -21,15 +22,17 @@ export default function VisualisationLeftSideBar({
   isMapLoading,
   editMode,
   mapRef,
-  setData,
-  setDefaults,
-  setEditMode,
   showBioOnly,
   millesime,
   isDirty,
   processing,
-  reset,
   sendFormAndResetState,
+  startEditMode,
+  cancelEditMode,
+  parcelles,
+  setParcelles,
+  pacageSuggestion,
+  dismissPacageSuggestion,
   aacs,
   aacMeta,
   aacQueryString,
@@ -45,15 +48,17 @@ export default function VisualisationLeftSideBar({
   isMapLoading: boolean
   editMode: boolean
   mapRef: RefObject<VisualisationMapRef | null>
-  setData: any
-  setDefaults: any
-  setEditMode: any
   showBioOnly: boolean
   millesime: string
   isDirty: boolean
   processing: boolean
-  reset: any
-  sendFormAndResetState: any
+  sendFormAndResetState: (onAfterSuccess?: () => void) => void
+  startEditMode: () => void
+  cancelEditMode: () => void
+  parcelles: ParcellesState
+  setParcelles: (updater: (prev: ParcellesState) => ParcellesState) => void
+  pacageSuggestion: string | null
+  dismissPacageSuggestion: () => void
   aacs: AacSummaryJson[]
   aacMeta: { total: number; perPage: number; currentPage: number; lastPage: number }
   aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
@@ -155,15 +160,17 @@ export default function VisualisationLeftSideBar({
               setSelectedExploitationTab={setSelectedExploitationTab}
               editMode={editMode}
               mapRef={mapRef}
-              setData={setData}
-              setDefaults={setDefaults}
-              setEditMode={setEditMode}
               showBioOnly={showBioOnly}
               millesime={millesime}
               isDirty={isDirty}
               processing={processing}
-              reset={reset}
               sendFormAndResetState={sendFormAndResetState}
+              startEditMode={startEditMode}
+              cancelEditMode={cancelEditMode}
+              parcelles={parcelles}
+              setParcelles={setParcelles}
+              pacageSuggestion={pacageSuggestion}
+              dismissPacageSuggestion={dismissPacageSuggestion}
             />
           )}
 

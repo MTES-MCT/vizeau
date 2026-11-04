@@ -2,33 +2,24 @@ import Button from '@codegouvfr/react-dsfr/Button'
 import { createModal } from '@codegouvfr/react-dsfr/Modal'
 import { fr } from '@codegouvfr/react-dsfr'
 import Loader from '~/ui/Loader'
-import type { Data } from '@generated/data'
 
 export type ParcellesManagerProps = {
   editMode: boolean
-  selectedExploitation?: Data.Exploitation | undefined
-  setData: (...args: unknown[]) => void
-  setDefaults: (...args: unknown[]) => void
-  setEditMode: (...args: unknown[]) => void
   showBioOnly: boolean
-  millesime: string
   isDirty: boolean
   processing: boolean
-  reset: (...args: unknown[]) => void
+  startEditMode: () => void
+  cancelEditMode: () => void
   sendFormAndResetState: (onAfterSuccess?: () => void) => void
 }
 
 export default function ParcellesManager({
   editMode,
-  setData,
-  selectedExploitation,
-  setDefaults,
-  setEditMode,
   showBioOnly,
-  millesime,
   isDirty,
   processing,
-  reset,
+  startEditMode,
+  cancelEditMode,
   sendFormAndResetState,
 }: ParcellesManagerProps) {
   const cancelEditModeModal = createModal({
@@ -62,8 +53,7 @@ export default function ParcellesManager({
                   cancelEditModeModal.open()
                   return
                 } else {
-                  reset()
-                  setEditMode(false)
+                  cancelEditMode()
                 }
               }}
             >
@@ -85,17 +75,7 @@ export default function ParcellesManager({
           disabled={showBioOnly}
           size="small"
           iconId="fr-icon-collage-line"
-          onClick={() => {
-            setData(
-              'parcelles',
-              selectedExploitation?.parcelles?.filter(
-                (p: { year: number }) => p.year.toString() === millesime
-              ) || []
-            )
-            // We set the new data as default so the form is not dirty at the beginning of edit mode
-            setDefaults()
-            setEditMode(true)
-          }}
+          onClick={startEditMode}
           className="flex justify-center"
           style={{ whiteSpace: 'nowrap', width: '100%' }}
         >
@@ -110,10 +90,7 @@ export default function ParcellesManager({
           {
             children: 'Annuler',
             doClosesModal: true,
-            onClick: () => {
-              reset()
-              setEditMode(false)
-            },
+            onClick: cancelEditMode,
           },
           {
             children: 'Appliquer les modifications',
