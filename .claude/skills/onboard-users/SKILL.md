@@ -9,16 +9,16 @@ batch (type `UserSeeds` in `app/services/user_service.ts`, validated by
 `app/validators/user_seed.ts`) is read with `--file` by `node ace user:seed`
 (creates the new emails only) and `node ace user:territoires` (attaches the
 territoires, never detaches without `--sync`). This skill builds the batch, checks it, runs it
-locally, and hands over the batch file.
+locally, and hands over the batch file with the command that imports it on
+Scalingo.
 
 **Talk to the user in French.**
 
 ## Rules
 
-- **Local only.** Never propose, prepare or describe account creation on a
-  remote environment (Scalingo dev or prod), not even as commands for the user
-  to run. For remote environments the deliverable is the batch JSON file,
-  nothing more.
+- **Runs locally only.** Never run a command on a remote environment
+  (Scalingo dev or prod) yourself. For remote environments the deliverable is
+  the batch JSON file and the import command of step 8, which the user runs.
 - The generated files contain **plain-text passwords**. Write them only under
   `tmp/onboarding/` (gitignored), never print a password in the chat, never
   commit them, never send them anywhere.
@@ -168,7 +168,24 @@ Tell the user:
   plain-text passwords and should be deleted once sent;
 - `tmp/onboarding/<name>.json`: the batch, to give to `user:seed` and
   `user:territoires` with `--file`, same passwords as the local
-  accounts. Just give the path, no remote instructions;
+  accounts;
+- the command that imports the batch on Scalingo, as written in the
+  « Créer des comptes sur Scalingo » section of `doc/deploiement.md` (read it
+  at hand-over time, it is the reference). Fill it in: `--file` takes the
+  local path `tmp/onboarding/<name>.json`, the file lands in the container as
+  `/tmp/uploads/<name>.json`. Keep `vizeau-dev` and tell the user to swap the
+  app name for prod. For example:
+
+  ```bash
+  scalingo -a vizeau-dev --region osc-fr1 run --file tmp/onboarding/<name>.json \
+    "cd build && export NODE_ENV=production \
+     && node ace user:seed --file /tmp/uploads/<name>.json \
+     && node ace user:territoires --file /tmp/uploads/<name>.json"
+  ```
+
+  Mention `--dry-run` on both commands to preview, and add
+  `--reset-passwords` to `user:seed` only if the user accepted it locally;
+
 - the input file, if it sits in the project root: it holds personal data and
   should be moved or deleted.
 
