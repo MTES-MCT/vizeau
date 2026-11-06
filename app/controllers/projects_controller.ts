@@ -5,6 +5,7 @@ import Captage from '#models/captage'
 import { ProjectService } from '#services/project_service'
 import { ExploitationService } from '#services/exploitation_service'
 import { TerritoireService } from '#services/territoire_service'
+import { AacService } from '#services/aac_service'
 import env from '#start/env'
 import {
   createProjectValidator,
@@ -31,8 +32,22 @@ export default class ProjectsController {
     public exploitationService: ExploitationService,
     public projectStepTagService: ProjectStepTagService,
     public territoireService: TerritoireService,
-    public exploitationCsvService: ExploitationCsvService
+    public exploitationCsvService: ExploitationCsvService,
+    public aacService: AacService
   ) {}
+
+  /*
+   * AAC actives de l'utilisateur avec leur emprise, pour centrer la carte de sélection des parcelles.
+   */
+  private async getAacsEmprises(userId: string) {
+    const territoires = await this.territoireService.getAllTerritoiresForUser(userId)
+    const aacCodes = territoires
+      .map((territoire) => territoire.code)
+      .filter((code): code is string => code !== null)
+    const emprisesByCode = await this.aacService.getEmprisesByCode(aacCodes)
+
+    return TerritoireTransformer.transform(territoires, emprisesByCode).useVariant('forEmprise')
+  }
 
   async index({ auth, inertia, request }: HttpContext) {
     const user = auth.getUserOrFail()
@@ -150,6 +165,7 @@ export default class ProjectsController {
         paginatedTerritoires.getMeta()
       ),
       pmtilesUrl: env.get('PMTILES_URL', ''),
+      aacs: () => this.getAacsEmprises(user.id),
       filteredProjectStepTags: async () => {
         const tags = await this.projectStepTagService.getTagsForUser(
           user.id,
@@ -460,6 +476,7 @@ export default class ProjectsController {
         paginatedTerritoires.getMeta()
       ),
       pmtilesUrl: env.get('PMTILES_URL', ''),
+      aacs: () => this.getAacsEmprises(user.id),
     })
   }
 
