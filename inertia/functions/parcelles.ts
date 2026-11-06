@@ -222,3 +222,21 @@ export function toggleMapParcelle(
     manualParcelles: [...bucket.manualParcelles, added],
   }))
 }
+
+/**
+ * Retire d'un groupe PACAGE les parcelles déjà rattachées à une autre exploitation,
+ * qui seraient refusées à l'enregistrement. Renvoie aussi le nombre de parcelles écartées.
+ */
+export function excludeUnavailableParcelles(
+  group: PacageGroup,
+  unavailableParcelleIds: string[]
+): { group: PacageGroup; excludedCount: number } {
+  const unavailable = new Set(unavailableParcelleIds)
+  const parcelles = group.parcelles.filter(
+    (parcelle) => !parcelle.rpgId || !unavailable.has(parcelle.rpgId)
+  )
+  return {
+    group: { ...group, parcelles },
+    excludedCount: group.parcelles.length - parcelles.length,
+  }
+}
