@@ -18,6 +18,7 @@ import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 import MapErrorBoundary from './map-error-boundary'
 import PopupParcelle from './popup-parcelle'
 import { resolveCommune } from '~/hooks/use_commune_names'
+import { showUnavailableParcelleToast } from '~/functions/parcelles_toasts'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
@@ -33,6 +34,9 @@ const FOCUS_MAX_IDLE_ATTEMPTS = 5
 /** Every culture group is visible: the selection map does not filter parcelles by culture. */
 const ALL_CULTURE_CODES = Object.keys(GROUPES_CULTURAUX)
 
+// Référence stable : un tableau recréé à chaque rendu relancerait la réconciliation de la carte.
+const EMPTY_IDS: string[] = []
+
 export type SelectedParcelle = {
   rpgId: string
   surface: number | null
@@ -45,6 +49,8 @@ type ParcellesSelectionMapProps = {
   pmtilesUrl: string
   millesime: string
   selectedParcelleIds: string[]
+  /** Parcelles rattachées à une autre exploitation : grisées et non sélectionnables. */
+  unavailableParcelleIds?: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
   initialBbox?: [number, number, number, number]
@@ -72,6 +78,7 @@ const ParcellesSelectionMapContent = forwardRef<
     pmtilesUrl,
     millesime,
     selectedParcelleIds,
+    unavailableParcelleIds = EMPTY_IDS,
     onParcelleToggle,
     handleMillesimeChange,
     initialBbox,
@@ -82,6 +89,7 @@ const ParcellesSelectionMapContent = forwardRef<
 ) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
+  const unavailableParcelleIdsRef = useRef<string[]>(unavailableParcelleIds)
   const currentParcelleIdRef = useRef<string | null>(null)
   const parcellePopupRef = useRef<Popup>(
     new Popup({ closeButton: false, offset: 10, maxWidth: 'none', className: 'custom-popup' })
@@ -109,6 +117,10 @@ const ParcellesSelectionMapContent = forwardRef<
   useEffect(() => {
     selectedParcelleIdsRef.current = selectedParcelleIds
   }, [selectedParcelleIds])
+
+  useEffect(() => {
+    unavailableParcelleIdsRef.current = unavailableParcelleIds
+  }, [unavailableParcelleIds])
 
   const { mapContainerRef, mapRef, map } = useMap(
     {
@@ -160,9 +172,9 @@ const ParcellesSelectionMapContent = forwardRef<
       visibleCultures: ALL_CULTURE_CODES,
       highlightedParcelleIds: selectedParcelleIds,
       hoveredParcelleIds: [],
-      unavailableParcelleIds: [],
+      unavailableParcelleIds,
     }),
-    [pmtilesUrl, millesime, selectedParcelleIds]
+    [pmtilesUrl, millesime, selectedParcelleIds, unavailableParcelleIds]
   )
 
   useMapReconciler(map, desiredMapState)
@@ -180,6 +192,7 @@ const ParcellesSelectionMapContent = forwardRef<
         })
         const isBio = bioFeatures.length > 0
         const isOwnParcelle = selectedParcelleIdsRef.current.includes(id)
+        const isUnavailable = unavailableParcelleIdsRef.current.includes(id)
         // PACAGE et commune arrivent indépendamment : la popup est redessinée à chaque réponse.
         let pacage: string | null | undefined
         let commune: string | null | undefined
@@ -189,7 +202,7 @@ const ParcellesSelectionMapContent = forwardRef<
               cultureCode={props['code_cultu']}
               surfParc={String(props['surf_parc'] ?? '')}
               millesime={millesime}
-              isParcelleUnavailable={false}
+              isParcelleUnavailable={isUnavailable}
               isBio={isBio}
               isEditMode
               isOwnParcelle={isOwnParcelle}
@@ -246,6 +259,10 @@ const ParcellesSelectionMapContent = forwardRef<
       if (!feature?.properties) return
 
       const id = String(feature.properties['id_parcel'])
+      if (unavailableParcelleIdsRef.current.includes(id)) {
+        showUnavailableParcelleToast()
+        return
+      }
       const isSelected = selectedParcelleIdsRef.current.includes(id)
 
       // Immediately reflect highlight before state update propagates
