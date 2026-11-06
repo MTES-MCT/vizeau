@@ -195,7 +195,10 @@ export default function VisualisationPage({
   const sendFormAndResetState = (onAfterSuccess?: () => void) => {
     post(urlFor('visualisation.assignParcellesToExploitation'), {
       preserveState: true,
-      onSuccess: () => {
+      onSuccess: (page) => {
+        // Un refus du back revient en redirection, donc en succès pour Inertia :
+        // on reste en édition pour que la sélection ne soit pas perdue.
+        if (page.flash?.error) return
         setEditMode(false)
         onAfterSuccess?.()
       },
