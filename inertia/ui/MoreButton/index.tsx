@@ -13,8 +13,10 @@ export type MoreButtonProps = {
     isHidden?: boolean
     onClick: () => void
   }[]
+  disabled?: boolean
 }
-export default function MoreButton({ actions }: MoreButtonProps) {
+
+export default function MoreButton({ actions, disabled = false }: MoreButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -98,6 +100,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
           <Button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
+            disabled={disabled}
             title="Ouvrir le menu des options"
             iconId="fr-icon-more-fill"
             size="small"
@@ -106,6 +109,7 @@ export default function MoreButton({ actions }: MoreButtonProps) {
         </div>
 
         {menuOpen &&
+          !disabled &&
           menuPosition &&
           createPortal(
             <div
