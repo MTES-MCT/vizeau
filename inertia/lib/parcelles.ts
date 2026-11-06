@@ -1,6 +1,8 @@
 /**
  * Helpers pour l'étape d'association de parcelles.
- * La recherche PACAGE reste FACTICE en attendant le back.
+ * La recherche PACAGE reste FACTICE en attendant le back : seuls les numéros
+ * 012345678 (2 parcelles), 087654321 (1 parcelle) et 111222333 (3 parcelles,
+ * dont 2 déjà rattachées à une autre exploitation) renvoient des parcelles.
  */
 import { manualParcelleKey, rpgParcelleKey } from '~/functions/parcelles'
 import type { PacageGroup } from '~/functions/parcelles'
@@ -21,7 +23,7 @@ export type PacageSearchResult =
 type FakeParcelle = Omit<FetchedParcelle, 'year'>
 
 /**
- * FACTICE — Deux PACAGE fictifs pour tester les ajouts groupés de plusieurs exploitants.
+ * FACTICE — PACAGE fictifs pour tester les ajouts groupés de plusieurs exploitants.
  * Tout autre numéro valide ne renvoie aucune parcelle.
  */
 const FAKE_PACAGES: Record<string, FakeParcelle[]> = {
@@ -48,6 +50,31 @@ const FAKE_PACAGES: Record<string, FakeParcelle[]> = {
       cultureCode: 'TRN',
       isBio: true,
       centroid: { x: 2.591685887367204, y: 48.19919635411275 },
+    },
+  ],
+  // Parcelles déjà associées : dépend de la base locale. En RPG 2024, 5280058 et 4226569
+  // y sont rattachées à l'exploitation « REQUI (LE TRIVALOU) », 11380056 est libre.
+  '111222333': [
+    {
+      rpgId: '11380056',
+      surface: 7.45,
+      cultureCode: 'ORP',
+      isBio: false,
+      centroid: { x: 2.5634028432248037, y: 48.2136878222496 },
+    },
+    {
+      rpgId: '5280058',
+      surface: 5.82,
+      cultureCode: 'AVP',
+      isBio: false,
+      centroid: { x: 0.5940149125612691, y: 48.84780229425463 },
+    },
+    {
+      rpgId: '4226569',
+      surface: 12.09,
+      cultureCode: 'AVH',
+      isBio: false,
+      centroid: { x: 0.597149194611124, y: 48.84874108647637 },
     },
   ],
 }
@@ -77,7 +104,7 @@ export async function searchParcellesByPacage(
  * FACTICE — Numéro PACAGE sous lequel une parcelle RPG est déclarée, ou null si inconnu.
  * Le RPG public étant anonymisé, cette information devra venir du back.
  * Les parcelles des PACAGE fictifs renvoient le leur ; les autres sont réparties selon
- * leur identifiant entre les deux PACAGE et l'absence de PACAGE.
+ * leur identifiant entre les PACAGE fictifs et l'absence de PACAGE.
  */
 export async function findPacageByRpgId(rpgId: string, _millesime: number): Promise<string | null> {
   for (const [pacage, parcelles] of Object.entries(FAKE_PACAGES)) {
