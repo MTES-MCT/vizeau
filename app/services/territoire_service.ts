@@ -44,6 +44,19 @@ export class TerritoireService {
   }
 
   /**
+   * Inactive territoires of a user, listed apart from the active ones.
+   * Not paginated: a user only has a handful of them.
+   */
+  async getInactiveTerritoiresForUser(userId: string) {
+    return Territoire.query()
+      .whereHas('users', (usersQuery) => {
+        usersQuery.where('users.id', userId)
+      })
+      .where('isActive', false)
+      .withScopes((scopes) => scopes.orderByCode())
+  }
+
+  /**
    * Return true if at least one of the given territoires is inactive.
    * Exploitations cannot be assigned to (or updated on) inactive territoires.
    */

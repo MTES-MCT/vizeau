@@ -31,22 +31,25 @@ export default class TerritoiresController {
         const { meta } = await getTerritoires()
         return meta
       }, 'territoires'),
+      territoiresInactifs: inertia.defer(async () => {
+        const { territoiresInactifs } = await getTerritoires()
+        return territoiresInactifs
+      }, 'territoires'),
     })
   }
 
   private async getTerritoires(userId: string, page: number) {
-    const territoiresPaginator = await this.territoireService.getTerritoiresForUser(
-      userId,
-      page,
-      PER_PAGE,
-      { includeInactive: true }
-    )
+    // Active territoires are paginated, inactive ones are listed apart
+    const [territoiresPaginator, territoiresInactifsModels] = await Promise.all([
+      this.territoireService.getTerritoiresForUser(userId, page, PER_PAGE),
+      this.territoireService.getInactiveTerritoiresForUser(userId),
+    ])
 
     const territoireModels = territoiresPaginator.all()
 
     // Fetch AAC data for territoires that have a code (fields live in the
-    // Parquet dataset, not on the `territoires` table).
-    const aacCodes = territoireModels
+    // Parquet dataset, not on the `territoires` table), in a single query.
+    const aacCodes = [...territoireModels, ...territoiresInactifsModels]
       .map((territoire) => territoire.code)
       .filter((code): code is string => code !== null)
     const aacByCode = await this.aacService.getSummariesByCode(aacCodes)
@@ -54,7 +57,11 @@ export default class TerritoiresController {
     const territoires = TerritoireTransformer.transform(territoireModels, aacByCode).useVariant(
       'forAac'
     )
+    const territoiresInactifs = TerritoireTransformer.transform(
+      territoiresInactifsModels,
+      aacByCode
+    ).useVariant('forAac')
 
-    return { territoires, meta: territoiresPaginator.getMeta() }
+    return { territoires, territoiresInactifs, meta: territoiresPaginator.getMeta() }
   }
 }

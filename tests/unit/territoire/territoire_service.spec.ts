@@ -98,4 +98,22 @@ test.group('Territoire service', (group) => {
       [activeTerritoire.id, inactiveTerritoire.id]
     )
   })
+
+  test('it lists only the inactive territoires of a user', async ({ assert }) => {
+    const territoireService = new TerritoireService()
+    const activeTerritoire = await TerritoireFactory.create()
+    const inactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+    const otherInactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+    const user = await UserFactory.create()
+    const anotherUser = await UserFactory.create()
+    await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
+    await anotherUser.related('territoires').attach([otherInactiveTerritoire.id])
+
+    const inactiveTerritoires = await territoireService.getInactiveTerritoiresForUser(user.id)
+
+    assert.deepEqual(
+      inactiveTerritoires.map((t) => t.id),
+      [inactiveTerritoire.id]
+    )
+  })
 })
