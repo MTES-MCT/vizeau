@@ -29,6 +29,7 @@ import { getRpgIdsFromParcellesForYear } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
 import MapErrorBoundary from './map-error-boundary'
 import Loader from '~/ui/Loader'
+import { showUnavailableParcelleToast } from '~/functions/parcelles_toasts'
 
 type StylesMap = {
   [key: string]: any
@@ -418,9 +419,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         const feature = e.features?.[0]
         const id = feature?.properties?.['id_parcel']
 
-        if (feature?.properties && !unavailableParcelleIds.includes(id)) {
-          onParcelleClick(feature)
+        if (!feature?.properties) return
+        if (unavailableParcelleIds.includes(id)) {
+          showUnavailableParcelleToast()
+          return
         }
+        onParcelleClick(feature)
       },
       [onParcelleClick, unavailableParcelleIds, getClickableAacCodeAt]
     )
