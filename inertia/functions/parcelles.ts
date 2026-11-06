@@ -22,6 +22,8 @@ export type PacageGroup = {
   /** Millésime RPG pour lequel ce PACAGE a été recherché. */
   year: number
   parcelles: StepParcelle[]
+  /** Parcelles du PACAGE déjà rattachées à une autre exploitation : affichées, jamais sélectionnables. */
+  unavailableParcelles?: StepParcelle[]
 }
 
 /** Parcelles d'un même millésime (un seul RPG). */
@@ -224,19 +226,27 @@ export function toggleMapParcelle(
 }
 
 /**
- * Retire d'un groupe PACAGE les parcelles déjà rattachées à une autre exploitation,
- * qui seraient refusées à l'enregistrement. Renvoie aussi le nombre de parcelles écartées.
+ * Écarte des parcelles sélectionnables d'un groupe PACAGE celles déjà rattachées à une autre
+ * exploitation, qui seraient refusées à l'enregistrement. Elles restent dans le groupe pour
+ * expliquer à l'utilisateur pourquoi elles n'ont pas été ajoutées.
  */
 export function excludeUnavailableParcelles(
   group: PacageGroup,
   unavailableParcelleIds: string[]
-): { group: PacageGroup; excludedCount: number } {
+): PacageGroup {
   const unavailable = new Set(unavailableParcelleIds)
-  const parcelles = group.parcelles.filter(
-    (parcelle) => !parcelle.rpgId || !unavailable.has(parcelle.rpgId)
-  )
+  const isUnavailable = (parcelle: StepParcelle) =>
+    parcelle.rpgId !== null && unavailable.has(parcelle.rpgId)
   return {
-    group: { ...group, parcelles },
-    excludedCount: group.parcelles.length - parcelles.length,
+    ...group,
+    parcelles: group.parcelles.filter((parcelle) => !isUnavailable(parcelle)),
+    unavailableParcelles: group.parcelles
+      .filter(isUnavailable)
+      .map((parcelle) => ({ ...parcelle, checked: false })),
   }
+}
+
+/** Parcelles déjà rattachées ailleurs, de tous les PACAGE importés d'un millésime. */
+export function getUnavailableParcelles(bucket: YearParcelles): StepParcelle[] {
+  return bucket.pacageGroups.flatMap((group) => group.unavailableParcelles ?? [])
 }

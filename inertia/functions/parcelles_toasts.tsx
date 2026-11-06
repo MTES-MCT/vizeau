@@ -22,14 +22,3 @@ export function showUnavailableParcelleToast() {
       'Cette parcelle est déjà associée à une autre exploitation et ne peut pas être sélectionnée.',
   })
 }
-
-/** Import PACAGE : certaines parcelles, déjà rattachées ailleurs, n'ont pas été ajoutées. */
-export function showExcludedParcellesToast(excludedCount: number) {
-  showToast({
-    severity: 'warning',
-    message:
-      excludedCount === 1
-        ? "1 parcelle de ce PACAGE est déjà associée à une autre exploitation : elle n'a pas été ajoutée."
-        : `${excludedCount} parcelles de ce PACAGE sont déjà associées à une autre exploitation : elles n'ont pas été ajoutées.`,
-  })
-}
