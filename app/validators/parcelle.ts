@@ -47,3 +47,10 @@ export const updateParcelleNoteValidator = vine.compile(
     comment: vine.string().maxLength(5000).nullable(),
   })
 )
+
+// Millésime des parcelles déjà prises à griser sur la carte du formulaire d'exploitation.
+export const unavailableParcellesValidator = vine.compile(
+  vine.object({
+    millesime: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()).optional(),
+  })
+)
