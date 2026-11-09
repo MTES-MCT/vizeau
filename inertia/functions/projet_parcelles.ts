@@ -38,8 +38,12 @@ export function getSelectedParcelles(parcelles: ProjetParcellesFormData) {
   return parcelles.items.filter((p) => isInMillesime(p, parcelles.millesime))
 }
 
+/** Parcelles de l'exploitation pour le millésime. Sans identifiant RPG, une parcelle est ignorée. */
 export function getExploitationParcelles(exploitation: ProjetExploitation, millesime: string) {
-  return (exploitation.parcelles ?? []).filter((p) => isInMillesime(p, millesime))
+  return (exploitation.parcelles ?? []).filter(
+    (p): p is ExploitationParcelle & { rpgId: string } =>
+      p.rpgId !== null && isInMillesime(p, millesime)
+  )
 }
 
 /** Exploitations du projet, dans l'ordre de la liste complète. */
