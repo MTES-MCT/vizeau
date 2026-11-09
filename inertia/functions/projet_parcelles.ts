@@ -175,3 +175,36 @@ export function addExploitation(
     },
   }
 }
+
+/** Parcelles sélectionnées du millésime affiché qui appartiennent à l'exploitation. */
+export function getSelectedExploitationParcelles(
+  parcelles: ProjetParcellesFormData,
+  exploitation: ProjetExploitation
+) {
+  const rpgIds = new Set(
+    getExploitationParcelles(exploitation, parcelles.millesime).map((p) => p.rpgId)
+  )
+  return getSelectedParcelles(parcelles).filter((p) => rpgIds.has(p.rpgId))
+}
+
+/**
+ * Retire l'exploitation du millésime affiché, ainsi que toutes ses parcelles sélectionnées,
+ * y compris celles cliquées sur la carte. Les autres millésimes ne sont pas touchés.
+ */
+export function removeExploitation(
+  parcelles: ProjetParcellesFormData,
+  exploitation: ProjetExploitation
+): ProjetParcellesFormData {
+  const { millesime } = parcelles
+  const rpgIds = new Set(getExploitationParcelles(exploitation, millesime).map((p) => p.rpgId))
+  return {
+    ...parcelles,
+    items: parcelles.items.filter((p) => !(isInMillesime(p, millesime) && rpgIds.has(p.rpgId))),
+    addedExploitationIds: {
+      ...parcelles.addedExploitationIds,
+      [millesime]: (parcelles.addedExploitationIds[millesime] ?? []).filter(
+        (id) => id !== exploitation.id
+      ),
+    },
+  }
+}

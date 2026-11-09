@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SectionCard from '~/ui/SectionCard'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { getCultureByCode } from '~/functions/cultures_group'
 import {
   addExploitation,
+  getAddedExploitations,
   getExploitationsWithParcelles,
   getParcelleExploitation,
+  getSelectedExploitationParcelles,
   getSelectedParcelles,
+  removeExploitation,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
 import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
 import ExploitationParcellesPicker from './exploitation-parcelles-picker'
+import AddedExploitationsTags from './added-exploitations-tags'
 
 const ANNOUNCEMENT_DURATION_MS = 4000
 
@@ -41,6 +45,8 @@ export default function ParcellesPanel({
   const selectedParcelles = getSelectedParcelles(parcelles)
   // Les exploitations sans parcelle pour le millésime affiché ne sont pas proposées
   const exploitationsWithParcelles = getExploitationsWithParcelles(projectExploitations, millesime)
+  const addedExploitations = getAddedExploitations(parcelles, projectExploitations)
+  const pickerContainerRef = useRef<HTMLDivElement>(null)
 
   // Message de la zone aria-live, effacé après quelques secondes
   const [announcement, setAnnouncement] = useState('')
@@ -60,16 +66,38 @@ export default function ParcellesPanel({
     )
   }
 
+  const handleExploitationRemove = (exploitation: ProjetExploitation) => {
+    const removedCount = getSelectedExploitationParcelles(parcelles, exploitation).length
+    onParcellesChange(removeExploitation(parcelles, exploitation))
+    setAnnouncement(
+      removedCount > 0
+        ? `${exploitation.name} retirée, ${pluralize(removedCount, 'parcelle retirée', 'parcelles retirées')}`
+        : `${exploitation.name} retirée`
+    )
+  }
+
+  // Le champ d'ajout reprend le focus après un retrait, la pastille ayant disparu
+  const focusPicker = () =>
+    pickerContainerRef.current?.querySelector<HTMLInputElement>('[role="combobox"]')?.focus()
+
   return (
     <SectionCard title="Parcelles sélectionnées" icon="fr-icon-map-pin-2-line" size="small">
       <div className="flex flex-col gap-2 fr-mb-2w">
         {exploitationsWithParcelles.length > 0 && (
-          <ExploitationParcellesPicker
-            exploitations={exploitationsWithParcelles}
-            addedExploitationIds={parcelles.addedExploitationIds[millesime] ?? []}
-            onPick={handleExploitationPick}
-          />
+          <div ref={pickerContainerRef}>
+            <ExploitationParcellesPicker
+              exploitations={exploitationsWithParcelles}
+              addedExploitationIds={parcelles.addedExploitationIds[millesime] ?? []}
+              onPick={handleExploitationPick}
+            />
+          </div>
         )}
+        <AddedExploitationsTags
+          exploitations={addedExploitations}
+          getSelectedCount={(e) => getSelectedExploitationParcelles(parcelles, e).length}
+          onRemove={handleExploitationRemove}
+          onRemoved={focusPicker}
+        />
         <p className="fr-text--sm fr-mb-0" aria-live="polite">
           {announcement && (
             <>

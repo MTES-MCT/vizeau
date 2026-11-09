@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { expect, fn, userEvent, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import ParcellesPanel from './parcelles-panel'
 import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
@@ -192,5 +192,72 @@ export const ToutesLesExploitationsAjoutees: Story = {
     await expect(
       canvas.getByText('Toutes les exploitations du projet ont été ajoutées')
     ).toBeInTheDocument()
+  },
+}
+
+// EARL Requin a été ajoutée (R1), puis R2 a été cliquée sur la carte ; R3 est sélectionnée en 2023
+const withRequinAdded: ProjetParcellesFormData = {
+  millesime: '2024',
+  items: [
+    selected('R1', 2024),
+    selected('R2', 2024),
+    selected('HORS1', 2024),
+    selected('R3', 2023),
+  ],
+  addedExploitationIds: { 2024: ['requin'] },
+}
+
+const REQUIN_TAG_NAME = 'Retirer l’exploitation EARL Requin et ses parcelles'
+
+export const RetraitExploitationAvecParcellesCliquees: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const page = within(canvasElement.ownerDocument.body)
+
+    await userEvent.click(canvas.getByRole('button', { name: REQUIN_TAG_NAME }))
+
+    const dialog = await page.findByRole('dialog', { name: 'Retirer EARL Requin du projet ?' })
+    await expect(
+      within(dialog).getByText(/Les 2 parcelles sélectionnées de cette exploitation/)
+    ).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Retirer l’exploitation' }))
+
+    await expect(canvas.queryByText('Parcelle RPG R1')).not.toBeInTheDocument()
+    await expect(canvas.queryByText('Parcelle RPG R2')).not.toBeInTheDocument()
+    await expect(canvas.getByText('Parcelle RPG HORS1')).toBeInTheDocument()
+    await expect(canvas.queryByRole('button', { name: REQUIN_TAG_NAME })).toBeNull()
+    await expect(canvas.getByText('EARL Requin retirée, 2 parcelles retirées')).toBeInTheDocument()
+
+    // Les autres millésimes ne sont pas touchés
+    await expect(args.onParcellesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        items: [selected('HORS1', 2024), selected('R3', 2023)],
+        addedExploitationIds: { 2024: [] },
+      })
+    )
+
+    // Le focus revient sur le champ d'ajout, qui propose de nouveau l'exploitation
+    const combobox = canvas.getByRole('combobox', { name: COMBOBOX_NAME })
+    await waitFor(() => expect(combobox).toHaveFocus())
+    await userEvent.click(combobox)
+    await expect(canvas.getByRole('option', { name: 'EARL Requin' })).toBeInTheDocument()
+  },
+}
+
+export const AnnulationDuRetrait: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const page = within(canvasElement.ownerDocument.body)
+    const tag = canvas.getByRole('button', { name: REQUIN_TAG_NAME })
+
+    await userEvent.click(tag)
+    const dialog = await page.findByRole('dialog', { name: 'Retirer EARL Requin du projet ?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Annuler' }))
+
+    await waitFor(() => expect(tag).toHaveFocus())
+    await expect(canvas.getByText('Parcelle RPG R1')).toBeInTheDocument()
+    await expect(args.onParcellesChange).not.toHaveBeenCalled()
   },
 }
