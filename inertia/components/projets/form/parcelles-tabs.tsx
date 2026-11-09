@@ -8,6 +8,7 @@ import {
   getExploitationParcelles,
   getParcelleExploitation,
   getRemovedParcelles,
+  getSelectedExploitationParcelles,
   getSelectedParcelles,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
@@ -36,11 +37,10 @@ type ParcelleCardProps = {
   parcelle: ParcelleCardData
   index: number
   origin?: string
-  isRemoved?: boolean
   onClick: (parcelle: ParcelleCardData) => void
 }
 
-function ParcelleCard({ parcelle, index, origin, isRemoved, onClick }: ParcelleCardProps) {
+function ParcelleCard({ parcelle, index, origin, onClick }: ParcelleCardProps) {
   const content = (
     <ListItem
       priority={index % 2 === 0 ? 'primary' : 'secondary'}
@@ -55,9 +55,6 @@ function ParcelleCard({ parcelle, index, origin, isRemoved, onClick }: ParcelleC
         },
         ...(origin ? [{ content: origin, iconId: 'fr-icon-building-line' as const }] : []),
       ]}
-      additionalInfos={
-        isRemoved ? { alert: { text: 'Retirée du projet', severity: 'warning' } } : undefined
-      }
     />
   )
 
@@ -79,8 +76,9 @@ function ParcelleCard({ parcelle, index, origin, isRemoved, onClick }: ParcelleC
 }
 
 /*
- * Onglet « Sélectionnées » puis un onglet par exploitation ajoutée. Le retrait d'une parcelle
- * se fait uniquement sur la carte : les cartes de parcelles ne portent pas de bouton de retrait.
+ * Onglet « Sélectionnées » puis un onglet par exploitation ajoutée, qui ne liste que ses parcelles
+ * encore sélectionnées. Le retrait d'une parcelle se fait uniquement sur la carte : les cartes de
+ * parcelles ne portent pas de bouton de retrait.
  */
 export default function ParcellesTabs({
   parcelles,
@@ -106,7 +104,7 @@ export default function ParcellesTabs({
     { tabId: SELECTION_TAB_ID, label: `Sélectionnées (${selectedParcelles.length})` },
     ...addedExploitations.map((e) => ({
       tabId: e.id,
-      label: `${e.name} (${getExploitationParcelles(e, millesime).length})`,
+      label: `${e.name} (${getSelectedExploitationParcelles(parcelles, e).length})`,
     })),
   ]
 
@@ -153,12 +151,13 @@ export default function ParcellesTabs({
   const renderExploitation = (exploitation: ProjetExploitation) => {
     const exploitationParcelles = getExploitationParcelles(exploitation, millesime)
     const removedCount = getRemovedParcelles(parcelles, exploitation).length
+    // Les parcelles désélectionnées sortent de la liste ; le bouton permet de les rajouter
+    const keptParcelles = exploitationParcelles.filter((p) => selectedRpgIds.has(p.rpgId))
     return (
       <>
         <div className="flex flex-wrap items-center justify-between gap-2 fr-mb-2w">
           <p className="fr-text--sm fr-mb-0">
-            {exploitationParcelles.length - removedCount} sur {exploitationParcelles.length} dans le
-            projet
+            {keptParcelles.length} sur {exploitationParcelles.length} dans le projet
           </p>
           {removedCount > 0 && (
             <Button
@@ -178,17 +177,23 @@ export default function ParcellesTabs({
             </Button>
           )}
         </div>
-        <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
-          {exploitationParcelles.map((parcelle, index) => (
-            <ParcelleCard
-              key={parcelle.rpgId}
-              parcelle={{ ...parcelle, centroid: parcelle.centroid ?? undefined }}
-              index={index}
-              isRemoved={!selectedRpgIds.has(parcelle.rpgId)}
-              onClick={onParcelleClick}
-            />
-          ))}
-        </ul>
+        {keptParcelles.length === 0 ? (
+          <EmptyPlaceholder
+            label="Toutes les parcelles de cette exploitation ont été retirées du projet"
+            illustrativeIcon="fr-icon-collage-line"
+          />
+        ) : (
+          <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
+            {keptParcelles.map((parcelle, index) => (
+              <ParcelleCard
+                key={parcelle.rpgId}
+                parcelle={{ ...parcelle, centroid: parcelle.centroid ?? undefined }}
+                index={index}
+                onClick={onParcelleClick}
+              />
+            ))}
+          </ul>
+        )}
       </>
     )
   }

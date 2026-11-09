@@ -310,20 +310,22 @@ export const RetraitParLaCartePuisRajout: Story = {
     await expect(canvas.getByRole('tab', { name: 'Sélectionnées (3)' })).toBeInTheDocument()
     await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (2)' }))
     await expect(canvas.getByText('2 sur 2 dans le projet')).toBeInTheDocument()
-    await expect(canvas.queryByText('Retirée du projet')).toBeNull()
+    await expect(canvas.getByText('Parcelle RPG R2')).toBeInTheDocument()
 
-    // Un clic sur la carte retire R2 : compteurs et statut suivent
+    // Un clic sur la carte retire R2 : elle sort de la liste de l'exploitation et les compteurs suivent
     await userEvent.click(canvas.getByRole('button', { name: 'Clic carte R2' }))
     await expect(canvas.getByRole('tab', { name: 'Sélectionnées (2)' })).toBeInTheDocument()
     await expect(canvas.getByText('1 sur 2 dans le projet')).toBeInTheDocument()
-    await expect(canvas.getAllByText('Retirée du projet')).toHaveLength(1)
+    await expect(canvas.getByRole('tab', { name: 'EARL Requin (1)' })).toBeInTheDocument()
+    await expect(canvas.queryByText('Parcelle RPG R2')).toBeNull()
 
     await userEvent.click(canvas.getByRole('button', { name: 'Rajouter la parcelle retirée' }))
     // Le bouton a disparu : le focus reste dans le panneau de l'onglet
     await expect(canvas.getByRole('tabpanel')).toContainElement(
       canvasElement.ownerDocument.activeElement as HTMLElement
     )
-    await expect(canvas.queryByText('Retirée du projet')).toBeNull()
+    await expect(canvas.getByText('Parcelle RPG R2')).toBeInTheDocument()
+    await expect(canvas.getByRole('tab', { name: 'EARL Requin (2)' })).toBeInTheDocument()
     await expect(canvas.getByRole('tab', { name: 'Sélectionnées (3)' })).toBeInTheDocument()
     await expect(canvas.getByText('1 parcelle rajoutée depuis EARL Requin')).toBeInTheDocument()
   },
@@ -457,5 +459,27 @@ export const DefilementDeLaListe: Story = {
       colonne.getBoundingClientRect().bottom + 1
     )
     await expect(canvas.getByRole('combobox', { name: COMBOBOX_NAME })).toBeVisible()
+  },
+}
+
+export const ToutesLesParcellesDeLExploitationRetirees: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (2)' }))
+    await userEvent.click(canvas.getByRole('button', { name: 'Clic carte R1' }))
+    await userEvent.click(canvas.getByRole('button', { name: 'Clic carte R2' }))
+
+    // L'onglet reste, vide, avec de quoi tout rajouter
+    await expect(canvas.getByRole('tab', { name: 'EARL Requin (0)' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    await expect(
+      canvas.getByText('Toutes les parcelles de cette exploitation ont été retirées du projet')
+    ).toBeInTheDocument()
+    await userEvent.click(canvas.getByRole('button', { name: 'Rajouter les 2 parcelles retirées' }))
+    await expect(canvas.getByRole('tab', { name: 'EARL Requin (2)' })).toBeInTheDocument()
   },
 }
