@@ -9,6 +9,7 @@ import Layout from '~/ui/layouts/Layout'
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
 import Toast from '~/ui/Toaster'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
+import { deriveAddedExploitationIds, getProjectExploitations } from '~/functions/projet_parcelles'
 
 export default function ProjetEditionPage({ projet }: any) {
   const { url, props } = usePage()
@@ -33,6 +34,16 @@ export default function ProjetEditionPage({ projet }: any) {
     stepsList.includes(stepFromUrl) ? stepFromUrl : STEP_KEYS.GENERAL_INFOS
   ) as keyof typeof STEPS
 
+  const initialParcelles: ProjetFormData['parcelles']['items'] = projet.parcelles.map((p) => ({
+    id: p.id,
+    year: p.year,
+    rpgId: p.rpgId,
+    surface: p.surface !== null && p.surface !== undefined ? parseFloat(String(p.surface)) : null,
+    cultureCode: p.cultureCode,
+    centroid: p.centroid ?? undefined,
+  }))
+  const initialExploitationIds: string[] = projet.exploitations.map((e) => e.id)
+
   const initialFormData: ProjetFormData = {
     generalInfos: {
       projectName: projet.name,
@@ -46,18 +57,14 @@ export default function ProjetEditionPage({ projet }: any) {
     steps: [],
     parcelles: {
       millesime: projet.parcelles.length > 0 ? String(projet.parcelles[0].year) : '2024',
-      items: projet.parcelles.map((p) => ({
-        id: p.id,
-        year: p.year,
-        rpgId: p.rpgId,
-        surface:
-          p.surface !== null && p.surface !== undefined ? parseFloat(String(p.surface)) : null,
-        cultureCode: p.cultureCode,
-        centroid: p.centroid ?? undefined,
-      })),
-      addedExploitationIds: {},
+      items: initialParcelles,
+      // Le back ne stocke pas les exploitations ajoutées : on les déduit des parcelles enregistrées
+      addedExploitationIds: deriveAddedExploitationIds(
+        initialParcelles,
+        getProjectExploitations(props.exploitations ?? [], initialExploitationIds)
+      ),
     },
-    exploitations: projet.exploitations.map((e) => e.id),
+    exploitations: initialExploitationIds,
     captages: projet.captages.map((c) => c.code),
     territoireIds: projet.territoires.map((t) => t.id),
   }

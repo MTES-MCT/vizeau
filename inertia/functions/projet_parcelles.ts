@@ -74,6 +74,30 @@ export function getAddedExploitations<T extends ProjetExploitation>(
   })
 }
 
+/**
+ * Reconstruit, pour chaque millésime présent dans la sélection, la liste des exploitations
+ * du projet dont au moins une parcelle est sélectionnée.
+ */
+export function deriveAddedExploitationIds(
+  items: SelectedParcelleFormData[],
+  projectExploitations: ProjetExploitation[]
+): Record<string, string[]> {
+  const millesimes = [...new Set(items.map((p) => String(p.year)))]
+  return Object.fromEntries(
+    millesimes.map((millesime) => {
+      const selectedRpgIds = new Set(
+        items.filter((p) => isInMillesime(p, millesime)).map((p) => p.rpgId)
+      )
+      const ids = projectExploitations
+        .filter((e) =>
+          getExploitationParcelles(e, millesime).some((p) => selectedRpgIds.has(p.rpgId))
+        )
+        .map((e) => e.id)
+      return [millesime, ids]
+    })
+  )
+}
+
 /** Exploitation du projet à laquelle appartient la parcelle pour le millésime, s'il y en a une. */
 export function getParcelleExploitation<T extends ProjetExploitation>(
   rpgId: string,

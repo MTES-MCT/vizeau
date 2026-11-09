@@ -4,7 +4,11 @@ import { expect, fn, userEvent, within } from 'storybook/test'
 
 import ParcellesPanel from './parcelles-panel'
 import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
-import type { ExploitationParcelle, ProjetExploitation } from '~/functions/projet_parcelles'
+import {
+  deriveAddedExploitationIds,
+  type ExploitationParcelle,
+  type ProjetExploitation,
+} from '~/functions/projet_parcelles'
 
 function parcelle(rpgId: string, year: number): ExploitationParcelle {
   return { id: `id-${rpgId}`, rpgId, year, surface: 1.5, cultureCode: 'BTH', centroid: null }
@@ -150,6 +154,27 @@ export const MillesimeSansParcellePourUneExploitation: Story = {
 
     // En 2023, seule EARL Requin a des parcelles
     await expect(canvas.getAllByRole('option').map((o) => o.textContent)).toEqual(['EARL Requin'])
+  },
+}
+
+const existingItems = [selected('R1', 2024), selected('G1', 2024), selected('R3', 2023)]
+
+export const ProjetExistant: Story = {
+  args: {
+    parcelles: {
+      millesime: '2024',
+      items: existingItems,
+      addedExploitationIds: deriveAddedExploitationIds(existingItems, projectExploitations),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole('combobox', { name: COMBOBOX_NAME }))
+
+    // Les exploitations dont des parcelles sont déjà enregistrées sont considérées comme ajoutées
+    await expect(canvas.getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'SCEA du Moufias',
+    ])
   },
 }
 
