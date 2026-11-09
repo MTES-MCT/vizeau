@@ -105,6 +105,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         <ParcellesPanel
           parcelles={data.parcelles}
           projectExploitations={projectExploitations}
+          onParcellesChange={(parcelles) => setData((prev) => ({ ...prev, parcelles }))}
           onParcelleClick={(parcelle) =>
             parcelle.centroid && mapRef.current?.flyTo(parcelle.centroid)
           }

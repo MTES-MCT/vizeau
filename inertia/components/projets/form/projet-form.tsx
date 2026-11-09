@@ -53,6 +53,8 @@ export type ProjetParcellesFormData = {
   millesime: string
   /** Parcelles sélectionnées, tous millésimes confondus. */
   items: SelectedParcelleFormData[]
+  /** Exploitations du projet ajoutées, par millésime, dans l'ordre d'ajout. Non envoyé au back. */
+  addedExploitationIds: Record<string, string[]>
 }
 
 export type ProjetFormData = {
@@ -88,6 +90,7 @@ export const defaultFormData: ProjetFormData = {
   parcelles: {
     millesime: '2024',
     items: [],
+    addedExploitationIds: {},
   },
   exploitations: [],
   captages: [],

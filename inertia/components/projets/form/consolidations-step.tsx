@@ -23,7 +23,7 @@ export default function ConsolidationsStep({
   const clearStepData = (stepKey: number) => {
     setData((prev) => {
       if (stepKey === STEP_KEYS.PARCELLES) {
-        return { ...prev, parcelles: { ...prev.parcelles, items: [] } }
+        return { ...prev, parcelles: { ...prev.parcelles, items: [], addedExploitationIds: {} } }
       }
       if (stepKey === STEP_KEYS.EXPLOITATIONS) {
         return { ...prev, exploitations: [] }

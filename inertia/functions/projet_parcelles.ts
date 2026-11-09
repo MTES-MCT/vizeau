@@ -9,6 +9,8 @@ import type {
  *
  * La sélection de tous les millésimes est conservée dans une seule liste (`items`), chaque
  * parcelle portant son année : changer de millésime ne change que la sélection affichée.
+ * En parallèle, `addedExploitationIds` garde, pour chaque millésime, la liste ordonnée des
+ * exploitations du projet dont on a ajouté les parcelles.
  */
 
 export type ExploitationParcelle = Pick<
@@ -49,6 +51,29 @@ export function getProjectExploitations<T extends ProjetExploitation>(
   return exploitations.filter((exploitation) => ids.has(exploitation.id))
 }
 
+/** Exploitations du projet qui ont au moins une parcelle pour le millésime. */
+export function getExploitationsWithParcelles<T extends ProjetExploitation>(
+  projectExploitations: T[],
+  millesime: string
+): T[] {
+  return projectExploitations.filter((e) => getExploitationParcelles(e, millesime).length > 0)
+}
+
+/**
+ * Exploitations ajoutées pour le millésime affiché, dans l'ordre d'ajout. Celles qui ne sont
+ * plus dans le projet, ou qui n'ont pas de parcelle pour ce millésime, sont écartées.
+ */
+export function getAddedExploitations<T extends ProjetExploitation>(
+  parcelles: ProjetParcellesFormData,
+  projectExploitations: T[]
+): T[] {
+  const eligible = getExploitationsWithParcelles(projectExploitations, parcelles.millesime)
+  return (parcelles.addedExploitationIds[parcelles.millesime] ?? []).flatMap((id) => {
+    const exploitation = eligible.find((e) => e.id === id)
+    return exploitation ? [exploitation] : []
+  })
+}
+
 /** Exploitation du projet à laquelle appartient la parcelle pour le millésime, s'il y en a une. */
 export function getParcelleExploitation<T extends ProjetExploitation>(
   rpgId: string,
@@ -87,5 +112,42 @@ export function toggleParcelle(
   return {
     ...parcelles,
     items: [...parcelles.items, { id: known?.id, year: Number(millesime), ...parcelle }],
+  }
+}
+
+/**
+ * Ajoute l'exploitation pour le millésime affiché et sélectionne celles de ses parcelles qui ne
+ * l'étaient pas encore. Renvoie aussi le nombre de parcelles ajoutées, pour l'annoncer.
+ */
+export function addExploitation(
+  parcelles: ProjetParcellesFormData,
+  exploitation: ProjetExploitation
+): { parcelles: ProjetParcellesFormData; addedCount: number } {
+  const { millesime } = parcelles
+  const selectedRpgIds = new Set(getSelectedParcelles(parcelles).map((p) => p.rpgId))
+  const missing = getExploitationParcelles(exploitation, millesime).filter(
+    (p) => !selectedRpgIds.has(p.rpgId)
+  )
+  const current = parcelles.addedExploitationIds[millesime] ?? []
+  return {
+    addedCount: missing.length,
+    parcelles: {
+      ...parcelles,
+      items: [
+        ...parcelles.items,
+        ...missing.map((p) => ({
+          id: p.id,
+          year: p.year,
+          rpgId: p.rpgId,
+          surface: p.surface,
+          cultureCode: p.cultureCode,
+          centroid: p.centroid ?? undefined,
+        })),
+      ],
+      addedExploitationIds: {
+        ...parcelles.addedExploitationIds,
+        [millesime]: current.includes(exploitation.id) ? current : [...current, exploitation.id],
+      },
+    },
   }
 }

@@ -55,6 +55,7 @@ export default function ProjetEditionPage({ projet }: any) {
         cultureCode: p.cultureCode,
         centroid: p.centroid ?? undefined,
       })),
+      addedExploitationIds: {},
     },
     exploitations: projet.exploitations.map((e) => e.id),
     captages: projet.captages.map((c) => c.code),
