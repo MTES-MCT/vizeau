@@ -299,7 +299,7 @@ export const AnnulationDuRetrait: Story = {
   },
 }
 
-export const RetraitParLaCarte: Story = {
+export const RetraitParLaCartePuisRajout: Story = {
   args: { parcelles: withRequinAdded },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -314,6 +314,15 @@ export const RetraitParLaCarte: Story = {
     await expect(canvas.getByRole('tab', { name: 'Sélectionnées (2)' })).toBeInTheDocument()
     await expect(canvas.getByText('1 sur 2 dans le projet')).toBeInTheDocument()
     await expect(canvas.getAllByText('Retirée du projet')).toHaveLength(1)
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Rajouter la parcelle retirée' }))
+    // Le bouton a disparu : le focus reste dans le panneau de l'onglet
+    await expect(canvas.getByRole('tabpanel')).toContainElement(
+      canvasElement.ownerDocument.activeElement as HTMLElement
+    )
+    await expect(canvas.queryByText('Retirée du projet')).toBeNull()
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (3)' })).toBeInTheDocument()
+    await expect(canvas.getByText('1 parcelle rajoutée depuis EARL Requin')).toBeInTheDocument()
   },
 }
 

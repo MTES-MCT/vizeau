@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
+import { Button } from '@codegouvfr/react-dsfr/Button'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { getCultureByCode } from '~/functions/cultures_group'
@@ -27,6 +28,7 @@ type ParcellesTabsProps = {
   addedExploitations: ProjetExploitation[]
   /** Le champ d'ajout d'exploitation est-il affiché, pour orienter l'état vide. */
   hasPicker: boolean
+  onReaddRemoved: (exploitation: ProjetExploitation) => void
   onParcelleClick: (parcelle: ParcelleCardData) => void
 }
 
@@ -72,11 +74,13 @@ export default function ParcellesTabs({
   projectExploitations,
   addedExploitations,
   hasPicker,
+  onReaddRemoved,
   onParcelleClick,
 }: ParcellesTabsProps) {
   const { millesime } = parcelles
   const selectedParcelles = getSelectedParcelles(parcelles)
   const selectedRpgIds = new Set(selectedParcelles.map((p) => p.rpgId))
+  const panelRef = useRef<HTMLDivElement>(null)
 
   const [activeTabId, setActiveTabId] = useState(SELECTION_TAB_ID)
   // Changer de millésime ramène sur la sélection
@@ -143,6 +147,23 @@ export default function ParcellesTabs({
             {exploitationParcelles.length - removedCount} sur {exploitationParcelles.length} dans le
             projet
           </p>
+          {removedCount > 0 && (
+            <Button
+              type="button"
+              priority="secondary"
+              size="small"
+              iconId="fr-icon-add-line"
+              onClick={() => {
+                onReaddRemoved(exploitation)
+                // Le bouton disparaît : le focus est confié au panneau de l'onglet
+                panelRef.current?.focus()
+              }}
+            >
+              {removedCount > 1
+                ? `Rajouter les ${removedCount} parcelles retirées`
+                : 'Rajouter la parcelle retirée'}
+            </Button>
+          )}
         </div>
         <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
           {exploitationParcelles.map((parcelle, index) => (
@@ -166,7 +187,9 @@ export default function ParcellesTabs({
       selectedTabId={currentTabId}
       onTabChange={setActiveTabId}
     >
-      {activeExploitation ? renderExploitation(activeExploitation) : renderSelection()}
+      <div ref={panelRef} tabIndex={-1} className="outline-none">
+        {activeExploitation ? renderExploitation(activeExploitation) : renderSelection()}
+      </div>
     </Tabs>
   )
 }

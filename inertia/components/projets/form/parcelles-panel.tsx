@@ -5,7 +5,9 @@ import {
   addExploitation,
   getAddedExploitations,
   getExploitationsWithParcelles,
+  getRemovedParcelles,
   getSelectedExploitationParcelles,
+  readdExploitationParcelles,
   removeExploitation,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
@@ -68,6 +70,14 @@ export default function ParcellesPanel({
     )
   }
 
+  const handleReaddRemoved = (exploitation: ProjetExploitation) => {
+    const readdedCount = getRemovedParcelles(parcelles, exploitation).length
+    onParcellesChange(readdExploitationParcelles(parcelles, exploitation))
+    setAnnouncement(
+      `${pluralize(readdedCount, 'parcelle rajoutée', 'parcelles rajoutées')} depuis ${exploitation.name}`
+    )
+  }
+
   // Le champ d'ajout reprend le focus après un retrait, la pastille ayant disparu
   const focusPicker = () =>
     pickerContainerRef.current?.querySelector<HTMLInputElement>('[role="combobox"]')?.focus()
@@ -104,6 +114,7 @@ export default function ParcellesPanel({
         projectExploitations={projectExploitations}
         addedExploitations={addedExploitations}
         hasPicker={exploitationsWithParcelles.length > 0}
+        onReaddRemoved={handleReaddRemoved}
         onParcelleClick={onParcelleClick}
       />
     </SectionCard>

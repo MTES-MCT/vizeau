@@ -219,3 +219,11 @@ export function getRemovedParcelles(
     (p) => !selectedRpgIds.has(p.rpgId)
   )
 }
+
+/** Sélectionne de nouveau les parcelles retirées de l'exploitation, pour le millésime affiché. */
+export function readdExploitationParcelles(
+  parcelles: ProjetParcellesFormData,
+  exploitation: ProjetExploitation
+): ProjetParcellesFormData {
+  return addExploitation(parcelles, exploitation).parcelles
+}
