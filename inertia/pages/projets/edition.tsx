@@ -22,8 +22,8 @@ export default function ProjetEditionPage({ projet }: any) {
       STEP_KEYS.TERRITOIRES,
       STEP_KEYS.CONSOLIDATIONS,
     ]
-    if (projet.parcelles.length > 0) stepIndexes.push(STEP_KEYS.PARCELLES)
     if (projet.exploitations.length > 0) stepIndexes.push(STEP_KEYS.EXPLOITATIONS)
+    if (projet.parcelles.length > 0) stepIndexes.push(STEP_KEYS.PARCELLES)
     if (projet.captages.length > 0) stepIndexes.push(STEP_KEYS.CAPTAGES)
 
     return stepIndexes

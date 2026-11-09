@@ -4,8 +4,8 @@ import { STEPS, STEP_KEYS } from '~/components/projets/form/steps_config'
 import type { ProjetFormData } from '~/components/projets/form/projet-form'
 
 const OPTIONAL_STEPS = [
-  STEPS[STEP_KEYS.PARCELLES],
   STEPS[STEP_KEYS.EXPLOITATIONS],
+  STEPS[STEP_KEYS.PARCELLES],
   STEPS[STEP_KEYS.CAPTAGES],
 ]
 
