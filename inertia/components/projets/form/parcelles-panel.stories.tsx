@@ -483,3 +483,26 @@ export const ToutesLesParcellesDeLExploitationRetirees: Story = {
     await expect(canvas.getByRole('tab', { name: 'EARL Requin (2)' })).toBeInTheDocument()
   },
 }
+
+export const MillesimeSansAucuneExploitation: Story = {
+  args: { parcelles: { millesime: '2022', items: [], addedExploitationIds: {} } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Le champ reste visible mais désactivé, avec l'explication
+    await expect(canvas.queryByRole('combobox', { name: COMBOBOX_NAME })).toBeNull()
+    await expect(canvas.getByRole('textbox', { name: COMBOBOX_NAME })).toBeDisabled()
+    await expect(
+      canvas.getByText('Aucune exploitation du projet n’a de parcelle en RPG 2022.')
+    ).toBeInTheDocument()
+  },
+}
+
+export const ProjetSansExploitation: Story = {
+  args: { projectExploitations: [] },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.queryByRole('textbox', { name: COMBOBOX_NAME })).toBeNull()
+    await expect(canvas.queryByRole('combobox', { name: COMBOBOX_NAME })).toBeNull()
+  },
+}

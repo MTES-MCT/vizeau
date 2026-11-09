@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Input } from '@codegouvfr/react-dsfr/Input'
 import SectionCard from '~/ui/SectionCard'
 import { pluralize } from '~/functions/string'
 import {
@@ -12,7 +13,9 @@ import {
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
 import type { ProjetParcellesFormData } from './projet-form'
-import ExploitationParcellesPicker from './exploitation-parcelles-picker'
+import ExploitationParcellesPicker, {
+  EXPLOITATION_PICKER_LABEL,
+} from './exploitation-parcelles-picker'
 import AddedExploitationsTags from './added-exploitations-tags'
 import ParcellesTabs, { type ParcelleCardData } from './parcelles-tabs'
 
@@ -86,7 +89,7 @@ export default function ParcellesPanel({
     <SectionCard title="Parcelles du projet" icon="fr-icon-map-pin-2-line" size="small" fillHeight>
       <div className="flex flex-col h-full">
         <div className="flex flex-col gap-2 fr-mb-2w shrink-0">
-          {exploitationsWithParcelles.length > 0 && (
+          {exploitationsWithParcelles.length > 0 ? (
             <div ref={pickerContainerRef}>
               <ExploitationParcellesPicker
                 exploitations={exploitationsWithParcelles}
@@ -94,6 +97,18 @@ export default function ParcellesPanel({
                 onPick={handleExploitationPick}
               />
             </div>
+          ) : (
+            // Le projet a des exploitations, mais aucune n'a de parcelle sur ce millésime :
+            // le champ reste visible, désactivé, pour expliquer leur absence
+            projectExploitations.length > 0 && (
+              <Input
+                className="fr-mb-0"
+                label={EXPLOITATION_PICKER_LABEL}
+                hintText={`Aucune exploitation du projet n’a de parcelle en RPG ${millesime}.`}
+                disabled
+                nativeInputProps={{ placeholder: 'Nom de l’exploitation' }}
+              />
+            )
           )}
           <AddedExploitationsTags
             exploitations={addedExploitations}
