@@ -411,3 +411,17 @@ export const VidageCompletDUnMillesime: Story = {
     )
   },
 }
+
+export const ZoomDepuisLaListe: Story = {
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const card = canvas.getByRole('button', { name: /Parcelle RPG R1.*voir sur la carte/ })
+
+    // Chaque carte de parcelle est un bouton, activable au clavier
+    card.focus()
+    await userEvent.keyboard('{Enter}')
+    await expect(args.onParcelleClick).toHaveBeenCalledWith(
+      expect.objectContaining({ rpgId: 'R1' })
+    )
+  },
+}

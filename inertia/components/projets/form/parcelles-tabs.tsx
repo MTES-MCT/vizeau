@@ -41,26 +41,39 @@ type ParcelleCardProps = {
 }
 
 function ParcelleCard({ parcelle, index, origin, isRemoved, onClick }: ParcelleCardProps) {
+  const content = (
+    <ListItem
+      priority={index % 2 === 0 ? 'primary' : 'secondary'}
+      hasBorder
+      variant="compact"
+      title={`Parcelle RPG ${parcelle.rpgId}`}
+      tags={[getCultureByCode(parcelle.cultureCode)]}
+      metas={[
+        {
+          content: `${parcelle.surface ?? 'Non renseigné'} ha`,
+          iconId: 'fr-icon-ruler-line',
+        },
+        ...(origin ? [{ content: origin, iconId: 'fr-icon-building-line' as const }] : []),
+      ]}
+      additionalInfos={
+        isRemoved ? { alert: { text: 'Retirée du projet', severity: 'warning' } } : undefined
+      }
+    />
+  )
+
+  // Sans centroïde, impossible de situer la parcelle sur la carte : la carte n'est pas cliquable
+  if (!parcelle.centroid) return <li>{content}</li>
+
   return (
-    <li className="cursor-pointer">
-      <ListItem
-        priority={index % 2 === 0 ? 'primary' : 'secondary'}
-        hasBorder
-        variant="compact"
-        title={`Parcelle RPG ${parcelle.rpgId}`}
-        tags={[getCultureByCode(parcelle.cultureCode)]}
-        metas={[
-          {
-            content: `${parcelle.surface ?? 'Non renseigné'} ha`,
-            iconId: 'fr-icon-ruler-line',
-          },
-          ...(origin ? [{ content: origin, iconId: 'fr-icon-building-line' as const }] : []),
-        ]}
-        additionalInfos={
-          isRemoved ? { alert: { text: 'Retirée du projet', severity: 'warning' } } : undefined
-        }
-        onClick={parcelle.centroid ? () => onClick(parcelle) : undefined}
-      />
+    <li>
+      <button
+        type="button"
+        className="w-full text-left cursor-pointer hover:brightness-95"
+        onClick={() => onClick(parcelle)}
+      >
+        {content}
+        <span className="fr-sr-only">, voir sur la carte</span>
+      </button>
     </li>
   )
 }
