@@ -127,7 +127,7 @@ export default function ParcellesTabs({
       <>
         <p className="fr-text--sm">
           {pluralize(selectedParcelles.length, 'parcelle', 'parcelles')}, {totalSurface.toFixed(2)}{' '}
-          ha. Cliquez sur une parcelle pour la voir sur la carte ; pour la retirer, cliquez dessus
+          ha. Cliquez sur une parcelle pour la voir sur la carte. Pour la retirer, cliquez dessus
           sur la carte.
         </p>
         <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
