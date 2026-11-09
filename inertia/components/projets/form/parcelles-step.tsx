@@ -7,17 +7,13 @@ import ParcellesSelectionMap, {
   AacEmprise,
   Bbox,
 } from '~/components/map/parcelles-selection-map'
-import SectionCard from '~/ui/SectionCard'
 import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
-import { getCultureByCode } from '~/functions/cultures_group'
-import ListItem from '~/ui/ListItem'
-import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import {
-  getParcelleExploitation,
   getProjectExploitations,
   getSelectedParcelles,
   toggleParcelle,
 } from '~/functions/projet_parcelles'
+import ParcellesPanel from './parcelles-panel'
 
 type ParcellesStepProps = {
   data: ProjetFormData
@@ -106,51 +102,13 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
 
       {/* Parcelles sidebar */}
       <div className="flex-1">
-        <SectionCard title="Parcelles sélectionnées" icon="fr-icon-map-pin-2-line" size="small">
-          {selectedParcelles.length === 0 ? (
-            <EmptyPlaceholder
-              label="Aucune parcelle associée pour le moment"
-              illustrativeIcon="fr-icon-collage-line"
-            />
-          ) : (
-            <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
-              {selectedParcelles.map((parcelle, index) => {
-                const exploitationName = getParcelleExploitation(
-                  parcelle.rpgId,
-                  millesime,
-                  projectExploitations
-                )?.name
-                return (
-                  <li key={parcelle.rpgId} className="cursor-pointer">
-                    <ListItem
-                      key={parcelle.rpgId}
-                      priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                      hasBorder
-                      variant="compact"
-                      title={`Parcelle RPG ${parcelle.rpgId}`}
-                      tags={[getCultureByCode(parcelle.cultureCode)]}
-                      metas={[
-                        {
-                          content: `${parcelle?.surface ?? 'Non renseigné'} ha`,
-                          iconId: 'fr-icon-ruler-line',
-                        },
-                        {
-                          content: exploitationName ?? 'Hors exploitations du projet',
-                          iconId: 'fr-icon-building-line',
-                        },
-                      ]}
-                      onClick={
-                        parcelle.centroid
-                          ? () => mapRef.current?.flyTo(parcelle.centroid!)
-                          : undefined
-                      }
-                    />
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </SectionCard>
+        <ParcellesPanel
+          parcelles={data.parcelles}
+          projectExploitations={projectExploitations}
+          onParcelleClick={(parcelle) =>
+            parcelle.centroid && mapRef.current?.flyTo(parcelle.centroid)
+          }
+        />
       </div>
     </div>
   )
