@@ -71,37 +71,27 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   }
 
   return (
-    <div className="flex gap-4 min-h-[560px] flex-wrap">
-      {/* Map panel */}
-      <div className="flex flex-col gap-2 flex-2 min-w-[400px] min-h-[560px]">
-        <div className="h-full">
-          <ParcellesSelectionMap
-            ref={mapRef}
-            key={millesime}
-            pmtilesUrl={pmtilesUrl}
-            millesime={millesime}
-            selectedParcelleIds={selectedParcelleIds}
-            onParcelleToggle={handleParcelleToggle}
-            handleMillesimeChange={handleMillesimeChange}
-            aacs={aacEmprises}
-            selectedAacId={selectedAacId}
-            onAacChange={setSelectedAacId}
-            areOptionsVisible={areMapOptionsVisible}
-            onOptionsVisibleChange={setAreMapOptionsVisible}
-          />
-        </div>
-
-        {selectedParcelles.length > 0 && (
-          <p className="fr-text--sm fr-mb-0">
-            <b>{selectedParcelles.length}</b> parcelle{selectedParcelles.length > 1 ? 's' : ''}{' '}
-            sélectionnée{selectedParcelles.length > 1 ? 's' : ''} —{' '}
-            {selectedParcelles.reduce((sum, p) => sum + (p.surface ?? 0), 0).toFixed(2)} ha au total
-          </p>
-        )}
+    <div className="flex flex-wrap gap-5 min-h-[560px]">
+      {/* Carte à gauche */}
+      <div className="flex flex-col flex-1 min-w-[410px] h-[560px]">
+        <ParcellesSelectionMap
+          ref={mapRef}
+          key={millesime}
+          pmtilesUrl={pmtilesUrl}
+          millesime={millesime}
+          selectedParcelleIds={selectedParcelleIds}
+          onParcelleToggle={handleParcelleToggle}
+          handleMillesimeChange={handleMillesimeChange}
+          aacs={aacEmprises}
+          selectedAacId={selectedAacId}
+          onAacChange={setSelectedAacId}
+          areOptionsVisible={areMapOptionsVisible}
+          onOptionsVisibleChange={setAreMapOptionsVisible}
+        />
       </div>
 
-      {/* Parcelles sidebar */}
-      <div className="flex-1">
+      {/* Panneau à droite, de la hauteur de la carte : seule la liste des parcelles défile */}
+      <div className="flex-1 flex flex-col gap-5 min-w-[410px] h-[560px]">
         <ParcellesPanel
           parcelles={data.parcelles}
           projectExploitations={projectExploitations}

@@ -66,7 +66,8 @@ const meta = {
       setParcelles(next)
     }
     return (
-      <div className="flex flex-col gap-4">
+      // La hauteur se transmet jusqu'au panneau, comme dans la colonne de droite de l'étape
+      <div className="flex flex-col gap-4 h-full">
         <div className="flex flex-wrap gap-2" aria-label="Carte simulée" role="group">
           {MAP_RPG_IDS.map((rpgId) => (
             <button
@@ -97,7 +98,9 @@ const meta = {
             </button>
           ))}
         </div>
-        <ParcellesPanel {...args} parcelles={parcelles} onParcellesChange={update} />
+        <div className="flex-1 min-h-0">
+          <ParcellesPanel {...args} parcelles={parcelles} onParcellesChange={update} />
+        </div>
       </div>
     )
   },
@@ -423,5 +426,36 @@ export const ZoomDepuisLaListe: Story = {
     await expect(args.onParcelleClick).toHaveBeenCalledWith(
       expect.objectContaining({ rpgId: 'R1' })
     )
+  },
+}
+
+export const DefilementDeLaListe: Story = {
+  args: {
+    parcelles: {
+      millesime: '2024',
+      items: Array.from({ length: 30 }, (_, index) => selected(`LONGUE${index}`, 2024)),
+      addedExploitationIds: {},
+    },
+  },
+  // Même hauteur que la colonne de droite de l'étape Parcelles
+  decorators: [
+    (Story) => (
+      <div className="flex flex-col h-[560px]" data-testid="colonne">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const colonne = canvas.getByTestId('colonne')
+    const panneau = canvas.getByRole('tabpanel')
+    const section = colonne.querySelector('section')!
+
+    // Le panneau reste dans la colonne et seule la liste défile
+    await waitFor(() => expect(panneau.scrollHeight).toBeGreaterThan(panneau.clientHeight))
+    await expect(section.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      colonne.getBoundingClientRect().bottom + 1
+    )
+    await expect(canvas.getByRole('combobox', { name: COMBOBOX_NAME })).toBeVisible()
   },
 }

@@ -83,40 +83,42 @@ export default function ParcellesPanel({
     pickerContainerRef.current?.querySelector<HTMLInputElement>('[role="combobox"]')?.focus()
 
   return (
-    <SectionCard title="Parcelles du projet" icon="fr-icon-map-pin-2-line" size="small">
-      <div className="flex flex-col gap-2 fr-mb-2w">
-        {exploitationsWithParcelles.length > 0 && (
-          <div ref={pickerContainerRef}>
-            <ExploitationParcellesPicker
-              exploitations={exploitationsWithParcelles}
-              addedExploitationIds={parcelles.addedExploitationIds[millesime] ?? []}
-              onPick={handleExploitationPick}
-            />
-          </div>
-        )}
-        <AddedExploitationsTags
-          exploitations={addedExploitations}
-          getSelectedCount={(e) => getSelectedExploitationParcelles(parcelles, e).length}
-          onRemove={handleExploitationRemove}
-          onRemoved={focusPicker}
-        />
-        <p className="fr-text--sm fr-mb-0" aria-live="polite">
-          {announcement && (
-            <>
-              <span className="fr-icon-check-line fr-icon--sm fr-mr-1v" aria-hidden="true" />
-              {announcement}
-            </>
+    <SectionCard title="Parcelles du projet" icon="fr-icon-map-pin-2-line" size="small" fillHeight>
+      <div className="flex flex-col h-full">
+        <div className="flex flex-col gap-2 fr-mb-2w shrink-0">
+          {exploitationsWithParcelles.length > 0 && (
+            <div ref={pickerContainerRef}>
+              <ExploitationParcellesPicker
+                exploitations={exploitationsWithParcelles}
+                addedExploitationIds={parcelles.addedExploitationIds[millesime] ?? []}
+                onPick={handleExploitationPick}
+              />
+            </div>
           )}
-        </p>
+          <AddedExploitationsTags
+            exploitations={addedExploitations}
+            getSelectedCount={(e) => getSelectedExploitationParcelles(parcelles, e).length}
+            onRemove={handleExploitationRemove}
+            onRemoved={focusPicker}
+          />
+          <p className="fr-text--sm fr-mb-0" aria-live="polite">
+            {announcement && (
+              <>
+                <span className="fr-icon-check-line fr-icon--sm fr-mr-1v" aria-hidden="true" />
+                {announcement}
+              </>
+            )}
+          </p>
+        </div>
+        <ParcellesTabs
+          parcelles={parcelles}
+          projectExploitations={projectExploitations}
+          addedExploitations={addedExploitations}
+          hasPicker={exploitationsWithParcelles.length > 0}
+          onReaddRemoved={handleReaddRemoved}
+          onParcelleClick={onParcelleClick}
+        />
       </div>
-      <ParcellesTabs
-        parcelles={parcelles}
-        projectExploitations={projectExploitations}
-        addedExploitations={addedExploitations}
-        hasPicker={exploitationsWithParcelles.length > 0}
-        onReaddRemoved={handleReaddRemoved}
-        onParcelleClick={onParcelleClick}
-      />
     </SectionCard>
   )
 }

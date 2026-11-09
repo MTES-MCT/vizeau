@@ -194,11 +194,15 @@ export default function ParcellesTabs({
   }
 
   return (
+    // Les onglets DSFR fixent leur hauteur en JS (--tabs-height) : on les étire dans l'espace
+    // restant et seul le panneau (sous la barre d'onglets de 3rem) défile.
     <Tabs
       label="Parcelles du projet"
       tabs={tabs}
       selectedTabId={currentTabId}
       onTabChange={setActiveTabId}
+      className="flex-1 min-h-0"
+      classes={{ panel: 'h-[calc(100%-3rem)]! overflow-y-auto' }}
     >
       <div ref={panelRef} tabIndex={-1} className="outline-none">
         {activeExploitation ? renderExploitation(activeExploitation) : renderSelection()}
