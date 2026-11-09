@@ -12,6 +12,12 @@ import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
 import { getCultureByCode } from '~/functions/cultures_group'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import {
+  getParcelleExploitation,
+  getProjectExploitations,
+  getSelectedParcelles,
+  toggleParcelle,
+} from '~/functions/projet_parcelles'
 
 type ParcellesStepProps = {
   data: ProjetFormData
@@ -35,12 +41,14 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const [selectedAacId, setSelectedAacId] = useState(aacEmprises[0]?.id)
   const [areMapOptionsVisible, setAreMapOptionsVisible] = useState(true)
 
-  const { millesime, items: allSelectedParcelles } = data.parcelles
+  const { millesime } = data.parcelles
 
-  const selectedParcelles = useMemo(
-    () => allSelectedParcelles.filter((p) => String(p.year) === millesime),
-    [allSelectedParcelles, millesime]
+  const projectExploitations = useMemo(
+    () => getProjectExploitations(exploitations, data.exploitations),
+    [exploitations, data.exploitations]
   )
+
+  const selectedParcelles = useMemo(() => getSelectedParcelles(data.parcelles), [data.parcelles])
 
   const selectedParcelleIds = useMemo(
     () => selectedParcelles.map((p) => p.rpgId),
@@ -49,33 +57,12 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
 
   const handleParcelleToggle = useCallback(
     (parcelle: SelectedParcelle) => {
-      const linkedExploitation = exploitations.find((exp) =>
-        exp.parcelles?.some((p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId)
-      )
-      const linkedParcelle = linkedExploitation?.parcelles?.find(
-        (p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId
-      )
-      setData((prev) => {
-        const exists = prev.parcelles.items.some(
-          (p) => p.rpgId === parcelle.rpgId && String(p.year) === millesime
-        )
-        const items = exists
-          ? prev.parcelles.items.filter(
-              (p) => !(p.rpgId === parcelle.rpgId && String(p.year) === millesime)
-            )
-          : [
-              ...prev.parcelles.items,
-              {
-                id: linkedParcelle?.id,
-                year: Number(millesime),
-                ...parcelle,
-                exploitationName: linkedExploitation?.name ?? null,
-              },
-            ]
-        return { ...prev, parcelles: { ...prev.parcelles, items } }
-      })
+      setData((prev) => ({
+        ...prev,
+        parcelles: toggleParcelle(prev.parcelles, parcelle, projectExploitations),
+      }))
     },
-    [setData, exploitations, millesime]
+    [setData, projectExploitations]
   )
 
   const handleMillesimeChange = (newMillesime: string) => {
@@ -128,6 +115,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
           ) : (
             <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
               {selectedParcelles.map((parcelle, index) => {
+                const exploitationName = getParcelleExploitation(
+                  parcelle.rpgId,
+                  millesime,
+                  projectExploitations
+                )?.name
                 return (
                   <li key={parcelle.rpgId} className="cursor-pointer">
                     <ListItem
@@ -142,14 +134,10 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
                           content: `${parcelle?.surface ?? 'Non renseigné'} ha`,
                           iconId: 'fr-icon-ruler-line',
                         },
-                        ...(parcelle.exploitationName
-                          ? [
-                              {
-                                content: parcelle.exploitationName,
-                                iconId: 'fr-icon-building-line' as const,
-                              },
-                            ]
-                          : []),
+                        {
+                          content: exploitationName ?? 'Hors exploitations du projet',
+                          iconId: 'fr-icon-building-line',
+                        },
                       ]}
                       onClick={
                         parcelle.centroid

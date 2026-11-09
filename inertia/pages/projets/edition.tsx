@@ -54,7 +54,6 @@ export default function ProjetEditionPage({ projet }: any) {
           p.surface !== null && p.surface !== undefined ? parseFloat(String(p.surface)) : null,
         cultureCode: p.cultureCode,
         centroid: p.centroid ?? undefined,
-        exploitationName: null,
       })),
     },
     exploitations: projet.exploitations.map((e) => e.id),
