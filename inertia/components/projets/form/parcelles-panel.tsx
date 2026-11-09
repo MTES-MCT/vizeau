@@ -1,34 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 import SectionCard from '~/ui/SectionCard'
-import ListItem from '~/ui/ListItem'
-import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import { getCultureByCode } from '~/functions/cultures_group'
+import { pluralize } from '~/functions/string'
 import {
   addExploitation,
   getAddedExploitations,
   getExploitationsWithParcelles,
-  getParcelleExploitation,
   getSelectedExploitationParcelles,
-  getSelectedParcelles,
   removeExploitation,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
-import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
+import type { ProjetParcellesFormData } from './projet-form'
 import ExploitationParcellesPicker from './exploitation-parcelles-picker'
 import AddedExploitationsTags from './added-exploitations-tags'
+import ParcellesTabs, { type ParcelleCardData } from './parcelles-tabs'
 
 const ANNOUNCEMENT_DURATION_MS = 4000
-
-function pluralize(count: number, singular: string, plural: string) {
-  return `${count} ${count > 1 ? plural : singular}`
-}
 
 type ParcellesPanelProps = {
   parcelles: ProjetParcellesFormData
   projectExploitations: ProjetExploitation[]
   onParcellesChange: (parcelles: ProjetParcellesFormData) => void
   /** Appelé au clic sur une parcelle de la liste qui a un centroïde, pour la montrer sur la carte. */
-  onParcelleClick: (parcelle: SelectedParcelleFormData) => void
+  onParcelleClick: (parcelle: ParcelleCardData) => void
 }
 
 /*
@@ -42,7 +35,6 @@ export default function ParcellesPanel({
   onParcelleClick,
 }: ParcellesPanelProps) {
   const { millesime } = parcelles
-  const selectedParcelles = getSelectedParcelles(parcelles)
   // Les exploitations sans parcelle pour le millésime affiché ne sont pas proposées
   const exploitationsWithParcelles = getExploitationsWithParcelles(projectExploitations, millesime)
   const addedExploitations = getAddedExploitations(parcelles, projectExploitations)
@@ -81,7 +73,7 @@ export default function ParcellesPanel({
     pickerContainerRef.current?.querySelector<HTMLInputElement>('[role="combobox"]')?.focus()
 
   return (
-    <SectionCard title="Parcelles sélectionnées" icon="fr-icon-map-pin-2-line" size="small">
+    <SectionCard title="Parcelles du projet" icon="fr-icon-map-pin-2-line" size="small">
       <div className="flex flex-col gap-2 fr-mb-2w">
         {exploitationsWithParcelles.length > 0 && (
           <div ref={pickerContainerRef}>
@@ -107,45 +99,13 @@ export default function ParcellesPanel({
           )}
         </p>
       </div>
-      {selectedParcelles.length === 0 ? (
-        <EmptyPlaceholder
-          label="Aucune parcelle associée pour le moment"
-          illustrativeIcon="fr-icon-collage-line"
-        />
-      ) : (
-        <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
-          {selectedParcelles.map((parcelle, index) => {
-            const exploitationName = getParcelleExploitation(
-              parcelle.rpgId,
-              millesime,
-              projectExploitations
-            )?.name
-            return (
-              <li key={parcelle.rpgId} className="cursor-pointer">
-                <ListItem
-                  key={parcelle.rpgId}
-                  priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                  hasBorder
-                  variant="compact"
-                  title={`Parcelle RPG ${parcelle.rpgId}`}
-                  tags={[getCultureByCode(parcelle.cultureCode)]}
-                  metas={[
-                    {
-                      content: `${parcelle?.surface ?? 'Non renseigné'} ha`,
-                      iconId: 'fr-icon-ruler-line',
-                    },
-                    {
-                      content: exploitationName ?? 'Hors exploitations du projet',
-                      iconId: 'fr-icon-building-line',
-                    },
-                  ]}
-                  onClick={parcelle.centroid ? () => onParcelleClick(parcelle) : undefined}
-                />
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      <ParcellesTabs
+        parcelles={parcelles}
+        projectExploitations={projectExploitations}
+        addedExploitations={addedExploitations}
+        hasPicker={exploitationsWithParcelles.length > 0}
+        onParcelleClick={onParcelleClick}
+      />
     </SectionCard>
   )
 }

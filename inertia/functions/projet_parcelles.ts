@@ -208,3 +208,14 @@ export function removeExploitation(
     },
   }
 }
+
+/** Parcelles de l'exploitation, pour le millésime affiché, qui ne sont pas sélectionnées. */
+export function getRemovedParcelles(
+  parcelles: ProjetParcellesFormData,
+  exploitation: ProjetExploitation
+) {
+  const selectedRpgIds = new Set(getSelectedParcelles(parcelles).map((p) => p.rpgId))
+  return getExploitationParcelles(exploitation, parcelles.millesime).filter(
+    (p) => !selectedRpgIds.has(p.rpgId)
+  )
+}

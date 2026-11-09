@@ -6,6 +6,7 @@ import ParcellesPanel from './parcelles-panel'
 import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
 import {
   deriveAddedExploitationIds,
+  toggleParcelle,
   type ExploitationParcelle,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
@@ -28,6 +29,8 @@ const projectExploitations: ProjetExploitation[] = [
   // Aucune parcelle en 2023 : ne doit pas être proposée sur ce millésime
   { id: 'moufias', name: 'SCEA du Moufias', parcelles: [parcelle('M1', 2024)] },
 ]
+
+const MAP_RPG_IDS = ['R1', 'R2', 'HORS1']
 
 const COMBOBOX_NAME = /Ajouter les parcelles d’une exploitation du projet/
 
@@ -52,18 +55,50 @@ const meta = {
       addedExploitationIds: {},
     },
   },
-  // Le panneau est contrôlé : la story garde la sélection dans un état local
+  /*
+   * Le panneau est contrôlé : la story garde la sélection dans un état local. Des boutons
+   * remplacent la carte pour simuler un clic sur une parcelle et un changement de millésime.
+   */
   render: function Render(args) {
     const [parcelles, setParcelles] = useState<ProjetParcellesFormData>(args.parcelles)
+    const update = (next: ProjetParcellesFormData) => {
+      args.onParcellesChange(next)
+      setParcelles(next)
+    }
     return (
-      <ParcellesPanel
-        {...args}
-        parcelles={parcelles}
-        onParcellesChange={(next) => {
-          args.onParcellesChange(next)
-          setParcelles(next)
-        }}
-      />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap gap-2" aria-label="Carte simulée" role="group">
+          {MAP_RPG_IDS.map((rpgId) => (
+            <button
+              key={rpgId}
+              type="button"
+              className="fr-btn fr-btn--tertiary fr-btn--sm"
+              onClick={() =>
+                update(
+                  toggleParcelle(
+                    parcelles,
+                    { rpgId, surface: 1.5, cultureCode: 'BTH', centroid: { x: 0, y: 45 } },
+                    args.projectExploitations
+                  )
+                )
+              }
+            >
+              Clic carte {rpgId}
+            </button>
+          ))}
+          {['2024', '2023'].map((millesime) => (
+            <button
+              key={millesime}
+              type="button"
+              className="fr-btn fr-btn--tertiary fr-btn--sm"
+              onClick={() => update({ ...parcelles, millesime })}
+            >
+              RPG {millesime}
+            </button>
+          ))}
+        </div>
+        <ParcellesPanel {...args} parcelles={parcelles} onParcellesChange={update} />
+      </div>
     )
   },
 } satisfies Meta<typeof ParcellesPanel>
@@ -90,7 +125,9 @@ export const Vide: Story = {
   args: { parcelles: { millesime: '2024', items: [], addedExploitationIds: {} } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(canvas.getByText('Aucune parcelle associée pour le moment')).toBeInTheDocument()
+    await expect(
+      canvas.getByText('Aucune parcelle sélectionnée pour le moment')
+    ).toBeInTheDocument()
   },
 }
 
@@ -259,5 +296,109 @@ export const AnnulationDuRetrait: Story = {
     await waitFor(() => expect(tag).toHaveFocus())
     await expect(canvas.getByText('Parcelle RPG R1')).toBeInTheDocument()
     await expect(args.onParcellesChange).not.toHaveBeenCalled()
+  },
+}
+
+export const RetraitParLaCarte: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (3)' })).toBeInTheDocument()
+    await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (2)' }))
+    await expect(canvas.getByText('2 sur 2 dans le projet')).toBeInTheDocument()
+    await expect(canvas.queryByText('Retirée du projet')).toBeNull()
+
+    // Un clic sur la carte retire R2 : compteurs et statut suivent
+    await userEvent.click(canvas.getByRole('button', { name: 'Clic carte R2' }))
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (2)' })).toBeInTheDocument()
+    await expect(canvas.getByText('1 sur 2 dans le projet')).toBeInTheDocument()
+    await expect(canvas.getAllByText('Retirée du projet')).toHaveLength(1)
+  },
+}
+
+export const RetraitDeLExploitationDeLOngletActif: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const page = within(canvasElement.ownerDocument.body)
+
+    await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (2)' }))
+    await userEvent.click(canvas.getByRole('button', { name: REQUIN_TAG_NAME }))
+    const dialog = await page.findByRole('dialog', { name: 'Retirer EARL Requin du projet ?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Retirer l’exploitation' }))
+
+    await expect(canvas.queryByRole('tab', { name: 'EARL Requin (2)' })).toBeNull()
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (1)' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+  },
+}
+
+export const SelectionsSurPlusieursMillesimes: Story = {
+  args: { parcelles: { millesime: '2024', items: [], addedExploitationIds: {} } },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const combobox = canvas.getByRole('combobox', { name: COMBOBOX_NAME })
+
+    await userEvent.click(combobox)
+    await userEvent.click(canvas.getByRole('option', { name: 'EARL Requin' }))
+    await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (2)' }))
+
+    // Changer de millésime ramène sur la sélection, vide pour 2023
+    await userEvent.click(canvas.getByRole('button', { name: 'RPG 2023' }))
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (0)' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    await userEvent.click(combobox)
+    await userEvent.click(canvas.getByRole('option', { name: 'EARL Requin' }))
+    await expect(canvas.getByText('Parcelle RPG R3')).toBeInTheDocument()
+
+    // Même si l'exploitation de l'onglet actif existe aussi sur l'autre millésime, on revient
+    // sur la sélection ; et rien n'est perdu en revenant sur 2024
+    await userEvent.click(canvas.getByRole('tab', { name: 'EARL Requin (1)' }))
+    await userEvent.click(canvas.getByRole('button', { name: 'RPG 2024' }))
+    await expect(canvas.getByRole('tab', { name: 'Sélectionnées (2)' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    await expect(canvas.getByText('Parcelle RPG R1')).toBeInTheDocument()
+    await expect(canvas.getByText('Parcelle RPG R2')).toBeInTheDocument()
+    await expect(canvas.getByRole('tab', { name: 'EARL Requin (2)' })).toBeInTheDocument()
+
+    // Toutes les parcelles, chacune avec son millésime, sont transmises au formulaire
+    await expect(args.onParcellesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        items: [
+          expect.objectContaining({ rpgId: 'R1', year: 2024 }),
+          expect.objectContaining({ rpgId: 'R2', year: 2024 }),
+          expect.objectContaining({ rpgId: 'R3', year: 2023 }),
+        ],
+        addedExploitationIds: { 2024: ['requin'], 2023: ['requin'] },
+      })
+    )
+  },
+}
+
+export const VidageCompletDUnMillesime: Story = {
+  args: { parcelles: withRequinAdded },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const page = within(canvasElement.ownerDocument.body)
+
+    await userEvent.click(canvas.getByRole('button', { name: REQUIN_TAG_NAME }))
+    const dialog = await page.findByRole('dialog', { name: 'Retirer EARL Requin du projet ?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Retirer l’exploitation' }))
+    await userEvent.click(canvas.getByRole('button', { name: 'Clic carte HORS1' }))
+
+    await expect(
+      canvas.getByText('Aucune parcelle sélectionnée pour le moment')
+    ).toBeInTheDocument()
+    // 2024 est vide, 2023 est conservé
+    await expect(args.onParcellesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ items: [selected('R3', 2023)] })
+    )
   },
 }
