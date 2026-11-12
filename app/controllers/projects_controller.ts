@@ -192,7 +192,7 @@ export default class ProjectsController {
 
     await Promise.all([
       project.load('parcelles', (query) =>
-        query.preload('comments', (commentQuery) => {
+        query.preload('exploitation').preload('comments', (commentQuery) => {
           commentQuery.where('userId', user.id)
         })
       ),

@@ -36,6 +36,14 @@ export default function ProjetParcellesList({ parcelles }: ProjetParcellesListPr
                 iconId: 'fr-icon-ruler-line',
               },
               { content: parcelle.year.toString(), iconId: 'fr-icon-calendar-line' },
+              ...(parcelle.exploitation
+                ? [
+                    {
+                      content: parcelle.exploitation.name,
+                      iconId: 'fr-icon-building-line',
+                    },
+                  ]
+                : []),
               ...(parcelle.comment
                 ? [
                     {

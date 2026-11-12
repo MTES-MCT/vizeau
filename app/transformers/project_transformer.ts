@@ -17,7 +17,9 @@ export default class ProjectTransformer extends BaseTransformer<Project> {
       updatedAt: toISODateTime(this.resource.updatedAt),
       user: UserTransformer.transform(this.whenLoaded(this.resource.user)),
       territoires: TerritoireTransformer.transform(this.whenLoaded(this.resource.territoires)),
-      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles)),
+      // La profondeur définie sur le transformer racine n'est pas transmise aux transformers
+      // imbriqués : on la fixe ici pour exposer l'exploitation de chaque parcelle si préchargée
+      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles))?.depth(2),
       exploitations: ExploitationTransformer.transform(
         this.whenLoaded(this.resource.exploitations)
       ),
