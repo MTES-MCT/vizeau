@@ -172,11 +172,30 @@ test.group('Territoires - Index Route', (group) => {
     assert.notProperty(responseBody.props, 'territoires')
     assert.notProperty(responseBody.props, 'meta')
     assert.notProperty(responseBody.props, 'territoiresInactifs')
-    assert.sameMembers(responseBody.deferredProps.territoires, [
-      'territoires',
-      'meta',
-      'territoiresInactifs',
-    ])
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
+    assert.sameMembers(responseBody.deferredProps.territoiresInactifs, ['territoiresInactifs'])
+  })
+
+  test('territoiresInactifs is not recomputed when the client already holds it', async ({
+    assert,
+    client,
+    route,
+  }) => {
+    const user = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertia()
+      .header('x-inertia-except-once-props', 'territoiresInactifs')
+
+    response.assertStatus(200)
+
+    const responseBody = response.body()
+    assert.notProperty(responseBody.deferredProps, 'territoiresInactifs')
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
   })
 
   test('inactive territoires are listed apart from the active ones', async ({
