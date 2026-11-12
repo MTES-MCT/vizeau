@@ -6,6 +6,13 @@ const meta = {
   component: MoreButton,
   tags: ['autodocs'],
   argTypes: {
+    disabled: {
+      description: "Désactive le bouton : le menu d'actions ne peut plus être ouvert.",
+      control: 'boolean',
+      table: {
+        defaultValue: { summary: 'false' },
+      },
+    },
     actions: {
       description:
         'Liste des actions disponibles dans le menu déroulant du bouton "Plus d\'options". Chaque action doit contenir un label, une fonction onClick, et peut optionnellement inclure un iconId et un indicateur isCritical.',
@@ -38,3 +45,9 @@ const meta = {
 export default meta
 
 export const Défaut = {}
+
+export const Désactivé = {
+  args: {
+    disabled: true,
+  },
+}

@@ -1,8 +1,10 @@
 import Territoire from '#models/territoire'
 
+type TerritoireStatusFilter = 'active' | 'inactive' | 'all'
+
 type TerritoireQueryOptions = {
-  // Inactive territoires are excluded by default
-  includeInactive?: boolean
+  // Only active territoires by default, to avoid exposing inactive ones by mistake
+  status?: TerritoireStatusFilter
 }
 
 export class TerritoireService {
@@ -18,15 +20,12 @@ export class TerritoireService {
     })
   }
 
-  private queryTerritoiresForUser(
-    userId: string,
-    { includeInactive = false }: TerritoireQueryOptions
-  ) {
+  private queryTerritoiresForUser(userId: string, { status = 'active' }: TerritoireQueryOptions) {
     return Territoire.query()
       .whereHas('users', (usersQuery) => {
         usersQuery.where('users.id', userId)
       })
-      .if(!includeInactive, (query) => query.where('isActive', true))
+      .if(status !== 'all', (query) => query.where('isActive', status === 'active'))
       .withScopes((scopes) => scopes.orderByCode())
   }
 

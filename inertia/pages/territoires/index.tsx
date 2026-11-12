@@ -11,8 +11,9 @@ import Alert from '@codegouvfr/react-dsfr/Alert'
 import DepassementsListItem from '~/ui/DepassementsListItem'
 import { getAacListItemMetas } from '~/functions/aac'
 import Loader from '~/ui/Loader'
+import AlertDrawer from '~/ui/AlertDrawer'
 
-export default function TerritoiresIndex({ territoires, meta }: any) {
+export default function TerritoiresIndex({ territoires, territoiresInactifs, meta }: any) {
   return (
     <Layout>
       <Head title="Qualité de l'eau et d'assolement de mes territoires suivis" />
@@ -45,47 +46,63 @@ export default function TerritoiresIndex({ territoires, meta }: any) {
           />
         </div>
         <Deferred
-          data={['territoires', 'meta']}
+          data={['territoires', 'meta', 'territoiresInactifs']}
           fallback={
             <div className="fr-my-4w">
               <Loader />
             </div>
           }
         >
-          <TerritoiresList territoires={territoires} meta={meta} />
+          <TerritoiresList
+            territoires={territoires}
+            territoiresInactifs={territoiresInactifs}
+            meta={meta}
+          />
         </Deferred>
       </div>
     </Layout>
   )
 }
 
-function TerritoiresList({ territoires, meta }: any) {
+type Territoire = Data.Territoire.Variants['forAac']
+
+function TerritoiresList({
+  territoires,
+  territoiresInactifs,
+  meta,
+}: {
+  territoires: Territoire[]
+  territoiresInactifs: Territoire[]
+  meta: any
+}) {
+  if (territoires.length === 0 && territoiresInactifs.length === 0) {
+    return (
+      <EmptyPlaceholder
+        label="Aucun territoire associé à votre compte"
+        pictogram={LocationFrance}
+      />
+    )
+  }
+
   return (
     <>
-      {territoires.length === 0 ? (
-        <EmptyPlaceholder
-          label="Aucun territoire associé à votre compte"
-          pictogram={LocationFrance}
-        />
-      ) : (
+      {territoires.length > 0 && (
         <>
           <h3 className="fr-text--lg fr-mb-0">
             Sélectionnez un territoire pour accéder aux données
           </h3>
           <div className="flex flex-col gap-2">
-            {territoires.map((territoire: Data.Territoire.Variants['forAac'], index: number) => {
-              return (
-                <DepassementsListItem
-                  key={territoire.code}
-                  title={territoire.name ?? 'Territoire sans nom'}
-                  priority={index % 2 === 0 ? 'primary' : 'secondary'}
-                  linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
-                  depassementsAlerte={territoire.depassements_alerte}
-                  depassementsReglementaires={territoire.depassements_reglementaires}
-                  metas={getAacListItemMetas(territoire)}
-                />
-              )
-            })}
+            {territoires.map((territoire, index) => (
+              <DepassementsListItem
+                key={territoire.id}
+                title={territoire.name ?? 'Territoire sans nom'}
+                priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                linkProps={territoire.code ? { href: `/aac/${territoire.code}` } : undefined}
+                depassementsAlerte={territoire.depassements_alerte}
+                depassementsReglementaires={territoire.depassements_reglementaires}
+                metas={getAacListItemMetas(territoire)}
+              />
+            ))}
           </div>
 
           {meta.lastPage > 1 && (
@@ -100,6 +117,30 @@ function TerritoiresList({ territoires, meta }: any) {
             </div>
           )}
         </>
+      )}
+
+      {territoiresInactifs.length > 0 && (
+        <AlertDrawer
+          severity="warning"
+          title={
+            territoiresInactifs.length > 1
+              ? `${territoiresInactifs.length} territoires suivis ne sont plus référencés dans le référentiel des AAC`
+              : `${territoiresInactifs.length} territoire suivi n'est plus référencé dans le référentiel des AAC`
+          }
+        >
+          <div className="flex flex-col gap-2">
+            {territoiresInactifs.map((territoire, index) => (
+              <DepassementsListItem
+                key={territoire.id}
+                title={territoire.name ?? 'Territoire sans nom'}
+                priority={index % 2 === 0 ? 'primary' : 'secondary'}
+                depassementsAlerte={territoire.depassements_alerte}
+                depassementsReglementaires={territoire.depassements_reglementaires}
+                metas={getAacListItemMetas(territoire)}
+              />
+            ))}
+          </div>
+        </AlertDrawer>
       )}
     </>
   )

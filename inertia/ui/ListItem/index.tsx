@@ -32,6 +32,7 @@ export type ListItemProps = {
   linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
   hideTooltip?: boolean
   onClick?: () => void
+  disabled?: boolean
 }
 
 export const AdditionnalInfos = ({
@@ -97,24 +98,34 @@ export default function ListItem({
   hasBorder = false,
   linkProps,
   hideTooltip = false,
-  onClick,
+  onClick: onClickProp,
+  disabled = false,
 }: ListItemProps) {
-  // Default variant
-  const isClickable = Boolean(linkProps || onClick)
-  const Wrapper = linkProps ? Link : 'div'
-  const wrapperProps = linkProps
-    ? {
-        href: linkProps.href,
-        preserveScroll: linkProps.preserveScroll,
-        preserveState: linkProps.preserveState,
-      }
-    : {}
+  // Un élément désactivé garde l'apparence primary et n'est plus cliquable
+  const effectivePriority = disabled ? 'primary' : priority
+  const onClick = disabled ? undefined : onClickProp
+  const isLink = Boolean(linkProps) && !disabled
+  const isClickable = isLink || Boolean(onClick)
+  const Wrapper = isLink ? Link : 'div'
+  const wrapperProps =
+    isLink && linkProps
+      ? {
+          href: linkProps.href,
+          preserveScroll: linkProps.preserveScroll,
+          preserveState: linkProps.preserveState,
+        }
+      : {}
+  const disabledProps = disabled ? { 'aria-disabled': true } : {}
+  const disabledOverlay = disabled && (
+    <div className="list-item-disabled-overlay" aria-hidden="true" />
+  )
 
   if (variant === 'compact') {
     return (
       <Wrapper
         {...wrapperProps}
-        className={`${isClickable ? 'list-item-effect' : ''}${onClick ? ' cursor-pointer' : ''}`}
+        {...disabledProps}
+        className={`${isClickable ? 'list-item-effect' : ''}${onClick ? ' cursor-pointer' : ''}${disabled ? ' relative' : ''}`}
         onClick={
           onClick
             ? (e: React.MouseEvent) => {
@@ -132,7 +143,7 @@ export default function ListItem({
               ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
               : 'none',
             backgroundColor:
-              priority === 'primary'
+              effectivePriority === 'primary'
                 ? fr.colors.decisions.background.default.grey.default
                 : fr.colors.decisions.background.alt.blueFrance.default,
           }}
@@ -175,7 +186,9 @@ export default function ListItem({
                     e.preventDefault()
                   }}
                 >
-                  {actions && actions.length > 0 && <MoreButton actions={actions} />}
+                  {actions && actions.length > 0 && (
+                    <MoreButton actions={actions} disabled={disabled} />
+                  )}
                 </div>
               </div>
 
@@ -183,17 +196,22 @@ export default function ListItem({
             </div>
           </div>
         </div>
+        {disabledOverlay}
       </Wrapper>
     )
   }
 
   return (
-    <Wrapper {...wrapperProps} className={`${isClickable ? 'list-item-effect' : ''}`}>
+    <Wrapper
+      {...wrapperProps}
+      {...disabledProps}
+      className={`${isClickable ? 'list-item-effect' : ''}${disabled ? ' relative' : ''}`}
+    >
       <div
         className="fr-card flex-1 fr-p-2w flex flex-col gap-3 w-full"
         style={{
           backgroundColor:
-            priority === 'primary'
+            effectivePriority === 'primary'
               ? fr.colors.decisions.background.default.grey.default
               : fr.colors.decisions.background.alt.blueFrance.default,
         }}
@@ -252,13 +270,16 @@ export default function ListItem({
                 e.preventDefault()
               }}
             >
-              {actions && actions.length > 0 && <MoreButton actions={actions} />}
+              {actions && actions.length > 0 && (
+                <MoreButton actions={actions} disabled={disabled} />
+              )}
             </div>
           </div>
 
           {metas && metas.length > 0 && <MetasList metas={metas} size="sm" />}
         </div>
       </div>
+      {disabledOverlay}
     </Wrapper>
   )
 }
