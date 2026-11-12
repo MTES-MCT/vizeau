@@ -83,10 +83,10 @@ test.group('Territoire service', (group) => {
     await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
 
     const paginatedTerritoires = await territoireService.getTerritoiresForUser(user.id, 1, 20, {
-      includeInactive: true,
+      status: 'all',
     })
     const allTerritoires = await territoireService.getAllTerritoiresForUser(user.id, {
-      includeInactive: true,
+      status: 'all',
     })
 
     assert.sameMembers(
@@ -109,7 +109,9 @@ test.group('Territoire service', (group) => {
     await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
     await anotherUser.related('territoires').attach([otherInactiveTerritoire.id])
 
-    const inactiveTerritoires = await territoireService.getInactiveTerritoiresForUser(user.id)
+    const inactiveTerritoires = await territoireService.getAllTerritoiresForUser(user.id, {
+      status: 'inactive',
+    })
 
     assert.deepEqual(
       inactiveTerritoires.map((t) => t.id),
