@@ -125,7 +125,7 @@ function TerritoiresList({
           title={
             territoiresInactifs.length > 1
               ? `${territoiresInactifs.length} territoires suivis ne sont plus référencés dans le référentiel des AAC`
-              : `${territoiresInactifs.length} territoire suivi n'est plus référencés dans le référentiel des AAC`
+              : `${territoiresInactifs.length} territoire suivi n'est plus référencé dans le référentiel des AAC`
           }
         >
           <div className="flex flex-col gap-2">
