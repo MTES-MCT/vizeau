@@ -13,6 +13,7 @@ export default function ProjectStepForm({ data, setData }: ProjectStepFormProps)
     <SectionCard background="secondary">
       <Input
         label="Titre"
+        hintText="Obligatoire si aucune note n'est renseignée"
         nativeInputProps={{
           name: 'title',
           maxLength: 255,
@@ -33,6 +34,7 @@ export default function ProjectStepForm({ data, setData }: ProjectStepFormProps)
 
       <Input
         label="Note"
+        hintText="Obligatoire si aucun titre n'est renseigné"
         textArea
         nativeTextAreaProps={{
           name: 'note',

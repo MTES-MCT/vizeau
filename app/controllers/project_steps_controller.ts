@@ -88,8 +88,11 @@ export default class ProjectStepsController {
     const data = await request.validateUsing(createProjectStepPayloadValidator)
     const { title, note, date: dateInput, tags } = data
 
-    if (!title && !note && !dateInput) {
-      createErrorFlashMessage(session, "Veuillez renseigner au moins un champ pour créer l'étape.")
+    if (!title && !note) {
+      createErrorFlashMessage(
+        session,
+        "Veuillez renseigner un titre ou une note pour créer l'étape."
+      )
       return response.redirect().back()
     }
 
@@ -165,10 +168,10 @@ export default class ProjectStepsController {
     const data = await request.validateUsing(updateProjectStepPayloadValidator)
     const { title, note, date: dateInput, tags, removedDocumentIds = [] } = data
 
-    if (!title && !note && !dateInput) {
+    if (!title && !note) {
       createErrorFlashMessage(
         session,
-        "Veuillez renseigner au moins un champ pour modifier l'étape."
+        "Veuillez renseigner un titre ou une note pour modifier l'étape."
       )
       return response.redirect().back()
     }

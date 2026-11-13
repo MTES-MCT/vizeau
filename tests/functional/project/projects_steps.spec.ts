@@ -78,28 +78,23 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.isNull(step.title)
   })
 
-  test('I can create a step with only a date', async ({ assert, client }) => {
+  test("I can't create a step with only a date", async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
 
-    const date = DateTime.now().toISODate()
     const response = await client
       .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
-        date,
+        date: DateTime.now().toISODate(),
       })
       .withCsrfToken()
 
     response.assertStatus(200)
 
-    const step = await ProjectStep.query()
-      .where('projectId', project.id)
-      .orderBy('createdAt', 'desc')
-      .firstOrFail()
-    assert.isNotNull(step.date)
-    assert.isNull(step.title)
+    const steps = await ProjectStep.query().where('projectId', project.id)
+    assert.lengthOf(steps, 0)
   })
 
   test('I can create a step with tags', async ({ assert, client }) => {
@@ -129,9 +124,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     assert.deepEqual(tagIds, expectedIds)
   })
 
-  test("I can't create a step without at least one field (title, note, or date)", async ({
-    client,
-  }) => {
+  test("I can't create a step without a title or a note", async ({ assert, client }) => {
     const user = await UserFactory.with('territoires', 1).create()
     const project = await ProjectFactory.with('user').create()
     await project.related('user').associate(user)
@@ -143,6 +136,9 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .withCsrfToken()
 
     response.assertStatus(200)
+
+    const steps = await ProjectStep.query().where('projectId', project.id)
+    assert.lengthOf(steps, 0)
   })
 
   test("I can't create a step for a project I don't own", async ({ client }) => {
@@ -228,6 +224,31 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     await step.refresh()
     assert.isNull(step.title)
     assert.equal(step.note, 'Note conservée')
+  })
+
+  test("I can't edit a step to keep only a date", async ({ assert, client }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+    const step = await ProjectStepFactory.merge({
+      projectId: project.id,
+      title: 'Titre conservé',
+    }).create()
+
+    const response = await client
+      .patch(`projets/${project.id}/etapes/${step.id}`)
+      .loginAs(user)
+      .json({
+        title: '',
+        note: '',
+        date: DateTime.now().toISODate(),
+      })
+      .withCsrfToken()
+
+    response.assertStatus(200)
+
+    await step.refresh()
+    assert.equal(step.title, 'Titre conservé')
   })
 
   test('I can add tags when editing a step', async ({ assert, client }) => {
