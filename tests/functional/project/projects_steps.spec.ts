@@ -67,7 +67,6 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
-        title: 'Étape avec note',
         note: 'Une note sans titre',
       })
       .withCsrfToken()
@@ -76,7 +75,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
 
     const step = await ProjectStep.query().where('note', 'Une note sans titre').firstOrFail()
     assert.equal(step.projectId, project.id)
-    assert.equal(step.title, 'Étape avec note')
+    assert.isNull(step.title)
   })
 
   test('I can create a step with only a date', async ({ assert, client }) => {
@@ -89,7 +88,6 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .post(`projets/${project.id}/etapes`)
       .loginAs(user)
       .json({
-        title: 'Étape avec date',
         date,
       })
       .withCsrfToken()
@@ -101,6 +99,7 @@ test.group('Projects - Steps CRUD Routes', (group) => {
       .orderBy('createdAt', 'desc')
       .firstOrFail()
     assert.isNotNull(step.date)
+    assert.isNull(step.title)
   })
 
   test('I can create a step with tags', async ({ assert, client }) => {
@@ -203,6 +202,32 @@ test.group('Projects - Steps CRUD Routes', (group) => {
     await step.refresh()
     assert.equal(step.title, 'Modified title')
     assert.equal(step.note, 'Modified note')
+  })
+
+  test('I can remove the title of a step when editing it', async ({ assert, client }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.with('user').create()
+    await project.related('user').associate(user)
+    const step = await ProjectStepFactory.merge({
+      projectId: project.id,
+      title: 'Titre à retirer',
+      note: 'Note conservée',
+    }).create()
+
+    const response = await client
+      .patch(`projets/${project.id}/etapes/${step.id}`)
+      .loginAs(user)
+      .json({
+        title: '',
+        note: 'Note conservée',
+      })
+      .withCsrfToken()
+
+    response.assertStatus(200)
+
+    await step.refresh()
+    assert.isNull(step.title)
+    assert.equal(step.note, 'Note conservée')
   })
 
   test('I can add tags when editing a step', async ({ assert, client }) => {

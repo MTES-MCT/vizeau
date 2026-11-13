@@ -55,7 +55,7 @@ export class GlobalSearchDto {
   static fromProjectStep(step: ProjectStep): GlobalSearchItemJson {
     return {
       id: step.id,
-      title: step.title,
+      title: step.title ?? '',
       subtitle: `Projet : ${step.project.name}`,
       href: urlFor('projets.steps.get', { projectId: step.projectId, stepId: step.id }),
     }
