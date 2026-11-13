@@ -9,6 +9,7 @@ import ParcellesSelectionMap, {
 } from '~/components/map/parcelles-selection-map'
 import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
 import {
+  getParcelleExploitations,
   getProjectExploitations,
   getSelectedParcelles,
   toggleParcelle,
@@ -44,6 +45,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
     [exploitations, data.exploitations]
   )
 
+  const parcelleExploitations = useMemo(
+    () => getParcelleExploitations(projectExploitations, millesime),
+    [projectExploitations, millesime]
+  )
+
   const selectedParcelles = useMemo(() => getSelectedParcelles(data.parcelles), [data.parcelles])
 
   const selectedParcelleIds = useMemo(
@@ -55,10 +61,10 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
     (parcelle: SelectedParcelle) => {
       setData((prev) => ({
         ...prev,
-        parcelles: toggleParcelle(prev.parcelles, parcelle, projectExploitations),
+        parcelles: toggleParcelle(prev.parcelles, parcelle, parcelleExploitations),
       }))
     },
-    [setData, projectExploitations]
+    [setData, parcelleExploitations]
   )
 
   const handleMillesimeChange = (newMillesime: string) => {
@@ -95,6 +101,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         <ParcellesPanel
           parcelles={data.parcelles}
           projectExploitations={projectExploitations}
+          parcelleExploitations={parcelleExploitations}
           onParcellesChange={(parcelles) => setData((prev) => ({ ...prev, parcelles }))}
           onParcelleClick={(parcelle) =>
             parcelle.centroid && mapRef.current?.flyTo(parcelle.centroid)

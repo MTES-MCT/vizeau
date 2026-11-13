@@ -24,6 +24,8 @@ const ANNOUNCEMENT_DURATION_MS = 4000
 type ParcellesPanelProps = {
   parcelles: ProjetParcellesFormData
   projectExploitations: ProjetExploitation[]
+  /** Exploitation du projet de chaque parcelle du millésime affiché, par identifiant RPG. */
+  parcelleExploitations: Map<string, ProjetExploitation>
   onParcellesChange: (parcelles: ProjetParcellesFormData) => void
   /** Appelé au clic sur une parcelle de la liste qui a un centroïde, pour la montrer sur la carte. */
   onParcelleClick: (parcelle: ParcelleCardData) => void
@@ -36,6 +38,7 @@ type ParcellesPanelProps = {
 export default function ParcellesPanel({
   parcelles,
   projectExploitations,
+  parcelleExploitations,
   onParcellesChange,
   onParcelleClick,
 }: ParcellesPanelProps) {
@@ -64,7 +67,11 @@ export default function ParcellesPanel({
   }
 
   const handleExploitationRemove = (exploitation: ProjetExploitation) => {
-    const removedCount = getSelectedExploitationParcelles(parcelles, exploitation).length
+    const removedCount = getSelectedExploitationParcelles(
+      parcelles,
+      exploitation,
+      parcelleExploitations
+    ).length
     onParcellesChange(removeExploitation(parcelles, exploitation))
     setAnnouncement(
       removedCount > 0
@@ -112,7 +119,9 @@ export default function ParcellesPanel({
           )}
           <AddedExploitationsTags
             exploitations={addedExploitations}
-            getSelectedCount={(e) => getSelectedExploitationParcelles(parcelles, e).length}
+            getSelectedCount={(e) =>
+              getSelectedExploitationParcelles(parcelles, e, parcelleExploitations).length
+            }
             onRemove={handleExploitationRemove}
             onRemoved={focusPicker}
           />
@@ -127,7 +136,7 @@ export default function ParcellesPanel({
         </div>
         <ParcellesTabs
           parcelles={parcelles}
-          projectExploitations={projectExploitations}
+          parcelleExploitations={parcelleExploitations}
           addedExploitations={addedExploitations}
           hasPicker={exploitationsWithParcelles.length > 0}
           onReaddRemoved={handleReaddRemoved}

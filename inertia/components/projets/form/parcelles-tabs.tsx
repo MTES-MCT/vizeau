@@ -6,7 +6,6 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { getCultureByCode } from '~/functions/cultures_group'
 import {
   getExploitationParcelles,
-  getParcelleExploitation,
   getRemovedParcelles,
   getSelectedExploitationParcelles,
   getSelectedParcelles,
@@ -24,7 +23,8 @@ export type ParcelleCardData = Pick<
 
 type ParcellesTabsProps = {
   parcelles: ProjetParcellesFormData
-  projectExploitations: ProjetExploitation[]
+  /** Exploitation du projet de chaque parcelle du millésime affiché, par identifiant RPG. */
+  parcelleExploitations: Map<string, ProjetExploitation>
   /** Exploitations ajoutées pour le millésime affiché, une par onglet. */
   addedExploitations: ProjetExploitation[]
   /** Le champ d'ajout d'exploitation est-il affiché, pour orienter l'état vide. */
@@ -82,7 +82,7 @@ function ParcelleCard({ parcelle, index, origin, onClick }: ParcelleCardProps) {
  */
 export default function ParcellesTabs({
   parcelles,
-  projectExploitations,
+  parcelleExploitations,
   addedExploitations,
   hasPicker,
   onReaddRemoved,
@@ -104,7 +104,7 @@ export default function ParcellesTabs({
     { tabId: SELECTION_TAB_ID, label: `Sélectionnées (${selectedParcelles.length})` },
     ...addedExploitations.map((e) => ({
       tabId: e.id,
-      label: `${e.name} (${getSelectedExploitationParcelles(parcelles, e).length})`,
+      label: `${e.name} (${getSelectedExploitationParcelles(parcelles, e, parcelleExploitations).length})`,
     })),
   ]
 
@@ -137,8 +137,7 @@ export default function ParcellesTabs({
               parcelle={parcelle}
               index={index}
               origin={
-                getParcelleExploitation(parcelle.rpgId, millesime, projectExploitations)?.name ??
-                'Hors exploitations du projet'
+                parcelleExploitations.get(parcelle.rpgId)?.name ?? 'Hors exploitations du projet'
               }
               onClick={onParcelleClick}
             />

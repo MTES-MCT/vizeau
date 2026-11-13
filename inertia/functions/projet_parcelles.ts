@@ -79,6 +79,25 @@ export function getAddedExploitations<T extends ProjetExploitation>(
 }
 
 /**
+ * Exploitation du projet de chaque parcelle du millésime, indexée par identifiant RPG. Si une
+ * parcelle figure dans plusieurs exploitations, la première de la liste l'emporte.
+ */
+export function getParcelleExploitations<T extends ProjetExploitation>(
+  projectExploitations: T[],
+  millesime: string
+): Map<string, T> {
+  const parcelleExploitations = new Map<string, T>()
+  for (const exploitation of projectExploitations) {
+    for (const parcelle of getExploitationParcelles(exploitation, millesime)) {
+      if (!parcelleExploitations.has(parcelle.rpgId)) {
+        parcelleExploitations.set(parcelle.rpgId, exploitation)
+      }
+    }
+  }
+  return parcelleExploitations
+}
+
+/**
  * Reconstruit, pour chaque millésime présent dans la sélection, la liste des exploitations
  * du projet dont au moins une parcelle est sélectionnée.
  */
@@ -89,29 +108,16 @@ export function deriveAddedExploitationIds(
   const millesimes = [...new Set(items.map((p) => String(p.year)))]
   return Object.fromEntries(
     millesimes.map((millesime) => {
-      const selectedRpgIds = new Set(
-        items.filter((p) => isInMillesime(p, millesime)).map((p) => p.rpgId)
+      const parcelleExploitations = getParcelleExploitations(projectExploitations, millesime)
+      const addedIds = new Set(
+        items
+          .filter((p) => isInMillesime(p, millesime))
+          .map((p) => parcelleExploitations.get(p.rpgId)?.id)
       )
-      const ids = projectExploitations
-        .filter((e) =>
-          getExploitationParcelles(e, millesime).some((p) => selectedRpgIds.has(p.rpgId))
-        )
-        .map((e) => e.id)
+      // On garde l'ordre des exploitations du projet
+      const ids = projectExploitations.filter((e) => addedIds.has(e.id)).map((e) => e.id)
       return [millesime, ids]
     })
-  )
-}
-
-/** Exploitation du projet à laquelle appartient la parcelle pour le millésime, s'il y en a une. */
-export function getParcelleExploitation<T extends ProjetExploitation>(
-  rpgId: string,
-  millesime: string,
-  projectExploitations: T[]
-): T | null {
-  return (
-    projectExploitations.find((e) =>
-      getExploitationParcelles(e, millesime).some((p) => p.rpgId === rpgId)
-    ) ?? null
   )
 }
 
@@ -119,7 +125,7 @@ export function getParcelleExploitation<T extends ProjetExploitation>(
 export function toggleParcelle(
   parcelles: ProjetParcellesFormData,
   parcelle: MapParcelle,
-  projectExploitations: ProjetExploitation[]
+  parcelleExploitations: Map<string, ProjetExploitation>
 ): ProjetParcellesFormData {
   const { millesime } = parcelles
   const isSelected = parcelles.items.some(
@@ -134,9 +140,10 @@ export function toggleParcelle(
     }
   }
   // Parcelle connue d'une exploitation du projet : on réutilise son identifiant
-  const known = projectExploitations
-    .flatMap((e) => getExploitationParcelles(e, millesime))
-    .find((p) => p.rpgId === parcelle.rpgId)
+  const exploitation = parcelleExploitations.get(parcelle.rpgId)
+  const known =
+    exploitation &&
+    getExploitationParcelles(exploitation, millesime).find((p) => p.rpgId === parcelle.rpgId)
   return {
     ...parcelles,
     items: [...parcelles.items, { id: known?.id, year: Number(millesime), ...parcelle }],
@@ -183,12 +190,12 @@ export function addExploitation(
 /** Parcelles sélectionnées du millésime affiché qui appartiennent à l'exploitation. */
 export function getSelectedExploitationParcelles(
   parcelles: ProjetParcellesFormData,
-  exploitation: ProjetExploitation
+  exploitation: ProjetExploitation,
+  parcelleExploitations: Map<string, ProjetExploitation>
 ) {
-  const rpgIds = new Set(
-    getExploitationParcelles(exploitation, parcelles.millesime).map((p) => p.rpgId)
+  return getSelectedParcelles(parcelles).filter(
+    (p) => parcelleExploitations.get(p.rpgId)?.id === exploitation.id
   )
-  return getSelectedParcelles(parcelles).filter((p) => rpgIds.has(p.rpgId))
 }
 
 /**

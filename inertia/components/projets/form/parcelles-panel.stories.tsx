@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
@@ -6,6 +6,7 @@ import ParcellesPanel from './parcelles-panel'
 import type { ProjetParcellesFormData, SelectedParcelleFormData } from './projet-form'
 import {
   deriveAddedExploitationIds,
+  getParcelleExploitations,
   toggleParcelle,
   type ExploitationParcelle,
   type ProjetExploitation,
@@ -47,6 +48,8 @@ const meta = {
   },
   args: {
     projectExploitations,
+    // Recalculée par le rendu selon le millésime affiché
+    parcelleExploitations: getParcelleExploitations(projectExploitations, '2024'),
     onParcelleClick: fn(),
     onParcellesChange: fn(),
     parcelles: {
@@ -65,6 +68,10 @@ const meta = {
       args.onParcellesChange(next)
       setParcelles(next)
     }
+    const parcelleExploitations = useMemo(
+      () => getParcelleExploitations(args.projectExploitations, parcelles.millesime),
+      [args.projectExploitations, parcelles.millesime]
+    )
     return (
       // La hauteur se transmet jusqu'au panneau, comme dans la colonne de droite de l'étape
       <div className="flex flex-col gap-4 h-full">
@@ -79,7 +86,7 @@ const meta = {
                   toggleParcelle(
                     parcelles,
                     { rpgId, surface: 1.5, cultureCode: 'BTH', centroid: { x: 0, y: 45 } },
-                    args.projectExploitations
+                    parcelleExploitations
                   )
                 )
               }
@@ -99,7 +106,12 @@ const meta = {
           ))}
         </div>
         <div className="flex-1 min-h-0">
-          <ParcellesPanel {...args} parcelles={parcelles} onParcellesChange={update} />
+          <ParcellesPanel
+            {...args}
+            parcelles={parcelles}
+            parcelleExploitations={parcelleExploitations}
+            onParcellesChange={update}
+          />
         </div>
       </div>
     )
