@@ -38,7 +38,7 @@ export default function ProjetEditionPage({ projet }: any) {
     id: p.id,
     year: p.year,
     rpgId: p.rpgId,
-    surface: p.surface !== null && p.surface !== undefined ? parseFloat(String(p.surface)) : null,
+    surface: p.surface,
     cultureCode: p.cultureCode,
     centroid: p.centroid ?? undefined,
   }))
