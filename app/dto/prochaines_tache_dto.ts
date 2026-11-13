@@ -6,7 +6,7 @@ export class ProchainesTacheDto {
   static fromProjectStep(step: ProjectStep): ProchainesTacheJson {
     return {
       id: step.id,
-      titre: step.title,
+      titre: step.title ?? '',
       date: step.date!.toISODate() as string,
       nomProjet: step.project?.name,
       projetId: step.projectId,

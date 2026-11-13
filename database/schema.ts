@@ -416,7 +416,7 @@ export class ProjectStepSchema extends BaseModel {
   @column()
   declare projectId: string
   @column()
-  declare title: string
+  declare title: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

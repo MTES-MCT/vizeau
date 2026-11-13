@@ -155,10 +155,7 @@ export default function ProjectStepEditionPage({ projet, step }: any) {
               Retour
             </Button>
 
-            <Button
-              type="submit"
-              disabled={data.title.trim() === '' && data.note.trim() === '' && data.date === ''}
-            >
+            <Button type="submit" disabled={data.title.trim() === '' && data.note.trim() === ''}>
               Valider
             </Button>
           </div>
