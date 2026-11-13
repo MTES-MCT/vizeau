@@ -6,7 +6,6 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { getCultureByCode } from '~/functions/cultures_group'
 import {
   getExploitationParcelles,
-  getRemovedParcelles,
   getSelectedExploitationParcelles,
   getSelectedParcelles,
   type ProjetExploitation,
@@ -29,7 +28,7 @@ type ParcellesTabsProps = {
   addedExploitations: ProjetExploitation[]
   /** Le champ d'ajout d'exploitation est-il affiché, pour orienter l'état vide. */
   hasPicker: boolean
-  onReaddRemoved: (exploitation: ProjetExploitation) => void
+  onRemovedParcellesReadd: (exploitation: ProjetExploitation) => void
   onParcelleClick: (parcelle: ParcelleCardData) => void
 }
 
@@ -85,7 +84,7 @@ export default function ParcellesTabs({
   parcelleExploitations,
   addedExploitations,
   hasPicker,
-  onReaddRemoved,
+  onRemovedParcellesReadd,
   onParcelleClick,
 }: ParcellesTabsProps) {
   const { millesime } = parcelles
@@ -149,14 +148,16 @@ export default function ParcellesTabs({
 
   const renderExploitation = (exploitation: ProjetExploitation) => {
     const exploitationParcelles = getExploitationParcelles(exploitation, millesime)
-    const removedCount = getRemovedParcelles(parcelles, exploitation).length
     // Les parcelles désélectionnées sortent de la liste ; le bouton permet de les rajouter
-    const keptParcelles = exploitationParcelles.filter((p) => selectedRpgIds.has(p.rpgId))
+    const selectedExploitationParcelles = exploitationParcelles.filter((p) =>
+      selectedRpgIds.has(p.rpgId)
+    )
+    const removedCount = exploitationParcelles.length - selectedExploitationParcelles.length
     return (
       <>
         <div className="flex flex-wrap items-center justify-between gap-2 fr-mb-2w">
           <p className="fr-text--sm fr-mb-0">
-            {keptParcelles.length} sur {exploitationParcelles.length} dans le projet
+            {selectedExploitationParcelles.length} sur {exploitationParcelles.length} dans le projet
           </p>
           {removedCount > 0 && (
             <Button
@@ -165,7 +166,7 @@ export default function ParcellesTabs({
               size="small"
               iconId="fr-icon-add-line"
               onClick={() => {
-                onReaddRemoved(exploitation)
+                onRemovedParcellesReadd(exploitation)
                 // Le bouton disparaît : le focus est confié au panneau de l'onglet
                 panelRef.current?.focus()
               }}
@@ -176,14 +177,14 @@ export default function ParcellesTabs({
             </Button>
           )}
         </div>
-        {keptParcelles.length === 0 ? (
+        {selectedExploitationParcelles.length === 0 ? (
           <EmptyPlaceholder
             label="Toutes les parcelles de cette exploitation ont été retirées du projet"
             illustrativeIcon="fr-icon-collage-line"
           />
         ) : (
           <ul className="flex flex-col gap-2 fr-mb-0" style={{ listStyle: 'none', padding: 0 }}>
-            {keptParcelles.map((parcelle, index) => (
+            {selectedExploitationParcelles.map((parcelle, index) => (
               <ParcelleCard
                 key={parcelle.rpgId}
                 parcelle={{ ...parcelle, centroid: parcelle.centroid ?? undefined }}

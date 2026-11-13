@@ -6,9 +6,7 @@ import {
   addExploitation,
   getAddedExploitations,
   getExploitationsWithParcelles,
-  getRemovedParcelles,
   getSelectedExploitationParcelles,
-  readdExploitationParcelles,
   removeExploitation,
   type ProjetExploitation,
 } from '~/functions/projet_parcelles'
@@ -80,11 +78,11 @@ export default function ParcellesPanel({
     )
   }
 
-  const handleReaddRemoved = (exploitation: ProjetExploitation) => {
-    const readdedCount = getRemovedParcelles(parcelles, exploitation).length
-    onParcellesChange(readdExploitationParcelles(parcelles, exploitation))
+  const handleRemovedParcellesReadd = (exploitation: ProjetExploitation) => {
+    const result = addExploitation(parcelles, exploitation)
+    onParcellesChange(result.parcelles)
     setAnnouncement(
-      `${pluralize(readdedCount, 'parcelle rajoutée', 'parcelles rajoutées')} depuis ${exploitation.name}`
+      `${pluralize(result.addedCount, 'parcelle rajoutée', 'parcelles rajoutées')} depuis ${exploitation.name}`
     )
   }
 
@@ -139,7 +137,7 @@ export default function ParcellesPanel({
           parcelleExploitations={parcelleExploitations}
           addedExploitations={addedExploitations}
           hasPicker={exploitationsWithParcelles.length > 0}
-          onReaddRemoved={handleReaddRemoved}
+          onRemovedParcellesReadd={handleRemovedParcellesReadd}
           onParcelleClick={onParcelleClick}
         />
       </div>
