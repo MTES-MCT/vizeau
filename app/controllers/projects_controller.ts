@@ -209,10 +209,7 @@ export default class ProjectsController {
     ])
 
     return inertia.render('projets/id', {
-      // Depth 2 is needed to serialize the tags and documents of the steps
-      projet: ProjectTransformer.transform(project)
-        .depth(2)
-        .useVariant('withParcellesExploitation'),
+      projet: ProjectTransformer.transform(project).useVariant('forShow'),
     })
   }
 

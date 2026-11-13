@@ -6,6 +6,7 @@ import { UserFactory } from '#database/factories/user_factory'
 import { ProjectFactory } from '#database/factories/project_factory'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { ParcelleFactory } from '#database/factories/parcelle_factory'
+import { ProjectStepFactory } from '#database/factories/project_step_factory'
 
 test.group('Projects - Show Route', (group) => {
   group.setup(async () => {
@@ -42,5 +43,22 @@ test.group('Projects - Show Route', (group) => {
     const standalone = parcelles.find((p) => p.id === standaloneParcelle.id)
     assert.equal(withExploitation?.exploitation?.name, 'Ferme des Tilleuls')
     assert.notExists(standalone?.exploitation)
+  })
+
+  test("I see the tags of my project's steps", async ({ assert, client }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.merge({ userId: user.id }).create()
+    await ProjectStepFactory.merge({ projectId: project.id })
+      .with('tags', 1, (tag) => tag.merge({ name: 'Diagnostic', userId: user.id }))
+      .create()
+
+    const response = await client.get(`projets/${project.id}`).loginAs(user).withInertia()
+
+    response.assertStatus(200)
+    const steps: { tags?: { name: string }[] }[] = response.body().props.projet.steps
+    assert.deepEqual(
+      steps[0].tags?.map((tag) => tag.name),
+      ['Diagnostic']
+    )
   })
 })
