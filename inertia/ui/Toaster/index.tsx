@@ -3,6 +3,7 @@ import uniqBy from 'lodash-es/uniqBy'
 import { Alert } from '@codegouvfr/react-dsfr/Alert'
 import { ToastContainer, Slide } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { fr } from '@codegouvfr/react-dsfr'
 
 export type ToastProps = {
   alerts: { severity: 'info' | 'success' | 'error' | 'warning'; message: string }[]
@@ -30,7 +31,10 @@ export default function Toast({ alerts, closeToast }: ToastProps) {
           description={message}
           small
           closable
-          style={{ fontFamily: 'Marianne, arial, sans-serif' }}
+          style={{
+            fontFamily: 'Marianne, arial, sans-serif',
+            backgroundColor: fr.colors.decisions.background.default.grey.default,
+          }}
           onClose={() => handleAlertClose(message)}
         />
       ))}

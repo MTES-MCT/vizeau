@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Head, useForm, usePage, router } from '@inertiajs/react'
-import { toast } from 'react-toastify'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
 
 import Layout from '~/ui/layouts/Layout'
 
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
-import Toast from '~/ui/Toaster'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 import { deriveAddedExploitationIds, getProjectExploitations } from '~/functions/projet_parcelles'
 
@@ -110,15 +108,6 @@ export default function ProjetEditionPage({ projet }: any) {
   const handleSubmit = () => {
     patch(`/projets/${projet.id}`, {
       onSuccess: () => {
-        toast(
-          <Toast
-            alerts={[{ severity: 'success', message: 'Le projet a été modifié avec succès.' }]}
-          />,
-          {
-            closeButton: false,
-            style: { padding: 0, background: 'transparent', boxShadow: 'none' },
-          }
-        )
         router.visit(`/projets/${projet.id}`)
       },
       onError: (errs) => {
