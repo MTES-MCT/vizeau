@@ -17,14 +17,24 @@ export default class ProjectTransformer extends BaseTransformer<Project> {
       updatedAt: toISODateTime(this.resource.updatedAt),
       user: UserTransformer.transform(this.whenLoaded(this.resource.user)),
       territoires: TerritoireTransformer.transform(this.whenLoaded(this.resource.territoires)),
-      // La profondeur définie sur le transformer racine n'est pas transmise aux transformers
-      // imbriqués : on la fixe ici pour exposer l'exploitation de chaque parcelle si préchargée
-      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles))?.depth(2),
+      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles)),
       exploitations: ExploitationTransformer.transform(
         this.whenLoaded(this.resource.exploitations)
       ),
       captages: CaptageTransformer.transform(this.whenLoaded(this.resource.captages)),
       steps: ProjectStepTransformer.transform(this.whenLoaded(this.resource.steps)),
+    }
+  }
+
+  /*
+   * Expose l'exploitation de chaque parcelle, si préchargée.
+   * La profondeur définie sur le transformer racine n'est pas transmise aux transformers
+   * imbriqués : il faut la fixer sur la relation elle-même.
+   */
+  withParcellesExploitation() {
+    return {
+      ...this.toObject(),
+      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles))?.depth(2),
     }
   }
 }
