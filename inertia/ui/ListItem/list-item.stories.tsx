@@ -75,6 +75,14 @@ const meta = {
       control: 'object',
       description: `Liste des actions à afficher dans le menu contextuel.\nExemple : [{ label: 'Supprimer', onClick: () => {}, iconId: 'fr-icon-delete-line', isCritical: true }]`,
     },
+    disabled: {
+      control: 'boolean',
+      description:
+        "Désactive l'élément : fond primary forcé, voile gris par-dessus, ni ombre, ni effet au survol, ni clic (lien, onClick et menu d'actions inclus).",
+      table: {
+        defaultValue: { summary: 'false' },
+      },
+    },
     additionalInfos: {
       control: 'object',
       description: `Informations additionnelles à afficher en haut de l'élément.\nPermet d'afficher :\n- Une icône avec un message (iconId, message)\n- Une alerte avec texte et sévérité (alert: { text, severity })\nSévérités disponibles : 'infos', 'warning', 'error', 'success'\nExemple : { iconId: 'fr-icon-info-line', message: 'Information', alert: { text: 'Alerte', severity: 'warning' } }`,
@@ -269,4 +277,31 @@ export const AvecOnClick = {
       console.log('une action')
     },
   },
+}
+
+export const Désactivé = {
+  args: {
+    disabled: true,
+    linkProps: { href: '/exemple-de-lien' },
+  } as ListItemProps,
+}
+
+export const DésactivéSecondaire = {
+  args: {
+    disabled: true,
+    priority: 'secondary',
+  } as ListItemProps,
+}
+
+export const CompactDésactivé = {
+  args: {
+    variant: 'compact' as const,
+    disabled: true,
+    hasBorder: true,
+    iconId: 'fr-icon-user-line',
+    title: 'Compact List Item',
+    tags: [{ label: 'Tag 1' }],
+    metas: [{ content: 'Meta 1', iconId: 'fr-icon-calendar-line' }],
+    onClick: () => alert('Ne devrait jamais apparaître'),
+  } as ListItemProps,
 }

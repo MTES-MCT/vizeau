@@ -22,6 +22,7 @@ import { showUnavailableParcelleToast } from '~/functions/parcelles_toasts'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
+import { Button } from '@codegouvfr/react-dsfr/Button'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
 
@@ -36,6 +37,16 @@ const ALL_CULTURE_CODES = Object.keys(GROUPES_CULTURAUX)
 
 // Référence stable : un tableau recréé à chaque rendu relancerait la réconciliation de la carte.
 const EMPTY_IDS: string[] = []
+
+export type Bbox = [number, number, number, number]
+
+export type AacEmprise = {
+  id: string
+  label: string
+  bbox: Bbox
+}
+
+const BOUNDS_PADDING = 40
 
 export type SelectedParcelle = {
   rpgId: string
@@ -53,11 +64,18 @@ type ParcellesSelectionMapProps = {
   unavailableParcelleIds?: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
-  initialBbox?: [number, number, number, number]
-  /** Point sur lequel centrer la carte à l'ouverture, prioritaire sur `initialBbox`. */
+  /** Point sur lequel centrer la carte à l'ouverture, prioritaire sur l'emprise de l'AAC. */
   initialCenter?: { x: number; y: number }
   /** Recherche du PACAGE de la parcelle survolée, affiché dans la popup une fois connu. */
   getParcellePacage?: (rpgId: string) => Promise<string | null>
+  /** AAC sur lesquelles centrer la carte : un sélecteur s'affiche s'il y en a plusieurs. */
+  aacs?: AacEmprise[]
+  /** AAC affichée à l'ouverture de la carte, à défaut la France entière. */
+  selectedAacId?: string
+  onAacChange?: (aacId: string) => void
+  /** Affichage des sélecteurs du bandeau, contrôlé par le parent car la carte est recréée au changement de millésime. */
+  areOptionsVisible?: boolean
+  onOptionsVisibleChange?: (visible: boolean) => void
 }
 
 export type ParcellesSelectionMapHandle = {
@@ -81,20 +99,24 @@ const ParcellesSelectionMapContent = forwardRef<
     unavailableParcelleIds = EMPTY_IDS,
     onParcelleToggle,
     handleMillesimeChange,
-    initialBbox,
     initialCenter,
     getParcellePacage,
+    aacs = [],
+    selectedAacId,
+    onAacChange,
+    areOptionsVisible = false,
+    onOptionsVisibleChange,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
   const [isMapLoading, setIsMapLoading] = useState(true)
+  const initialBbox = aacs.find((aac) => aac.id === selectedAacId)?.bbox
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const unavailableParcelleIdsRef = useRef<string[]>(unavailableParcelleIds)
   const currentParcelleIdRef = useRef<string | null>(null)
   const parcellePopupRef = useRef<Popup>(
     new Popup({ closeButton: false, offset: 10, maxWidth: 'none', className: 'custom-popup' })
   )
-  const initialBboxRef = useRef<[number, number, number, number] | undefined>(initialBbox)
   const initialCenterRef = useRef<{ x: number; y: number } | undefined>(initialCenter)
   // Une seule racine React pour le contenu de la popup, redessinée à chaque survol plutôt que recréée.
   const popupContainerRef = useRef<HTMLDivElement | null>(null)
@@ -125,8 +147,9 @@ const ParcellesSelectionMapContent = forwardRef<
   const { mapContainerRef, mapRef, map } = useMap(
     {
       style: vector as any,
-      center: [2.24, 46.54],
-      zoom: 5,
+      ...(initialBbox
+        ? { bounds: initialBbox, fitBoundsOptions: { padding: BOUNDS_PADDING } }
+        : { center: [2.24, 46.54], zoom: 5 }),
       maxZoom: 17.5,
       trackResize: true,
       attributionControl: { compact: true },
@@ -138,12 +161,10 @@ const ParcellesSelectionMapContent = forwardRef<
       createdMap.on('load', () => {
         createdMap.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
 
-        // Center on the provided point, or else on the territoire bbox, when available
+        // Le point fourni prime sur l'emprise de l'AAC, déjà appliquée à la création de la carte
         if (initialCenterRef.current) {
           const { x, y } = initialCenterRef.current
           createdMap.jumpTo({ center: [x, y], zoom: 14 })
-        } else if (initialBboxRef.current) {
-          createdMap.fitBounds(initialBboxRef.current, { padding: 40, duration: 0 })
         }
 
         setIsMapLoading(false)
@@ -364,6 +385,14 @@ const ParcellesSelectionMapContent = forwardRef<
     },
   }))
 
+  const handleAacChange = (aacId: string) => {
+    const aac = aacs.find((item) => item.id === aacId)
+    if (aac) {
+      mapRef.current?.fitBounds(aac.bbox, { padding: BOUNDS_PADDING, duration: 800 })
+    }
+    onAacChange?.(aacId)
+  }
+
   // Attach / detach event listeners when handlers change
   useEffect(() => {
     const events = [
@@ -383,6 +412,25 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])
 
+  const hasAacSelector = aacs.length > 1
+
+  const millesimeSelect = (
+    <Select
+      label=""
+      className="fr-mb-0 w-40"
+      nativeSelectProps={{
+        value: millesime,
+        onChange: (e) => handleMillesimeChange(e.target.value),
+      }}
+    >
+      {RPG_YEARS.map((m) => (
+        <option key={m} value={m}>
+          RPG {m}
+        </option>
+      ))}
+    </Select>
+  )
+
   return (
     <div className="flex flex-col h-full w-full relative">
       {isMapLoading && (
@@ -393,30 +441,57 @@ const ParcellesSelectionMapContent = forwardRef<
       <div ref={mapContainerRef} className="flex justify-between h-full w-full editing-glow" />
 
       <div
-        className="absolute left-0 right-0 top-0 fr-text--sm flex items-center fr-px-6v fr-py-1v shadow-md"
+        className="absolute left-0 right-0 top-0 fr-text--sm fr-p-2v shadow-md"
         style={{
           backgroundColor: fr.colors.decisions.background.contrast.info.default,
           color: fr.colors.decisions.text.default.info.default,
         }}
       >
-        <div className="flex gap-1 w-full justify-center">
-          <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-          Cliquez sur une parcelle pour la sélectionner ou la désélectionner
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex gap-1 fr-pl-2w justify-center">
+            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
+            Cliquez sur une parcelle pour la sélectionner ou la désélectionner
+          </div>
+          {/* Une seule AAC : pas de sélecteur d'AAC, le millésime reste dans le bandeau */}
+          {hasAacSelector ? (
+            <Button
+              type="button"
+              priority="tertiary no outline"
+              size="small"
+              iconId={areOptionsVisible ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+              iconPosition="right"
+              nativeButtonProps={{
+                'aria-expanded': areOptionsVisible,
+                'aria-controls': 'parcelles-map-options',
+              }}
+              onClick={() => onOptionsVisibleChange?.(!areOptionsVisible)}
+            >
+              {areOptionsVisible ? 'Masquer les options' : 'Options'}
+            </Button>
+          ) : (
+            millesimeSelect
+          )}
         </div>
-        <Select
-          label=""
-          className="w-40"
-          nativeSelectProps={{
-            value: millesime,
-            onChange: (e) => handleMillesimeChange(e.target.value),
-          }}
-        >
-          {RPG_YEARS.map((m) => (
-            <option key={m} value={m}>
-              RPG {m}
-            </option>
-          ))}
-        </Select>
+
+        {hasAacSelector && areOptionsVisible && (
+          <div id="parcelles-map-options" className="flex flex-wrap gap-x-4 fr-pb-2v fr-pt-4v">
+            <Select
+              label=""
+              className="fr-mb-0 flex-1 min-w-48"
+              nativeSelectProps={{
+                value: selectedAacId,
+                onChange: (e) => handleAacChange(e.target.value),
+              }}
+            >
+              {aacs.map((aac) => (
+                <option key={aac.id} value={aac.id}>
+                  {aac.label}
+                </option>
+              ))}
+            </Select>
+            {millesimeSelect}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -17,3 +17,10 @@
     0 2px 8px rgba(150, 150, 150, 0.1);
   filter: brightness(0.96);
 }
+
+/* Voile posé sur un élément désactivé : bloque aussi les clics (menu d'actions compris) */
+.list-item-disabled-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(237, 237, 237, 0.55);
+}

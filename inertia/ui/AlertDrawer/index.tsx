@@ -75,7 +75,7 @@ export default function AlertDrawer({
         >
           <div className="w-full flex items-center gap-2">
             <span className={customIconId || config.icon} aria-hidden="true" />
-            <p className="fr-mb-0 fr-text--lg font-bold">{title}</p>
+            <p className="fr-mb-0 fr-text font-bold">{title}</p>
           </div>
 
           <span

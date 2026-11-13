@@ -80,7 +80,7 @@ test.group('Territoires - Index Route', (group) => {
     const response = await client
       .get(route('territoires.index'))
       .loginAs(user)
-      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta', 'territoiresInactifs'])
 
     response.assertStatus(200)
 
@@ -122,7 +122,7 @@ test.group('Territoires - Index Route', (group) => {
     const response = await client
       .get(route('territoires.index', {}, { qs: { territoiresPage: 2 } }))
       .loginAs(user)
-      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta', 'territoiresInactifs'])
 
     response.assertStatus(200)
 
@@ -145,7 +145,7 @@ test.group('Territoires - Index Route', (group) => {
     const response = await client
       .get(route('territoires.index'))
       .loginAs(user)
-      .withInertiaPartialReload('territoires/index', ['territoires', 'meta'])
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta', 'territoiresInactifs'])
 
     response.assertStatus(200)
 
@@ -171,6 +171,87 @@ test.group('Territoires - Index Route', (group) => {
     assert.equal(responseBody.component, 'territoires/index')
     assert.notProperty(responseBody.props, 'territoires')
     assert.notProperty(responseBody.props, 'meta')
+    assert.notProperty(responseBody.props, 'territoiresInactifs')
     assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
+    assert.sameMembers(responseBody.deferredProps.territoiresInactifs, ['territoiresInactifs'])
+  })
+
+  test('territoiresInactifs is not recomputed when the client already holds it', async ({
+    assert,
+    client,
+    route,
+  }) => {
+    const user = await UserFactory.create()
+    const territoire = await TerritoireFactory.create()
+    await user.related('territoires').attach([territoire.id])
+
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertia()
+      .header('x-inertia-except-once-props', 'territoiresInactifs')
+
+    response.assertStatus(200)
+
+    const responseBody = response.body()
+    assert.notProperty(responseBody.deferredProps, 'territoiresInactifs')
+    assert.sameMembers(responseBody.deferredProps.territoires, ['territoires', 'meta'])
+  })
+
+  test('inactive territoires are listed apart from the active ones', async ({
+    assert,
+    client,
+    route,
+  }) => {
+    const user = await UserFactory.create()
+    const anotherUser = await UserFactory.create()
+    const activeTerritoire = await TerritoireFactory.create()
+    const inactiveTerritoire = await TerritoireFactory.apply('inactive')
+      .merge({ code: '12345' })
+      .create()
+    const otherInactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+
+    await user.related('territoires').attach([activeTerritoire.id, inactiveTerritoire.id])
+    await anotherUser.related('territoires').attach([otherInactiveTerritoire.id])
+
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta', 'territoiresInactifs'])
+
+    response.assertStatus(200)
+
+    const { territoires, territoiresInactifs, meta } = response.body().props
+    assert.deepEqual(
+      territoires.map((territoire: { id: string }) => territoire.id),
+      [activeTerritoire.id]
+    )
+    assert.equal(meta.total, 1)
+    assert.deepEqual(
+      territoiresInactifs.map((territoire: { id: string }) => territoire.id),
+      [inactiveTerritoire.id]
+    )
+    assert.equal(territoiresInactifs[0].surface, 150.5)
+  })
+
+  test('user with only inactive territoires gets an empty active list', async ({
+    assert,
+    client,
+    route,
+  }) => {
+    const user = await UserFactory.create()
+    const inactiveTerritoire = await TerritoireFactory.apply('inactive').create()
+    await user.related('territoires').attach([inactiveTerritoire.id])
+
+    const response = await client
+      .get(route('territoires.index'))
+      .loginAs(user)
+      .withInertiaPartialReload('territoires/index', ['territoires', 'meta', 'territoiresInactifs'])
+
+    response.assertStatus(200)
+
+    const { territoires, territoiresInactifs } = response.body().props
+    assert.lengthOf(territoires, 0)
+    assert.lengthOf(territoiresInactifs, 1)
   })
 })

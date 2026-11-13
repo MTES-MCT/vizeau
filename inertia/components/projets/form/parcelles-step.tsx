@@ -1,13 +1,14 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
 import ParcellesSelectionMap, {
   SelectedParcelle,
   ParcellesSelectionMapHandle,
+  AacEmprise,
+  Bbox,
 } from '~/components/map/parcelles-selection-map'
 import SectionCard from '~/ui/SectionCard'
-import type { ProjetFormData } from './projet-form'
-import type { Data } from '@generated/data'
+import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
 import { getCultureByCode } from '~/functions/cultures_group'
 import ListItem from '~/ui/ListItem'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
@@ -19,8 +20,21 @@ type ParcellesStepProps = {
 
 export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const mapRef = useRef<ParcellesSelectionMapHandle>(null)
-  const { pmtilesUrl, exploitations } =
-    usePage<InferPageProps<ProjectsController, 'create'>>().props
+  const { pmtilesUrl, exploitations, aacs } = usePage<ProjetFormPageProps>().props
+  // Seules les AAC dont l'emprise est connue permettent de centrer la carte
+  const aacEmprises = useMemo<AacEmprise[]>(
+    () =>
+      aacs.flatMap((aac) =>
+        aac.bbox
+          ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
+          : []
+      ),
+    [aacs]
+  )
+  // Première AAC par défaut ; conservée au changement de millésime, qui recrée la carte
+  const [selectedAacId, setSelectedAacId] = useState(aacEmprises[0]?.id)
+  const [areMapOptionsVisible, setAreMapOptionsVisible] = useState(true)
+
   const { millesime, items: allSelectedParcelles } = data.parcelles
 
   const selectedParcelles = useMemo(
@@ -35,7 +49,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
 
   const handleParcelleToggle = useCallback(
     (parcelle: SelectedParcelle) => {
-      const linkedExploitation = (exploitations as Data.Exploitation[]).find((exp) =>
+      const linkedExploitation = exploitations.find((exp) =>
         exp.parcelles?.some((p) => p.year.toString() === millesime && p.rpgId === parcelle.rpgId)
       )
       const linkedParcelle = linkedExploitation?.parcelles?.find(
@@ -86,6 +100,11 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
             selectedParcelleIds={selectedParcelleIds}
             onParcelleToggle={handleParcelleToggle}
             handleMillesimeChange={handleMillesimeChange}
+            aacs={aacEmprises}
+            selectedAacId={selectedAacId}
+            onAacChange={setSelectedAacId}
+            areOptionsVisible={areMapOptionsVisible}
+            onOptionsVisibleChange={setAreMapOptionsVisible}
           />
         </div>
 

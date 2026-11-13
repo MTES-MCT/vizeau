@@ -8,12 +8,13 @@ import UserTransformer from '#transformers/user_transformer'
 
 export default class TerritoireTransformer extends BaseTransformer<Territoire> {
   /*
-   * AAC summaries indexed by AAC code, only used by the forAac variant.
+   * AAC data indexed by AAC code, only used by the forAac and forEmprise variants.
    * AAC data lives in the Parquet dataset, not on the territoires table.
+   * Partiel : forEmprise n'a besoin que de la bbox.
    */
   constructor(
     resource: Territoire,
-    protected aacSummariesByCode: Record<string, AacSummaryJson | undefined> = {}
+    protected aacSummariesByCode: Record<string, Partial<AacSummaryJson> | undefined> = {}
   ) {
     super(resource)
   }
@@ -56,6 +57,19 @@ export default class TerritoireTransformer extends BaseTransformer<Territoire> {
       nb_parcelles: aac?.nb_parcelles ?? null,
       depassements_alerte: aac?.depassements_alerte ?? null,
       depassements_reglementaires: aac?.depassements_reglementaires ?? null,
+    }
+  }
+
+  /*
+   * Territoire réduit à l'emprise (bbox) de son AAC, pour centrer une carte.
+   * bbox vaut null si le territoire n'a pas de code ou si son AAC est absente du jeu de données.
+   */
+  forEmprise() {
+    const aac = this.resource.code ? this.aacSummariesByCode[this.resource.code] : undefined
+
+    return {
+      ...this.pick(this.resource, ['id', 'code', 'name']),
+      bbox: aac?.bbox ?? null,
     }
   }
 }
