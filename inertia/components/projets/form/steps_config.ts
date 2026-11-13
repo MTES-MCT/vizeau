@@ -3,8 +3,8 @@ export const STEP_KEYS = {
   TERRITOIRES: 2,
   FIRST_ENTRY: 3,
   CONSOLIDATIONS: 4,
-  PARCELLES: 5,
-  EXPLOITATIONS: 6,
+  EXPLOITATIONS: 5,
+  PARCELLES: 6,
   CAPTAGES: 7,
 } as const
 
@@ -38,22 +38,22 @@ export const STEPS: Record<number, ProjetFormStep> = {
   [STEP_KEYS.CONSOLIDATIONS]: {
     key: 'CONSOLIDATIONS',
     title: 'Rattachements',
-    nextTitle: 'Parcelles',
-  },
-  [STEP_KEYS.PARCELLES]: {
-    key: 'PARCELLES',
-    title: 'Parcelles',
     nextTitle: 'Exploitations',
-    description: 'Associer les parcelles agricoles concernées par ce projet. Sélection via carte.',
-    iconId: 'fr-icon-collage-line',
   },
   [STEP_KEYS.EXPLOITATIONS]: {
     key: 'EXPLOITATIONS',
     title: 'Exploitations',
-    nextTitle: 'Points de prélèvements',
+    nextTitle: 'Parcelles',
     description:
       'Liez une ou plusieurs exploitations agricoles. Utile pour les projets collectifs.',
     iconId: 'fr-icon-map-pin-user-line',
+  },
+  [STEP_KEYS.PARCELLES]: {
+    key: 'PARCELLES',
+    title: 'Parcelles',
+    nextTitle: 'Points de prélèvements',
+    description: 'Associer les parcelles agricoles concernées par ce projet. Sélection via carte.',
+    iconId: 'fr-icon-collage-line',
   },
   [STEP_KEYS.CAPTAGES]: {
     key: 'CAPTAGES',

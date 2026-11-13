@@ -192,9 +192,13 @@ export default class ProjectsController {
 
     await Promise.all([
       project.load('parcelles', (query) =>
-        query.preload('comments', (commentQuery) => {
-          commentQuery.where('userId', user.id)
-        })
+        query
+          .preload('exploitation', (exploitationQuery) =>
+            exploitationQuery.where('isDeleted', false)
+          )
+          .preload('comments', (commentQuery) => {
+            commentQuery.where('userId', user.id)
+          })
       ),
       project.load('exploitations'),
       project.load('captages'),
@@ -205,8 +209,7 @@ export default class ProjectsController {
     ])
 
     return inertia.render('projets/id', {
-      // Depth 2 is needed to serialize the tags and documents of the steps
-      projet: ProjectTransformer.transform(project).depth(2),
+      projet: ProjectTransformer.transform(project).useVariant('forShow'),
     })
   }
 

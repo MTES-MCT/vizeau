@@ -16,6 +16,8 @@ export type SectionCardProps = {
   actionLabel?: string
   handleAction?: () => void
   additionalAction?: ReactNode
+  /** Occupe toute la hauteur du parent : le contenu prend l'espace restant sous l'en-tête. */
+  fillHeight?: boolean
 }
 
 export default function SectionCard({
@@ -30,11 +32,12 @@ export default function SectionCard({
   actionLabel,
   additionalAction,
   hideLongTitleTooltip = false,
+  fillHeight = false,
 }: SectionCardProps) {
   const hasHeader = !!(title || icon || (handleAction && actionIcon))
   return (
     <section
-      className={`flex flex-col fr-p-2w${hasHeader ? ' gap-6' : ''}`}
+      className={`flex flex-col fr-p-2w${hasHeader ? ' gap-6' : ''}${fillHeight ? ' h-full' : ''}`}
       style={{
         border: `1px solid ${background === 'primary' ? fr.colors.decisions.border.default.grey.default : 'transparent'}`,
         backgroundColor:
@@ -137,7 +140,7 @@ export default function SectionCard({
         </div>
       )}
 
-      <div>{children}</div>
+      <div className={fillHeight ? 'flex-1 min-h-0' : undefined}>{children}</div>
     </section>
   )
 }

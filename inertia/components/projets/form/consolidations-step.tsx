@@ -4,8 +4,8 @@ import { STEPS, STEP_KEYS } from '~/components/projets/form/steps_config'
 import type { ProjetFormData } from '~/components/projets/form/projet-form'
 
 const OPTIONAL_STEPS = [
-  STEPS[STEP_KEYS.PARCELLES],
   STEPS[STEP_KEYS.EXPLOITATIONS],
+  STEPS[STEP_KEYS.PARCELLES],
   STEPS[STEP_KEYS.CAPTAGES],
 ]
 
@@ -23,7 +23,7 @@ export default function ConsolidationsStep({
   const clearStepData = (stepKey: number) => {
     setData((prev) => {
       if (stepKey === STEP_KEYS.PARCELLES) {
-        return { ...prev, parcelles: { ...prev.parcelles, items: [] } }
+        return { ...prev, parcelles: { ...prev.parcelles, items: [], addedExploitationIds: {} } }
       }
       if (stepKey === STEP_KEYS.EXPLOITATIONS) {
         return { ...prev, exploitations: [] }

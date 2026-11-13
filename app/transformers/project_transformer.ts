@@ -25,4 +25,18 @@ export default class ProjectTransformer extends BaseTransformer<Project> {
       steps: ProjectStepTransformer.transform(this.whenLoaded(this.resource.steps)),
     }
   }
+
+  /*
+   * Page d'un projet : expose aussi, si préchargés, l'exploitation de chaque parcelle et les
+   * tags et documents de chaque étape.
+   * Une profondeur définie sur le transformer racine est ignorée à la sérialisation : il faut
+   * la fixer sur chaque relation imbriquée.
+   */
+  forShow() {
+    return {
+      ...this.toObject(),
+      parcelles: ParcelleTransformer.transform(this.whenLoaded(this.resource.parcelles))?.depth(2),
+      steps: ProjectStepTransformer.transform(this.whenLoaded(this.resource.steps))?.depth(2),
+    }
+  }
 }

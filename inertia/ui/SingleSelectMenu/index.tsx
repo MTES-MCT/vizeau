@@ -16,6 +16,8 @@ export type SingleSelectMenuProps<T extends string | number> = {
   label?: string
   hint?: string
   placeholder?: string
+  /** Message affiché dans la liste quand aucune option ne correspond. */
+  noOptionsLabel?: string
   initialSelectedOption?: OptionType<T> | null
   options: OptionType<T>[]
   onChange: (option: OptionType<T>) => void
@@ -46,6 +48,7 @@ export default function SingleSelectMenu<T extends string | number>({
   label,
   hint,
   placeholder = 'Sélectionner une option',
+  noOptionsLabel = 'Aucune option disponible',
   initialSelectedOption,
   options,
   onChange,
@@ -237,7 +240,7 @@ export default function SingleSelectMenu<T extends string | number>({
               ))
             ) : (
               <div className="w-full italic text-center fr-p-2v" role="option" aria-disabled="true">
-                Aucune option disponible
+                {noOptionsLabel}
               </div>
             )}
           </div>

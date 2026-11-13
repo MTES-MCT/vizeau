@@ -46,7 +46,15 @@ export type SelectedParcelleFormData = {
   surface: number | null
   cultureCode: string | null
   centroid: { x: number; y: number } | undefined
-  exploitationName: string | null
+}
+
+export type ProjetParcellesFormData = {
+  /** Millésime RPG affiché sur la carte. */
+  millesime: string
+  /** Parcelles sélectionnées, tous millésimes confondus. */
+  items: SelectedParcelleFormData[]
+  /** Exploitations du projet ajoutées, par millésime, dans l'ordre d'ajout. Non envoyé au back. */
+  addedExploitationIds: Record<string, string[]>
 }
 
 export type ProjetFormData = {
@@ -64,10 +72,7 @@ export type ProjetFormData = {
     date: string
     documents: File[]
   }[]
-  parcelles: {
-    millesime: string
-    items: SelectedParcelleFormData[]
-  }
+  parcelles: ProjetParcellesFormData
   exploitations: string[]
   captages: string[]
   territoireIds: string[]
@@ -85,6 +90,7 @@ export const defaultFormData: ProjetFormData = {
   parcelles: {
     millesime: '2024',
     items: [],
+    addedExploitationIds: {},
   },
   exploitations: [],
   captages: [],
