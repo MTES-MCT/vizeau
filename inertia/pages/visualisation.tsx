@@ -14,6 +14,14 @@ import Select from '@codegouvfr/react-dsfr/SelectNext'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { getCentroid } from '~/functions/map'
 import { urlFor } from '~/client'
+import type { ParcellesState, StepParcelle } from '~/functions/parcelles'
+import {
+  emptyParcellesState,
+  getActiveParcelles,
+  getYearParcelles,
+  parcellesStateFromExploitation,
+} from '~/functions/parcelles'
+import { useMapParcelleToggle } from '~/hooks/use_map_parcelle_toggle'
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -24,12 +32,7 @@ const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
 }, 300)
 
 export type ParcelleFormData = {
-  parcelles: {
-    rpgId: string
-    surface: number | null
-    cultureCode: string | null
-    centroid: { x: number; y: number } | undefined
-  }[]
+  parcelles: ParcellesState
 }
 
 export type VisualisationPageProps = {
@@ -100,10 +103,9 @@ export default function VisualisationPage({
   const [editMode, setEditMode] = useState(false)
   const millesime = queryString?.millesime as string
 
-  const { data, setData, post, reset, processing, transform, isDirty, setDefaults } =
-    useForm<ParcelleFormData>({
-      parcelles: [],
-    })
+  const { data, setData, post, processing, transform } = useForm<ParcelleFormData>({
+    parcelles: emptyParcellesState(),
+  })
 
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
@@ -121,22 +123,82 @@ export default function VisualisationPage({
     return selectedExploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
   }, [queryString?.parcelleId, selectedExploitation])
 
-  const formParcelleIds = useMemo(
-    () => data.parcelles.map((parcelle) => parcelle.rpgId),
-    [data.parcelles]
+  const setParcelles = useCallback(
+    (updater: (prev: ParcellesState) => ParcellesState) => {
+      setData((prev) => ({ ...prev, parcelles: updater(prev.parcelles) }))
+    },
+    [setData]
   )
 
+  const { toggleParcelle, pacageSuggestion, dismissPacageSuggestion } = useMapParcelleToggle(
+    data.parcelles,
+    setParcelles,
+    millesime
+  )
+
+  // Parcelles cochées du millésime affiché, seules envoyées au serveur.
+  const formParcelles = useMemo(
+    () =>
+      getActiveParcelles(getYearParcelles(data.parcelles, Number(millesime))).filter(
+        (parcelle): parcelle is StepParcelle & { rpgId: string } => parcelle.rpgId !== null
+      ),
+    [data.parcelles, millesime]
+  )
+
+  const formParcelleIds = useMemo(
+    () => formParcelles.map((parcelle) => parcelle.rpgId),
+    [formParcelles]
+  )
+
+  // L'onglet actif ou le PACAGE rattaché à une parcelle ne sont pas des modifications :
+  // seul compte l'ensemble des parcelles cochées, comparé à celles déjà rattachées.
+  const isDirty = useMemo(() => {
+    const savedIds = new Set(
+      (selectedExploitation?.parcelles ?? [])
+        .filter((parcelle) => parcelle.year.toString() === millesime && parcelle.rpgId)
+        .map((parcelle) => parcelle.rpgId)
+    )
+    return (
+      savedIds.size !== formParcelleIds.length || formParcelleIds.some((id) => !savedIds.has(id))
+    )
+  }, [selectedExploitation, millesime, formParcelleIds])
+
+  const startEditMode = () => {
+    setData(
+      'parcelles',
+      parcellesStateFromExploitation(
+        selectedExploitation?.parcelles?.filter((p) => p.year.toString() === millesime)
+      )
+    )
+    dismissPacageSuggestion()
+    setSelectedExploitationTab('parcelles')
+    setEditMode(true)
+  }
+
+  const cancelEditMode = () => {
+    setData('parcelles', emptyParcellesState())
+    setEditMode(false)
+  }
+
   // Prepare data before sending the form
-  transform((data) => ({
+  transform(() => ({
     exploitationId: selectedExploitationId || null,
     year: parseInt(millesime, 10),
-    parcelles: data.parcelles,
+    parcelles: formParcelles.map(({ rpgId, surface, cultureCode, centroid }) => ({
+      rpgId,
+      surface,
+      cultureCode,
+      centroid,
+    })),
   }))
 
   const sendFormAndResetState = (onAfterSuccess?: () => void) => {
     post(urlFor('visualisation.assignParcellesToExploitation'), {
       preserveState: true,
-      onSuccess: () => {
+      onSuccess: (page) => {
+        // Un refus du back revient en redirection, donc en succès pour Inertia :
+        // on reste en édition pour que la sélection ne soit pas perdue.
+        if (page.flash?.error) return
         setEditMode(false)
         onAfterSuccess?.()
       },
@@ -155,26 +217,12 @@ export default function VisualisationPage({
 
       // In edit mode, we can select multiple parcelles to attach them to the exploitation
       if (editMode && selectedExploitationId) {
-        setData((previousData) => {
-          const exists = previousData.parcelles.some((parcelle) => parcelle.rpgId === newId)
-          let updatedParcelles: ParcelleFormData['parcelles']
-          if (exists) {
-            updatedParcelles = previousData.parcelles.filter((parcelle) => parcelle.rpgId !== newId)
-          } else {
-            updatedParcelles = [
-              ...previousData.parcelles,
-              {
-                rpgId: newId,
-                surface:
-                  properties['surf_parc'] != null
-                    ? properties['surf_parc']
-                    : properties['SURF_PARC'],
-                cultureCode: properties['code_cultu'] || properties['CODE_CULTU'],
-                centroid: getCentroid(parcelleFeature.geometry),
-              },
-            ]
-          }
-          return { parcelles: updatedParcelles }
+        toggleParcelle({
+          rpgId: String(newId),
+          surface:
+            properties['surf_parc'] != null ? properties['surf_parc'] : properties['SURF_PARC'],
+          cultureCode: properties['code_cultu'] || properties['CODE_CULTU'],
+          centroid: getCentroid(parcelleFeature.geometry),
         })
       } else {
         // In view mode, find the exploitation that owns this parcelle and navigate to it
@@ -196,7 +244,7 @@ export default function VisualisationPage({
         }
       }
     },
-    [editMode, selectedExploitationId, setData, filteredExploitations, millesime]
+    [editMode, selectedExploitationId, toggleParcelle, filteredExploitations, millesime]
   )
 
   const handleMarkerClick = useCallback(
@@ -350,11 +398,13 @@ export default function VisualisationPage({
             mapRef={mapRef}
             isDirty={isDirty}
             processing={processing}
-            reset={reset}
             sendFormAndResetState={sendFormAndResetState}
-            setData={setData}
-            setDefaults={setDefaults}
-            setEditMode={setEditMode}
+            startEditMode={startEditMode}
+            cancelEditMode={cancelEditMode}
+            parcelles={data.parcelles}
+            setParcelles={setParcelles}
+            pacageSuggestion={pacageSuggestion}
+            dismissPacageSuggestion={dismissPacageSuggestion}
             showBioOnly={showBioOnly}
             millesime={millesime}
             aacs={aacs}

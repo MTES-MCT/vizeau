@@ -51,8 +51,10 @@ export default function MapLayout({
     <div className="flex h-full overflow-hidden">
       {/* Left Sidebar */}
       {leftContent && (
+        // Largeur minimale explicite : avec celle par défaut (`auto`), un contenu large
+        // (onglets PACAGE…) élargirait le panneau au lieu de défiler.
         <div
-          className={`transition-all duration-300 ease-in-out flex ${leftSidebarOpen ? 'w-170' : 'w-0'}`}
+          className={`transition-all duration-300 ease-in-out flex ${leftSidebarOpen ? 'w-170 min-w-[430px]' : 'w-0 min-w-0'}`}
         >
           {leftSidebarOpen && (
             <div className="flex-1 overflow-auto">

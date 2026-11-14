@@ -163,7 +163,11 @@ export default class VisualisationController {
       await this.parcelleService.syncParcellesForExploitation(exploitationId, year, parcelles)
     } catch (error) {
       logger.warn(error)
-      createErrorFlashMessage(session, error)
+      // Le flash ne garde que du JSON : un objet Error y arriverait vide, sans message.
+      createErrorFlashMessage(
+        session,
+        error instanceof Error ? error.message : 'Une erreur est survenue lors de l’enregistrement.'
+      )
     }
 
     // We forward the query string parameters to preserve the millesime parameter
