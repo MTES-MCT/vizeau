@@ -9,6 +9,10 @@ const meta = {
     value: { control: 'number', description: 'La valeur actuelle de la progression' },
     total: { control: 'number', description: 'La valeur totale pour atteindre 100%' },
     unit: { control: 'text', description: "L'unité de mesure (optionnel)" },
+    valueLabel: {
+      control: 'text',
+      description: 'Texte affiché à la place du pourcentage ou de value/total (optionnel)',
+    },
     size: {
       control: 'select',
       options: ['md', 'sm', 'lg'],
@@ -68,5 +72,12 @@ export const ValeurDépassantLeTotal = {
   args: {
     value: 150,
     total: 100,
+  },
+}
+
+export const AvecLibelléPersonnalisé = {
+  args: {
+    unit: undefined,
+    valueLabel: '12,4 ha',
   },
 }
