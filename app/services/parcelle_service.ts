@@ -114,15 +114,17 @@ export class ParcelleService {
   }
 
   // Get the RPG IDs of parcelles assigned to other exploitations for the given year.
+  // Without exploitationId (exploitation not created yet), every assigned parcelle is returned.
   // Maybe we'll find a better filter (by bounding box?) if this becomes a performance issue
   async getParcellesRpgIdsForOtherExploitations(
     year: number | string,
-    exploitationId: string
+    exploitationId?: string
   ): Promise<string[]> {
     const parcelles = await Parcelle.query()
       .where('year', year)
-      .andWhere('exploitationId', '!=', exploitationId)
-      .andWhereNotNull('rpgId')
+      .whereNotNull('exploitationId')
+      .if(exploitationId, (query) => query.whereNot('exploitationId', exploitationId!))
+      .whereNotNull('rpgId')
       .select('rpgId')
 
     return parcelles.map((parcelle) => parcelle.rpgId!)

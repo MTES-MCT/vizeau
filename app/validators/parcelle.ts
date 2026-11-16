@@ -47,3 +47,10 @@ export const updateParcelleNoteValidator = vine.compile(
     comment: vine.string().maxLength(5000).nullable(),
   })
 )
+
+// Millésime des parcelles indisponibles, chargées à la demande par le formulaire d'exploitation
+export const unavailableParcellesQueryValidator = vine.compile(
+  vine.object({
+    millesime: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
+  })
+)
