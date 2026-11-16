@@ -207,6 +207,20 @@ export default class ProjectsController {
 
     return inertia.render('projets/id', {
       projet: ProjectTransformer.transform(project).useVariant('forShow'),
+      // Chargées à l'ouverture du workspace de parcelles seulement
+      pmtilesUrl: env.get('PMTILES_URL', ''),
+      aacs: inertia.optional(() => this.getAacsEmprises(user.id)),
+      // Exploitations du projet avec leurs parcelles, pour les ajouter d'un bloc
+      exploitations: inertia.optional(async () => {
+        const results = await this.exploitationService
+          .queryActiveExploitations(user.id)
+          .whereIn(
+            'id',
+            project.exploitations.map((exploitation) => exploitation.id)
+          )
+          .preload('parcelles')
+        return ExploitationTransformer.transform(results)
+      }),
     })
   }
 
