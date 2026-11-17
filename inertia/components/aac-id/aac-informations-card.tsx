@@ -75,7 +75,7 @@ export default function AacInformationsCard({
             size="sm"
           />
           <ResumeCard
-            title="Captages actifs"
+            title="Points de prélèvement actifs"
             iconId="fr-icon-drop-line"
             label="unités"
             value={nb_captages_actifs ?? 'Non renseigné'}

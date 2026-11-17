@@ -29,7 +29,7 @@ export function getAacListItemMetas(aac: AacMetasInput): MetasListProps['metas']
     ...(aac.nb_captages_actifs
       ? [
           {
-            content: `${aac.nb_captages_actifs} captage${aac.nb_captages_actifs > 1 ? 's' : ''} actif${aac.nb_captages_actifs > 1 ? 's' : ''}`,
+            content: `${aac.nb_captages_actifs} point${aac.nb_captages_actifs > 1 ? 's' : ''} de prélèvement actif${aac.nb_captages_actifs > 1 ? 's' : ''}`,
             iconId: 'fr-icon-drop-line',
           },
         ]
@@ -52,10 +52,10 @@ export function getAacListItemMetas(aac: AacMetasInput): MetasListProps['metas']
 export const SOURCE_RATTACHEMENT_LABELS: Record<SourceRattachement, string> = {
   sandre: 'Référentiel des AAC du Sandre',
   export: 'Liste nationale des captages prioritaires',
-  champ_captant: "Même champ captant qu'un captage de l'AAC",
-  point: "Captage situé dans l'AAC",
-  perimetre: "Périmètre de protection du captage dans l'AAC",
-  proximite: "Seul captage à proximité immédiate de l'AAC",
+  champ_captant: "Même champ captant qu'un point de prélèvement de l'AAC",
+  point: "Point de prélèvement situé dans l'AAC",
+  perimetre: "Périmètre de protection du point de prélèvement dans l'AAC",
+  proximite: "Seul point de prélèvement à proximité immédiate de l'AAC",
 }
 
 type RecroisementInput = Pick<InstallationInfo, 'source_rattachement' | 'recroisement_geographique'>
@@ -73,14 +73,14 @@ export function getRecroisementMention(
     return {
       label: 'Même champ captant',
       description:
-        "Ce captage partage le périmètre de protection rapprochée d'un captage officiellement rattaché à l'AAC. Ce lien est déduit de la géographie : il ne vient pas d'une table officielle.",
+        "Ce point de prélèvement partage le périmètre de protection rapprochée d'un point de prélèvement officiellement rattaché à l'AAC. Ce lien est déduit de la géographie : il ne vient pas d'une table officielle.",
     }
   }
   if (installation.recroisement_geographique === true) {
     return {
       label: 'Recroisement géographique',
       description:
-        "Le lien entre ce captage et l'AAC est déduit de leur position géographique : il ne vient pas d'une table officielle (référentiel des AAC du Sandre ou liste nationale des captages prioritaires).",
+        "Le lien entre ce point de prélèvement et l'AAC est déduit de leur position géographique : il ne vient pas d'une table officielle (référentiel des AAC du Sandre ou liste nationale des captages prioritaires).",
     }
   }
   return null

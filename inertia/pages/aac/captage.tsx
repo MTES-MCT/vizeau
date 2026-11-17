@@ -61,7 +61,7 @@ export default function CaptageShow({
 
   return (
     <Layout>
-      <Head title={`${installation.nom} — Captage`} />
+      <Head title={`${installation.nom} — Point de prélèvement`} />
       <div
         className="fr-p-2w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
@@ -174,7 +174,7 @@ export default function CaptageShow({
             </SmallSection>
             {captagesRattaches.length > 0 && (
               <SmallSection
-                title={`Captage${captagesRattaches.length > 1 ? 's' : ''} rattaché${captagesRattaches.length > 1 ? 's' : ''} (${captagesRattaches.length})`}
+                title={`Point${captagesRattaches.length > 1 ? 's' : ''} de prélèvement rattaché${captagesRattaches.length > 1 ? 's' : ''} (${captagesRattaches.length})`}
                 iconId="fr-icon-links-line"
                 priority="secondary"
                 hasBorder
@@ -183,7 +183,7 @@ export default function CaptageShow({
                   className="fr-text--xs fr-mb-1w"
                   style={{ color: fr.colors.decisions.text.mention.grey.default }}
                 >
-                  Captages qui prélèvent dans le même mélange que celui-ci.
+                  Points de prélèvement qui puisent dans le même mélange que celui-ci.
                 </p>
                 <CaptagesRattaches captages={captagesRattaches} />
               </SmallSection>

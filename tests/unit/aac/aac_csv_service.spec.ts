@@ -142,7 +142,7 @@ test.group('AacCsvService - exportCaptages', () => {
     const service = new AacCsvService(createMockAacService(buildAacFixture()))
     const csv = await service.exportCaptages('12345')
     assert.include(csv!, '"Code BSS"')
-    assert.include(csv!, '"Captage rattaché - Code"')
+    assert.include(csv!, '"Point de prélèvement rattaché - Code"')
   })
 
   test('includes installation and captage rattaché data', async ({ assert }) => {
@@ -197,15 +197,15 @@ test.group('AacCsvService - exportCaptages', () => {
       'État',
       'Code PPE',
       'Prioritaire',
-      'Captage rattaché - Code',
-      'Captage rattaché - Nom',
-      'Captage rattaché - Code BSS',
-      'Captage rattaché - État',
+      'Point de prélèvement rattaché - Code',
+      'Point de prélèvement rattaché - Nom',
+      'Point de prélèvement rattaché - Code BSS',
+      'Point de prélèvement rattaché - État',
       'Nouveau code BSS',
       'Origine du rattachement',
       'Recroisement géographique',
       'À part',
-      'Captage rattaché - Nouveau code BSS',
+      'Point de prélèvement rattaché - Nouveau code BSS',
     ])
   })
 
@@ -257,23 +257,23 @@ test.group('AacCsvService - exportCaptages', () => {
     assert.include(records[0], {
       'Code BSS': '02833X0011/P2',
       'Prioritaire': 'Oui',
-      'Captage rattaché - Code': '035000777',
+      'Point de prélèvement rattaché - Code': '035000777',
       'Nouveau code BSS': 'BSS000VTYF',
       'Origine du rattachement': 'Référentiel des AAC du Sandre',
       'Recroisement géographique': 'Non',
       'À part': '',
-      'Captage rattaché - Nouveau code BSS': 'BSS000VTYR',
+      'Point de prélèvement rattaché - Nouveau code BSS': 'BSS000VTYR',
     })
     assert.include(records[1], {
       'Code': '057001111',
       'Code BSS': '',
       'Prioritaire': 'Non',
-      'Captage rattaché - Code': '',
+      'Point de prélèvement rattaché - Code': '',
       'Nouveau code BSS': '',
-      'Origine du rattachement': "Captage situé dans l'AAC",
+      'Origine du rattachement': "Point de prélèvement situé dans l'AAC",
       'Recroisement géographique': 'Oui',
       'À part': 'Abandonné pour l’eau potable',
-      'Captage rattaché - Nouveau code BSS': '',
+      'Point de prélèvement rattaché - Nouveau code BSS': '',
     })
   })
 
@@ -284,12 +284,12 @@ test.group('AacCsvService - exportCaptages', () => {
 
     assert.include(records[0], {
       'Code': 'INST1',
-      'Captage rattaché - Code': 'CAP1',
+      'Point de prélèvement rattaché - Code': 'CAP1',
       'Nouveau code BSS': '',
       'Origine du rattachement': '',
       'Recroisement géographique': '',
       'À part': '',
-      'Captage rattaché - Nouveau code BSS': '',
+      'Point de prélèvement rattaché - Nouveau code BSS': '',
     })
   })
 })

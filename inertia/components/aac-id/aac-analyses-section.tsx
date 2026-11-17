@@ -134,7 +134,9 @@ export default function AacAnalysesSection({ aacCode, installationCode, installa
       )}
 
       {!loadingYears && !error && years.length === 0 && (
-        <p className="fr-text--sm fr-mb-0">Aucune analyse disponible pour ce point de captage.</p>
+        <p className="fr-text--sm fr-mb-0">
+          Aucune analyse disponible pour ce point de prélèvement.
+        </p>
       )}
 
       {!loadingYears && !error && years.length > 0 && (

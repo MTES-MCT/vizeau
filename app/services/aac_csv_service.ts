@@ -33,10 +33,10 @@ function wrapCsv(sections: string[]): string {
 const SOURCE_RATTACHEMENT_LABELS: Record<SourceRattachement, string> = {
   sandre: 'Référentiel des AAC du Sandre',
   export: 'Liste nationale des captages prioritaires',
-  champ_captant: "Même champ captant qu'un captage de l'AAC",
-  point: "Captage situé dans l'AAC",
-  perimetre: "Périmètre de protection du captage dans l'AAC",
-  proximite: "Seul captage à proximité immédiate de l'AAC",
+  champ_captant: "Même champ captant qu'un point de prélèvement de l'AAC",
+  point: "Point de prélèvement situé dans l'AAC",
+  perimetre: "Périmètre de protection du point de prélèvement dans l'AAC",
+  proximite: "Seul point de prélèvement à proximité immédiate de l'AAC",
 }
 
 /**
@@ -80,7 +80,7 @@ export class AacCsvService {
         'Nom',
         'Prioritaire',
         'Surface (ha)',
-        'Captages actifs',
+        'Points de prélèvement actifs',
         'Installations',
         'Surface agricole (ha)',
         'Parcelles',
@@ -117,15 +117,15 @@ export class AacCsvService {
       'État',
       'Code PPE',
       'Prioritaire',
-      'Captage rattaché - Code',
-      'Captage rattaché - Nom',
-      'Captage rattaché - Code BSS',
-      'Captage rattaché - État',
+      'Point de prélèvement rattaché - Code',
+      'Point de prélèvement rattaché - Nom',
+      'Point de prélèvement rattaché - Code BSS',
+      'Point de prélèvement rattaché - État',
       'Nouveau code BSS',
       'Origine du rattachement',
       'Recroisement géographique',
       'À part',
-      'Captage rattaché - Nouveau code BSS',
+      'Point de prélèvement rattaché - Nouveau code BSS',
     ]
     const rows: string[] = []
     for (const inst of installations) {

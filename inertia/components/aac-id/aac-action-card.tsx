@@ -71,7 +71,7 @@ export default function AacActionCard({ code }: { code: string }) {
           disabled={isLoading}
           options={[
             { value: 'infoGenerale', label: 'Informations générales' },
-            { value: 'captages', label: 'Captages' },
+            { value: 'captages', label: 'Points de prélèvement' },
             { value: 'assolement', label: 'Assolement' },
             { value: 'cultureEvolution', label: 'Évolution des cultures' },
             { value: 'qualiteEau', label: "Qualité de l'eau" },

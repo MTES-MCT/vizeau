@@ -63,7 +63,7 @@ function etatSeverity(etat: string): 'success' | 'error' {
 function getCaptagesRattachesLabel(
   captages: NonNullable<Installation['captages_rattaches']>
 ): string {
-  const count = `${captages.length} captage${captages.length > 1 ? 's' : ''} rattaché${captages.length > 1 ? 's' : ''}`
+  const count = `${captages.length} point${captages.length > 1 ? 's' : ''} de prélèvement rattaché${captages.length > 1 ? 's' : ''}`
   if (captages.length === 1) {
     const [captage] = captages
     return `${count} : ${captage.nom}${captage.etat ? ` (${captage.etat})` : ''}`
@@ -382,7 +382,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
             title="Points de prélèvement"
             iconId="fr-icon-drop-line"
             value={installationsPrincipales.filter((i) => i.etat === 'ACTIF').length}
-            label="captages actifs"
+            label="points de prélèvement actifs"
             priority="secondary"
           />
           <ResumeCard
@@ -412,7 +412,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           color={fr.colors.decisions.text.default.warning.default}
         />
 
-        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de captage</h2>
+        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de prélèvement</h2>
 
         <div className="flex gap-2 items-stretch">
           <div
@@ -505,7 +505,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
               installationsPrincipales.length > 0
                 ? 'Aucun point de prélèvement ne correspond à ces critères'
                 : installationsAPart.length > 0
-                  ? "Aucun captage d'eau potable en service n'est rattaché à l'AAC : ses captages sont listés ci-dessous, dans « Autres captages dans l'AAC »"
+                  ? "Aucun point de prélèvement d'eau potable en service n'est rattaché à l'AAC : ses points de prélèvement sont listés ci-dessous, dans « Autres points de prélèvement dans l'AAC »"
                   : 'Aucun point de prélèvement trouvé'
             }
             illustrativeIcon="fr-icon-drop-fill"
@@ -515,13 +515,13 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         {installationsAPart.length > 0 && (
           <section className="flex flex-col gap-2 fr-mt-2w">
             <div>
-              <h3 className="fr-h5 fr-mb-1v">Autres captages dans l'AAC</h3>
+              <h3 className="fr-h5 fr-mb-1v">Autres points de prélèvement dans l'AAC</h3>
               <p
                 className="fr-text--sm fr-mb-0"
                 style={{ color: fr.colors.decisions.text.mention.grey.default }}
               >
-                Captages situés dans l'AAC, mais abandonnés pour l'eau potable ou qui servent à un
-                autre usage. Ils ne sont pas comptés dans les statistiques ci-dessus.
+                Points de prélèvement situés dans l'AAC, mais abandonnés pour l'eau potable ou qui
+                servent à un autre usage. Ils ne sont pas comptés dans les statistiques ci-dessus.
               </p>
             </div>
             {filteredInstallationsAPart.length > 0 ? (
@@ -539,7 +539,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
               </ul>
             ) : (
               <EmptyPlaceholder
-                label="Aucun autre captage ne correspond à ces critères"
+                label="Aucun autre point de prélèvement ne correspond à ces critères"
                 illustrativeIcon="fr-icon-drop-fill"
               />
             )}

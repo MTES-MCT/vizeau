@@ -85,8 +85,8 @@ function PublicHeroContent() {
         </span>
       </div>
       <p className="fr-text--lg">
-        Viz'Eau réunit de <strong>multiples sources de données</strong> autour des captages (qualité
-        de l'eau, activité agricole, projets locaux) pour{' '}
+        Viz'Eau réunit de <strong>multiples sources de données</strong> autour des points de
+        prélèvement (qualité de l'eau, activité agricole, projets locaux) pour{' '}
         <strong>aider animateurs, agriculteurs et État</strong> à agir en amont pour{' '}
         <strong>la qualité de l'eau </strong> que nous boirons demain.
       </p>
