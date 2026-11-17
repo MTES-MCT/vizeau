@@ -12,41 +12,13 @@ import { Tag } from '@codegouvfr/react-dsfr/Tag'
 import Badge from '@codegouvfr/react-dsfr/Badge'
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 import CustomTag from '~/ui/CustomTag'
-import type { CaptageRattache, InstallationInfo } from '#types/aac'
+import type { InstallationInfo } from '#types/aac'
+import CaptagesRattachesList from '~/components/aac-id/captages-rattaches-list'
 import {
   getRecroisementMention,
   getSourceRattachementLabel,
   isInstallationAPart,
 } from '~/functions/aac'
-
-function CaptagesRattaches({ captages }: { captages: CaptageRattache[] }) {
-  return (
-    <ul className="flex flex-col gap-2 fr-p-0 fr-m-0">
-      {captages.map((captage) => (
-        <li key={captage.code} className="flex flex-col" style={{ listStyle: 'none' }}>
-          <span className="fr-text--sm fr-mb-0 font-bold">{captage.nom}</span>
-          <span
-            className="fr-text--xs fr-mb-0"
-            style={{ color: fr.colors.decisions.text.mention.grey.default }}
-          >
-            Code : {captage.code} · Ancien code BSS : {captage.code_bss || 'Non renseigné'} ·
-            Nouveau code BSS : {captage.code_bss_nouveau || 'Non renseigné'}
-          </span>
-          {captage.etat && (
-            <Badge
-              small
-              severity={captage.etat === 'ACTIF' ? 'success' : 'error'}
-              as="span"
-              className="fr-mt-1v"
-            >
-              {captage.etat}
-            </Badge>
-          )}
-        </li>
-      ))}
-    </ul>
-  )
-}
 
 export default function CaptageShow({
   aac,
@@ -183,9 +155,9 @@ export default function CaptageShow({
                   className="fr-text--xs fr-mb-1w"
                   style={{ color: fr.colors.decisions.text.mention.grey.default }}
                 >
-                  Points de prélèvement qui puisent dans le même mélange que celui-ci.
+                  Le Sandre rattache ces points de prélèvement à celui-ci (même code BSS).
                 </p>
-                <CaptagesRattaches captages={captagesRattaches} />
+                <CaptagesRattachesList captages={captagesRattaches} />
               </SmallSection>
             )}
             <SignalErrorContact />

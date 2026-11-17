@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AacAnalysesSummaryJson, InstallationInfo } from '#types/aac'
 
-import Accordion from '@codegouvfr/react-dsfr/Accordion'
 import Badge from '@codegouvfr/react-dsfr/Badge'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
@@ -49,41 +48,44 @@ export type AacCaptagesProps = {
   installations: Installation[]
 }
 
-// Nombre de captages rattachés nommés dans le titre de leur liste repliable
-const RATTACHES_IN_LABEL_MAX = 3
-
 function etatSeverity(etat: string): 'success' | 'error' {
   return etat === 'ACTIF' ? 'success' : 'error'
 }
 
+// Recherche par nom ou code, `query` étant déjà en minuscules
+function matchesSearch(captage: { nom: string; code: string }, query: string): boolean {
+  return captage.nom.toLowerCase().includes(query) || captage.code.toLowerCase().includes(query)
+}
+
 /**
- * Titre de la liste repliable des captages rattachés à une installation (même mélange) :
- * les captages y sont nommés, pour qu'un utilisateur qui cherche l'un d'eux le trouve.
+ * Mention des captages rattachés à une installation (même code BSS dans le Sandre) : leur
+ * nombre seulement, le détail étant sur la fiche de l'installation. Pendant une recherche, on
+ * nomme ceux qui correspondent, pour expliquer pourquoi l'installation est remontée.
  */
 function getCaptagesRattachesLabel(
-  captages: NonNullable<Installation['captages_rattaches']>
+  captages: NonNullable<Installation['captages_rattaches']>,
+  query: string
 ): string {
   const count = `${captages.length} point${captages.length > 1 ? 's' : ''} de prélèvement rattaché${captages.length > 1 ? 's' : ''}`
-  if (captages.length === 1) {
-    const [captage] = captages
-    return `${count} : ${captage.nom}${captage.etat ? ` (${captage.etat})` : ''}`
+  const matching = query === '' ? [] : captages.filter((captage) => matchesSearch(captage, query))
+  if (matching.length === 0) {
+    return count
   }
 
-  const names = captages.slice(0, RATTACHES_IN_LABEL_MAX).map((captage) => captage.nom)
-  const others = captages.length - names.length
-  return `${count} : ${names.join(', ')}${others > 0 ? ` et ${others} autre${others > 1 ? 's' : ''}` : ''}`
+  return `${count}, dont ${matching.map((captage) => captage.nom).join(', ')}`
 }
 
 function InstallationListItem({
   aacCode,
   installation,
   priority,
-  titleAs,
+  query,
 }: {
   aacCode: string
   installation: Installation
   priority: 'primary' | 'secondary'
-  titleAs: 'h3' | 'h4'
+  // Recherche en cours, en minuscules
+  query: string
 }) {
   const recroisement = getRecroisementMention(installation)
   const aPart = isInstallationAPart(installation)
@@ -120,10 +122,18 @@ function InstallationListItem({
             iconId: 'fr-icon-government-line',
             content: formatCaptageCommune(installation.commune, installation.departement),
           },
+          ...(captagesRattaches.length > 0
+            ? [
+                {
+                  iconId: 'fr-icon-links-line',
+                  content: getCaptagesRattachesLabel(captagesRattaches, query),
+                },
+              ]
+            : []),
         ]}
       />
       {/* Hors du lien de la carte, qui ne peut pas contenir d'éléments interactifs */}
-      {(recroisement || libelleAPart || captagesRattaches.length > 0) && (
+      {(recroisement || libelleAPart) && (
         <div
           className="fr-px-2w fr-py-1w flex flex-col gap-1"
           style={{ border, borderTop: 'none' }}
@@ -144,36 +154,6 @@ function InstallationListItem({
                 </span>
               )}
             </div>
-          )}
-          {captagesRattaches.length > 0 && (
-            <Accordion
-              titleAs={titleAs}
-              label={getCaptagesRattachesLabel(captagesRattaches)}
-              classes={{ title: 'fr-text--sm' }}
-            >
-              <ul className="flex flex-col gap-1 fr-p-0 fr-m-0">
-                {captagesRattaches.map((captage) => (
-                  <li
-                    key={captage.code}
-                    className="flex flex-wrap items-center gap-2"
-                    style={{ listStyle: 'none' }}
-                  >
-                    <span className="fr-text--sm fr-mb-0 font-bold">{captage.nom}</span>
-                    <span
-                      className="fr-text--sm fr-mb-0"
-                      style={{ color: fr.colors.decisions.text.mention.grey.default }}
-                    >
-                      {captage.code}
-                    </span>
-                    {captage.etat && (
-                      <Badge small severity={etatSeverity(captage.etat)} as="span">
-                        {captage.etat}
-                      </Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Accordion>
           )}
         </div>
       )}
@@ -280,21 +260,18 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
 
   // Les filtres s'appliquent aux deux listes. La recherche porte aussi sur les captages
   // rattachés, pour qu'un captage rangé dans une installation soit trouvé par son nom.
+  const query = searchQuery.toLowerCase()
   const matchesFilters = useMemo(() => {
     const selectedTypes = new Set(
       selectInputOptions.filter((o) => o.isSelected).map((o) => o.value)
     )
-    const query = searchQuery.toLowerCase()
-    const matchesQuery = (captage: { nom: string; code: string }) =>
-      captage.nom.toLowerCase().includes(query) || captage.code.toLowerCase().includes(query)
-
     return (installation: Installation) =>
       (!showActifOnly || installation.etat === 'ACTIF') &&
       selectedTypes.has(installation.type) &&
       (query === '' ||
-        matchesQuery(installation) ||
-        (installation.captages_rattaches ?? []).some(matchesQuery))
-  }, [showActifOnly, selectInputOptions, searchQuery])
+        matchesSearch(installation, query) ||
+        (installation.captages_rattaches ?? []).some((captage) => matchesSearch(captage, query)))
+  }, [showActifOnly, selectInputOptions, query])
 
   const filteredInstallations = installationsPrincipales.filter(matchesFilters)
   const filteredInstallationsAPart = installationsAPart.filter(matchesFilters)
@@ -494,7 +471,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
                   aacCode={aacCode}
                   installation={installation}
                   priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                  titleAs="h3"
+                  query={query}
                 />
               </li>
             ))}
@@ -532,7 +509,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
                       aacCode={aacCode}
                       installation={installation}
                       priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                      titleAs="h4"
+                      query={query}
                     />
                   </li>
                 ))}
