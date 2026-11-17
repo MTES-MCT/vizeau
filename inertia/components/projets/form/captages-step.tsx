@@ -128,11 +128,13 @@ export default function CaptagesStep({ data, setData }: CaptagesStepProps) {
                   params.set('step', currentStepParam)
                   params.set('installationsPage', String(pageNumber))
                   params.set('showActifOnly', showActifOnly ? '1' : '0')
+                  // Le formulaire sert à la création comme à l'édition : on reste sur la page courante
+                  const pageUrl = `${page.url.split('?')[0]}?${params.toString()}`
                   return {
-                    href: `/projets/creation?${params.toString()}`,
+                    href: pageUrl,
                     onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
                       e.preventDefault()
-                      router.visit(`/projets/creation?${params.toString()}`, {
+                      router.visit(pageUrl, {
                         preserveState: true,
                         preserveScroll: true,
                         only: ['installations', 'installationsMeta', 'installationsQueryString'],
