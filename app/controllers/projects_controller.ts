@@ -112,7 +112,10 @@ export default class ProjectsController {
 
     if (recherche) {
       captageQuery = captageQuery.where((q) => {
-        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+        q.whereILike('code', `%${recherche}%`)
+          .orWhereILike('name', `%${recherche}%`)
+          .orWhereILike('bssCode', `%${recherche}%`)
+          .orWhereILike('newBssCode', `%${recherche}%`)
       })
     }
 
@@ -371,7 +374,7 @@ export default class ProjectsController {
         .count('* as total')
         .first()
       if (Number(found?.$extras.total) !== payload.captageIds.length) {
-        createErrorFlashMessage(session, "Certains captages désignés n'existent pas.")
+        createErrorFlashMessage(session, "Certains points de prélèvement désignés n'existent pas.")
         return response.redirect().back()
       }
     }
@@ -425,7 +428,10 @@ export default class ProjectsController {
 
     if (recherche) {
       captageQuery = captageQuery.where((q) => {
-        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+        q.whereILike('code', `%${recherche}%`)
+          .orWhereILike('name', `%${recherche}%`)
+          .orWhereILike('bssCode', `%${recherche}%`)
+          .orWhereILike('newBssCode', `%${recherche}%`)
       })
     }
 
@@ -646,7 +652,7 @@ export default class ProjectsController {
     if (captageIds !== undefined && captageIds.length > 0) {
       const found = await Captage.query().whereIn('id', captageIds).count('* as total').first()
       if (Number(found?.$extras.total) !== captageIds.length) {
-        createErrorFlashMessage(session, "Certains captages désignés n'existent pas.")
+        createErrorFlashMessage(session, "Certains points de prélèvement désignés n'existent pas.")
         return response.redirect().back()
       }
     }

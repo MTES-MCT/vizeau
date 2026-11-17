@@ -8,10 +8,10 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class CaptageSchema extends BaseModel {
-  static $columns = ['bssCode', 'code', 'commune', 'createdAt', 'id', 'name', 'prioritaire', 'state', 'type', 'updatedAt'] as const
+  static $columns = ['bssCode', 'code', 'commune', 'createdAt', 'id', 'name', 'newBssCode', 'prioritaire', 'state', 'type', 'updatedAt'] as const
   $columns = CaptageSchema.$columns
   @column()
-  declare bssCode: string
+  declare bssCode: string | null
   @column()
   declare code: string
   @column()
@@ -22,6 +22,8 @@ export class CaptageSchema extends BaseModel {
   declare id: string
   @column()
   declare name: string
+  @column()
+  declare newBssCode: string | null
   @column()
   declare prioritaire: boolean
   @column()

@@ -29,16 +29,42 @@ export class GlobalSearchDto {
     }
   }
 
+  /**
+   * Un résultat de la thématique « Points de prélèvement » : une installation, ou un captage
+   * rattaché à une installation (même mélange), qui mène alors à la fiche de cette installation.
+   */
   static fromInstallation(installation: InstallationResult): GlobalSearchItemJson {
+    const href = urlFor('aac.showInstallation', {
+      code: installation.aac_code,
+      installationCode: installation.code,
+    })
+    const rattache = installation.captage_rattache
+
+    if (rattache) {
+      return {
+        id: rattache.code,
+        title: rattache.nom,
+        subtitle: [`Rattaché à ${installation.nom}`, GlobalSearchDto.bssCodes(rattache)]
+          .filter(Boolean)
+          .join(' · '),
+        href,
+      }
+    }
+
     return {
       id: installation.code,
       title: installation.nom,
-      subtitle: installation.code_bss,
-      href: urlFor('aac.showInstallation', {
-        code: installation.aac_code,
-        installationCode: installation.code,
-      }),
+      subtitle: GlobalSearchDto.bssCodes(installation),
+      href,
     }
+  }
+
+  // Ancien et nouveau codes BSS d'un captage, quand il en a
+  private static bssCodes(captage: {
+    code_bss: string | null
+    code_bss_nouveau: string | null
+  }): string | null {
+    return [captage.code_bss, captage.code_bss_nouveau].filter(Boolean).join(' · ') || null
   }
 
   static fromProject(project: Project): GlobalSearchItemJson {

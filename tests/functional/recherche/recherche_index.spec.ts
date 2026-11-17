@@ -94,10 +94,25 @@ test.group('Recherche - Index Route', (group) => {
                 code: '002000809',
                 nom: 'L’Urne à Magenta',
                 code_bss: 'BSS02436X',
+                code_bss_nouveau: null,
                 aac_code: '5463',
+                captage_rattache: null,
+              },
+              {
+                code: '002000810',
+                nom: 'L’Urne nord',
+                code_bss: '02436X0001/F1',
+                code_bss_nouveau: 'BSS000ABCD',
+                aac_code: '5463',
+                captage_rattache: {
+                  code: '002000811',
+                  nom: 'L’Urne sud',
+                  code_bss: null,
+                  code_bss_nouveau: 'BSS000ABCE',
+                },
               },
             ],
-            total: 1,
+            total: 2,
           }
         },
       })
@@ -148,6 +163,13 @@ test.group('Recherche - Index Route', (group) => {
     assert.equal(aacs.items[0].subtitle, 'Code SANDRE : 5463')
     assert.equal(points.items[0].href, '/aac/5463/installations/002000809')
     assert.equal(points.items[0].subtitle, 'BSS02436X')
+    // Un captage rattaché mène à la fiche de l'installation qui le contient
+    assert.deepEqual(points.items[1], {
+      id: '002000811',
+      title: 'L’Urne sud',
+      subtitle: 'Rattaché à L’Urne nord · BSS000ABCE',
+      href: '/aac/5463/installations/002000810',
+    })
     assert.equal(projets.items[0].href, `/projets/${project.id}`)
 
     // Project steps and log entries are merged, most recent first

@@ -2,6 +2,7 @@ import { Link } from '@adonisjs/inertia/react'
 import { fr } from '@codegouvfr/react-dsfr'
 
 import MetasList, { MetasListProps } from '../MetasList'
+import TagsList, { TagsListProps } from '../TagsList'
 import TruncatedText from '../TruncatedText'
 import { AdditionnalInfos, AdditionalInfosProps } from '../ListItem'
 
@@ -10,6 +11,7 @@ import '../ListItem/list-item.css'
 export type DepassementsListItemProps = {
   title: string
   metas: MetasListProps['metas']
+  tags?: TagsListProps['tags']
   linkProps?: { href: string; preserveScroll?: boolean; preserveState?: boolean }
   priority?: 'primary' | 'secondary'
   depassementsAlerte?: number | null
@@ -24,6 +26,7 @@ export type DepassementsListItemProps = {
 export default function DepassementsListItem({
   title,
   metas,
+  tags,
   linkProps,
   priority = 'primary',
   depassementsAlerte,
@@ -61,6 +64,7 @@ export default function DepassementsListItem({
               alert={additionalInfos.alert}
             />
           )}
+          {tags && tags.length > 0 && <TagsList tags={tags} size="sm" />}
           <div className="flex-1 min-w-0">
             <TruncatedText maxLines={1} className="fr-m-0 fr-text--md font-bold">
               {title}

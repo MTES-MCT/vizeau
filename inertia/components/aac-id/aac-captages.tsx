@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AacAnalysesSummaryJson } from '#types/aac'
+import type { AacAnalysesSummaryJson, InstallationInfo } from '#types/aac'
 
+import Badge from '@codegouvfr/react-dsfr/Badge'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 import { Range } from '@codegouvfr/react-dsfr/Range'
 import ButtonWithSelector, { OptionType } from '~/ui/ButtonWithSelector'
 import Tag from '@codegouvfr/react-dsfr/Tag'
@@ -12,6 +14,12 @@ import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard from '~/ui/ResumeCard'
 import Loader from '~/ui/Loader'
 import DepassementsListItem from '~/ui/DepassementsListItem'
+import {
+  formatCaptageCommune,
+  getEtatSeverity,
+  getInstallationTags,
+  isInstallationAPart,
+} from '~/functions/aac'
 
 type AnalysesSummary = {
   nb_analyses: number
@@ -20,26 +28,113 @@ type AnalysesSummary = {
   yearMax: number | null
 }
 
+type Installation = Pick<
+  InstallationInfo,
+  | 'code'
+  | 'nom'
+  | 'code_bss'
+  | 'code_bss_nouveau'
+  | 'commune'
+  | 'departement'
+  | 'type'
+  | 'etat'
+  | 'prioritaire'
+  | 'captages_rattaches'
+  | 'source_rattachement'
+  | 'recroisement_geographique'
+  | 'a_part'
+  | 'motif_a_part'
+  | 'libelle_a_part'
+  | 'depassements_alerte'
+  | 'depassements_reglementaires'
+>
+
 export type AacCaptagesProps = {
   aacCode: string
-  installations: {
-    code: string
-    nom: string
-    code_bss: string
-    commune: string
-    departement: string
-    type: string
-    nature: string
-    usage: string
-    etat: string
-    prioritaire: boolean | null
-    depassements_alerte?: number
-    depassements_reglementaires?: number
-  }[]
+  installations: Installation[]
+}
+
+// Recherche par nom ou code, `query` étant déjà en minuscules
+function matchesSearch(captage: { nom: string; code: string }, query: string): boolean {
+  return captage.nom.toLowerCase().includes(query) || captage.code.toLowerCase().includes(query)
+}
+
+/**
+ * Mention des captages rattachés à une installation (même code BSS dans le Sandre) : leur
+ * nombre seulement, le détail étant sur la fiche de l'installation. Pendant une recherche, on
+ * nomme ceux qui correspondent, pour expliquer pourquoi l'installation est remontée.
+ */
+function getCaptagesRattachesLabel(
+  captages: NonNullable<Installation['captages_rattaches']>,
+  query: string
+): string {
+  const count = `${captages.length} point${captages.length > 1 ? 's' : ''} de prélèvement rattaché${captages.length > 1 ? 's' : ''}`
+  const matching = query === '' ? [] : captages.filter((captage) => matchesSearch(captage, query))
+  if (matching.length === 0) {
+    return count
+  }
+
+  return `${count}, dont ${matching.map((captage) => captage.nom).join(', ')}`
+}
+
+function InstallationListItem({
+  aacCode,
+  installation,
+  priority,
+  query,
+}: {
+  aacCode: string
+  installation: Installation
+  priority: 'primary' | 'secondary'
+  // Recherche en cours, en minuscules
+  query: string
+}) {
+  const aPart = isInstallationAPart(installation)
+  // Un captage à part n'est pas compté, ni présenté comme prioritaire : il ne l'est que par
+  // défaut, quand la liste nationale ne lui donne aucune AAC valide
+  const prioritaire = installation.prioritaire === true && !aPart
+  const captagesRattaches = installation.captages_rattaches ?? []
+
+  return (
+    <DepassementsListItem
+      title={installation.nom}
+      priority={priority}
+      linkProps={
+        installation.code
+          ? { href: `/aac/${aacCode}/installations/${installation.code}` }
+          : undefined
+      }
+      additionalInfos={{
+        ...(prioritaire && {
+          message: 'Prioritaire',
+          iconId: 'fr-icon-info-fill',
+        }),
+        ...(installation.etat && {
+          alert: { text: installation.etat, severity: getEtatSeverity(installation.etat) },
+        }),
+      }}
+      tags={getInstallationTags(installation)}
+      depassementsAlerte={installation.depassements_alerte}
+      depassementsReglementaires={installation.depassements_reglementaires}
+      metas={[
+        {
+          iconId: 'fr-icon-government-line',
+          content: formatCaptageCommune(installation.commune, installation.departement),
+        },
+        ...(captagesRattaches.length > 0
+          ? [
+              {
+                iconId: 'fr-icon-links-line',
+                content: getCaptagesRattachesLabel(captagesRattaches, query),
+              },
+            ]
+          : []),
+      ]}
+    />
+  )
 }
 
 export default function AacCaptages({ aacCode, installations }: AacCaptagesProps) {
-  const [filteredInstallations, setFilteredInstallations] = useState(installations)
   const [showActifOnly, setShowActifOnly] = useState(false)
   const [deselectedTypes, setDeselectedTypes] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
@@ -124,21 +219,35 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
       isSelected: !deselectedTypes.has(type),
     }))
   }, [installations, deselectedTypes])
-  useEffect(() => {
+
+  // Liste principale, et installations à part (abandonnées, ou hors eau potable), affichées
+  // dans une section distincte et exclues des statistiques
+  const installationsPrincipales = useMemo(
+    () => installations.filter((installation) => !isInstallationAPart(installation)),
+    [installations]
+  )
+  const installationsAPart = useMemo(
+    () => installations.filter((installation) => isInstallationAPart(installation)),
+    [installations]
+  )
+
+  // Les filtres s'appliquent aux deux listes. La recherche porte aussi sur les captages
+  // rattachés, pour qu'un captage rangé dans une installation soit trouvé par son nom.
+  const query = searchQuery.toLowerCase()
+  const matchesFilters = useMemo(() => {
     const selectedTypes = new Set(
       selectInputOptions.filter((o) => o.isSelected).map((o) => o.value)
     )
-    setFilteredInstallations(
-      installations.filter(
-        (installation) =>
-          (!showActifOnly || installation.etat === 'ACTIF') &&
-          selectedTypes.has(installation.type) &&
-          (searchQuery === '' ||
-            installation.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            installation.code.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    )
-  }, [showActifOnly, installations, selectInputOptions, searchQuery])
+    return (installation: Installation) =>
+      (!showActifOnly || installation.etat === 'ACTIF') &&
+      selectedTypes.has(installation.type) &&
+      (query === '' ||
+        matchesSearch(installation, query) ||
+        (installation.captages_rattaches ?? []).some((captage) => matchesSearch(captage, query)))
+  }, [showActifOnly, selectInputOptions, query])
+
+  const filteredInstallations = installationsPrincipales.filter(matchesFilters)
+  const filteredInstallationsAPart = installationsAPart.filter(matchesFilters)
 
   const handleOptionChange = (updatedOption: OptionType<string>) => {
     setDeselectedTypes((prev) => {
@@ -222,8 +331,8 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           <ResumeCard
             title="Points de prélèvement"
             iconId="fr-icon-drop-line"
-            value={installations.filter((i) => i.etat === 'ACTIF').length}
-            label="captages actifs"
+            value={installationsPrincipales.filter((i) => i.etat === 'ACTIF').length}
+            label="points de prélèvement actifs"
             priority="secondary"
           />
           <ResumeCard
@@ -247,13 +356,13 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         <ResumeCard
           title="Prioritaire(s)"
           iconId="fr-icon-warning-line"
-          value={installations.filter((i) => i.prioritaire === true).length}
+          value={installationsPrincipales.filter((i) => i.prioritaire === true).length}
           label="point(s) de prélèvement"
           priority="secondary"
           color={fr.colors.decisions.text.default.warning.default}
         />
 
-        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de captage</h2>
+        <h2 className="fr-h4 fr-mb-1w fr-mt-2w">Visualisation des points de prélèvement</h2>
 
         <div className="flex gap-2 items-stretch">
           <div
@@ -327,47 +436,64 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           </SmallSection>
         )}
 
-        {filteredInstallations && filteredInstallations.length > 0 ? (
+        {filteredInstallations.length > 0 ? (
           <ul className="flex flex-col gap-2 fr-p-0">
             {filteredInstallations.map((installation, index) => (
               <li key={installation.code} style={{ listStyle: 'none' }}>
-                <DepassementsListItem
-                  title={installation.nom}
+                <InstallationListItem
+                  aacCode={aacCode}
+                  installation={installation}
                   priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                  linkProps={
-                    installation.code
-                      ? { href: `/aac/${aacCode}/installations/${installation.code}` }
-                      : undefined
-                  }
-                  additionalInfos={{
-                    ...(installation.prioritaire === true && {
-                      message: 'Prioritaire',
-                      iconId: 'fr-icon-info-fill',
-                    }),
-                    ...(installation.etat && {
-                      alert: {
-                        text: installation.etat,
-                        severity: installation.etat === 'ACTIF' ? 'success' : 'error',
-                      },
-                    }),
-                  }}
-                  depassementsAlerte={installation.depassements_alerte}
-                  depassementsReglementaires={installation.depassements_reglementaires}
-                  metas={[
-                    {
-                      iconId: 'fr-icon-government-line',
-                      content: `${installation.commune} (${installation.departement})`,
-                    },
-                  ]}
+                  query={query}
                 />
               </li>
             ))}
           </ul>
         ) : (
           <EmptyPlaceholder
-            label={`${installations.length > 0 ? 'Aucun point de prélèvement ne correspond à ces critères' : 'Aucun point de prélèvement trouvé'}`}
+            label={
+              installationsPrincipales.length > 0
+                ? 'Aucun point de prélèvement ne correspond à ces critères'
+                : installationsAPart.length > 0
+                  ? "Aucun point de prélèvement d'eau potable en service n'est rattaché à l'AAC : ses points de prélèvement sont listés ci-dessous, dans « Autres points de prélèvement dans l'AAC »"
+                  : 'Aucun point de prélèvement trouvé'
+            }
             illustrativeIcon="fr-icon-drop-fill"
           />
+        )}
+
+        {installationsAPart.length > 0 && (
+          <section className="flex flex-col gap-2 fr-mt-2w">
+            <div>
+              <h3 className="fr-h5 fr-mb-1v">Autres points de prélèvement dans l'AAC</h3>
+              <p
+                className="fr-text--sm fr-mb-0"
+                style={{ color: fr.colors.decisions.text.mention.grey.default }}
+              >
+                Points de prélèvement situés dans l'AAC, mais abandonnés pour l'eau potable ou qui
+                servent à un autre usage. Ils ne sont pas comptés dans les statistiques ci-dessus.
+              </p>
+            </div>
+            {filteredInstallationsAPart.length > 0 ? (
+              <ul className="flex flex-col gap-2 fr-p-0">
+                {filteredInstallationsAPart.map((installation, index) => (
+                  <li key={installation.code} style={{ listStyle: 'none' }}>
+                    <InstallationListItem
+                      aacCode={aacCode}
+                      installation={installation}
+                      priority={index % 2 === 1 ? 'secondary' : 'primary'}
+                      query={query}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyPlaceholder
+                label="Aucun autre point de prélèvement ne correspond à ces critères"
+                illustrativeIcon="fr-icon-drop-fill"
+              />
+            )}
+          </section>
         )}
       </div>
     </div>

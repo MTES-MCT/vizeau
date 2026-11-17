@@ -8,13 +8,32 @@ import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
 import CaptageAnalysesHeader from '~/components/captage/captage-analyses-header'
 import SignalErrorContact from '~/components/signal-error-contact'
-import { Tag } from '@codegouvfr/react-dsfr/Tag'
+import TagsList from '~/ui/TagsList'
+import { AdditionnalInfos } from '~/ui/ListItem'
 import CustomTag from '~/ui/CustomTag'
+import type { InstallationInfo } from '#types/aac'
+import CaptagesRattachesList from '~/components/aac-id/captages-rattaches-list'
+import {
+  getEtatSeverity,
+  getInstallationTags,
+  getSourceRattachementLabel,
+  isInstallationAPart,
+} from '~/functions/aac'
 
-export default function CaptageShow({ aac, installation }: any) {
+export default function CaptageShow({
+  aac,
+  installation,
+}: {
+  aac: { code: string; nom: string }
+  installation: InstallationInfo
+}) {
+  const installationTags = getInstallationTags(installation)
+  const sourceRattachement = getSourceRattachementLabel(installation)
+  const captagesRattaches = installation.captages_rattaches ?? []
+
   return (
     <Layout>
-      <Head title={`${installation.nom} — Captage`} />
+      <Head title={`${installation.nom} — Point de prélèvement`} />
       <div
         className="fr-p-2w"
         style={{ backgroundColor: fr.colors.decisions.background.alt.blueFrance.default }}
@@ -55,21 +74,32 @@ export default function CaptageShow({ aac, installation }: any) {
               priority="secondary"
               hasBorder
             >
-              {installation.etat === 'ACTIF' && (
-                <Tag
-                  iconId="fr-icon-success-fill"
-                  style={{
-                    color: fr.colors.decisions.text.inverted.grey.default,
-                    backgroundColor: fr.colors.decisions.background.flat.success.default,
-                    marginBottom: '1rem',
-                  }}
-                >
-                  Actif
-                </Tag>
+              {(installation.etat || installationTags.length > 0) && (
+                <div className="flex flex-col gap-2 fr-mb-2w">
+                  {installation.etat && (
+                    <AdditionnalInfos
+                      alert={{
+                        text: installation.etat,
+                        severity: getEtatSeverity(installation.etat),
+                      }}
+                    />
+                  )}
+                  {installationTags.length > 0 && <TagsList tags={installationTags} />}
+                </div>
               )}
 
               <div className="flex flex-col gap-2">
-                <LabelInfo label="Code BSS" info={installation.code_bss || 'Non renseigné'} />
+                <LabelInfo
+                  label="Ancien code BSS"
+                  info={installation.code_bss || 'Non renseigné'}
+                />
+                {/* Absent des fichiers antérieurs à novembre 2026 */}
+                {installation.code_bss_nouveau !== undefined && (
+                  <LabelInfo
+                    label="Nouveau code BSS"
+                    info={installation.code_bss_nouveau || 'Non renseigné'}
+                  />
+                )}
                 <LabelInfo
                   label="Commune"
                   info={
@@ -84,29 +114,38 @@ export default function CaptageShow({ aac, installation }: any) {
                 />
                 <LabelInfo label="Nature" info={installation.nature || 'Non renseignée'} />
                 <LabelInfo label="Usage" info={installation.usage || 'Non renseigné'} />
-                <LabelInfo label="État" info={installation.etat || 'Non renseigné'} />
                 {installation.code_ppe && (
                   <LabelInfo label="Code PPE" info={installation.code_ppe} />
                 )}
 
-                {installation.captages_rattaches && installation.captages_rattaches.length > 0 && (
-                  <LabelInfo
-                    label="Captages rattachés"
-                    info={String(installation.captages_rattaches.length)}
-                  />
+                {/* Statut dans l'AAC de la page : un captage peut être prioritaire dans une AAC
+                    et pas dans une autre. NULL vaut « non prioritaire ». Un captage à part
+                    (abandonné ou hors eau potable) n'est pas présenté comme prioritaire : son
+                    motif suffit. */}
+                {!isInstallationAPart(installation) && (
+                  <LabelInfo label="Prioritaire" info={installation.prioritaire ? 'Oui' : 'Non'} />
                 )}
-                <LabelInfo
-                  label="Prioritaire"
-                  info={
-                    installation.prioritaire === true
-                      ? 'Oui'
-                      : installation.prioritaire === false
-                        ? 'Non'
-                        : 'Non renseigné'
-                  }
-                />
+                {sourceRattachement && (
+                  <LabelInfo label="Origine du rattachement à l'AAC" info={sourceRattachement} />
+                )}
               </div>
             </SmallSection>
+            {captagesRattaches.length > 0 && (
+              <SmallSection
+                title={`Point${captagesRattaches.length > 1 ? 's' : ''} de prélèvement rattaché${captagesRattaches.length > 1 ? 's' : ''} (${captagesRattaches.length})`}
+                iconId="fr-icon-links-line"
+                priority="secondary"
+                hasBorder
+              >
+                <p
+                  className="fr-text--xs fr-mb-1w"
+                  style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                >
+                  Le Sandre rattache ces points de prélèvement à celui-ci (même code BSS).
+                </p>
+                <CaptagesRattachesList captages={captagesRattaches} />
+              </SmallSection>
+            )}
             <SignalErrorContact />
           </aside>
 

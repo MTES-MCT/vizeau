@@ -11,6 +11,7 @@ export default class CaptageTransformer extends BaseTransformer<Captage> {
         'code',
         'name',
         'bssCode',
+        'newBssCode',
         'commune',
         'type',
         'state',

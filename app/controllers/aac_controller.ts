@@ -214,7 +214,7 @@ export default class AacController {
   }
 
   async exportCaptages({ params, response }: HttpContext) {
-    return this.sendCsvExport(response, params.code, 'captages', () =>
+    return this.sendCsvExport(response, params.code, 'points-de-prelevement', () =>
       this.aacCsvService.exportCaptages(params.code)
     )
   }

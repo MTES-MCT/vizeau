@@ -50,7 +50,7 @@ export default function AacTerritoireSection({
           priority="secondary"
         />
         <ResumeCard
-          title="Captages actifs"
+          title="Points de prélèvement actifs"
           iconId="fr-icon-drop-line"
           label="unités"
           value={nb_captages_actifs}
