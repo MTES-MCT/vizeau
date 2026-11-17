@@ -21,11 +21,35 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 import StepsList from '~/components/projets/steps-list'
 import ProjetExportCard from '~/components/projets/projet-export-card'
+import { STEP_KEYS, projetEditionUrl } from '~/components/projets/form/steps_config'
 
 const deleteProjetModal = createModal({
   id: 'delete-projet-modal',
   isOpenedByDefault: false,
 })
+
+function EditStepButton({
+  projectId,
+  step,
+  children,
+}: {
+  projectId: string
+  step: number
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex justify-end fr-mb-2w w-full">
+      <Button
+        priority="secondary"
+        iconId="fr-icon-edit-line"
+        style={{ width: '100%', justifyContent: 'center' }}
+        linkProps={{ href: projetEditionUrl(projectId, step) }}
+      >
+        {children}
+      </Button>
+    </div>
+  )
+}
 
 export default function ShowProjet({ projet }: any) {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false)
@@ -166,17 +190,39 @@ export default function ShowProjet({ projet }: any) {
                   content:
                     projet.exploitations.length === 0 ? (
                       <EmptyPlaceholder
-                        illustrativeIcon="fr-icon-collage-fill"
+                        illustrativeIcon="fr-icon-map-pin-2-line"
                         label="Aucune exploitation associée"
+                        buttonLabel="Associer des exploitations"
+                        buttonIcon="fr-icon-add-line"
+                        handleClick={() =>
+                          router.visit(projetEditionUrl(projet.id, STEP_KEYS.EXPLOITATIONS))
+                        }
                       />
                     ) : (
-                      <ExploitationsList exploitations={projet.exploitations} />
+                      <>
+                        <EditStepButton projectId={projet.id} step={STEP_KEYS.EXPLOITATIONS}>
+                          Gérer les exploitations
+                        </EditStepButton>
+                        <ExploitationsList exploitations={projet.exploitations} />
+                      </>
                     ),
                   iconId: 'fr-icon-map-pin-user-fill',
                   label: 'Exploitations',
                 },
                 {
-                  content: <ProjetInstallationsList captages={projet.captages} />,
+                  content: (
+                    <>
+                      {projet.captages.length > 0 && (
+                        <EditStepButton projectId={projet.id} step={STEP_KEYS.CAPTAGES}>
+                          Gérer les points de prélèvement
+                        </EditStepButton>
+                      )}
+                      <ProjetInstallationsList
+                        captages={projet.captages}
+                        onAdd={() => router.visit(projetEditionUrl(projet.id, STEP_KEYS.CAPTAGES))}
+                      />
+                    </>
+                  ),
                   iconId: 'fr-icon-drop-line',
                   label: 'Points de prélèvement',
                 },
