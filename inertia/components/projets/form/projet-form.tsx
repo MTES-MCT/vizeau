@@ -109,6 +109,8 @@ export type ProjetFormProps = {
   errors: ProjetFormErrors
   setErrors: (errors: ProjetFormErrors) => void
   onSubmit: () => void
+  /** Affiche « Enregistrer » à chaque étape, pour modifier un projet sans parcourir tout le formulaire. */
+  canSubmitFromAnyStep?: boolean
 }
 
 function validate(step: number, formData: ProjetFormData): ProjetFormErrors {
@@ -140,6 +142,7 @@ export default function ProjetForm({
   errors,
   setErrors,
   onSubmit,
+  canSubmitFromAnyStep = false,
 }: ProjetFormProps) {
   const currentIndex = stepsList.indexOf(currentStep)
   const prevStep = currentIndex > 0 ? stepsList[currentIndex - 1] : null
@@ -157,6 +160,19 @@ export default function ProjetForm({
     } else {
       onSubmit()
     }
+  }
+
+  const handleSubmitNow = () => {
+    for (const step of stepsList) {
+      const stepErrors = validate(step, data)
+      if (hasErrors(stepErrors)) {
+        setErrors(stepErrors)
+        setCurrentStep(step)
+        return
+      }
+    }
+    setErrors({})
+    onSubmit()
   }
 
   const handlePrev = () => {
@@ -201,6 +217,16 @@ export default function ProjetForm({
             iconId="fr-icon-arrow-left-line"
           >
             Précédent
+          </Button>
+        )}
+        {canSubmitFromAnyStep && nextStep !== null && (
+          <Button
+            type="button"
+            priority="secondary"
+            onClick={handleSubmitNow}
+            iconId="fr-icon-save-line"
+          >
+            Enregistrer
           </Button>
         )}
         {nextStep !== null ? (
