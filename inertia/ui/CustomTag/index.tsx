@@ -4,6 +4,7 @@ import tinycolor from 'tinycolor2'
 export type CustomTagProps = {
   label?: string
   iconId?: string
+  iconPosition?: 'left' | 'right'
   iconPath?: string
   size?: 'md' | 'sm'
   color?: string
@@ -16,7 +17,14 @@ function stringToColor(str: string) {
   return `hsl(${hue}, 80%, 85%)`
 }
 
-export default function CustomTag({ label, iconId, iconPath, size, color }: CustomTagProps) {
+export default function CustomTag({
+  label,
+  iconId,
+  iconPosition = 'left',
+  iconPath,
+  size,
+  color,
+}: CustomTagProps) {
   const backgroundColor = color || stringToColor(label || '')
   const textColor = color ? (tinycolor(color).isLight() ? '#000000' : '#ffffff') : '#3a3a3a'
 
@@ -26,7 +34,9 @@ export default function CustomTag({ label, iconId, iconPath, size, color }: Cust
       style={{ backgroundColor, color: textColor }}
       small={size === 'sm'}
     >
-      {iconId && <span className={`${iconId} fr-icon--sm flex items-center`}></span>}
+      {iconId && iconPosition === 'left' && (
+        <span className={`${iconId} fr-icon--sm flex items-center`}></span>
+      )}
       {iconPath && (
         <img
           src={iconPath}
@@ -38,6 +48,9 @@ export default function CustomTag({ label, iconId, iconPath, size, color }: Cust
         />
       )}
       {label}
+      {iconId && iconPosition === 'right' && (
+        <span className={`${iconId} fr-icon--sm flex items-center`}></span>
+      )}
     </Badge>
   )
 }

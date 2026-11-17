@@ -8,14 +8,14 @@ import SmallSection from '~/ui/SmallSection'
 import LabelInfo from '~/ui/LabelInfo'
 import CaptageAnalysesHeader from '~/components/captage/captage-analyses-header'
 import SignalErrorContact from '~/components/signal-error-contact'
-import { Tag } from '@codegouvfr/react-dsfr/Tag'
-import Badge from '@codegouvfr/react-dsfr/Badge'
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
+import TagsList from '~/ui/TagsList'
+import { AdditionnalInfos } from '~/ui/ListItem'
 import CustomTag from '~/ui/CustomTag'
 import type { InstallationInfo } from '#types/aac'
 import CaptagesRattachesList from '~/components/aac-id/captages-rattaches-list'
 import {
-  getRecroisementMention,
+  getEtatSeverity,
+  getInstallationTags,
   getSourceRattachementLabel,
   isInstallationAPart,
 } from '~/functions/aac'
@@ -27,7 +27,7 @@ export default function CaptageShow({
   aac: { code: string; nom: string }
   installation: InstallationInfo
 }) {
-  const recroisement = getRecroisementMention(installation)
+  const installationTags = getInstallationTags(installation)
   const sourceRattachement = getSourceRattachementLabel(installation)
   const captagesRattaches = installation.captages_rattaches ?? []
 
@@ -74,23 +74,18 @@ export default function CaptageShow({
               priority="secondary"
               hasBorder
             >
-              {installation.etat === 'ACTIF' && (
-                <Tag
-                  iconId="fr-icon-success-fill"
-                  style={{
-                    color: fr.colors.decisions.text.inverted.grey.default,
-                    backgroundColor: fr.colors.decisions.background.flat.success.default,
-                    marginBottom: '1rem',
-                  }}
-                >
-                  Actif
-                </Tag>
-              )}
-
-              {isInstallationAPart(installation) && installation.libelle_a_part && (
-                <Badge severity="warning" className="fr-mb-2w">
-                  {installation.libelle_a_part}
-                </Badge>
+              {(installation.etat || installationTags.length > 0) && (
+                <div className="flex flex-col gap-2 fr-mb-2w">
+                  {installation.etat && (
+                    <AdditionnalInfos
+                      alert={{
+                        text: installation.etat,
+                        severity: getEtatSeverity(installation.etat),
+                      }}
+                    />
+                  )}
+                  {installationTags.length > 0 && <TagsList tags={installationTags} />}
+                </div>
               )}
 
               <div className="flex flex-col gap-2">
@@ -119,7 +114,6 @@ export default function CaptageShow({
                 />
                 <LabelInfo label="Nature" info={installation.nature || 'Non renseignée'} />
                 <LabelInfo label="Usage" info={installation.usage || 'Non renseigné'} />
-                <LabelInfo label="État" info={installation.etat || 'Non renseigné'} />
                 {installation.code_ppe && (
                   <LabelInfo label="Code PPE" info={installation.code_ppe} />
                 )}
@@ -133,14 +127,6 @@ export default function CaptageShow({
                 )}
                 {sourceRattachement && (
                   <LabelInfo label="Origine du rattachement à l'AAC" info={sourceRattachement} />
-                )}
-                {recroisement && (
-                  <div className="flex items-center gap-1">
-                    <Badge small noIcon severity="info" as="span">
-                      {recroisement.label}
-                    </Badge>
-                    <Tooltip kind="click" title={recroisement.description} />
-                  </div>
                 )}
               </div>
             </SmallSection>

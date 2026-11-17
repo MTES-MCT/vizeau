@@ -14,7 +14,12 @@ import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard from '~/ui/ResumeCard'
 import Loader from '~/ui/Loader'
 import DepassementsListItem from '~/ui/DepassementsListItem'
-import { formatCaptageCommune, getRecroisementMention, isInstallationAPart } from '~/functions/aac'
+import {
+  formatCaptageCommune,
+  getEtatSeverity,
+  getInstallationTags,
+  isInstallationAPart,
+} from '~/functions/aac'
 
 type AnalysesSummary = {
   nb_analyses: number
@@ -38,6 +43,7 @@ type Installation = Pick<
   | 'source_rattachement'
   | 'recroisement_geographique'
   | 'a_part'
+  | 'motif_a_part'
   | 'libelle_a_part'
   | 'depassements_alerte'
   | 'depassements_reglementaires'
@@ -46,10 +52,6 @@ type Installation = Pick<
 export type AacCaptagesProps = {
   aacCode: string
   installations: Installation[]
-}
-
-function etatSeverity(etat: string): 'success' | 'error' {
-  return etat === 'ACTIF' ? 'success' : 'error'
 }
 
 // Recherche par nom ou code, `query` étant déjà en minuscules
@@ -87,77 +89,48 @@ function InstallationListItem({
   // Recherche en cours, en minuscules
   query: string
 }) {
-  const recroisement = getRecroisementMention(installation)
   const aPart = isInstallationAPart(installation)
-  const libelleAPart = aPart ? installation.libelle_a_part : null
   // Un captage à part n'est pas compté, ni présenté comme prioritaire : il ne l'est que par
   // défaut, quand la liste nationale ne lui donne aucune AAC valide
   const prioritaire = installation.prioritaire === true && !aPart
   const captagesRattaches = installation.captages_rattaches ?? []
-  const border = `1px solid ${fr.colors.decisions.border.default.grey.default}`
 
   return (
-    <>
-      <DepassementsListItem
-        title={installation.nom}
-        priority={priority}
-        linkProps={
-          installation.code
-            ? { href: `/aac/${aacCode}/installations/${installation.code}` }
-            : undefined
-        }
-        additionalInfos={{
-          ...(prioritaire && {
-            message: 'Prioritaire',
-            iconId: 'fr-icon-info-fill',
-          }),
-          ...(installation.etat && {
-            alert: { text: installation.etat, severity: etatSeverity(installation.etat) },
-          }),
-        }}
-        depassementsAlerte={installation.depassements_alerte}
-        depassementsReglementaires={installation.depassements_reglementaires}
-        metas={[
-          {
-            iconId: 'fr-icon-government-line',
-            content: formatCaptageCommune(installation.commune, installation.departement),
-          },
-          ...(captagesRattaches.length > 0
-            ? [
-                {
-                  iconId: 'fr-icon-links-line',
-                  content: getCaptagesRattachesLabel(captagesRattaches, query),
-                },
-              ]
-            : []),
-        ]}
-      />
-      {/* Hors du lien de la carte, qui ne peut pas contenir d'éléments interactifs */}
-      {(recroisement || libelleAPart) && (
-        <div
-          className="fr-px-2w fr-py-1w flex flex-col gap-1"
-          style={{ border, borderTop: 'none' }}
-        >
-          {(recroisement || libelleAPart) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {libelleAPart && (
-                <Badge small noIcon as="span">
-                  {libelleAPart}
-                </Badge>
-              )}
-              {recroisement && (
-                <span className="flex items-center gap-1">
-                  <Badge small noIcon severity="info" as="span">
-                    {recroisement.label}
-                  </Badge>
-                  <Tooltip kind="click" title={recroisement.description} />
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </>
+    <DepassementsListItem
+      title={installation.nom}
+      priority={priority}
+      linkProps={
+        installation.code
+          ? { href: `/aac/${aacCode}/installations/${installation.code}` }
+          : undefined
+      }
+      additionalInfos={{
+        ...(prioritaire && {
+          message: 'Prioritaire',
+          iconId: 'fr-icon-info-fill',
+        }),
+        ...(installation.etat && {
+          alert: { text: installation.etat, severity: getEtatSeverity(installation.etat) },
+        }),
+      }}
+      tags={getInstallationTags(installation)}
+      depassementsAlerte={installation.depassements_alerte}
+      depassementsReglementaires={installation.depassements_reglementaires}
+      metas={[
+        {
+          iconId: 'fr-icon-government-line',
+          content: formatCaptageCommune(installation.commune, installation.departement),
+        },
+        ...(captagesRattaches.length > 0
+          ? [
+              {
+                iconId: 'fr-icon-links-line',
+                content: getCaptagesRattachesLabel(captagesRattaches, query),
+              },
+            ]
+          : []),
+      ]}
+    />
   )
 }
 
