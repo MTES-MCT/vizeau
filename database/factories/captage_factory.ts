@@ -8,6 +8,7 @@ export const CaptageFactory = factory
       code: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
       name: faker.location.city(),
       bssCode: faker.string.alphanumeric({ length: 12, casing: 'upper' }),
+      newBssCode: `BSS${faker.string.alphanumeric({ length: 7, casing: 'upper' })}`,
       state: faker.helpers.arrayElement(['active', 'inactive', 'abandoned']),
     }
   })

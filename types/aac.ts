@@ -20,17 +20,33 @@ export type CultureEvolutionInfo = {
   repartition: Record<string, Record<string, CultureEvolutionDetail>>
 }
 
+// Les champs optionnels ci-dessous sont apparus dans aac.parquet en novembre 2026 : ils sont
+// absents (undefined) quand l'application lit un fichier antérieur.
+
 export type CaptageRattache = {
   code: string
   nom: string
-  code_bss: string
+  // Ancien code BSS, avec sa désignation (`06992X0035/P1`)
+  code_bss: string | null
+  // Nouveau code BSS (`BSS001SEGK`)
+  code_bss_nouveau?: string | null
   etat: string
 }
+
+/**
+ * Origine du lien entre une installation et l'AAC, de la plus sûre à la moins sûre.
+ * Libellés : SOURCE_RATTACHEMENT_LABELS (app/services/aac_csv_service.ts et inertia/functions/aac.ts).
+ */
+export type SourceRattachement =
+  'sandre' | 'export' | 'champ_captant' | 'point' | 'perimetre' | 'proximite'
 
 export type InstallationInfo = {
   code: string
   nom: string
-  code_bss: string
+  // Ancien code BSS, avec sa désignation (`06992X0035/P1`) ; l'indice seul avant novembre 2026
+  code_bss: string | null
+  // Nouveau code BSS (`BSS001SEGK`)
+  code_bss_nouveau?: string | null
   commune: string
   departement: string
   type: string
@@ -38,8 +54,17 @@ export type InstallationInfo = {
   usage: string
   etat: string
   code_ppe: string
-  prioritaire: boolean
-  captages_rattaches: CaptageRattache[]
+  // Statut dans l'AAC qui contient l'installation ; NULL vaut « non prioritaire »
+  prioritaire: boolean | null
+  captages_rattaches: CaptageRattache[] | null
+  source_rattachement?: SourceRattachement | null
+  // true si le lien avec l'AAC est déduit de la géographie, et non donné par une table officielle
+  recroisement_geographique?: boolean | null
+  // true si l'installation est affichée à part de la liste principale ; NULL vaut false
+  a_part?: boolean | null
+  motif_a_part?: 'abandon_aep' | 'autre_usage' | null
+  // Motif à afficher tel quel (« Abandonné pour l'eau potable »…)
+  libelle_a_part?: string | null
   depassements_alerte?: number
   depassements_reglementaires?: number
 }

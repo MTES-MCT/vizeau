@@ -13,6 +13,19 @@ function parseFields(row: string): string[] {
   return row.split(';')
 }
 
+// En-têtes et lignes de la première section du CSV, champs sans leurs guillemets
+function parseCsvRecords(csv: string) {
+  const unquote = (field: string) => field.replace(/^"|"$/g, '').replace(/""/g, '"')
+  const [headerRow, ...dataRows] = parseRows(csv)
+  const headers = parseFields(headerRow).map(unquote)
+  const records = dataRows
+    .filter((row) => row !== '')
+    .map((row) =>
+      Object.fromEntries(parseFields(row).map((field, index) => [headers[index], unquote(field)]))
+    )
+  return { headers, records }
+}
+
 function buildAacFixture(overrides: Partial<AacJson> = {}): AacJson {
   return {
     code: '12345',
@@ -166,6 +179,118 @@ test.group('AacCsvService - exportCaptages', () => {
     const fields = parseFields(dataRow)
     assert.equal(fields[fields.length - 1], '""')
     assert.equal(fields[fields.length - 2], '""')
+  })
+
+  test('keeps the existing columns first, and adds the new ones at the end', async ({ assert }) => {
+    const service = new AacCsvService(createMockAacService(buildAacFixture()))
+    const csv = await service.exportCaptages('12345')
+
+    assert.deepEqual(parseCsvRecords(csv!).headers, [
+      'Code',
+      'Nom',
+      'Code BSS',
+      'Commune',
+      'Département',
+      'Type',
+      'Nature',
+      'Usage',
+      'État',
+      'Code PPE',
+      'Prioritaire',
+      'Captage rattaché - Code',
+      'Captage rattaché - Nom',
+      'Captage rattaché - Code BSS',
+      'Captage rattaché - État',
+      'Nouveau code BSS',
+      'Origine du rattachement',
+      'Recroisement géographique',
+      'À part',
+      'Captage rattaché - Nouveau code BSS',
+    ])
+  })
+
+  test('exports the fields of the November 2026 file', async ({ assert }) => {
+    // D'après l'AAC 1694 La Couyère et l'AAC 5086 Apach (1)
+    const fixture = buildAacFixture({
+      installations: [
+        {
+          ...buildAacFixture().installations[0],
+          code: '035000369',
+          nom: 'PUITS DE LA COUYERE N°2',
+          code_bss: '02833X0011/P2',
+          code_bss_nouveau: 'BSS000VTYF',
+          source_rattachement: 'sandre',
+          recroisement_geographique: false,
+          prioritaire: true,
+          captages_rattaches: [
+            {
+              code: '035000777',
+              nom: 'PUITS DE LA COUYERE N°3',
+              code_bss: '02833X0023/P3',
+              code_bss_nouveau: 'BSS000VTYR',
+              etat: 'ACTIF',
+            },
+          ],
+        },
+        {
+          ...buildAacFixture().installations[0],
+          code: '057001111',
+          nom: 'SOURCE APACH 1',
+          code_bss: null,
+          code_bss_nouveau: null,
+          source_rattachement: 'point',
+          recroisement_geographique: true,
+          a_part: true,
+          motif_a_part: 'abandon_aep',
+          libelle_a_part: 'Abandonné pour l’eau potable',
+          // Prioritaire par défaut seulement : un captage à part n'est pas présenté comme prioritaire
+          prioritaire: true,
+          captages_rattaches: null,
+        },
+      ],
+    })
+    const service = new AacCsvService(createMockAacService(fixture))
+    const csv = await service.exportCaptages('12345')
+    const { records } = parseCsvRecords(csv!)
+
+    assert.lengthOf(records, 2)
+    assert.include(records[0], {
+      'Code BSS': '02833X0011/P2',
+      'Prioritaire': 'Oui',
+      'Captage rattaché - Code': '035000777',
+      'Nouveau code BSS': 'BSS000VTYF',
+      'Origine du rattachement': 'Référentiel des AAC du Sandre',
+      'Recroisement géographique': 'Non',
+      'À part': '',
+      'Captage rattaché - Nouveau code BSS': 'BSS000VTYR',
+    })
+    assert.include(records[1], {
+      'Code': '057001111',
+      'Code BSS': '',
+      'Prioritaire': 'Non',
+      'Captage rattaché - Code': '',
+      'Nouveau code BSS': '',
+      'Origine du rattachement': "Captage situé dans l'AAC",
+      'Recroisement géographique': 'Oui',
+      'À part': 'Abandonné pour l’eau potable',
+      'Captage rattaché - Nouveau code BSS': '',
+    })
+  })
+
+  test('leaves the new columns empty with a file older than November 2026', async ({ assert }) => {
+    const service = new AacCsvService(createMockAacService(buildAacFixture()))
+    const csv = await service.exportCaptages('12345')
+    const { records } = parseCsvRecords(csv!)
+
+    assert.include(records[0], {
+      'Code': 'INST1',
+      'Captage rattaché - Code': 'CAP1',
+      'Nouveau code BSS': '',
+      'Origine du rattachement': '',
+      'Recroisement géographique': '',
+      'À part': '',
+      'Captage rattaché - Nouveau code BSS': '',
+    })
   })
 })
 

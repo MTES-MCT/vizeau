@@ -6,6 +6,7 @@ import type { CaptageAlerteJson } from '#types/captage'
 import SectionCard from '~/ui/SectionCard'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import DepassementsListItem from '~/ui/DepassementsListItem'
+import { formatCaptageCommune } from '~/functions/aac'
 
 const NB_CAPTAGES_REPLIES = 5
 
@@ -39,7 +40,7 @@ export default function CaptagesAlertes({ captages }: CaptagesAlertesProps) {
                   metas={[
                     {
                       iconId: 'fr-icon-government-line',
-                      content: `${captage.commune} (${captage.departement})`,
+                      content: formatCaptageCommune(captage.commune, captage.departement),
                     },
                     { iconId: 'fr-icon-hexagon-line', content: captage.aac_nom },
                   ]}

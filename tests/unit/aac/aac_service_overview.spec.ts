@@ -135,6 +135,35 @@ test.group('AacService - getOverviewForTerritoires', () => {
     assert.deepEqual(aacCodesARisque, { codes: codes.slice(0, 10), total: 12 })
   })
 
+  test('leaves out the installations displayed apart', async ({ assert }) => {
+    // Installation abandonnée pour l'eau potable, affichée à part dans l'AAC 1 seulement
+    const aacs = [
+      { code: '1', nom: 'AAC Un', installations: [BOURG, { ...ABBAYE, a_part: true }] },
+      { code: '2', nom: 'AAC Deux', installations: [ABBAYE, SOURCE] },
+    ]
+    const { duckdbService, calls } = createFakeDuckdbService(aacs)
+    const service = new AacService(duckdbService)
+
+    const overview = await service.getOverviewForTerritoires(territoires(['1', '2']))
+
+    assert.deepEqual(installationCodesOf(calls[1]), ['I1', 'I2', 'I3'])
+    assert.include(overview.summariesByCode['1'], {
+      depassements_alerte: 1,
+      depassements_reglementaires: 2,
+    })
+    assert.deepEqual(Object.fromEntries(overview.conformiteStatsByAacCode), {
+      1: { total: 10, depassements_alerte: 3, depassements_reglementaires: 2 },
+      2: { total: 9, depassements_alerte: 2, depassements_reglementaires: 0 },
+    })
+    assert.deepEqual(
+      overview.captagesAlertes.map((captage) => [captage.code, captage.aac_code]),
+      [
+        ['I1', '1'],
+        ['I2', '2'],
+      ]
+    )
+  })
+
   test('does not read the analyses when the AACs have no installation', async ({ assert }) => {
     const { duckdbService, calls } = createFakeDuckdbService(AACS)
     const service = new AacService(duckdbService)
@@ -215,5 +244,70 @@ test.group('AacService - agrégats par date', () => {
     assert.match(calls[0].path as string, /\/analyses_robinet_par_date\.parquet$/)
     assert.match(sqls[0], /WHERE dep_regl$/)
     assert.match(sqls[1], /WHERE dep_alerte$/)
+  })
+})
+
+// Fake DuckDB qui expose, ou non, le champ a_part dans le schéma d'aac.parquet
+function createFakeDuckdbServiceWithSchema(hasAPartField: boolean) {
+  const sqls: string[] = []
+  const duckdbService = {
+    list: (values: unknown[]) => values,
+    async query(sql: string) {
+      sqls.push(sql)
+      if (sql.includes('parquet_schema')) return [{ found: hasAPartField ? 1 : 0 }]
+      if (sql.includes('$aacCode')) return [{ installation_codes: ['I1', 'I2'] }]
+      return []
+    },
+  } as unknown as DuckdbService
+
+  return { duckdbService, sqls }
+}
+
+const INSTALLATIONS_PRINCIPALES = 'list_filter(installations, i -> i.a_part IS NOT TRUE)'
+
+test.group('AacService - installations principales', (group) => {
+  group.each.setup(() => AacService.clearAacSchema())
+
+  test('leaves out the installations displayed apart when the file has a_part', async ({
+    assert,
+  }) => {
+    const { duckdbService, sqls } = createFakeDuckdbServiceWithSchema(true)
+    const service = new AacService(duckdbService)
+
+    await service.getInstallationCodesByAacCode('61')
+    await service.getAll(1, 10, undefined, undefined, undefined, true, true)
+
+    const queries = sqls.filter((sql) => !sql.includes('parquet_schema'))
+    const installationCodesQuery = queries.find((sql) => sql.includes('$aacCode'))
+    const aacsQuery = queries.find((sql) => sql.includes('total_count'))
+    assert.include(
+      installationCodesQuery!,
+      `list_transform(${INSTALLATIONS_PRINCIPALES}, i -> i.code)`
+    )
+    // Codes des installations, pour les dépassements et les deux filtres de dépassement
+    assert.equal(aacsQuery!.split(INSTALLATIONS_PRINCIPALES).length - 1, 3)
+  })
+
+  test('keeps every installation with a file older than November 2026', async ({ assert }) => {
+    const { duckdbService, sqls } = createFakeDuckdbServiceWithSchema(false)
+    const service = new AacService(duckdbService)
+
+    const codes = await service.getInstallationCodesByAacCode('61')
+    await service.getAll(1, 10, undefined, undefined, undefined, true, true)
+
+    assert.deepEqual(codes, ['I1', 'I2'])
+    for (const sql of sqls) assert.notInclude(sql, 'a_part IS NOT TRUE')
+  })
+
+  test('reads the schema of aac.parquet only once', async ({ assert }) => {
+    const { duckdbService, sqls } = createFakeDuckdbServiceWithSchema(true)
+
+    await new AacService(duckdbService).getInstallationCodesByAacCode('61')
+    await new AacService(duckdbService).getInstallationCodesByAacCode('62')
+
+    assert.lengthOf(
+      sqls.filter((sql) => sql.includes('parquet_schema')),
+      1
+    )
   })
 })

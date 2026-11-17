@@ -112,7 +112,10 @@ export default class ProjectsController {
 
     if (recherche) {
       captageQuery = captageQuery.where((q) => {
-        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+        q.whereILike('code', `%${recherche}%`)
+          .orWhereILike('name', `%${recherche}%`)
+          .orWhereILike('bssCode', `%${recherche}%`)
+          .orWhereILike('newBssCode', `%${recherche}%`)
       })
     }
 
@@ -425,7 +428,10 @@ export default class ProjectsController {
 
     if (recherche) {
       captageQuery = captageQuery.where((q) => {
-        q.whereILike('code', `%${recherche}%`).orWhereILike('name', `%${recherche}%`)
+        q.whereILike('code', `%${recherche}%`)
+          .orWhereILike('name', `%${recherche}%`)
+          .orWhereILike('bssCode', `%${recherche}%`)
+          .orWhereILike('newBssCode', `%${recherche}%`)
       })
     }
 

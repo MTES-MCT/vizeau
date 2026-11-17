@@ -96,25 +96,11 @@ const SQL_YEAR_RANGE = `${SQL_YEAR_FROM} AND ${SQL_YEAR_TO}`
  */
 const INSTALLATION_CODES_IN_LIST_MAX = 1000
 
-type CaptageSeedRow = {
-  code: string
-  name: string
-  bssCode: string
-  state: string
-  commune: string | null
-  type: string | null
-  prioritaire: boolean
-}
-
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null
 
   const normalized = value.trim()
   return normalized.length > 0 ? normalized : null
-}
-
-function getCaptageStatePriority(state: string): number {
-  return state.toUpperCase() === 'ACTIF' ? 0 : 1
 }
 
 /**
@@ -174,16 +160,22 @@ function toCaptageAlerte(row: Record<string, unknown>): CaptageAlerteJson {
 const GLOBAL_SEARCH_INDEX_TTL_MS = 60 * 60 * 1000
 
 type GlobalSearchAac = { code: string; nom: string }
-type GlobalSearchInstallation = {
+type GlobalSearchCaptage = {
   code: string
   nom: string
   code_bss: string | null
+  code_bss_nouveau: string | null
+}
+type GlobalSearchInstallation = GlobalSearchCaptage & {
   aac_code: string
+  // Captage rattaché à l'installation, quand c'est lui qui correspond à la recherche : le résultat
+  // mène alors à la fiche de l'installation qui le contient
+  captage_rattache: GlobalSearchCaptage | null
 }
 type GlobalSearchIndexEntry<T> = {
   item: T
-  // Code that ranks the entry first when the query is exactly equal to it
-  code: string | null
+  // Codes, normalisés, qui placent l'entrée en tête quand la recherche leur est exactement égale
+  exactCodes: string[]
   searchText: string
 }
 type GlobalSearchIndex = {
@@ -209,14 +201,101 @@ function searchInIndex<T>(
 ): { data: T[]; total: number } {
   const needle = normalizeSearchText(recherche.trim())
   const matches = entries.filter((entry) => entry.searchText.includes(needle))
-  const exactMatchIndex = matches.findIndex(
-    (entry) => entry.code !== null && normalizeSearchText(entry.code) === needle
-  )
+  const exactMatchIndex = matches.findIndex((entry) => entry.exactCodes.includes(needle))
   if (exactMatchIndex > 0) {
     matches.unshift(...matches.splice(exactMatchIndex, 1))
   }
 
   return { data: matches.slice(0, limit).map((entry) => entry.item), total: matches.length }
+}
+
+/** Captage tel qu'il figure dans aac.parquet, installation ou captage rattaché. */
+function toGlobalSearchCaptage(value: unknown): GlobalSearchCaptage | null {
+  if (!value || typeof value !== 'object') return null
+  const captage = value as Record<string, unknown>
+
+  const code = normalizeString(captage.code)
+  const nom = normalizeString(captage.nom)
+  if (!code || !nom) return null
+
+  return {
+    code,
+    nom,
+    code_bss: normalizeString(captage.code_bss),
+    // Absent des fichiers antérieurs à novembre 2026
+    code_bss_nouveau: normalizeString(captage.code_bss_nouveau),
+  }
+}
+
+/**
+ * Entrée de l'index pour un captage : cherché par nom, code, ancien et nouveau code BSS.
+ * Le code, les codes BSS et l'indice seul de l'ancien code (`06992X0035` pour `06992X0035/P1`)
+ * le placent en tête quand la recherche leur est exactement égale.
+ */
+function toCaptageSearchEntry(
+  captage: GlobalSearchCaptage,
+  item: GlobalSearchInstallation
+): GlobalSearchIndexEntry<GlobalSearchInstallation> {
+  const bssIndice = captage.code_bss?.split('/')[0] ?? null
+  const codes = [captage.code, captage.code_bss, bssIndice, captage.code_bss_nouveau].filter(
+    (code): code is string => Boolean(code)
+  )
+
+  return {
+    item,
+    exactCodes: codes.map(normalizeSearchText),
+    searchText: normalizeSearchText([captage.nom, ...codes].join(' ')),
+  }
+}
+
+/**
+ * Entrées de l'index des installations, triées par nom, à partir des installations dépliées de
+ * chaque AAC (triées par code d'AAC).
+ *
+ * Une installation présente dans plusieurs AAC n'apparaît qu'une fois, avec la première AAC
+ * (nécessaire au lien vers sa fiche). Ses captages rattachés (même mélange) ont chacun leur
+ * entrée, qui mène à la fiche de l'installation : sauf ceux qui sont aussi une installation
+ * d'une autre AAC, déjà dans l'index.
+ */
+function buildInstallationSearchEntries(
+  rows: { aac_code: unknown; installation: unknown }[]
+): GlobalSearchIndexEntry<GlobalSearchInstallation>[] {
+  const installations = new Map<string, { item: GlobalSearchInstallation; rattaches: unknown[] }>()
+  for (const row of rows) {
+    const captage = toGlobalSearchCaptage(row.installation)
+    if (!captage || installations.has(captage.code) || typeof row.aac_code !== 'string') continue
+
+    const rattaches = (row.installation as Record<string, unknown>).captages_rattaches
+    installations.set(captage.code, {
+      item: { ...captage, aac_code: row.aac_code, captage_rattache: null },
+      rattaches: Array.isArray(rattaches) ? rattaches : [],
+    })
+  }
+
+  const entries = new Map<string, GlobalSearchIndexEntry<GlobalSearchInstallation>>()
+  for (const { item } of installations.values()) {
+    entries.set(item.code, toCaptageSearchEntry(item, item))
+  }
+  for (const { item, rattaches } of installations.values()) {
+    for (const value of rattaches) {
+      const rattache = toGlobalSearchCaptage(value)
+      if (!rattache || entries.has(rattache.code)) continue
+
+      entries.set(
+        rattache.code,
+        toCaptageSearchEntry(rattache, { ...item, captage_rattache: rattache })
+      )
+    }
+  }
+
+  // Noms comparés en binaire, comme le faisait l'ORDER BY de DuckDB
+  const displayedName = (entry: GlobalSearchIndexEntry<GlobalSearchInstallation>) =>
+    entry.item.captage_rattache?.nom ?? entry.item.nom
+  return Array.from(entries.values()).sort((a, b) => {
+    const left = displayedName(a)
+    const right = displayedName(b)
+    return left < right ? -1 : left > right ? 1 : 0
+  })
 }
 
 /**
@@ -232,6 +311,9 @@ export class AacService {
     promise: Promise<GlobalSearchIndex>
     loadedAt: number
   } | null = null
+
+  // Le fichier aac.parquet a-t-il le champ `a_part` des installations ? Voir getInstallationsPrincipalesSql
+  private static hasAPartField: Promise<boolean> | null = null
 
   constructor(protected duckdbService: DuckdbService) {}
 
@@ -250,6 +332,8 @@ export class AacService {
       limit: perPage,
       offset: (page - 1) * perPage,
     }
+    // Les dépassements d'une AAC sont ceux de ses installations principales
+    const installationsPrincipales = await this.getInstallationsPrincipalesSql()
 
     if (recherche) {
       conditions.push("(nom ILIKE '%' || $recherche || '%' OR code ILIKE '%' || $recherche || '%')")
@@ -270,6 +354,7 @@ export class AacService {
 
     // An AAC matches a dépassement filter when at least one of its installations has had
     // an analysis exceeding the corresponding threshold, across all recorded history.
+    // Les installations à part (a_part) n'y comptent pas, comme dans les dépassements de l'AAC.
     const [installationCodesWithReglementaire, installationCodesWithAlerte] = await Promise.all([
       depassementsReglementaires
         ? this.getInstallationCodesWithDepassement('reglementaire')
@@ -281,7 +366,7 @@ export class AacService {
 
     if (installationCodesWithReglementaire) {
       conditions.push(
-        'len(list_filter(list_transform(installations, i -> i.code), ' +
+        `len(list_filter(list_transform(${installationsPrincipales}, i -> i.code), ` +
           'code -> list_contains($installationCodesWithReglementaire, code))) > 0'
       )
       parameters.installationCodesWithReglementaire = this.duckdbService.list(
@@ -291,7 +376,7 @@ export class AacService {
 
     if (installationCodesWithAlerte) {
       conditions.push(
-        'len(list_filter(list_transform(installations, i -> i.code), ' +
+        `len(list_filter(list_transform(${installationsPrincipales}, i -> i.code), ` +
           'code -> list_contains($installationCodesWithAlerte, code))) > 0'
       )
       parameters.installationCodesWithAlerte = this.duckdbService.list(installationCodesWithAlerte)
@@ -307,7 +392,7 @@ export class AacService {
      */
     const rows = await this.duckdbService.query<Record<string, unknown>>(
       'SELECT code, nom, surface, nb_captages_actifs, date_maj, date_creation, communes, nb_parcelles, surface_agricole_bio, surface_agricole_ppe, surface_agricole_ppr, surface_agricole_utile, bbox, ' +
-        'list_transform(installations, i -> i.code) AS installation_codes, ' +
+        `list_transform(${installationsPrincipales}, i -> i.code) AS installation_codes, ` +
         'CAST(COUNT(*) OVER () AS INTEGER) AS total_count ' +
         'FROM read_parquet($path) ' +
         where +
@@ -508,18 +593,20 @@ export class AacService {
       { path: getParquetPath(), aacCodes: this.duckdbService.list(aacCodes) }
     )
 
-    // Une ligne par installation de chaque AAC, comme l'unnest(installations) en SQL
+    // Une ligne par installation principale de chaque AAC, comme l'unnest(installations) en SQL.
+    // Les installations à part (abandonnées, ou hors eau potable) ne comptent pas dans les
+    // indicateurs : leurs analyses restent consultables sur leur fiche.
     const aacInstallations = aacRows.flatMap(({ installations, code, nom }) =>
-      (Array.isArray(installations) ? (installations as Record<string, unknown>[]) : []).map(
-        (installation) => ({
+      (Array.isArray(installations) ? (installations as Record<string, unknown>[]) : [])
+        .filter((installation) => installation.a_part !== true)
+        .map((installation) => ({
           aac_code: code,
           aac_nom: nom,
           code: installation.code,
           nom: installation.nom,
           commune: installation.commune,
           departement: installation.departement,
-        })
-      )
+        }))
     )
 
     const installationCodes = Array.from(
@@ -648,6 +735,42 @@ export class AacService {
   }
 
   /**
+   * Expression SQL de la liste des installations principales d'une AAC : sans celles affichées
+   * à part (`a_part`, captages abandonnés ou hors eau potable), qui ne comptent pas dans les
+   * indicateurs.
+   *
+   * Le champ `a_part` est apparu dans aac.parquet en novembre 2026 : sur un fichier antérieur,
+   * une requête qui le nomme échoue (Binder Error), et toutes les installations sont principales.
+   * Le schéma du fichier n'est lu qu'une fois : comme pour les footers Parquet gardés en cache
+   * par DuckDB, il faut redémarrer l'application après avoir remplacé aac.parquet.
+   */
+  private async getInstallationsPrincipalesSql(): Promise<string> {
+    if (!AacService.hasAPartField) {
+      const promise = this.duckdbService
+        .query<Record<string, unknown>>(
+          "SELECT CAST(count(*) AS INTEGER) AS found FROM parquet_schema($path) WHERE name = 'a_part'",
+          { path: getParquetPath() }
+        )
+        .then((rows) => Number(rows[0]?.found ?? 0) > 0)
+      AacService.hasAPartField = promise
+      // Ne garde pas en cache un échec, pour que l'appel suivant relise le schéma
+      promise.catch(() => {
+        if (AacService.hasAPartField === promise) AacService.hasAPartField = null
+      })
+    }
+
+    const hasAPartField = await AacService.hasAPartField
+    return hasAPartField ? 'list_filter(installations, i -> i.a_part IS NOT TRUE)' : 'installations'
+  }
+
+  /**
+   * Oublie le schéma d'aac.parquet lu par getInstallationsPrincipalesSql.
+   */
+  static clearAacSchema() {
+    AacService.hasAPartField = null
+  }
+
+  /**
    * Get details of a single AAC by its code.
    * @param code
    */
@@ -681,12 +804,14 @@ export class AacService {
   }
 
   /**
-   * Returns installation codes for a given AAC code.
+   * Codes des installations principales d'une AAC (sans celles affichées à part, voir
+   * getInstallationsPrincipalesSql), pour les statistiques d'analyses de l'AAC.
    * Reads only the installations column to avoid loading the full AAC row.
    */
   async getInstallationCodesByAacCode(aacCode: string): Promise<string[] | null> {
+    const installationsPrincipales = await this.getInstallationsPrincipalesSql()
     const rows = await this.duckdbService.query<Record<string, unknown>>(
-      'SELECT list_transform(installations, i -> i.code) AS installation_codes ' +
+      `SELECT list_transform(${installationsPrincipales}, i -> i.code) AS installation_codes ` +
         'FROM read_parquet($path) WHERE code = $aacCode LIMIT 1',
       { path: getParquetPath(), aacCode }
     )
@@ -1054,10 +1179,9 @@ export class AacService {
   }
 
   /**
-   * Used by the global search: installations whose name or BSS code matches the query
-   * (ignoring case and accents), ordered by name.
-   * An installation can belong to several AACs: it is returned once, with the first AAC code
-   * (needed to build the link to its page).
+   * Recherche générale : installations et captages rattachés dont le nom, le code ou un code BSS
+   * contient la recherche (sans tenir compte de la casse ni des accents), triés par nom.
+   * Voir buildInstallationSearchEntries.
    */
   async searchInstallations(
     recherche: string,
@@ -1089,22 +1213,18 @@ export class AacService {
   }
 
   private async loadGlobalSearchIndex(): Promise<GlobalSearchIndex> {
-    const [aacs, installations] = await Promise.all([
+    const [aacs, installationRows] = await Promise.all([
       this.duckdbService.query<GlobalSearchAac>(
         'SELECT code, nom FROM read_parquet($path) ORDER BY nom',
         { path: getParquetPath() }
       ),
-      this.duckdbService.query<GlobalSearchInstallation>(
+      // Installations entières : leurs champs sont lus en TypeScript, car nommer en SQL un champ
+      // apparu en novembre 2026 (code_bss_nouveau) échouerait sur les fichiers antérieurs
+      this.duckdbService.query<{ aac_code: unknown; installation: unknown }>(
         `
-        SELECT
-          installation.code AS code,
-          installation.nom AS nom,
-          installation.code_bss AS code_bss,
-          min(aac_code) AS aac_code
+        SELECT aac_code, installation
         FROM (SELECT code AS aac_code, unnest(installations) AS installation FROM read_parquet($path))
-        WHERE installation.code IS NOT NULL AND installation.nom IS NOT NULL
-        GROUP BY installation.code, installation.nom, installation.code_bss
-        ORDER BY nom
+        ORDER BY aac_code
         `,
         { path: getParquetPath() }
       ),
@@ -1113,14 +1233,10 @@ export class AacService {
     return {
       aacs: aacs.map((aac) => ({
         item: aac,
-        code: aac.code,
+        exactCodes: [normalizeSearchText(aac.code)],
         searchText: normalizeSearchText(`${aac.nom} ${aac.code}`),
       })),
-      installations: installations.map((installation) => ({
-        item: installation,
-        code: installation.code_bss,
-        searchText: normalizeSearchText(`${installation.nom} ${installation.code_bss ?? ''}`),
-      })),
+      installations: buildInstallationSearchEntries(installationRows),
     }
   }
 
@@ -1129,71 +1245,5 @@ export class AacService {
    */
   static clearGlobalSearchIndex() {
     AacService.globalSearchIndex = null
-  }
-
-  /**
-   * Returns all captages extracted from AAC installations.
-   * The source parquet may contain the same installation across multiple AACs,
-   * so rows are deduplicated to satisfy unique constraints on `code` and `bssCode`.
-   */
-  async getAllCaptagesFromInstallations(): Promise<CaptageSeedRow[]> {
-    const rows = await this.duckdbService.query<Record<string, unknown>>(
-      'SELECT unnest(installations) AS installation FROM read_parquet($path) WHERE installations IS NOT NULL',
-      { path: getParquetPath() }
-    )
-
-    const candidates = rows
-      .map((row) => row.installation as Record<string, unknown> | null)
-      .flatMap((installation): CaptageSeedRow[] => {
-        if (!installation || typeof installation !== 'object') return []
-
-        const code = normalizeString(installation.code)
-        const name = normalizeString(installation.nom)
-        const bssCode = normalizeString(installation.code_bss)
-        const state = normalizeString(installation.etat)
-
-        if (!code || !name || !bssCode || !state) return []
-
-        const commune = normalizeString(installation.commune)
-        const type = normalizeString(installation.type)
-        const prioritaire = installation.prioritaire === true
-
-        return [
-          {
-            code,
-            name,
-            bssCode,
-            state,
-            commune,
-            type,
-            prioritaire,
-          },
-        ]
-      })
-      .sort((left, right) => {
-        const byState = getCaptageStatePriority(left.state) - getCaptageStatePriority(right.state)
-        if (byState !== 0) return byState
-
-        const byCode = left.code.localeCompare(right.code)
-        if (byCode !== 0) return byCode
-
-        const byBssCode = left.bssCode.localeCompare(right.bssCode)
-        if (byBssCode !== 0) return byBssCode
-
-        return left.name.localeCompare(right.name)
-      })
-
-    const captagesByCode = new Map<string, CaptageSeedRow>()
-    const usedBssCodes = new Set<string>()
-
-    for (const captage of candidates) {
-      if (captagesByCode.has(captage.code)) continue
-      if (usedBssCodes.has(captage.bssCode)) continue
-
-      captagesByCode.set(captage.code, captage)
-      usedBssCodes.add(captage.bssCode)
-    }
-
-    return Array.from(captagesByCode.values())
   }
 }

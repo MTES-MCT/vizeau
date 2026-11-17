@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AacAnalysesSummaryJson } from '#types/aac'
+import type { AacAnalysesSummaryJson, InstallationInfo } from '#types/aac'
 
+import Accordion from '@codegouvfr/react-dsfr/Accordion'
+import Badge from '@codegouvfr/react-dsfr/Badge'
 import Button from '@codegouvfr/react-dsfr/Button'
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox'
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 import { Range } from '@codegouvfr/react-dsfr/Range'
 import ButtonWithSelector, { OptionType } from '~/ui/ButtonWithSelector'
 import Tag from '@codegouvfr/react-dsfr/Tag'
@@ -12,6 +15,7 @@ import { fr } from '@codegouvfr/react-dsfr'
 import ResumeCard from '~/ui/ResumeCard'
 import Loader from '~/ui/Loader'
 import DepassementsListItem from '~/ui/DepassementsListItem'
+import { formatCaptageCommune, getRecroisementMention, isInstallationAPart } from '~/functions/aac'
 
 type AnalysesSummary = {
   nb_analyses: number
@@ -20,26 +24,164 @@ type AnalysesSummary = {
   yearMax: number | null
 }
 
+type Installation = Pick<
+  InstallationInfo,
+  | 'code'
+  | 'nom'
+  | 'code_bss'
+  | 'code_bss_nouveau'
+  | 'commune'
+  | 'departement'
+  | 'type'
+  | 'etat'
+  | 'prioritaire'
+  | 'captages_rattaches'
+  | 'source_rattachement'
+  | 'recroisement_geographique'
+  | 'a_part'
+  | 'libelle_a_part'
+  | 'depassements_alerte'
+  | 'depassements_reglementaires'
+>
+
 export type AacCaptagesProps = {
   aacCode: string
-  installations: {
-    code: string
-    nom: string
-    code_bss: string
-    commune: string
-    departement: string
-    type: string
-    nature: string
-    usage: string
-    etat: string
-    prioritaire: boolean | null
-    depassements_alerte?: number
-    depassements_reglementaires?: number
-  }[]
+  installations: Installation[]
+}
+
+// Nombre de captages rattachés nommés dans le titre de leur liste repliable
+const RATTACHES_IN_LABEL_MAX = 3
+
+function etatSeverity(etat: string): 'success' | 'error' {
+  return etat === 'ACTIF' ? 'success' : 'error'
+}
+
+/**
+ * Titre de la liste repliable des captages rattachés à une installation (même mélange) :
+ * les captages y sont nommés, pour qu'un utilisateur qui cherche l'un d'eux le trouve.
+ */
+function getCaptagesRattachesLabel(
+  captages: NonNullable<Installation['captages_rattaches']>
+): string {
+  const count = `${captages.length} captage${captages.length > 1 ? 's' : ''} rattaché${captages.length > 1 ? 's' : ''}`
+  if (captages.length === 1) {
+    const [captage] = captages
+    return `${count} : ${captage.nom}${captage.etat ? ` (${captage.etat})` : ''}`
+  }
+
+  const names = captages.slice(0, RATTACHES_IN_LABEL_MAX).map((captage) => captage.nom)
+  const others = captages.length - names.length
+  return `${count} : ${names.join(', ')}${others > 0 ? ` et ${others} autre${others > 1 ? 's' : ''}` : ''}`
+}
+
+function InstallationListItem({
+  aacCode,
+  installation,
+  priority,
+  titleAs,
+}: {
+  aacCode: string
+  installation: Installation
+  priority: 'primary' | 'secondary'
+  titleAs: 'h3' | 'h4'
+}) {
+  const recroisement = getRecroisementMention(installation)
+  const aPart = isInstallationAPart(installation)
+  const libelleAPart = aPart ? installation.libelle_a_part : null
+  // Un captage à part n'est pas compté, ni présenté comme prioritaire : il ne l'est que par
+  // défaut, quand la liste nationale ne lui donne aucune AAC valide
+  const prioritaire = installation.prioritaire === true && !aPart
+  const captagesRattaches = installation.captages_rattaches ?? []
+  const border = `1px solid ${fr.colors.decisions.border.default.grey.default}`
+
+  return (
+    <>
+      <DepassementsListItem
+        title={installation.nom}
+        priority={priority}
+        linkProps={
+          installation.code
+            ? { href: `/aac/${aacCode}/installations/${installation.code}` }
+            : undefined
+        }
+        additionalInfos={{
+          ...(prioritaire && {
+            message: 'Prioritaire',
+            iconId: 'fr-icon-info-fill',
+          }),
+          ...(installation.etat && {
+            alert: { text: installation.etat, severity: etatSeverity(installation.etat) },
+          }),
+        }}
+        depassementsAlerte={installation.depassements_alerte}
+        depassementsReglementaires={installation.depassements_reglementaires}
+        metas={[
+          {
+            iconId: 'fr-icon-government-line',
+            content: formatCaptageCommune(installation.commune, installation.departement),
+          },
+        ]}
+      />
+      {/* Hors du lien de la carte, qui ne peut pas contenir d'éléments interactifs */}
+      {(recroisement || libelleAPart || captagesRattaches.length > 0) && (
+        <div
+          className="fr-px-2w fr-py-1w flex flex-col gap-1"
+          style={{ border, borderTop: 'none' }}
+        >
+          {(recroisement || libelleAPart) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {libelleAPart && (
+                <Badge small noIcon as="span">
+                  {libelleAPart}
+                </Badge>
+              )}
+              {recroisement && (
+                <span className="flex items-center gap-1">
+                  <Badge small noIcon severity="info" as="span">
+                    {recroisement.label}
+                  </Badge>
+                  <Tooltip kind="click" title={recroisement.description} />
+                </span>
+              )}
+            </div>
+          )}
+          {captagesRattaches.length > 0 && (
+            <Accordion
+              titleAs={titleAs}
+              label={getCaptagesRattachesLabel(captagesRattaches)}
+              classes={{ title: 'fr-text--sm' }}
+            >
+              <ul className="flex flex-col gap-1 fr-p-0 fr-m-0">
+                {captagesRattaches.map((captage) => (
+                  <li
+                    key={captage.code}
+                    className="flex flex-wrap items-center gap-2"
+                    style={{ listStyle: 'none' }}
+                  >
+                    <span className="fr-text--sm fr-mb-0 font-bold">{captage.nom}</span>
+                    <span
+                      className="fr-text--sm fr-mb-0"
+                      style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                    >
+                      {captage.code}
+                    </span>
+                    {captage.etat && (
+                      <Badge small severity={etatSeverity(captage.etat)} as="span">
+                        {captage.etat}
+                      </Badge>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Accordion>
+          )}
+        </div>
+      )}
+    </>
+  )
 }
 
 export default function AacCaptages({ aacCode, installations }: AacCaptagesProps) {
-  const [filteredInstallations, setFilteredInstallations] = useState(installations)
   const [showActifOnly, setShowActifOnly] = useState(false)
   const [deselectedTypes, setDeselectedTypes] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
@@ -124,21 +266,38 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
       isSelected: !deselectedTypes.has(type),
     }))
   }, [installations, deselectedTypes])
-  useEffect(() => {
+
+  // Liste principale, et installations à part (abandonnées, ou hors eau potable), affichées
+  // dans une section distincte et exclues des statistiques
+  const installationsPrincipales = useMemo(
+    () => installations.filter((installation) => !isInstallationAPart(installation)),
+    [installations]
+  )
+  const installationsAPart = useMemo(
+    () => installations.filter((installation) => isInstallationAPart(installation)),
+    [installations]
+  )
+
+  // Les filtres s'appliquent aux deux listes. La recherche porte aussi sur les captages
+  // rattachés, pour qu'un captage rangé dans une installation soit trouvé par son nom.
+  const matchesFilters = useMemo(() => {
     const selectedTypes = new Set(
       selectInputOptions.filter((o) => o.isSelected).map((o) => o.value)
     )
-    setFilteredInstallations(
-      installations.filter(
-        (installation) =>
-          (!showActifOnly || installation.etat === 'ACTIF') &&
-          selectedTypes.has(installation.type) &&
-          (searchQuery === '' ||
-            installation.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            installation.code.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    )
-  }, [showActifOnly, installations, selectInputOptions, searchQuery])
+    const query = searchQuery.toLowerCase()
+    const matchesQuery = (captage: { nom: string; code: string }) =>
+      captage.nom.toLowerCase().includes(query) || captage.code.toLowerCase().includes(query)
+
+    return (installation: Installation) =>
+      (!showActifOnly || installation.etat === 'ACTIF') &&
+      selectedTypes.has(installation.type) &&
+      (query === '' ||
+        matchesQuery(installation) ||
+        (installation.captages_rattaches ?? []).some(matchesQuery))
+  }, [showActifOnly, selectInputOptions, searchQuery])
+
+  const filteredInstallations = installationsPrincipales.filter(matchesFilters)
+  const filteredInstallationsAPart = installationsAPart.filter(matchesFilters)
 
   const handleOptionChange = (updatedOption: OptionType<string>) => {
     setDeselectedTypes((prev) => {
@@ -222,7 +381,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           <ResumeCard
             title="Points de prélèvement"
             iconId="fr-icon-drop-line"
-            value={installations.filter((i) => i.etat === 'ACTIF').length}
+            value={installationsPrincipales.filter((i) => i.etat === 'ACTIF').length}
             label="captages actifs"
             priority="secondary"
           />
@@ -247,7 +406,7 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
         <ResumeCard
           title="Prioritaire(s)"
           iconId="fr-icon-warning-line"
-          value={installations.filter((i) => i.prioritaire === true).length}
+          value={installationsPrincipales.filter((i) => i.prioritaire === true).length}
           label="point(s) de prélèvement"
           priority="secondary"
           color={fr.colors.decisions.text.default.warning.default}
@@ -327,47 +486,64 @@ export default function AacCaptages({ aacCode, installations }: AacCaptagesProps
           </SmallSection>
         )}
 
-        {filteredInstallations && filteredInstallations.length > 0 ? (
+        {filteredInstallations.length > 0 ? (
           <ul className="flex flex-col gap-2 fr-p-0">
             {filteredInstallations.map((installation, index) => (
               <li key={installation.code} style={{ listStyle: 'none' }}>
-                <DepassementsListItem
-                  title={installation.nom}
+                <InstallationListItem
+                  aacCode={aacCode}
+                  installation={installation}
                   priority={index % 2 === 1 ? 'secondary' : 'primary'}
-                  linkProps={
-                    installation.code
-                      ? { href: `/aac/${aacCode}/installations/${installation.code}` }
-                      : undefined
-                  }
-                  additionalInfos={{
-                    ...(installation.prioritaire === true && {
-                      message: 'Prioritaire',
-                      iconId: 'fr-icon-info-fill',
-                    }),
-                    ...(installation.etat && {
-                      alert: {
-                        text: installation.etat,
-                        severity: installation.etat === 'ACTIF' ? 'success' : 'error',
-                      },
-                    }),
-                  }}
-                  depassementsAlerte={installation.depassements_alerte}
-                  depassementsReglementaires={installation.depassements_reglementaires}
-                  metas={[
-                    {
-                      iconId: 'fr-icon-government-line',
-                      content: `${installation.commune} (${installation.departement})`,
-                    },
-                  ]}
+                  titleAs="h3"
                 />
               </li>
             ))}
           </ul>
         ) : (
           <EmptyPlaceholder
-            label={`${installations.length > 0 ? 'Aucun point de prélèvement ne correspond à ces critères' : 'Aucun point de prélèvement trouvé'}`}
+            label={
+              installationsPrincipales.length > 0
+                ? 'Aucun point de prélèvement ne correspond à ces critères'
+                : installationsAPart.length > 0
+                  ? "Aucun captage d'eau potable en service n'est rattaché à l'AAC : ses captages sont listés ci-dessous, dans « Autres captages dans l'AAC »"
+                  : 'Aucun point de prélèvement trouvé'
+            }
             illustrativeIcon="fr-icon-drop-fill"
           />
+        )}
+
+        {installationsAPart.length > 0 && (
+          <section className="flex flex-col gap-2 fr-mt-2w">
+            <div>
+              <h3 className="fr-h5 fr-mb-1v">Autres captages dans l'AAC</h3>
+              <p
+                className="fr-text--sm fr-mb-0"
+                style={{ color: fr.colors.decisions.text.mention.grey.default }}
+              >
+                Captages situés dans l'AAC, mais abandonnés pour l'eau potable ou qui servent à un
+                autre usage. Ils ne sont pas comptés dans les statistiques ci-dessus.
+              </p>
+            </div>
+            {filteredInstallationsAPart.length > 0 ? (
+              <ul className="flex flex-col gap-2 fr-p-0">
+                {filteredInstallationsAPart.map((installation, index) => (
+                  <li key={installation.code} style={{ listStyle: 'none' }}>
+                    <InstallationListItem
+                      aacCode={aacCode}
+                      installation={installation}
+                      priority={index % 2 === 1 ? 'secondary' : 'primary'}
+                      titleAs="h4"
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyPlaceholder
+                label="Aucun autre captage ne correspond à ces critères"
+                illustrativeIcon="fr-icon-drop-fill"
+              />
+            )}
+          </section>
         )}
       </div>
     </div>

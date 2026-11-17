@@ -76,7 +76,11 @@ export class AacDto {
       culture_evolution: ((row as any).culture_evolution ??
         (row as any).cultures_evolution ??
         null) as AacJson['culture_evolution'],
-      installations: row.installations as InstallationInfo[],
+      // Les champs des installations apparus en novembre 2026 (a_part, code_bss_nouveau…) sont
+      // absents des fichiers antérieurs : ils restent alors undefined
+      installations: Array.isArray(row.installations)
+        ? (row.installations as InstallationInfo[])
+        : [],
     }
   }
 }

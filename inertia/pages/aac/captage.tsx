@@ -9,9 +9,56 @@ import LabelInfo from '~/ui/LabelInfo'
 import CaptageAnalysesHeader from '~/components/captage/captage-analyses-header'
 import SignalErrorContact from '~/components/signal-error-contact'
 import { Tag } from '@codegouvfr/react-dsfr/Tag'
+import Badge from '@codegouvfr/react-dsfr/Badge'
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip'
 import CustomTag from '~/ui/CustomTag'
+import type { CaptageRattache, InstallationInfo } from '#types/aac'
+import {
+  getRecroisementMention,
+  getSourceRattachementLabel,
+  isInstallationAPart,
+} from '~/functions/aac'
 
-export default function CaptageShow({ aac, installation }: any) {
+function CaptagesRattaches({ captages }: { captages: CaptageRattache[] }) {
+  return (
+    <ul className="flex flex-col gap-2 fr-p-0 fr-m-0">
+      {captages.map((captage) => (
+        <li key={captage.code} className="flex flex-col" style={{ listStyle: 'none' }}>
+          <span className="fr-text--sm fr-mb-0 font-bold">{captage.nom}</span>
+          <span
+            className="fr-text--xs fr-mb-0"
+            style={{ color: fr.colors.decisions.text.mention.grey.default }}
+          >
+            Code : {captage.code} · Ancien code BSS : {captage.code_bss || 'Non renseigné'} ·
+            Nouveau code BSS : {captage.code_bss_nouveau || 'Non renseigné'}
+          </span>
+          {captage.etat && (
+            <Badge
+              small
+              severity={captage.etat === 'ACTIF' ? 'success' : 'error'}
+              as="span"
+              className="fr-mt-1v"
+            >
+              {captage.etat}
+            </Badge>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export default function CaptageShow({
+  aac,
+  installation,
+}: {
+  aac: { code: string; nom: string }
+  installation: InstallationInfo
+}) {
+  const recroisement = getRecroisementMention(installation)
+  const sourceRattachement = getSourceRattachementLabel(installation)
+  const captagesRattaches = installation.captages_rattaches ?? []
+
   return (
     <Layout>
       <Head title={`${installation.nom} — Captage`} />
@@ -68,8 +115,24 @@ export default function CaptageShow({ aac, installation }: any) {
                 </Tag>
               )}
 
+              {isInstallationAPart(installation) && installation.libelle_a_part && (
+                <Badge severity="warning" className="fr-mb-2w">
+                  {installation.libelle_a_part}
+                </Badge>
+              )}
+
               <div className="flex flex-col gap-2">
-                <LabelInfo label="Code BSS" info={installation.code_bss || 'Non renseigné'} />
+                <LabelInfo
+                  label="Ancien code BSS"
+                  info={installation.code_bss || 'Non renseigné'}
+                />
+                {/* Absent des fichiers antérieurs à novembre 2026 */}
+                {installation.code_bss_nouveau !== undefined && (
+                  <LabelInfo
+                    label="Nouveau code BSS"
+                    info={installation.code_bss_nouveau || 'Non renseigné'}
+                  />
+                )}
                 <LabelInfo
                   label="Commune"
                   info={
@@ -89,24 +152,42 @@ export default function CaptageShow({ aac, installation }: any) {
                   <LabelInfo label="Code PPE" info={installation.code_ppe} />
                 )}
 
-                {installation.captages_rattaches && installation.captages_rattaches.length > 0 && (
-                  <LabelInfo
-                    label="Captages rattachés"
-                    info={String(installation.captages_rattaches.length)}
-                  />
+                {/* Statut dans l'AAC de la page : un captage peut être prioritaire dans une AAC
+                    et pas dans une autre. NULL vaut « non prioritaire ». Un captage à part
+                    (abandonné ou hors eau potable) n'est pas présenté comme prioritaire : son
+                    motif suffit. */}
+                {!isInstallationAPart(installation) && (
+                  <LabelInfo label="Prioritaire" info={installation.prioritaire ? 'Oui' : 'Non'} />
                 )}
-                <LabelInfo
-                  label="Prioritaire"
-                  info={
-                    installation.prioritaire === true
-                      ? 'Oui'
-                      : installation.prioritaire === false
-                        ? 'Non'
-                        : 'Non renseigné'
-                  }
-                />
+                {sourceRattachement && (
+                  <LabelInfo label="Origine du rattachement à l'AAC" info={sourceRattachement} />
+                )}
+                {recroisement && (
+                  <div className="flex items-center gap-1">
+                    <Badge small noIcon severity="info" as="span">
+                      {recroisement.label}
+                    </Badge>
+                    <Tooltip kind="click" title={recroisement.description} />
+                  </div>
+                )}
               </div>
             </SmallSection>
+            {captagesRattaches.length > 0 && (
+              <SmallSection
+                title={`Captage${captagesRattaches.length > 1 ? 's' : ''} rattaché${captagesRattaches.length > 1 ? 's' : ''} (${captagesRattaches.length})`}
+                iconId="fr-icon-links-line"
+                priority="secondary"
+                hasBorder
+              >
+                <p
+                  className="fr-text--xs fr-mb-1w"
+                  style={{ color: fr.colors.decisions.text.mention.grey.default }}
+                >
+                  Captages qui prélèvent dans le même mélange que celui-ci.
+                </p>
+                <CaptagesRattaches captages={captagesRattaches} />
+              </SmallSection>
+            )}
             <SignalErrorContact />
           </aside>
 

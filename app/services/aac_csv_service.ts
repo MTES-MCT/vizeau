@@ -1,7 +1,7 @@
 import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import { inject } from '@adonisjs/core'
-import { InstallationInfo, CultureInfo, AacJson } from '#types/aac'
+import { InstallationInfo, CultureInfo, AacJson, SourceRattachement } from '#types/aac'
 
 const SEPARATOR = ';'
 const LINE_END = '\r\n'
@@ -24,6 +24,43 @@ function buildSection(headers: string[], rows: string[]): string {
 
 function wrapCsv(sections: string[]): string {
   return BOM + sections.join(LINE_END)
+}
+
+/**
+ * Libellés de l'origine du rattachement d'une installation à l'AAC (`source_rattachement`).
+ * À garder alignés avec SOURCE_RATTACHEMENT_LABELS de inertia/functions/aac.ts.
+ */
+const SOURCE_RATTACHEMENT_LABELS: Record<SourceRattachement, string> = {
+  sandre: 'Référentiel des AAC du Sandre',
+  export: 'Liste nationale des captages prioritaires',
+  champ_captant: "Même champ captant qu'un captage de l'AAC",
+  point: "Captage situé dans l'AAC",
+  perimetre: "Périmètre de protection du captage dans l'AAC",
+  proximite: "Seul captage à proximité immédiate de l'AAC",
+}
+
+/**
+ * Statut prioritaire d'une installation dans l'AAC. Une installation à part (abandonnée ou hors
+ * eau potable) n'est pas présentée comme prioritaire, comme dans l'interface : elle ne l'est que
+ * par défaut, quand la liste nationale ne lui donne aucune AAC valide.
+ */
+function isPrioritaire(inst: InstallationInfo): boolean {
+  return inst.prioritaire === true && inst.a_part !== true
+}
+
+/**
+ * Colonnes ajoutées en novembre 2026 pour une installation. Vides quand le fichier ne fournit
+ * pas ces champs (fichiers antérieurs).
+ */
+function buildInstallationNewFields(inst: InstallationInfo): (string | null | undefined)[] {
+  const source = inst.source_rattachement
+  const recroisement = inst.recroisement_geographique
+  return [
+    inst.code_bss_nouveau,
+    source ? (SOURCE_RATTACHEMENT_LABELS[source] ?? source) : null,
+    recroisement === true ? 'Oui' : recroisement === false ? 'Non' : null,
+    inst.a_part === true ? inst.libelle_a_part : null,
+  ]
 }
 
 @inject()
@@ -84,6 +121,11 @@ export class AacCsvService {
       'Captage rattaché - Nom',
       'Captage rattaché - Code BSS',
       'Captage rattaché - État',
+      'Nouveau code BSS',
+      'Origine du rattachement',
+      'Recroisement géographique',
+      'À part',
+      'Captage rattaché - Nouveau code BSS',
     ]
     const rows: string[] = []
     for (const inst of installations) {
@@ -101,10 +143,12 @@ export class AacCsvService {
             inst.usage,
             inst.etat,
             inst.code_ppe,
-            inst.prioritaire ? 'Oui' : 'Non',
+            isPrioritaire(inst) ? 'Oui' : 'Non',
             null,
             null,
             null,
+            null,
+            ...buildInstallationNewFields(inst),
             null,
           ])
         )
@@ -122,11 +166,13 @@ export class AacCsvService {
               inst.usage,
               inst.etat,
               inst.code_ppe,
-              inst.prioritaire ? 'Oui' : 'Non',
+              isPrioritaire(inst) ? 'Oui' : 'Non',
               cap.code,
               cap.nom,
               cap.code_bss,
               cap.etat,
+              ...buildInstallationNewFields(inst),
+              cap.code_bss_nouveau,
             ])
           )
         }
