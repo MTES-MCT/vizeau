@@ -10,13 +10,19 @@ import AddInstructions, {
   getMethods,
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
+import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
+import { useRemoveExploitationConfirm } from '~/components/parcelle/parcelles-workspace/remove-exploitation-modal'
 import SelectionPanel from '~/components/parcelle/parcelles-workspace/selection-panel'
 import {
   useDefaultLayers,
   WorkspaceLayers,
 } from '~/components/parcelle/parcelles-workspace/use_default_layers'
+import {
+  useExploitationsDraft,
+  type WorkspaceExploitations,
+} from '~/components/parcelle/parcelles-workspace/use_exploitations_draft'
 import { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
 import WorkspaceFooter, {
   discardModal,
@@ -26,7 +32,7 @@ import { showFlashToasts } from '~/functions/flash_messages'
 import WorkspaceLayout from '~/ui/layouts/WorkspaceLayout'
 import MethodTabs from '~/ui/MethodTabs'
 
-export type { ParcellesSelection }
+export type { ParcellesSelection, WorkspaceExploitations }
 
 export type ParcellesWorkspaceProps = {
   variant: 'overlay' | 'inline'
@@ -51,6 +57,8 @@ export type ParcellesWorkspaceProps = {
   unavailableRpgIds?: Record<string, string[]>
   onMillesimeChange?: (millesime: string) => void
   isMillesimeLoading?: boolean
+  /** Exploitations dont on peut ajouter les parcelles d'un bloc, avec la méthode « Exploitations ». */
+  exploitations?: WorkspaceExploitations
   submitLabel: string
   isSubmitting?: boolean
   /**
@@ -59,8 +67,15 @@ export type ParcellesWorkspaceProps = {
    * côté serveur : il ferme alors l'éditeur une fois l'enregistrement terminé.
    */
   closeOnSubmit?: boolean
-  /** Reçoit toute la sélection et la liste des millésimes modifiés. */
-  onSubmit: (selection: ParcellesSelection, changedMillesimes: string[]) => void
+  /**
+   * Reçoit toute la sélection, la liste des millésimes modifiés et, si des exploitations sont
+   * fournies, les exploitations ajoutées par millésime.
+   */
+  onSubmit: (
+    selection: ParcellesSelection,
+    changedMillesimes: string[],
+    addedExploitationIds: Record<string, string[]>
+  ) => void
   onClose: () => void
 }
 
@@ -72,6 +87,15 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const [method, setMethod] = useState<MethodValue>('carte')
   const [panelTab, setPanelTab] = useState<PanelTab>('selection')
   const draft = useParcellesDraft(initialSelection, millesime, props.savedSelection)
+  const exploitations = useExploitationsDraft(props.exploitations, millesime, draft)
+  const pickerContainerRef = useRef<HTMLDivElement>(null)
+  const removeExploitation = useRemoveExploitationConfirm({
+    getSelectedCount: exploitations.getSelectedCount,
+    onRemove: exploitations.remove,
+    // Le champ d'ajout reprend le focus, le bouton de retrait ayant disparu
+    onRemoved: () =>
+      pickerContainerRef.current?.querySelector<HTMLInputElement>('[role="combobox"]')?.focus(),
+  })
   const defaultLayers = useDefaultLayers()
   const layers = props.layers ?? defaultLayers
 
@@ -79,6 +103,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   useEffect(() => {
     if (!isOpen) return
     draft.resetDraft()
+    exploitations.reset()
     setMillesime(defaultMillesime)
   }, [isOpen])
 
@@ -98,7 +123,8 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const handleSubmit = () => {
     props.onSubmit(
       draft.selection,
-      draft.changes.map((change) => change.millesime)
+      draft.changes.map((change) => change.millesime),
+      exploitations.addedIds
     )
     if (props.closeOnSubmit ?? variant === 'overlay') {
       showFlashToasts({ success: { message: 'Les parcelles ont été mises à jour.' } })
@@ -117,7 +143,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         title: 'Ajouter des parcelles',
         toolbar: (
           <MethodTabs
-            methods={getMethods(false)}
+            methods={getMethods(exploitations.isEnabled)}
             value={method}
             onChange={setMethod}
             legend="Méthode d'ajout"
@@ -125,7 +151,17 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         ),
         subtitle: variant === 'inline' ? title : undefined,
         tabLabel: 'Ajouter',
-        content: <AddInstructions hasUnavailable={Boolean(unavailableRpgIds)} />,
+        content:
+          method === 'exploitations' ? (
+            <ExploitationsMethod
+              millesime={millesime}
+              exploitations={exploitations}
+              onRemoveRequest={removeExploitation.request}
+              pickerContainerRef={pickerContainerRef}
+            />
+          ) : (
+            <AddInstructions hasUnavailable={Boolean(unavailableRpgIds)} />
+          ),
       }}
       center={{
         tabLabel: 'Carte',
@@ -174,16 +210,19 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
           ),
       }}
       footer={
-        <WorkspaceFooter
-          millesime={millesime}
-          parcelles={draft.selectedParcelles}
-          changes={draft.changes}
-          submitLabel={submitLabel}
-          isSubmitting={props.isSubmitting ?? false}
-          onCancel={requestClose}
-          onSubmit={handleSubmit}
-          onDiscard={onClose}
-        />
+        <>
+          <WorkspaceFooter
+            millesime={millesime}
+            parcelles={draft.selectedParcelles}
+            changes={draft.changes}
+            submitLabel={submitLabel}
+            isSubmitting={props.isSubmitting ?? false}
+            onCancel={requestClose}
+            onSubmit={handleSubmit}
+            onDiscard={onClose}
+          />
+          {removeExploitation.modal}
+        </>
       }
     />
   )

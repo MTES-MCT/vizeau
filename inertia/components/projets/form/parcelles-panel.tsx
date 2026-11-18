@@ -43,7 +43,11 @@ export default function ParcellesPanel({
   const { millesime } = parcelles
   // Les exploitations sans parcelle pour le millésime affiché ne sont pas proposées
   const exploitationsWithParcelles = getExploitationsWithParcelles(projectExploitations, millesime)
-  const addedExploitations = getAddedExploitations(parcelles, projectExploitations)
+  const addedExploitations = getAddedExploitations(
+    parcelles.addedExploitationIds[millesime] ?? [],
+    projectExploitations,
+    millesime
+  )
   const pickerContainerRef = useRef<HTMLDivElement>(null)
 
   // Message de la zone aria-live, effacé après quelques secondes

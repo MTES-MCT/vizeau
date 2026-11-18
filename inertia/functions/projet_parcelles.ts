@@ -1,4 +1,5 @@
 import type { Data } from '@generated/data'
+import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import type {
   ProjetParcellesFormData,
   SelectedParcelleFormData,
@@ -46,6 +47,19 @@ export function getExploitationParcelles(exploitation: ProjetExploitation, mille
   )
 }
 
+/** Parcelles de l'exploitation pour le millésime, au format de la sélection sur la carte. */
+export function getExploitationSelectedParcelles(
+  exploitation: ProjetExploitation,
+  millesime: string
+): SelectedParcelle[] {
+  return getExploitationParcelles(exploitation, millesime).map((p) => ({
+    rpgId: p.rpgId,
+    surface: p.surface,
+    cultureCode: p.cultureCode,
+    centroid: p.centroid ?? undefined,
+  }))
+}
+
 /** Exploitations du projet, dans l'ordre de la liste complète. */
 export function getProjectExploitations<T extends ProjetExploitation>(
   exploitations: T[],
@@ -64,15 +78,16 @@ export function getExploitationsWithParcelles<T extends ProjetExploitation>(
 }
 
 /**
- * Exploitations ajoutées pour le millésime affiché, dans l'ordre d'ajout. Celles qui ne sont
- * plus dans le projet, ou qui n'ont pas de parcelle pour ce millésime, sont écartées.
+ * Exploitations ajoutées pour le millésime, dans l'ordre d'ajout. Celles qui ne sont plus
+ * dans le projet, ou qui n'ont pas de parcelle pour ce millésime, sont écartées.
  */
 export function getAddedExploitations<T extends ProjetExploitation>(
-  parcelles: ProjetParcellesFormData,
-  projectExploitations: T[]
+  addedExploitationIds: string[],
+  projectExploitations: T[],
+  millesime: string
 ): T[] {
-  const eligible = getExploitationsWithParcelles(projectExploitations, parcelles.millesime)
-  return (parcelles.addedExploitationIds[parcelles.millesime] ?? []).flatMap((id) => {
+  const eligible = getExploitationsWithParcelles(projectExploitations, millesime)
+  return addedExploitationIds.flatMap((id) => {
     const exploitation = eligible.find((e) => e.id === id)
     return exploitation ? [exploitation] : []
   })
