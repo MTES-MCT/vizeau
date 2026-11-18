@@ -14,7 +14,9 @@ import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/explo
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
 import { useRemoveExploitationConfirm } from '~/components/parcelle/parcelles-workspace/remove-exploitation-modal'
-import SelectionPanel from '~/components/parcelle/parcelles-workspace/selection-panel'
+import SelectionPanel, {
+  type GroupBy,
+} from '~/components/parcelle/parcelles-workspace/selection-panel'
 import {
   useDefaultLayers,
   WorkspaceLayers,
@@ -33,6 +35,11 @@ import WorkspaceLayout from '~/ui/layouts/WorkspaceLayout'
 import MethodTabs from '~/ui/MethodTabs'
 
 export type { ParcellesSelection, WorkspaceExploitations }
+
+const METHOD_GROUP_BY: Partial<Record<MethodValue, GroupBy>> = {
+  carte: 'toutes',
+  exploitations: 'exploitations',
+}
 
 export type ParcellesWorkspaceProps = {
   variant: 'overlay' | 'inline'
@@ -86,6 +93,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const [millesime, setMillesime] = useState(defaultMillesime)
   const [method, setMethod] = useState<MethodValue>('carte')
   const [panelTab, setPanelTab] = useState<PanelTab>('selection')
+  const [groupBy, setGroupBy] = useState<GroupBy>('toutes')
   const draft = useParcellesDraft(initialSelection, millesime, props.savedSelection)
   const exploitations = useExploitationsDraft(props.exploitations, millesime, draft)
   const pickerContainerRef = useRef<HTMLDivElement>(null)
@@ -110,6 +118,16 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const handleMillesimeChange = (newMillesime: string) => {
     setMillesime(newMillesime)
     props.onMillesimeChange?.(newMillesime)
+  }
+
+  // Le panneau de droite montre la sélection rangée selon la méthode d'ajout choisie
+  const handleMethodChange = (newMethod: MethodValue) => {
+    setMethod(newMethod)
+    const methodGroupBy = METHOD_GROUP_BY[newMethod]
+    if (methodGroupBy) {
+      setPanelTab('selection')
+      setGroupBy(methodGroupBy)
+    }
   }
 
   const requestClose = () => {
@@ -145,7 +163,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
           <MethodTabs
             methods={getMethods(exploitations.isEnabled)}
             value={method}
-            onChange={setMethod}
+            onChange={handleMethodChange}
             legend="Méthode d'ajout"
           />
         ),
@@ -206,6 +224,9 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
               removedParcelles={draft.removedParcelles}
               onParcelleRestore={draft.toggleParcelle}
               onParcelleClick={(parcelle) => mapRef.current?.flyTo(parcelle.centroid!)}
+              exploitations={exploitations.isEnabled ? exploitations : undefined}
+              groupBy={groupBy}
+              onGroupByChange={setGroupBy}
             />
           ),
       }}

@@ -10,6 +10,8 @@ type ParcelleItemProps = {
   isNew?: boolean
   /** Parcelle retirée du brouillon : barrée, avec un bouton pour la restaurer. */
   onRestore?: (parcelle: SelectedParcelle) => void
+  /** Exploitation du projet qui déclare la parcelle, ou mention de son absence. */
+  exploitationName?: string
   onClick: (parcelle: SelectedParcelle) => void
 }
 
@@ -18,6 +20,7 @@ export default function ParcelleItem({
   parcelle,
   isNew = false,
   onRestore,
+  exploitationName,
   onClick,
 }: ParcelleItemProps) {
   const culture = getCultureByCode(parcelle.cultureCode)
@@ -28,7 +31,8 @@ export default function ParcelleItem({
       ? 'Surface non renseignée'
       : `${parcelle.surface} ha`,
     `RPG ${parcelle.rpgId}`,
-  ]
+    exploitationName,
+  ].filter(Boolean)
 
   const content = (
     <>

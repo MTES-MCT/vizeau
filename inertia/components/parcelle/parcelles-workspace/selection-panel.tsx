@@ -1,19 +1,27 @@
 import { fr } from '@codegouvfr/react-dsfr'
+import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
 import Tag from '@codegouvfr/react-dsfr/Tag'
 import { useMemo, useState } from 'react'
 
 import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import CulturesRepartition from '~/components/parcelle/parcelles-workspace/cultures-repartition'
+import ExploitationsGrouping from '~/components/parcelle/parcelles-workspace/exploitations-grouping'
 import ParcelleItem from '~/components/parcelle/parcelles-workspace/parcelle-item'
 import ParcellesDrawer from '~/components/parcelle/parcelles-workspace/parcelles-drawer'
 import {
   formatHectares,
   getCulturesSegments,
+  normalizeSearch,
   plural,
 } from '~/components/parcelle/parcelles-workspace/selection'
+import type { ExploitationsDraft } from '~/components/parcelle/parcelles-workspace/use_exploitations_draft'
 import { getCultureByCode } from '~/functions/cultures_group'
+import { getParcelleExploitations } from '~/functions/projet_parcelles'
 import ButtonWithSelector from '~/ui/ButtonWithSelector'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
+import SearchWithFilters from '~/ui/SearchWithFilters'
+
+export type GroupBy = 'toutes' | 'exploitations'
 
 const listClassName = 'flex flex-col fr-mb-0'
 const listStyle = { listStyle: 'none', padding: 0 }
@@ -29,6 +37,11 @@ export type SelectionPanelProps = {
   removedParcelles: SelectedParcelle[]
   onParcelleClick: (parcelle: SelectedParcelle) => void
   onParcelleRestore: (parcelle: SelectedParcelle) => void
+  /** Exploitations du projet : permet de regrouper les parcelles par exploitation ajoutée. */
+  exploitations?: ExploitationsDraft
+  /** Regroupement de la liste, gardé par l'écran parent pour suivre la méthode d'ajout. */
+  groupBy: GroupBy
+  onGroupByChange: (groupBy: GroupBy) => void
 }
 
 export default function SelectionPanel({
@@ -39,7 +52,20 @@ export default function SelectionPanel({
   removedParcelles,
   onParcelleClick,
   onParcelleRestore,
+  exploitations,
+  groupBy,
+  onGroupByChange,
 }: SelectionPanelProps) {
+  const canGroupByExploitation = Boolean(exploitations)
+  // Sans exploitations fournies (hors projet), la parcelle ne porte pas de meta d'exploitation
+  const parcelleExploitations = useMemo(
+    () => exploitations && getParcelleExploitations(exploitations.list, millesime),
+    [exploitations, millesime]
+  )
+  const getExploitationName = (parcelle: SelectedParcelle) =>
+    parcelleExploitations &&
+    (parcelleExploitations.get(parcelle.rpgId)?.name ?? 'Hors exploitations du projet')
+
   const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((a, culture) => {
     return a + culture.value
@@ -52,11 +78,16 @@ export default function SelectionPanel({
   const cultureFilter = culturesSegments
     .map((culture) => culture.label)
     .filter((label) => selectedCultures.has(label))
+  const [exploitationSearch, setExploitationSearch] = useState('')
+  const exploitationNeedle = normalizeSearch(exploitationSearch)
+  const matchesExploitationSearch = (name: string) =>
+    normalizeSearch(name).includes(exploitationNeedle)
 
   const filteredParcelles = parcelles.filter(
     (parcelle) =>
-      cultureFilter.length === 0 ||
-      cultureFilter.includes(getCultureByCode(parcelle.cultureCode).label)
+      (cultureFilter.length === 0 ||
+        cultureFilter.includes(getCultureByCode(parcelle.cultureCode).label)) &&
+      (!exploitationNeedle || matchesExploitationSearch(getExploitationName(parcelle) ?? ''))
   )
 
   const toggleCulture = (label: string, isSelected: boolean) => {
@@ -111,6 +142,7 @@ export default function SelectionPanel({
             <ParcelleItem
               key={parcelle.rpgId}
               parcelle={parcelle}
+              exploitationName={getExploitationName(parcelle)}
               onClick={onParcelleClick}
               onRestore={onParcelleRestore}
             />
@@ -147,9 +179,53 @@ export default function SelectionPanel({
         <CulturesRepartition segments={culturesSegments} />
       </section>
 
+      {canGroupByExploitation && (
+        <div className="fr-pb-3v">
+          <SegmentedControl
+            small
+            inlineLegend
+            legend="Regrouper par"
+            segments={[
+              {
+                label: 'Toutes',
+                nativeInputProps: {
+                  checked: groupBy === 'toutes',
+                  onChange: () => onGroupByChange('toutes'),
+                },
+              },
+              {
+                label: 'Exploitations',
+                nativeInputProps: {
+                  checked: groupBy === 'exploitations',
+                  onChange: () => onGroupByChange('exploitations'),
+                },
+              },
+            ]}
+          />
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
-        {cultureFilterBlock}
-        {filteredParcelles.length === 0 ? (
+        {canGroupByExploitation ? (
+          <SearchWithFilters
+            searchPlaceholder="Rechercher par exploitation"
+            onSearchChange={(event) => setExploitationSearch(event.target.value)}
+          >
+            {cultureFilterBlock}
+          </SearchWithFilters>
+        ) : (
+          cultureFilterBlock
+        )}
+        {canGroupByExploitation && groupBy === 'exploitations' ? (
+          <ExploitationsGrouping
+            millesime={millesime}
+            parcelles={filteredParcelles}
+            addedParcelleIds={addedParcelleIds}
+            exploitations={exploitations!}
+            isFiltered={cultureFilter.length > 0 || Boolean(exploitationNeedle)}
+            onParcelleClick={onParcelleClick}
+          />
+        ) : filteredParcelles.length === 0 ? (
           <EmptyPlaceholder
             label="Aucune parcelle ne correspond aux filtres"
             illustrativeIcon="fr-icon-search-line"
@@ -161,6 +237,7 @@ export default function SelectionPanel({
                 key={parcelle.rpgId}
                 parcelle={parcelle}
                 isNew={addedParcelleIds.has(parcelle.rpgId)}
+                exploitationName={getExploitationName(parcelle)}
                 onClick={onParcelleClick}
               />
             ))}
