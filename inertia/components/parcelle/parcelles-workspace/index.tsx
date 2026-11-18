@@ -10,7 +10,9 @@ import AddInstructions, {
   getMethods,
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
+import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
+import SelectionPanel from '~/components/parcelle/parcelles-workspace/selection-panel'
 import {
   useDefaultLayers,
   WorkspaceLayers,
@@ -30,6 +32,8 @@ export type ParcellesWorkspaceProps = {
   variant: 'overlay' | 'inline'
   isOpen: boolean
   title: string
+  /** Titre de la liste des parcelles sélectionnées, par exemple « Parcelles du projet ». */
+  selectionTitle: string
   initialSelection: ParcellesSelection
   /**
    * Sélection enregistrée, référence des parcelles nouvelles et retirées quand elle diffère de
@@ -62,10 +66,11 @@ export type ParcellesWorkspaceProps = {
 
 export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const { variant, isOpen, title, initialSelection, defaultMillesime } = props
-  const { unavailableRpgIds, submitLabel, onClose } = props
+  const { unavailableRpgIds, submitLabel, selectionTitle, onClose } = props
   const mapRef = useRef<ParcellesSelectionMapHandle>(null)
   const [millesime, setMillesime] = useState(defaultMillesime)
   const [method, setMethod] = useState<MethodValue>('carte')
+  const [panelTab, setPanelTab] = useState<PanelTab>('selection')
   const draft = useParcellesDraft(initialSelection, millesime, props.savedSelection)
   const defaultLayers = useDefaultLayers()
   const layers = props.layers ?? defaultLayers
@@ -143,9 +148,28 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         ),
       }}
       right={{
-        title: 'Couches',
-        tabLabel: 'Couches',
-        content: layers.panel,
+        title: panelTab === 'couches' ? 'Couches' : 'Sélection',
+        tabLabel: 'Sélection et couches',
+        badge: draft.selectedParcelles.length,
+        headerContent: (
+          <PanelTabs
+            tab={panelTab}
+            onTabChange={setPanelTab}
+            selectionCount={draft.selectedParcelles.length}
+          />
+        ),
+        content:
+          panelTab === 'couches' ? (
+            layers.panel
+          ) : (
+            <SelectionPanel
+              title={selectionTitle}
+              millesime={millesime}
+              parcelles={draft.selectedParcelles}
+              addedParcelleIds={draft.addedParcelleIds}
+              onParcelleClick={(parcelle) => mapRef.current?.flyTo(parcelle.centroid!)}
+            />
+          ),
       }}
       footer={
         <WorkspaceFooter
