@@ -1,109 +1,140 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
-import ParcellesSelectionMap, {
-  SelectedParcelle,
-  ParcellesSelectionMapHandle,
-  AacEmprise,
-  Bbox,
-} from '~/components/map/parcelles-selection-map'
-import type { ProjetFormData, ProjetFormPageProps } from './projet-form'
-import {
-  getParcelleExploitations,
-  getProjectExploitations,
-  getSelectedParcelles,
-  toggleParcelle,
-} from '~/functions/projet_parcelles'
-import ParcellesPanel from './parcelles-panel'
+import ParcellesStepOverview, {
+  useAacEmprises,
+} from '~/components/parcelle/parcelles-step-overview'
+import ParcellesWorkspace, {
+  ParcellesSelection,
+  WorkspaceExploitations,
+} from '~/components/parcelle/parcelles-workspace'
+import type { ProjetFormData, ProjetFormPageProps, SelectedParcelleFormData } from './projet-form'
+import { getProjectExploitations } from '~/functions/projet_parcelles'
 
 type ParcellesStepProps = {
   data: ProjetFormData
   setData: React.Dispatch<React.SetStateAction<ProjetFormData>>
 }
 
+function toSelection(items: SelectedParcelleFormData[]): ParcellesSelection {
+  const selection: ParcellesSelection = {}
+  for (const { rpgId, surface, cultureCode, centroid, year } of items) {
+    const millesime = String(year)
+    selection[millesime] = [
+      ...(selection[millesime] ?? []),
+      { rpgId, surface, cultureCode, centroid },
+    ]
+  }
+  return selection
+}
+
+// Les nouvelles parcelles sont rattachées à l'exploitation qui les déclare ce millésime
+function fromSelection(
+  selection: ParcellesSelection,
+  previousItems: SelectedParcelleFormData[],
+  exploitations: ProjetFormPageProps['exploitations']
+): SelectedParcelleFormData[] {
+  return Object.entries(selection).flatMap(([millesime, parcelles]) =>
+    parcelles.map((parcelle) => {
+      const existing = previousItems.find(
+        (item) => String(item.year) === millesime && item.rpgId === parcelle.rpgId
+      )
+      if (existing) return existing
+
+      const isSameParcelle = (p: { year: number; rpgId: string | null }) =>
+        String(p.year) === millesime && p.rpgId === parcelle.rpgId
+      const linkedExploitation = exploitations.find((exp) => exp.parcelles?.some(isSameParcelle))
+      return {
+        id: linkedExploitation?.parcelles?.find(isSameParcelle)?.id,
+        year: Number(millesime),
+        ...parcelle,
+      }
+    })
+  )
+}
+
 export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
-  const mapRef = useRef<ParcellesSelectionMapHandle>(null)
-  const { pmtilesUrl, exploitations, aacs } = usePage<ProjetFormPageProps>().props
-  // Seules les AAC dont l'emprise est connue permettent de centrer la carte
-  const aacEmprises = useMemo<AacEmprise[]>(
+  const { pmtilesUrl, exploitations, aacs, projet } = usePage<ProjetFormPageProps>().props
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false)
+  const [millesime, setMillesime] = useState(data.parcelles.millesime)
+  const aacEmprises = useAacEmprises(aacs)
+
+  const { items } = data.parcelles
+  const initialSelection = useMemo(() => toSelection(items), [items])
+  // Parcelles enregistrées du projet, aucune en création : seules celles-ci peuvent être « retirées »
+  const savedSelection = useMemo(
     () =>
-      aacs.flatMap((aac) =>
-        aac.bbox
-          ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
-          : []
+      toSelection(
+        (projet?.parcelles ?? []).flatMap((p) =>
+          p.rpgId === null
+            ? []
+            : [
+                {
+                  year: p.year,
+                  rpgId: p.rpgId,
+                  surface: p.surface === null ? null : Number(p.surface),
+                  cultureCode: p.cultureCode,
+                  centroid: p.centroid ?? undefined,
+                },
+              ]
+        )
       ),
-    [aacs]
+    [projet]
   )
-  // Première AAC par défaut ; conservée au changement de millésime, qui recrée la carte
-  const [selectedAacId, setSelectedAacId] = useState(aacEmprises[0]?.id)
-
-  const { millesime } = data.parcelles
-
-  const projectExploitations = useMemo(
-    () => getProjectExploitations(exploitations, data.exploitations),
-    [exploitations, data.exploitations]
+  const millesimeParcelles = useMemo(
+    () => initialSelection[millesime] ?? [],
+    [initialSelection, millesime]
   )
-
-  const parcelleExploitations = useMemo(
-    () => getParcelleExploitations(projectExploitations, millesime),
-    [projectExploitations, millesime]
+  const projectName = data.generalInfos.projectName
+  const workspaceExploitations = useMemo<WorkspaceExploitations>(
+    () => ({
+      list: getProjectExploitations(exploitations, data.exploitations),
+      initialAddedIds: data.parcelles.addedExploitationIds,
+    }),
+    [exploitations, data.exploitations, data.parcelles.addedExploitationIds]
   )
 
-  const selectedParcelles = useMemo(() => getSelectedParcelles(data.parcelles), [data.parcelles])
-
-  const selectedParcelleIds = useMemo(
-    () => selectedParcelles.map((p) => p.rpgId),
-    [selectedParcelles]
-  )
-
-  const handleParcelleToggle = useCallback(
-    (parcelle: SelectedParcelle) => {
-      setData((prev) => ({
-        ...prev,
-        parcelles: toggleParcelle(prev.parcelles, parcelle, parcelleExploitations),
-      }))
-    },
-    [setData, parcelleExploitations]
-  )
-
-  const handleMillesimeChange = (newMillesime: string) => {
-    // La sélection est conservée : on peut parcourir les millésimes sans la perdre
+  const handleSubmit = (
+    selection: ParcellesSelection,
+    _changedMillesimes: string[],
+    addedExploitationIds: Record<string, string[]>
+  ) => {
     setData((prev) => ({
       ...prev,
-      parcelles: { ...prev.parcelles, millesime: newMillesime },
+      parcelles: {
+        ...prev.parcelles,
+        items: fromSelection(selection, prev.parcelles.items, exploitations),
+        addedExploitationIds,
+      },
     }))
   }
 
   return (
-    <div className="flex flex-wrap gap-5 min-h-[560px]">
-      {/* Carte à gauche */}
-      <div className="flex flex-col flex-1 min-w-[410px] h-[560px]">
-        <ParcellesSelectionMap
-          ref={mapRef}
-          key={millesime}
-          pmtilesUrl={pmtilesUrl}
-          millesime={millesime}
-          selectedParcelleIds={selectedParcelleIds}
-          onParcelleToggle={handleParcelleToggle}
-          handleMillesimeChange={handleMillesimeChange}
-          aacs={aacEmprises}
-          selectedAacId={selectedAacId}
-          onAacChange={setSelectedAacId}
-        />
-      </div>
+    <>
+      <ParcellesStepOverview
+        pmtilesUrl={pmtilesUrl}
+        millesime={millesime}
+        onMillesimeChange={setMillesime}
+        parcelles={millesimeParcelles}
+        aacs={aacEmprises}
+        onManage={() => setIsWorkspaceOpen(true)}
+      />
 
-      {/* Panneau à droite, de la hauteur de la carte : seule la liste des parcelles défile */}
-      <div className="flex-1 flex flex-col gap-5 min-w-[410px] h-[560px]">
-        <ParcellesPanel
-          parcelles={data.parcelles}
-          projectExploitations={projectExploitations}
-          parcelleExploitations={parcelleExploitations}
-          onParcellesChange={(parcelles) => setData((prev) => ({ ...prev, parcelles }))}
-          onParcelleClick={(parcelle) =>
-            parcelle.centroid && mapRef.current?.flyTo(parcelle.centroid)
-          }
-        />
-      </div>
-    </div>
+      <ParcellesWorkspace
+        variant="overlay"
+        isOpen={isWorkspaceOpen}
+        title={projectName ? `Gérer les parcelles · ${projectName}` : 'Gérer les parcelles'}
+        selectionTitle="Parcelles associées au projet"
+        initialSelection={initialSelection}
+        savedSelection={savedSelection}
+        defaultMillesime={millesime}
+        aacs={aacEmprises}
+        pmtilesUrl={pmtilesUrl}
+        exploitations={workspaceExploitations}
+        submitLabel="Valider les parcelles"
+        onSubmit={handleSubmit}
+        onClose={() => setIsWorkspaceOpen(false)}
+      />
+    </>
   )
 }

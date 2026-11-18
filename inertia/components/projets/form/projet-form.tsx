@@ -32,6 +32,8 @@ export type ProjetFormPageProps = {
   pmtilesUrl: string
   exploitations: Data.Exploitation[]
   aacs: Data.Territoire.Variants['forEmprise'][]
+  /** Projet tel qu'enregistré, en édition seulement. */
+  projet?: Data.Project
 }
 
 export type ProjetFormErrors = {
