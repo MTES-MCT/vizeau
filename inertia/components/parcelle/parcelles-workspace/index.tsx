@@ -167,6 +167,8 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
               millesime={millesime}
               parcelles={draft.selectedParcelles}
               addedParcelleIds={draft.addedParcelleIds}
+              removedParcelles={draft.removedParcelles}
+              onParcelleRestore={draft.toggleParcelle}
               onParcelleClick={(parcelle) => mapRef.current?.flyTo(parcelle.centroid!)}
             />
           ),

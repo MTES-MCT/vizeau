@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import CulturesRepartition from '~/components/parcelle/parcelles-workspace/cultures-repartition'
 import ParcelleItem from '~/components/parcelle/parcelles-workspace/parcelle-item'
+import ParcellesDrawer from '~/components/parcelle/parcelles-workspace/parcelles-drawer'
 import {
   formatHectares,
   getCulturesSegments,
@@ -24,7 +25,10 @@ export type SelectionPanelProps = {
   parcelles: SelectedParcelle[]
   /** Parcelles de la sélection absentes au départ, ajoutées dans le brouillon. */
   addedParcelleIds: Set<string>
+  /** Parcelles initialement attachées et retirées dans le brouillon. */
+  removedParcelles: SelectedParcelle[]
   onParcelleClick: (parcelle: SelectedParcelle) => void
+  onParcelleRestore: (parcelle: SelectedParcelle) => void
 }
 
 export default function SelectionPanel({
@@ -32,7 +36,9 @@ export default function SelectionPanel({
   title,
   parcelles,
   addedParcelleIds,
+  removedParcelles,
   onParcelleClick,
+  onParcelleRestore,
 }: SelectionPanelProps) {
   const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((a, culture) => {
@@ -89,6 +95,31 @@ export default function SelectionPanel({
     </div>
   )
 
+  const removedSurface = removedParcelles.reduce(
+    (sum, parcelle) => sum + (parcelle.surface ?? 0),
+    0
+  )
+  const removedSection = removedParcelles.length > 0 && (
+    <div className="fr-mt-3w">
+      <ParcellesDrawer
+        variant="removed"
+        title={`${plural(removedParcelles.length, 'parcelle')} retirée${removedParcelles.length > 1 ? 's' : ''}`}
+        summary={`−${formatHectares(removedSurface)} ha · seront détachées de la sélection initiale à la validation`}
+      >
+        <ul className={listClassName} style={listStyle}>
+          {removedParcelles.map((parcelle) => (
+            <ParcelleItem
+              key={parcelle.rpgId}
+              parcelle={parcelle}
+              onClick={onParcelleClick}
+              onRestore={onParcelleRestore}
+            />
+          ))}
+        </ul>
+      </ParcellesDrawer>
+    </div>
+  )
+
   if (parcelles.length === 0) {
     return (
       <div className="flex flex-col">
@@ -96,6 +127,7 @@ export default function SelectionPanel({
           label={`Aucune parcelle sélectionnée pour le RPG ${millesime}`}
           illustrativeIcon="fr-icon-collage-line"
         />
+        {removedSection}
       </div>
     )
   }
@@ -135,6 +167,8 @@ export default function SelectionPanel({
           </ul>
         )}
       </div>
+
+      {removedSection}
     </div>
   )
 }
