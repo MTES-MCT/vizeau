@@ -7,6 +7,7 @@ import { ProjectFactory } from '#database/factories/project_factory'
 import { ExploitationFactory } from '#database/factories/exploitation_factory'
 import { ParcelleFactory } from '#database/factories/parcelle_factory'
 import { ProjectStepFactory } from '#database/factories/project_step_factory'
+import { TerritoireFactory } from '#database/factories/territoire_factory'
 
 test.group('Projects - Show Route', (group) => {
   group.setup(async () => {
@@ -60,5 +61,55 @@ test.group('Projects - Show Route', (group) => {
       steps[0].tags?.map((tag) => tag.name),
       ['Diagnostic']
     )
+  })
+
+  test('les exploitations du workspace de parcelles sont celles du projet, sur mes territoires', async ({
+    assert,
+    client,
+  }) => {
+    const territoire = await TerritoireFactory.create()
+    const user = await UserFactory.create()
+    await user.related('territoires').attach([territoire.id])
+    const project = await ProjectFactory.merge({ userId: user.id }).create()
+
+    const projectExploitation = await ExploitationFactory.create()
+    await projectExploitation.related('territoires').attach([territoire.id])
+    await ParcelleFactory.merge({ exploitationId: projectExploitation.id }).create()
+    // Exploitation du projet passée sur un territoire qui n'est pas le mien
+    const otherTerritoireExploitation = await ExploitationFactory.with('territoires', 1).create()
+    // Exploitation sur mon territoire, mais hors du projet
+    const outsideExploitation = await ExploitationFactory.create()
+    await outsideExploitation.related('territoires').attach([territoire.id])
+    await project
+      .related('exploitations')
+      .attach([projectExploitation.id, otherTerritoireExploitation.id])
+
+    const response = await client
+      .get(`projets/${project.id}`)
+      .loginAs(user)
+      .withInertiaPartialReload('projets/id', ['exploitations'])
+
+    response.assertStatus(200)
+    const exploitations: { id: string; parcelles: unknown[] }[] =
+      response.body().props.exploitations
+    assert.deepEqual(
+      exploitations.map(({ id }) => id),
+      [projectExploitation.id]
+    )
+    assert.lengthOf(exploitations[0].parcelles, 1)
+  })
+
+  test("les props du workspace de parcelles ne sont pas chargées à l'affichage", async ({
+    assert,
+    client,
+  }) => {
+    const user = await UserFactory.with('territoires', 1).create()
+    const project = await ProjectFactory.merge({ userId: user.id }).create()
+
+    const response = await client.get(`projets/${project.id}`).loginAs(user).withInertia()
+
+    response.assertStatus(200)
+    assert.notProperty(response.body().props, 'aacs')
+    assert.notProperty(response.body().props, 'exploitations')
   })
 })
