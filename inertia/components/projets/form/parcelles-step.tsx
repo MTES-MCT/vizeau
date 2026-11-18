@@ -36,7 +36,6 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   )
   // Première AAC par défaut ; conservée au changement de millésime, qui recrée la carte
   const [selectedAacId, setSelectedAacId] = useState(aacEmprises[0]?.id)
-  const [areMapOptionsVisible, setAreMapOptionsVisible] = useState(true)
 
   const { millesime } = data.parcelles
 
@@ -90,8 +89,6 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
           aacs={aacEmprises}
           selectedAacId={selectedAacId}
           onAacChange={setSelectedAacId}
-          areOptionsVisible={areMapOptionsVisible}
-          onOptionsVisibleChange={setAreMapOptionsVisible}
         />
       </div>
 

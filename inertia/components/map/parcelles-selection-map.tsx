@@ -1,15 +1,25 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Popup, ScaleControl } from 'maplibre-gl'
-import type { AddLayerObject, MapLayerMouseEvent } from 'maplibre-gl'
-import { getParcellesLayers, getParcellesSource } from './styles/parcelles'
-import { setParcellesHighlight, getCentroid, RPG_YEARS } from '~/functions/map'
+import type { LngLatBounds, MapLayerMouseEvent } from 'maplibre-gl'
+import { getCentroid } from '~/functions/map'
+import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
+import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
 import { useMap } from '~/hooks/use_map'
+import { useMapReconciler } from '~/hooks/use_map_reconciler'
 import MapErrorBoundary from './map-error-boundary'
+import MillesimeSelect from './millesime-select'
 import { renderPopupParcelle } from './popup-parcelle'
+import { BASE_MAPS, BASE_MAP_OPTIONS, type BaseMapId } from './styles/base_maps'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import vector from '~/components/map/styles/vector.json'
 import { Select } from '@codegouvfr/react-dsfr/Select'
-import { Button } from '@codegouvfr/react-dsfr/Button'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
 
@@ -21,7 +31,31 @@ export type AacEmprise = {
   bbox: Bbox
 }
 
+export type ParcellesMapLayers = {
+  showParcelles: boolean
+  showAac: boolean
+  showPpe: boolean
+  showPpr: boolean
+  showCommunes: boolean
+  showSage: boolean
+  visibleCultures: string[]
+  /** Cultures présentes dans la zone visible, `null` quand les parcelles n'y sont pas affichées. */
+  onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
+  onZoomChange?: (zoom: number) => void
+}
+
+export const DEFAULT_LAYERS: ParcellesMapLayers = {
+  showParcelles: true,
+  showAac: false,
+  showPpe: false,
+  showPpr: false,
+  showCommunes: false,
+  showSage: false,
+  visibleCultures: Object.keys(GROUPES_CULTURAUX),
+}
+
 const BOUNDS_PADDING = 40
+const EMPTY_IDS: string[] = []
 
 export type SelectedParcelle = {
   rpgId: string
@@ -34,20 +68,24 @@ type ParcellesSelectionMapProps = {
   pmtilesUrl: string
   millesime: string
   selectedParcelleIds: string[]
-  onParcelleToggle: (parcelle: SelectedParcelle) => void
+  unavailableParcelleIds?: string[]
+  /** Sans ce callback, la carte est en lecture seule : les parcelles ne sont pas cliquables. */
+  onParcelleToggle?: (parcelle: SelectedParcelle) => void
   handleMillesimeChange: (newMillesime: string) => void
   /** AAC sur lesquelles centrer la carte : un sélecteur s'affiche s'il y en a plusieurs. */
   aacs?: AacEmprise[]
   /** AAC affichée à l'ouverture de la carte, à défaut la France entière. */
   selectedAacId?: string
+  initialBbox?: Bbox
   onAacChange?: (aacId: string) => void
-  /** Affichage des sélecteurs du bandeau, contrôlé par le parent car la carte est recréée au changement de millésime. */
-  areOptionsVisible: boolean
-  onOptionsVisibleChange: (visible: boolean) => void
+  layers?: ParcellesMapLayers
+  baseMap?: BaseMapId
+  onBaseMapChange?: (baseMap: BaseMapId) => void
 }
 
 export type ParcellesSelectionMapHandle = {
   flyTo: (centroid: { x: number; y: number }) => void
+  getBounds: () => Bbox | undefined
 }
 
 const ParcellesSelectionMapContent = forwardRef<
@@ -58,53 +96,46 @@ const ParcellesSelectionMapContent = forwardRef<
     pmtilesUrl,
     millesime,
     selectedParcelleIds,
+    unavailableParcelleIds = EMPTY_IDS,
     onParcelleToggle,
     handleMillesimeChange,
     aacs = [],
     selectedAacId,
+    initialBbox: initialBboxProp,
     onAacChange,
-    areOptionsVisible,
-    onOptionsVisibleChange,
+    layers = DEFAULT_LAYERS,
+    baseMap: baseMapProp,
+    onBaseMapChange,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
   const [isMapLoading, setIsMapLoading] = useState(true)
-  const initialBbox = aacs.find((aac) => aac.id === selectedAacId)?.bbox
+  const [localBaseMap, setLocalBaseMap] = useState<BaseMapId>(baseMapProp ?? 'vector')
+  const baseMap = baseMapProp ?? localBaseMap
+  const currentBaseMapRef = useRef(baseMap)
+  const initialBbox = initialBboxProp ?? aacs.find((aac) => aac.id === selectedAacId)?.bbox
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
-  const previousSelectedRef = useRef<Set<string>>(new Set())
+  const unavailableParcelleIdsRef = useRef<string[]>(unavailableParcelleIds)
+  const layersRef = useRef(layers)
+  const isReadOnly = !onParcelleToggle
+  const culturesInViewportPendingRef = useRef(true)
   const currentParcelleIdRef = useRef<string | null>(null)
   const parcellePopupRef = useRef<Popup>(
     new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
 
-  // Keep ref in sync for use in stable callbacks
-  useEffect(() => {
-    selectedParcelleIdsRef.current = selectedParcelleIds
-  }, [selectedParcelleIds])
+  selectedParcelleIdsRef.current = selectedParcelleIds
+  unavailableParcelleIdsRef.current = unavailableParcelleIds
+  layersRef.current = layers
 
-  // Sync highlights when selectedParcelleIds changes
-  useEffect(() => {
-    const currentSet = new Set(selectedParcelleIds)
-    const prevSet = previousSelectedRef.current
-
-    for (const id of currentSet) {
-      if (!prevSet.has(id)) {
-        setParcellesHighlight(mapRef.current, [id], true)
-      }
-    }
-    for (const id of prevSet) {
-      if (!currentSet.has(id)) {
-        setParcellesHighlight(mapRef.current, [id], false)
-      }
-    }
-    previousSelectedRef.current = currentSet
-  }, [selectedParcelleIds])
-
-  const { mapContainerRef, mapRef } = useMap(
+  const { mapContainerRef, mapRef, map } = useMap(
     {
-      style: vector as any,
+      style: BASE_MAPS[baseMap].style,
       ...(initialBbox
-        ? { bounds: initialBbox, fitBoundsOptions: { padding: BOUNDS_PADDING } }
+        ? {
+            bounds: initialBbox,
+            fitBoundsOptions: { padding: initialBboxProp ? 0 : BOUNDS_PADDING },
+          }
         : { center: [2.24, 46.54], zoom: 5 }),
       maxZoom: 17.5,
       trackResize: true,
@@ -113,31 +144,81 @@ const ParcellesSelectionMapContent = forwardRef<
       pitchWithRotate: false,
       touchZoomRotate: false,
     },
-    (map) => {
-      map.on('load', () => {
-        map.addSource('parcelles', getParcellesSource({ pmtilesUrl, millesime }))
-        map.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
-        const beforeId = map.getLayer('water-name-lakeline') ? 'water-name-lakeline' : undefined
-        getParcellesLayers().forEach((layer) => {
-          if (!map.getLayer(layer.id)) {
-            map.addLayer(layer as AddLayerObject, beforeId)
-          }
-        })
-
-        // Highlight already-selected parcelles after the map loads
-        if (selectedParcelleIdsRef.current.length > 0) {
-          setParcellesHighlight(map, selectedParcelleIdsRef.current, true)
-        }
-
+    (createdMap) => {
+      createdMap.on('load', () => {
+        createdMap.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
+        layersRef.current.onZoomChange?.(createdMap.getZoom())
         setIsMapLoading(false)
       })
 
       // Ensures the map is not blocked in loading state after any loading event
-      map.on('idle', () => {
+      createdMap.on('idle', () => {
         setIsMapLoading(false)
+        if (culturesInViewportPendingRef.current) {
+          culturesInViewportPendingRef.current = false
+          layersRef.current.onCulturesInViewportChange?.(
+            getCulturesInViewport(createdMap),
+            createdMap.getBounds()
+          )
+        }
+      })
+
+      createdMap.on('zoomend', () => layersRef.current.onZoomChange?.(createdMap.getZoom()))
+      createdMap.on('moveend', () => {
+        culturesInViewportPendingRef.current = true
       })
     }
   )
+
+  const desiredMapState: MapDesiredState = useMemo(
+    () => ({
+      pmtilesUrl,
+      millesime,
+      showParcelles: layers.showParcelles,
+      showAac: layers.showAac,
+      showPpe: layers.showPpe,
+      showPpr: layers.showPpr,
+      showCommunes: layers.showCommunes,
+      showSage: layers.showSage,
+      // Les parcelles non bio doivent rester cliquables pendant la sélection
+      showBioOnly: false,
+      visibleCultures: layers.visibleCultures,
+      highlightedParcelleIds: selectedParcelleIds,
+      hoveredParcelleIds: EMPTY_IDS,
+      unavailableParcelleIds,
+    }),
+    [pmtilesUrl, millesime, layers, selectedParcelleIds, unavailableParcelleIds]
+  )
+  const reconcileMapState = useMapReconciler(map, desiredMapState)
+
+  // `setStyle` retire sans événement les couches ajoutées : il faut relancer la réconciliation
+  useEffect(() => {
+    const currentMap = mapRef.current
+    if (!currentMap || baseMap === currentBaseMapRef.current) return
+
+    const center = currentMap.getCenter()
+    const zoom = currentMap.getZoom()
+    const restoreCamera = () => {
+      currentMap.setCenter(center)
+      currentMap.setZoom(zoom)
+    }
+
+    currentBaseMapRef.current = baseMap
+    currentMap.once('style.load', restoreCamera)
+    currentMap.setStyle(BASE_MAPS[baseMap].style)
+    restoreCamera()
+    reconcileMapState()
+
+    return () => {
+      currentMap.off('style.load', restoreCamera)
+    }
+  }, [baseMap, reconcileMapState])
+
+  useEffect(() => {
+    parcellePopupRef.current.remove()
+    currentParcelleIdRef.current = null
+    culturesInViewportPendingRef.current = true
+  }, [millesime])
 
   const handleParcelleMouseMove = useCallback(
     (e: MapLayerMouseEvent) => {
@@ -145,6 +226,7 @@ const ParcellesSelectionMapContent = forwardRef<
       const props = e.features?.[0]?.properties
       if (!props) return
       const id = props['id_parcel']
+      const isUnavailable = unavailableParcelleIdsRef.current.includes(id)
 
       if (currentParcelleIdRef.current !== id) {
         const popupContent = renderPopupParcelle(
@@ -152,9 +234,9 @@ const ParcellesSelectionMapContent = forwardRef<
           String(props['surf_parc'] ?? ''),
           millesime,
           undefined,
+          isUnavailable,
           false,
-          false,
-          true,
+          !isReadOnly,
           selectedParcelleIdsRef.current.includes(id)
         )
         parcellePopupRef.current
@@ -165,9 +247,11 @@ const ParcellesSelectionMapContent = forwardRef<
       } else {
         parcellePopupRef.current.setLngLat(e.lngLat)
       }
-      mapRef.current.getCanvas().style.cursor = 'pointer'
+      if (!isReadOnly) {
+        mapRef.current.getCanvas().style.cursor = isUnavailable ? 'not-allowed' : 'pointer'
+      }
     },
-    [millesime]
+    [millesime, isReadOnly]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
@@ -179,15 +263,11 @@ const ParcellesSelectionMapContent = forwardRef<
 
   const handleParcelleClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      if (!mapRef.current) return
       const feature = e.features?.[0]
-      if (!feature?.properties) return
+      if (!onParcelleToggle || !feature?.properties) return
 
       const id = feature.properties['id_parcel']
-      const isSelected = selectedParcelleIdsRef.current.includes(id)
-
-      // Immediately reflect highlight before state update propagates
-      setParcellesHighlight(mapRef.current, [id], !isSelected)
+      if (unavailableParcelleIdsRef.current.includes(id)) return
 
       onParcelleToggle({
         rpgId: id,
@@ -210,6 +290,10 @@ const ParcellesSelectionMapContent = forwardRef<
     flyTo(centroid: { x: number; y: number }) {
       mapRef.current?.flyTo({ center: [centroid.x, centroid.y], zoom: 15, duration: 800 })
     },
+    getBounds() {
+      const bounds = mapRef.current?.getBounds()
+      return bounds && [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
+    },
   }))
 
   const handleAacChange = (aacId: string) => {
@@ -218,6 +302,11 @@ const ParcellesSelectionMapContent = forwardRef<
       mapRef.current?.fitBounds(aac.bbox, { padding: BOUNDS_PADDING, duration: 800 })
     }
     onAacChange?.(aacId)
+  }
+
+  const handleBaseMapChange = (value: BaseMapId) => {
+    setLocalBaseMap(value)
+    onBaseMapChange?.(value)
   }
 
   // Attach / detach event listeners when handlers change
@@ -239,86 +328,59 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])
 
-  const hasAacSelector = aacs.length > 1
-
-  const millesimeSelect = (
-    <Select
-      label=""
-      className="fr-mb-0 w-40"
-      nativeSelectProps={{
-        value: millesime,
-        onChange: (e) => handleMillesimeChange(e.target.value),
-      }}
-    >
-      {RPG_YEARS.map((m) => (
-        <option key={m} value={m}>
-          RPG {m}
-        </option>
-      ))}
-    </Select>
-  )
-
   return (
-    <div className="flex flex-col h-full w-full relative">
-      {isMapLoading && (
-        <div className="flex absolute left-0 right-0 top-0 bottom-0 items-center justify-center">
-          <Loader size="lg" />
-        </div>
-      )}
-      <div ref={mapContainerRef} className="flex justify-between h-full w-full editing-glow" />
-
+    <div className="flex flex-col h-full w-full">
+      {/* Même en-tête que la carte de consultation, aligné sur ceux des panneaux */}
       <div
-        className="absolute left-0 right-0 top-0 fr-text--sm fr-p-2v shadow-md"
-        style={{
-          backgroundColor: fr.colors.decisions.background.contrast.info.default,
-          color: fr.colors.decisions.text.default.info.default,
-        }}
+        className="flex flex-wrap items-center justify-between gap-4 min-h-17 fr-p-2v shrink-0"
+        style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
       >
-        <div className="flex items-center gap-2 justify-between">
-          <div className="flex gap-1 fr-pl-2w justify-center">
-            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-            Cliquez sur une parcelle pour la sélectionner ou la désélectionner
-          </div>
-          {/* Une seule AAC : pas de sélecteur d'AAC, le millésime reste dans le bandeau */}
-          {hasAacSelector ? (
-            <Button
-              type="button"
-              priority="tertiary no outline"
-              size="small"
-              iconId={areOptionsVisible ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
-              iconPosition="right"
-              nativeButtonProps={{
-                'aria-expanded': areOptionsVisible,
-                'aria-controls': 'parcelles-map-options',
-              }}
-              onClick={() => onOptionsVisibleChange(!areOptionsVisible)}
-            >
-              {areOptionsVisible ? 'Masquer les options' : 'Options'}
-            </Button>
-          ) : (
-            millesimeSelect
-          )}
-        </div>
-
-        {hasAacSelector && areOptionsVisible && (
-          <div id="parcelles-map-options" className="flex flex-wrap gap-x-4 fr-pb-2v fr-pt-4v">
+        <div className="flex flex-wrap items-center gap-4">
+          {aacs.length > 1 && (
             <Select
               label=""
-              className="fr-mb-0 flex-1 min-w-48"
+              className="fr-mb-0 w-fit max-w-80"
               nativeSelectProps={{
-                value: selectedAacId,
-                onChange: (e) => handleAacChange(e.target.value),
+                'value': selectedAacId,
+                'aria-label': 'Zoomer sur une AAC',
+                'onChange': (e) => handleAacChange(e.target.value),
               }}
             >
               {aacs.map((aac) => (
                 <option key={aac.id} value={aac.id}>
-                  {aac.label}
+                  Zoomer sur {aac.label}
                 </option>
               ))}
             </Select>
-            {millesimeSelect}
+          )}
+          <Select
+            label=""
+            className="fr-mb-0 w-fit"
+            nativeSelectProps={{
+              'value': baseMap,
+              'aria-label': 'Fond de carte',
+              'onChange': (e) => handleBaseMapChange(e.target.value as BaseMapId),
+            }}
+          >
+            {BASE_MAP_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <MillesimeSelect value={millesime} onChange={handleMillesimeChange} />
+      </div>
+      <div className="relative flex-1 min-h-0">
+        {isMapLoading && (
+          <div className="flex absolute left-0 right-0 top-0 bottom-0 items-center justify-center">
+            <Loader size="lg" />
           </div>
         )}
+        <div
+          ref={mapContainerRef}
+          className={`flex justify-between h-full w-full${isReadOnly ? '' : ' editing-glow'}`}
+        />
       </div>
     </div>
   )
