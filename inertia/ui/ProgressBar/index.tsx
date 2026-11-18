@@ -4,6 +4,7 @@ export type ProgressBarProps = {
   value: number
   total: number
   unit?: string
+  valueLabel?: string
   progressColor?: string
   size?: 'md' | 'sm' | 'lg'
 }
@@ -13,6 +14,7 @@ export default function ProgressBar({
   total,
   progressColor,
   unit,
+  valueLabel,
   size = 'md',
 }: ProgressBarProps) {
   const BORDER_RADIUS = 5
@@ -42,7 +44,9 @@ export default function ProgressBar({
           }}
         />
       </div>
-      {unit ? (
+      {valueLabel ? (
+        <p className={`fr-m-0 fr-text--${size}`}>{valueLabel}</p>
+      ) : unit ? (
         <p className={`fr-m-0 fr-text--${size}`}>
           {value || 0}/{total || 0} {unit}
         </p>
