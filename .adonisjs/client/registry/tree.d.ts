@@ -23,6 +23,9 @@ export interface ApiDefinition {
     store: typeof routes['exploitations.store']
     edit: typeof routes['exploitations.edit']
     destroy: typeof routes['exploitations.destroy']
+    parcelles: {
+      update: typeof routes['exploitations.parcelles.update']
+    }
     detachParcelle: typeof routes['exploitations.detachParcelle']
     export: typeof routes['exploitations.export']
   }

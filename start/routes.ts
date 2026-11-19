@@ -59,6 +59,9 @@ router
         router
           .delete('exploitations/:id', [controllers.Exploitations, 'destroy'])
           .as('exploitations.destroy')
+        router
+          .put('exploitations/:id/parcelles', [controllers.Exploitations, 'updateParcelles'])
+          .as('exploitations.parcelles.update')
 
         router
           .delete('exploitations/:exploitationId/parcelles/:rpgId/detach', [
