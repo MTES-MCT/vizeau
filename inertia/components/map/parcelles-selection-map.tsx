@@ -8,10 +8,12 @@ import {
   useState,
 } from 'react'
 import { Popup, ScaleControl } from 'maplibre-gl'
-import type { LngLatBounds, MapLayerMouseEvent } from 'maplibre-gl'
+import type { LngLatBounds, Map as MaplibreMap, MapLayerMouseEvent } from 'maplibre-gl'
 import { getCentroid } from '~/functions/map'
+import type { AacEmprise, Bbox, InitialMapView } from '~/functions/map_focus'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
+import { PARCELLES_MIN_ZOOM } from './styles/parcelles'
 import { useMap } from '~/hooks/use_map'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 import MapErrorBoundary from './map-error-boundary'
@@ -23,13 +25,7 @@ import { Select } from '@codegouvfr/react-dsfr/Select'
 import Loader from '~/ui/Loader'
 import { fr } from '@codegouvfr/react-dsfr'
 
-export type Bbox = [number, number, number, number]
-
-export type AacEmprise = {
-  id: string
-  label: string
-  bbox: Bbox
-}
+export type { AacEmprise, Bbox } from '~/functions/map_focus'
 
 export type ParcellesMapLayers = {
   showParcelles: boolean
@@ -55,6 +51,21 @@ export const DEFAULT_LAYERS: ParcellesMapLayers = {
 }
 
 const BOUNDS_PADDING = 40
+
+/*
+ * Cadre une emprise sans descendre sous le zoom d'affichage des parcelles : une emprise trop
+ * étendue est alors centrée, quitte à en couper les bords (les AAC mises en valeur restent
+ * repérables à leur fond coloré).
+ */
+function fitBboxShowingParcelles(map: MaplibreMap, bbox: Bbox, duration: number) {
+  const camera = map.cameraForBounds(bbox, { padding: BOUNDS_PADDING })
+  if (!camera) return
+  map.easeTo({
+    center: camera.center,
+    zoom: Math.max(camera.zoom ?? PARCELLES_MIN_ZOOM, PARCELLES_MIN_ZOOM),
+    duration,
+  })
+}
 const EMPTY_IDS: string[] = []
 
 export type SelectedParcelle = {
@@ -74,10 +85,10 @@ type ParcellesSelectionMapProps = {
   handleMillesimeChange: (newMillesime: string) => void
   /** AAC sur lesquelles centrer la carte : un sélecteur s'affiche s'il y en a plusieurs. */
   aacs?: AacEmprise[]
-  /** AAC affichée à l'ouverture de la carte, à défaut la France entière. */
-  selectedAacId?: string
-  initialBbox?: Bbox
-  onAacChange?: (aacId: string) => void
+  /** Vue à l'ouverture de la carte (voir `pickInitialMapView`), à défaut la France entière. */
+  initialView?: InitialMapView
+  /** Codes des AAC mises en valeur par un fond coloré. */
+  highlightedAacCodes?: string[]
   layers?: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
@@ -100,9 +111,8 @@ const ParcellesSelectionMapContent = forwardRef<
     onParcelleToggle,
     handleMillesimeChange,
     aacs = [],
-    selectedAacId,
-    initialBbox: initialBboxProp,
-    onAacChange,
+    initialView,
+    highlightedAacCodes = EMPTY_IDS,
     layers = DEFAULT_LAYERS,
     baseMap: baseMapProp,
     onBaseMapChange,
@@ -113,7 +123,8 @@ const ParcellesSelectionMapContent = forwardRef<
   const [localBaseMap, setLocalBaseMap] = useState<BaseMapId>(baseMapProp ?? 'vector')
   const baseMap = baseMapProp ?? localBaseMap
   const currentBaseMapRef = useRef(baseMap)
-  const initialBbox = initialBboxProp ?? aacs.find((aac) => aac.id === selectedAacId)?.bbox
+  // Le sélecteur ne nomme une AAC que tant que l'utilisateur n'a pas déplacé la carte
+  const [displayedAacId, setDisplayedAacId] = useState(initialView?.aacId ?? '')
   const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const unavailableParcelleIdsRef = useRef<string[]>(unavailableParcelleIds)
   const layersRef = useRef(layers)
@@ -131,10 +142,10 @@ const ParcellesSelectionMapContent = forwardRef<
   const { mapContainerRef, mapRef, map } = useMap(
     {
       style: BASE_MAPS[baseMap].style,
-      ...(initialBbox
+      ...(initialView?.bbox
         ? {
-            bounds: initialBbox,
-            fitBoundsOptions: { padding: initialBboxProp ? 0 : BOUNDS_PADDING },
+            bounds: initialView.bbox,
+            fitBoundsOptions: { padding: initialView.isExact ? 0 : BOUNDS_PADDING },
           }
         : { center: [2.24, 46.54], zoom: 5 }),
       maxZoom: 17.5,
@@ -145,6 +156,10 @@ const ParcellesSelectionMapContent = forwardRef<
       touchZoomRotate: false,
     },
     (createdMap) => {
+      if (initialView?.bbox && !initialView.isExact) {
+        fitBboxShowingParcelles(createdMap, initialView.bbox, 0)
+      }
+
       createdMap.on('load', () => {
         createdMap.addControl(new ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left')
         layersRef.current.onZoomChange?.(createdMap.getZoom())
@@ -167,6 +182,10 @@ const ParcellesSelectionMapContent = forwardRef<
       createdMap.on('moveend', () => {
         culturesInViewportPendingRef.current = true
       })
+      // Seuls les déplacements de l'utilisateur portent un `originalEvent`, pas les zooms programmés
+      createdMap.on('movestart', (event) => {
+        if (event.originalEvent) setDisplayedAacId('')
+      })
     }
   )
 
@@ -186,8 +205,16 @@ const ParcellesSelectionMapContent = forwardRef<
       highlightedParcelleIds: selectedParcelleIds,
       hoveredParcelleIds: EMPTY_IDS,
       unavailableParcelleIds,
+      highlightedAacCodes,
     }),
-    [pmtilesUrl, millesime, layers, selectedParcelleIds, unavailableParcelleIds]
+    [
+      pmtilesUrl,
+      millesime,
+      layers,
+      selectedParcelleIds,
+      unavailableParcelleIds,
+      highlightedAacCodes,
+    ]
   )
   const reconcileMapState = useMapReconciler(map, desiredMapState)
 
@@ -299,9 +326,9 @@ const ParcellesSelectionMapContent = forwardRef<
   const handleAacChange = (aacId: string) => {
     const aac = aacs.find((item) => item.id === aacId)
     if (aac) {
-      mapRef.current?.fitBounds(aac.bbox, { padding: BOUNDS_PADDING, duration: 800 })
+      if (mapRef.current) fitBboxShowingParcelles(mapRef.current, aac.bbox, 800)
+      setDisplayedAacId(aacId)
     }
-    onAacChange?.(aacId)
   }
 
   const handleBaseMapChange = (value: BaseMapId) => {
@@ -341,11 +368,14 @@ const ParcellesSelectionMapContent = forwardRef<
               label=""
               className="fr-mb-0 w-fit max-w-80"
               nativeSelectProps={{
-                'value': selectedAacId,
+                'value': displayedAacId,
                 'aria-label': 'Zoomer sur une AAC',
                 'onChange': (e) => handleAacChange(e.target.value),
               }}
             >
+              <option value="" disabled>
+                Zoomer sur une AAC…
+              </option>
               {aacs.map((aac) => (
                 <option key={aac.id} value={aac.id}>
                   Zoomer sur {aac.label}
