@@ -215,6 +215,19 @@ export interface Registry {
       rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['destroy']>>>
     }
   }
+  'exploitations.parcelles.update': {
+    methods: ["PUT"]
+    pattern: '/exploitations/:id/parcelles'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/parcelle').updateExploitationParcellesValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/parcelle').updateExploitationParcellesValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelles']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelles']>>> | { status: 422; response: { errors: SimpleError[] } }
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/exploitations_controller').default['updateParcelles']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'exploitations.detachParcelle': {
     methods: ["DELETE"]
     pattern: '/exploitations/:exploitationId/parcelles/:rpgId/detach'

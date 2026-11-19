@@ -20,6 +20,7 @@ export type ScannedRoutes = {
     'exploitations.store': { paramsTuple?: []; params?: {} }
     'exploitations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exploitations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'exploitations.parcelles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exploitations.detachParcelle': { paramsTuple: [ParamValue,ParamValue]; params: {'exploitationId': ParamValue,'rpgId': ParamValue} }
     'parcelles.note.update': { paramsTuple: [ParamValue,ParamValue]; params: {'exploitationId': ParamValue,'rpgId': ParamValue} }
     'parcelles.export': { paramsTuple: [ParamValue]; params: {'exploitationId': ParamValue} }
@@ -197,6 +198,9 @@ export type ScannedRoutes = {
     'projets.steps.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.documents.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'stepId': ParamValue} }
     'projets.steps.tags.destroy': { paramsTuple?: []; params?: {} }
+  }
+  PUT: {
+    'exploitations.parcelles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

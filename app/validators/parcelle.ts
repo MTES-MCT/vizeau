@@ -54,3 +54,23 @@ export const unavailableParcellesQueryValidator = vine.compile(
     millesime: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
   })
 )
+
+// Parcelles de l'exploitation, tous millésimes confondus, enregistrées depuis sa page
+export const updateExploitationParcellesValidator = vine.compile(
+  vine.object({
+    params: vine.object({
+      id: vine.string().uuid(),
+    }),
+    parcelles: vine.array(
+      vine.object({
+        year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
+        rpgId: vine.string().maxLength(10),
+        surface: vine.number().min(0).optional(),
+        cultureCode: vine.string().maxLength(3).optional(),
+        centroid: vine
+          .object({ x: vine.number().min(-180).max(180), y: vine.number().min(-90).max(90) })
+          .optional(),
+      })
+    ),
+  })
+)

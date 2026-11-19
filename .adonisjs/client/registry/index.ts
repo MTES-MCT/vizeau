@@ -102,6 +102,12 @@ const routes = {
     tokens: [[0,"exploitations"],[1,"id"]],
     types: placeholder as Registry['exploitations.destroy']['types'],
   },
+  'exploitations.parcelles.update': {
+    methods: ["PUT"],
+    pattern: '/exploitations/:id/parcelles',
+    tokens: [[0,"exploitations"],[1,"id"],[0,"parcelles"]],
+    types: placeholder as Registry['exploitations.parcelles.update']['types'],
+  },
   'exploitations.detachParcelle': {
     methods: ["DELETE"],
     pattern: '/exploitations/:exploitationId/parcelles/:rpgId/detach',
