@@ -15,7 +15,7 @@ import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { urlFor } from '~/client'
 import ParcellesWorkspace, { ParcellesSelection } from '~/components/parcelle/parcelles-workspace'
 import type { Bbox, SelectedParcelle } from '~/components/map/parcelles-selection-map'
-import { useAacEmprises } from '~/components/parcelle/parcelles-step-overview'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
 
 const toSelectedParcelles = (parcelles: Data.Parcelle[] = []): SelectedParcelle[] =>

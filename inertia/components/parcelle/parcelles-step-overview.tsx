@@ -3,7 +3,6 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 
 import ParcellesSelectionMap, {
   AacEmprise,
-  Bbox,
   DEFAULT_LAYERS,
   ParcellesMapLayers,
   SelectedParcelle,
@@ -18,22 +17,8 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import LabelInfo from '~/ui/LabelInfo'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import SectionCard from '~/ui/SectionCard'
-import type { Data } from '@generated/data'
 
 const MAP_LAYERS: ParcellesMapLayers = { ...DEFAULT_LAYERS, showAac: true }
-
-/** Seules les AAC dont l'emprise est connue permettent de centrer la carte. */
-export function useAacEmprises(aacs: Data.Territoire.Variants['forEmprise'][]): AacEmprise[] {
-  return useMemo(
-    () =>
-      aacs.flatMap((aac) =>
-        aac.bbox && aac.code
-          ? [{ id: aac.id, code: aac.code, label: aac.name ?? aac.code, bbox: aac.bbox as Bbox }]
-          : []
-      ),
-    [aacs]
-  )
-}
 
 type ParcellesStepOverviewProps = {
   pmtilesUrl: string
