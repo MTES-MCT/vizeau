@@ -9,6 +9,7 @@ import ProjetInfosCard from '~/components/projets/projet-infos-card'
 import { CallOut } from '@codegouvfr/react-dsfr/CallOut'
 import { Tabs } from '@codegouvfr/react-dsfr/Tabs'
 import ProjetParcellesList from '~/components/projets/projet-parcelles-list'
+import ProjetParcellesWorkspace from '~/components/projets/projet-parcelles-workspace'
 import ExploitationsList from '~/components/exploitations/exploitations-list'
 import ProjetInstallationsList from '~/components/projets/projet-installations-list'
 import DeleteAlert from '~/ui/DeleteAlert'
@@ -152,7 +153,12 @@ export default function ShowProjet({ projet }: any) {
                   label: 'Étapes du projet',
                 },
                 {
-                  content: <ProjetParcellesList parcelles={projet.parcelles} />,
+                  content: (
+                    <div className="flex flex-col gap-4">
+                      <ProjetParcellesWorkspace projet={projet} />
+                      <ProjetParcellesList parcelles={projet.parcelles} />
+                    </div>
+                  ),
                   iconId: 'fr-icon-collage-line',
                   label: 'Parcelles',
                 },
