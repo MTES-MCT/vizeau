@@ -92,6 +92,8 @@ type ParcellesSelectionMapProps = {
   layers?: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
+  /** Masque le sélecteur de fond de carte, pour garder l'en-tête sur une ligne dans un aperçu. */
+  hideBaseMapSelect?: boolean
 }
 
 export type ParcellesSelectionMapHandle = {
@@ -116,6 +118,7 @@ const ParcellesSelectionMapContent = forwardRef<
     layers = DEFAULT_LAYERS,
     baseMap: baseMapProp,
     onBaseMapChange,
+    hideBaseMapSelect = false,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
@@ -383,21 +386,23 @@ const ParcellesSelectionMapContent = forwardRef<
               ))}
             </Select>
           )}
-          <Select
-            label=""
-            className="fr-mb-0 w-fit"
-            nativeSelectProps={{
-              'value': baseMap,
-              'aria-label': 'Fond de carte',
-              'onChange': (e) => handleBaseMapChange(e.target.value as BaseMapId),
-            }}
-          >
-            {BASE_MAP_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+          {!hideBaseMapSelect && (
+            <Select
+              label=""
+              className="fr-mb-0 w-fit"
+              nativeSelectProps={{
+                'value': baseMap,
+                'aria-label': 'Fond de carte',
+                'onChange': (e) => handleBaseMapChange(e.target.value as BaseMapId),
+              }}
+            >
+              {BASE_MAP_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          )}
         </div>
         <MillesimeSelect value={millesime} onChange={handleMillesimeChange} />
       </div>
