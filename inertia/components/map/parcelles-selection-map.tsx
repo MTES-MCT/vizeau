@@ -368,24 +368,31 @@ const ParcellesSelectionMapContent = forwardRef<
       >
         <div className="flex flex-wrap items-center gap-4">
           {aacs.length > 1 && (
-            <Select
-              label=""
-              className="fr-mb-0 w-fit max-w-80"
-              nativeSelectProps={{
-                'value': displayedAacId,
-                'aria-label': 'Zoomer sur une AAC',
-                'onChange': (e) => handleAacChange(e.target.value),
-              }}
-            >
-              <option value="" disabled>
-                Zoomer sur une AAC…
-              </option>
-              {aacs.map((aac) => (
-                <option key={aac.id} value={aac.id}>
-                  Zoomer sur {aac.label}
+            <div className="relative">
+              <span
+                className="fr-icon-zoom-in-line fr-icon--sm absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
+                aria-hidden="true"
+              />
+              <Select
+                label=""
+                className="fr-mb-0 w-fit max-w-80"
+                nativeSelectProps={{
+                  'className': 'pl-10!',
+                  'value': displayedAacId,
+                  'aria-label': 'Zoomer sur une AAC',
+                  'onChange': (e) => handleAacChange(e.target.value),
+                }}
+              >
+                <option value="" disabled>
+                  Zoomer sur une AAC
                 </option>
-              ))}
-            </Select>
+                {aacs.map((aac) => (
+                  <option key={aac.id} value={aac.id}>
+                    {aac.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
           )}
           {!hideBaseMapSelect && (
             <Select
