@@ -117,6 +117,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         onMillesimeChange={setMillesime}
         parcelles={millesimeParcelles}
         aacs={aacEmprises}
+        territoireIds={data.territoireIds}
         onManage={() => setIsWorkspaceOpen(true)}
       />
 
@@ -129,6 +130,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         savedSelection={savedSelection}
         defaultMillesime={millesime}
         aacs={aacEmprises}
+        mapFocus={{ territoireIds: data.territoireIds }}
         pmtilesUrl={pmtilesUrl}
         exploitations={workspaceExploitations}
         submitLabel="Valider les parcelles"

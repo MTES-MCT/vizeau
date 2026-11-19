@@ -13,6 +13,7 @@ import {
   getCulturesSegments,
   plural,
 } from '~/components/parcelle/parcelles-workspace/selection'
+import { getHighlightedAacCodes, pickInitialMapView } from '~/functions/map_focus'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import LabelInfo from '~/ui/LabelInfo'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
@@ -26,8 +27,8 @@ export function useAacEmprises(aacs: Data.Territoire.Variants['forEmprise'][]): 
   return useMemo(
     () =>
       aacs.flatMap((aac) =>
-        aac.bbox
-          ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
+        aac.bbox && aac.code
+          ? [{ id: aac.id, code: aac.code, label: aac.name ?? aac.code, bbox: aac.bbox as Bbox }]
           : []
       ),
     [aacs]
@@ -41,8 +42,8 @@ type ParcellesStepOverviewProps = {
   /** Parcelles sélectionnées pour le millésime affiché. */
   parcelles: SelectedParcelle[]
   aacs: AacEmprise[]
-  /** Emprise affichée à l'ouverture, à défaut celle de la première AAC. */
-  initialBbox?: Bbox
+  /** Territoires de l'entité éditée, cadrés à l'ouverture de la carte. */
+  territoireIds?: string[]
   onManage: () => void
 }
 
@@ -56,10 +57,15 @@ export default function ParcellesStepOverview({
   onMillesimeChange,
   parcelles,
   aacs,
-  initialBbox,
+  territoireIds,
   onManage,
 }: ParcellesStepOverviewProps) {
-  const [selectedAacId, setSelectedAacId] = useState(aacs[0]?.id)
+  // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
+  const [initialView] = useState(() => pickInitialMapView(aacs, { territoireIds }))
+  const highlightedAacCodes = useMemo(
+    () => getHighlightedAacCodes(aacs, { territoireIds }),
+    [aacs, territoireIds]
+  )
   const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((sum, culture) => sum + culture.value, 0)
 
@@ -72,9 +78,8 @@ export default function ParcellesStepOverview({
           handleMillesimeChange={onMillesimeChange}
           selectedParcelleIds={parcelles.map((parcelle) => parcelle.rpgId)}
           aacs={aacs}
-          selectedAacId={selectedAacId}
-          initialBbox={initialBbox}
-          onAacChange={setSelectedAacId}
+          initialView={initialView}
+          highlightedAacCodes={highlightedAacCodes}
           layers={MAP_LAYERS}
         />
       </div>

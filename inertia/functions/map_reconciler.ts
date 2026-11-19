@@ -56,8 +56,8 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
-  /** AAC shown in the sidebar, highlighted on the map. */
-  selectedAacCode?: string
+  /** AAC mises en valeur sur la carte : celle de la barre latérale, celles d'un projet… */
+  highlightedAacCodes: string[]
 }
 
 /** Feature states currently applied to the `parcelles` source. */
@@ -310,7 +310,11 @@ const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
 
 const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
   if (map.getLayer('aac-selected-fill')) {
-    map.setFilter('aac-selected-fill', ['==', ['get', 'CdAAC'], state.selectedAacCode ?? ''])
+    map.setFilter('aac-selected-fill', [
+      'in',
+      ['get', 'CdAAC'],
+      ['literal', dedupe(state.highlightedAacCodes)],
+    ])
   }
 }
 
@@ -469,5 +473,5 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(state.visibleCultures),
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
-    state.selectedAacCode ?? '',
+    serializeIds(state.highlightedAacCodes),
   ].join('|')

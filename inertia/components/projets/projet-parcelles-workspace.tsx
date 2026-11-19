@@ -21,7 +21,7 @@ type ProjetParcellesPageProps = {
 }
 
 type ProjetParcellesWorkspaceProps = {
-  projet: Pick<Data.Project, 'id' | 'name'> & { parcelles: Data.Parcelle[] }
+  projet: Pick<Data.Project, 'id' | 'name' | 'territoires'> & { parcelles: Data.Parcelle[] }
 }
 
 function toSelection(parcelles: Data.Parcelle[]): ParcellesSelection {
@@ -104,6 +104,7 @@ export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWork
         initialSelection={initialSelection}
         defaultMillesime={defaultMillesime}
         aacs={aacEmprises}
+        mapFocus={{ territoireIds: projet.territoires?.map((territoire) => territoire.id) }}
         pmtilesUrl={pmtilesUrl}
         exploitations={workspaceExploitations}
         submitLabel="Enregistrer les parcelles"

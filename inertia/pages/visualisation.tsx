@@ -416,7 +416,7 @@ export default function VisualisationPage({
           initialSelection={loadedSelection}
           defaultMillesime={millesime}
           aacs={[]}
-          initialBbox={workspaceBbox}
+          mapFocus={{ viewport: workspaceBbox }}
           pmtilesUrl={pmtilesUrl}
           layers={{
             map: {
