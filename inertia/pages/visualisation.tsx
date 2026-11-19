@@ -1,5 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { Head, router, useForm } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
 import VisualisationMap, { VisualisationMapRef } from '~/components/map/visualisation-map'
 import Layout from '~/ui/layouts/Layout'
@@ -12,8 +12,41 @@ import type { Data } from '@generated/data'
 import { useCulturesFilter } from '~/hooks/use_cultures_filter'
 import Select from '@codegouvfr/react-dsfr/SelectNext'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
-import { getCentroid } from '~/functions/map'
 import { urlFor } from '~/client'
+import ParcellesWorkspace, { ParcellesSelection } from '~/components/parcelle/parcelles-workspace'
+import type { Bbox, SelectedParcelle } from '~/components/map/parcelles-selection-map'
+import type { BaseMapId } from '~/components/map/styles/base_maps'
+
+const toSelectedParcelles = (parcelles: Data.Parcelle[] = []): SelectedParcelle[] =>
+  parcelles.flatMap(({ rpgId, surface, cultureCode, centroid }) =>
+    rpgId ? [{ rpgId, surface, cultureCode, centroid: centroid ?? undefined }] : []
+  )
+
+// Marge autour des centroïdes, en degrés, pour que les parcelles ne touchent pas les bords
+const BBOX_MARGIN = 0.01
+
+// Emprise des parcelles d'une exploitation, à défaut un carré autour de son siège
+const exploitationBbox = ({ parcelles = [], location }: Data.Exploitation): Bbox | undefined => {
+  const points = parcelles.flatMap(({ centroid }) => (centroid ? [centroid] : []))
+  if (points.length === 0 && location) points.push(location)
+  if (points.length === 0) return undefined
+  const xs = points.map(({ x }) => x)
+  const ys = points.map(({ y }) => y)
+  return [
+    Math.min(...xs) - BBOX_MARGIN,
+    Math.min(...ys) - BBOX_MARGIN,
+    Math.max(...xs) + BBOX_MARGIN,
+    Math.max(...ys) + BBOX_MARGIN,
+  ]
+}
+
+// Le validateur refuse les null : les valeurs absentes sont omises
+const toAssignPayload = ({ rpgId, surface, cultureCode, centroid }: SelectedParcelle) => ({
+  rpgId,
+  surface: surface ?? undefined,
+  cultureCode: cultureCode ?? undefined,
+  centroid,
+})
 
 const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
   router.reload({
@@ -22,15 +55,6 @@ const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
     replace: true,
   })
 }, 300)
-
-export type ParcelleFormData = {
-  parcelles: {
-    rpgId: string
-    surface: number | null
-    cultureCode: string | null
-    centroid: { x: number; y: number } | undefined
-  }[]
-}
 
 export type VisualisationPageProps = {
   filteredExploitations: Data.Exploitation[]
@@ -87,7 +111,7 @@ export default function VisualisationPage({
     setAllCulturesVisible,
     handleCulturesInViewportChange,
   } = useCulturesFilter()
-  const [style, setStyle] = useState<string>('vector')
+  const [style, setStyle] = useState<BaseMapId>('vector')
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -100,10 +124,12 @@ export default function VisualisationPage({
   const [editMode, setEditMode] = useState(false)
   const millesime = queryString?.millesime as string
 
-  const { data, setData, post, reset, processing, transform, isDirty, setDefaults } =
-    useForm<ParcelleFormData>({
-      parcelles: [],
-    })
+  // Millésimes chargés au fil de l'édition, conservés pour ne rien perdre en changeant de RPG
+  const [loadedSelection, setLoadedSelection] = useState<ParcellesSelection>({})
+  const [loadedUnavailableIds, setLoadedUnavailableIds] = useState<Record<string, string[]>>({})
+  const [loadingMillesime, setLoadingMillesime] = useState<string | null>(null)
+  const [isSubmittingParcelles, setIsSubmittingParcelles] = useState(false)
+  const [workspaceBbox, setWorkspaceBbox] = useState<Bbox | undefined>(undefined)
 
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
@@ -121,28 +147,105 @@ export default function VisualisationPage({
     return selectedExploitation.parcelles.find((p) => p.rpgId === parcelleIdFromQuery)
   }, [queryString?.parcelleId, selectedExploitation])
 
-  const formParcelleIds = useMemo(
-    () => data.parcelles.map((parcelle) => parcelle.rpgId),
-    [data.parcelles]
+  useEffect(() => {
+    if (!editMode || !selectedExploitation) return
+    setLoadedSelection((previous) =>
+      millesime in previous
+        ? previous
+        : { ...previous, [millesime]: toSelectedParcelles(selectedExploitation.parcelles) }
+    )
+  }, [editMode, selectedExploitation, millesime])
+
+  useEffect(() => {
+    if (!editMode) return
+    setLoadedUnavailableIds((previous) => ({ ...previous, [millesime]: unavailableParcellesIds }))
+  }, [editMode, unavailableParcellesIds, millesime])
+
+  useEffect(() => {
+    if (editMode) return
+    setLoadedSelection({})
+    setLoadedUnavailableIds({})
+  }, [editMode])
+
+  const openParcellesWorkspace = () => {
+    setWorkspaceBbox(mapRef.current?.getBounds())
+    setEditMode(true)
+  }
+
+  const isWorkspaceOpen = editMode && selectedExploitation !== undefined
+
+  // Ouverture directe de l'éditeur via ?workspace=parcelles (ex. depuis la fiche exploitation), une seule fois
+  const hasOpenedWorkspaceFromQueryRef = useRef(false)
+  useEffect(() => {
+    if (hasOpenedWorkspaceFromQueryRef.current) return
+    if (queryString?.workspace !== 'parcelles' || !selectedExploitation) return
+    hasOpenedWorkspaceFromQueryRef.current = true
+    setWorkspaceBbox(exploitationBbox(selectedExploitation))
+    setEditMode(true)
+  }, [queryString?.workspace, selectedExploitation])
+
+  const layersSettings = (
+    <VisualisationRightSide
+      showParcelles={showParcelles}
+      setShowParcelles={() => setShowParcelles((prev) => !prev)}
+      showAac={showAac}
+      setShowAac={() => setShowAac((prev) => !prev)}
+      showPpe={showPpe}
+      setShowPpe={() => setShowPpe((prev) => !prev)}
+      showPpr={showPpr}
+      setShowPpr={() => setShowPpr((prev) => !prev)}
+      showCommunes={showCommunes}
+      setShowCommunes={() => setShowCommunes((prev) => !prev)}
+      showBioOnly={showBioOnly}
+      setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
+      showSage={showSage}
+      setShowSage={() => setShowSage((prev) => !prev)}
+      canSwitchToBioOnly={!editMode}
+      parcellesZoomDisabled={mapZoom !== null && mapZoom < 10}
+      visibleCultures={visibleCultures}
+      onToggleCulture={toggleCulture}
+      onSetAllCulturesVisible={setAllCulturesVisible}
+      culturesInViewport={culturesInViewport}
+    />
   )
 
-  // Prepare data before sending the form
-  transform((data) => ({
-    exploitationId: selectedExploitationId || null,
-    year: parseInt(millesime, 10),
-    parcelles: data.parcelles,
-  }))
-
-  const sendFormAndResetState = (onAfterSuccess?: () => void) => {
-    post(urlFor('visualisation.assignParcellesToExploitation'), {
-      preserveState: true,
-      onSuccess: () => {
-        setEditMode(false)
-        onAfterSuccess?.()
-      },
-      // Reload the exploitations to get updated parcelle data
-      only: ['filteredExploitations'],
+  const handleWorkspaceMillesimeChange = (newMillesime: string) => {
+    if (newMillesime in loadedSelection) return
+    setLoadingMillesime(newMillesime)
+    router.reload({
+      only: ['queryString', 'filteredExploitations', 'unavailableParcellesIds'],
+      data: { exploitationId: selectedExploitationId, millesime: newMillesime },
+      onFinish: () => setLoadingMillesime(null),
     })
+  }
+
+  // La route n'accepte qu'un millésime à la fois
+  const handleWorkspaceSubmit = (selection: ParcellesSelection, changedMillesimes: string[]) => {
+    if (!selectedExploitationId) return
+    setIsSubmittingParcelles(true)
+    const saveNext = ([year, ...remaining]: string[]) => {
+      if (!year) {
+        setIsSubmittingParcelles(false)
+        setEditMode(false)
+        return
+      }
+      router.post(
+        urlFor('visualisation.assignParcellesToExploitation'),
+        {
+          exploitationId: selectedExploitationId,
+          year: Number(year),
+          parcelles: (selection[year] ?? []).map(toAssignPayload),
+        },
+        {
+          preserveState: true,
+          preserveScroll: true,
+          only: ['filteredExploitations'],
+          onSuccess: () => saveNext(remaining),
+          onError: () => setIsSubmittingParcelles(false),
+        }
+      )
+    }
+    saveNext(changedMillesimes)
   }
 
   /*
@@ -153,61 +256,31 @@ export default function VisualisationPage({
       const properties = parcelleFeature.properties || {}
       const newId = properties['id_parcel'] || properties['ID_PARCEL']
 
-      // In edit mode, we can select multiple parcelles to attach them to the exploitation
-      if (editMode && selectedExploitationId) {
-        setData((previousData) => {
-          const exists = previousData.parcelles.some((parcelle) => parcelle.rpgId === newId)
-          let updatedParcelles: ParcelleFormData['parcelles']
-          if (exists) {
-            updatedParcelles = previousData.parcelles.filter((parcelle) => parcelle.rpgId !== newId)
-          } else {
-            updatedParcelles = [
-              ...previousData.parcelles,
-              {
-                rpgId: newId,
-                surface:
-                  properties['surf_parc'] != null
-                    ? properties['surf_parc']
-                    : properties['SURF_PARC'],
-                cultureCode: properties['code_cultu'] || properties['CODE_CULTU'],
-                centroid: getCentroid(parcelleFeature.geometry),
-              },
-            ]
+      // Find the exploitation that owns this parcelle and navigate to it
+      const owningExploitation = filteredExploitations.find((exp) =>
+        exp.parcelles?.some((p) => p.rpgId === newId)
+      )
+
+      if (owningExploitation) {
+        // Navigate to the exploitation with the parcelle selected
+        router.visit(
+          `/visualisation?exploitationId=${owningExploitation.id}&parcelleId=${newId}&millesime=${millesime}`,
+          {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['queryString'],
           }
-          return { parcelles: updatedParcelles }
-        })
-      } else {
-        // In view mode, find the exploitation that owns this parcelle and navigate to it
-        const owningExploitation = filteredExploitations.find((exp) =>
-          exp.parcelles?.some((p) => p.rpgId === newId)
         )
-
-        if (owningExploitation) {
-          // Navigate to the exploitation with the parcelle selected
-          router.visit(
-            `/visualisation?exploitationId=${owningExploitation.id}&parcelleId=${newId}&millesime=${millesime}`,
-            {
-              preserveState: true,
-              preserveScroll: true,
-              only: ['queryString'],
-            }
-          )
-          setSelectedExploitationTab('parcelles')
-        }
+        setSelectedExploitationTab('parcelles')
       }
     },
-    [editMode, selectedExploitationId, setData, filteredExploitations, millesime]
+    [filteredExploitations, millesime]
   )
 
-  const handleMarkerClick = useCallback(
-    (exploitation: Data.Exploitation) => {
-      if (!editMode) {
-        setSelectedExploitationId(exploitation.id)
-        mapRef.current?.centerOnExploitation(exploitation)
-      }
-    },
-    [editMode]
-  )
+  const handleMarkerClick = useCallback((exploitation: Data.Exploitation) => {
+    setSelectedExploitationId(exploitation.id)
+    mapRef.current?.centerOnExploitation(exploitation)
+  }, [])
 
   // Opens the clicked AAC in the sidebar, like its link in the AAC list does.
   const handleAacClick = useCallback(
@@ -334,139 +407,149 @@ export default function VisualisationPage({
   return (
     <Layout isMapLayout={true} hideFooter={true}>
       <Head title="Carte" />
-      <MapLayout
-        pageName="Exploitations agricoles et AAC"
-        leftContent={
-          <VisualisationLeftSideBar
-            exploitations={filteredExploitations}
-            handleSearch={handleSearch}
-            queryString={queryString}
-            selectedExploitation={selectedExploitation}
-            selectedParcelle={selectedParcelle}
-            selectedExploitationTab={selectedExploitationTab}
-            setSelectedExploitationTab={setSelectedExploitationTab}
-            isMapLoading={isMapLoading}
-            editMode={editMode}
-            mapRef={mapRef}
-            isDirty={isDirty}
-            processing={processing}
-            reset={reset}
-            sendFormAndResetState={sendFormAndResetState}
-            setData={setData}
-            setDefaults={setDefaults}
-            setEditMode={setEditMode}
-            showBioOnly={showBioOnly}
-            millesime={millesime}
-            aacs={aacs}
-            aacMeta={aacMeta}
-            aacQueryString={aacQueryString}
-            selectedAac={selectedAac ?? undefined}
-          />
-        }
-        headerAdditionalContent={
-          <div className="flex flex-1 items-center justify-between gap-4">
-            <div className="flex items-center gap-4 w-fit">
-              <Select
-                className="w-fit pointer-events-auto fr-mb-0"
-                label=""
-                nativeSelectProps={{
-                  defaultValue: 'vector',
-                  onChange: (e) => setStyle(e.target.value),
-                }}
-                options={[
-                  { value: 'vector', label: 'Carte vectorielle' },
-                  { value: 'orthophoto', label: 'Photographie aérienne' },
-                  { value: 'plan-ign', label: 'Plan IGN' },
-                ]}
-              />
-              <Select
-                className="w-fit pointer-events-auto fr-mb-0"
-                style={{ width: 'fit-content' }}
-                label=""
-                disabled={editMode}
-                nativeSelectProps={{
-                  defaultValue: millesime,
-                  onChange: (e) => {
-                    // Reload the page with the new millesime
-                    // This operation can take some time on slow connections, so we set the map in loading state
-                    // It will be unset when the map 'idle' event is fired
-                    setIsMapLoading(true)
-                    router.reload({
-                      only: ['queryString', 'filteredExploitations'],
-                      data: { exploitationId: selectedExploitation?.id, millesime: e.target.value },
-                    })
-                  },
-                }}
-                options={[
-                  { value: '2024', label: 'RPG 2024' },
-                  { value: '2023', label: 'RPG 2023' },
-                  { value: '2022', label: 'RPG 2022' },
-                  { value: '2021', label: 'RPG 2021' },
-                  { value: '2020', label: 'RPG 2020' },
-                ]}
-              />
+      {isWorkspaceOpen && (
+        <ParcellesWorkspace
+          variant="inline"
+          isOpen
+          title={`Gérer les parcelles · ${selectedExploitation!.name}`}
+          selectionTitle="Parcelles de l’exploitation"
+          initialSelection={loadedSelection}
+          defaultMillesime={millesime}
+          aacs={[]}
+          initialBbox={workspaceBbox}
+          pmtilesUrl={pmtilesUrl}
+          layers={{
+            map: {
+              showParcelles,
+              showAac,
+              showPpe,
+              showPpr,
+              showCommunes,
+              showSage,
+              visibleCultures,
+              onCulturesInViewportChange: handleCulturesInViewportChange,
+              onZoomChange: setMapZoom,
+            },
+            panel: layersSettings,
+          }}
+          baseMap={style}
+          onBaseMapChange={setStyle}
+          unavailableRpgIds={loadedUnavailableIds}
+          onMillesimeChange={handleWorkspaceMillesimeChange}
+          isMillesimeLoading={loadingMillesime !== null}
+          submitLabel="Enregistrer les parcelles"
+          isSubmitting={isSubmittingParcelles}
+          onSubmit={handleWorkspaceSubmit}
+          onClose={() => setEditMode(false)}
+        />
+      )}
+      {/* Gardée montée pendant l'édition pour retrouver la carte telle quelle */}
+      <div className={isWorkspaceOpen ? 'hidden' : 'contents'}>
+        <MapLayout
+          pageName="Exploitations agricoles et AAC"
+          leftContent={
+            <VisualisationLeftSideBar
+              exploitations={filteredExploitations}
+              handleSearch={handleSearch}
+              queryString={queryString}
+              selectedExploitation={selectedExploitation}
+              selectedParcelle={selectedParcelle}
+              selectedExploitationTab={selectedExploitationTab}
+              setSelectedExploitationTab={setSelectedExploitationTab}
+              isMapLoading={isMapLoading}
+              mapRef={mapRef}
+              onAssignParcelles={openParcellesWorkspace}
+              showBioOnly={showBioOnly}
+              millesime={millesime}
+              aacs={aacs}
+              aacMeta={aacMeta}
+              aacQueryString={aacQueryString}
+              selectedAac={selectedAac ?? undefined}
+            />
+          }
+          headerAdditionalContent={
+            <div className="flex flex-1 items-center justify-between gap-4">
+              <div className="flex items-center gap-4 w-fit">
+                <Select
+                  className="w-fit pointer-events-auto fr-mb-0"
+                  label=""
+                  nativeSelectProps={{
+                    value: style,
+                    onChange: (e) => setStyle(e.target.value as BaseMapId),
+                  }}
+                  options={[
+                    { value: 'vector', label: 'Carte vectorielle' },
+                    { value: 'orthophoto', label: 'Photographie aérienne' },
+                    { value: 'plan-ign', label: 'Plan IGN' },
+                  ]}
+                />
+                <Select
+                  // Non contrôlé : recréé quand l'éditeur change le millésime
+                  key={millesime}
+                  className="w-fit pointer-events-auto fr-mb-0"
+                  style={{ width: 'fit-content' }}
+                  label=""
+                  nativeSelectProps={{
+                    defaultValue: millesime,
+                    onChange: (e) => {
+                      // Reload the page with the new millesime
+                      // This operation can take some time on slow connections, so we set the map in loading state
+                      // It will be unset when the map 'idle' event is fired
+                      setIsMapLoading(true)
+                      router.reload({
+                        only: ['queryString', 'filteredExploitations'],
+                        data: {
+                          exploitationId: selectedExploitation?.id,
+                          millesime: e.target.value,
+                        },
+                      })
+                    },
+                  }}
+                  options={[
+                    { value: '2024', label: 'RPG 2024' },
+                    { value: '2023', label: 'RPG 2023' },
+                    { value: '2022', label: 'RPG 2022' },
+                    { value: '2021', label: 'RPG 2021' },
+                    { value: '2020', label: 'RPG 2020' },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        }
-        map={
-          <VisualisationMap
-            exploitations={filteredExploitations}
-            selectedExploitation={selectedExploitation}
-            selectedParcelle={selectedParcelle}
-            selectedParcelleId={queryString?.parcelleId as string | undefined}
-            isMapLoading={isMapLoading}
-            setIsMapLoading={setIsMapLoading}
-            onParcelleClick={handleParcelleClick}
-            onMarkerClick={handleMarkerClick}
-            onAacClick={handleAacClick}
-            selectedAacCode={selectedAac?.code}
-            formParcelleIds={formParcelleIds}
-            unavailableParcelleIds={unavailableParcellesIds}
-            millesime={millesime}
-            editMode={editMode}
-            showParcelles={showParcelles}
-            showAac={showAac}
-            showPpe={showPpe}
-            showPpr={showPpr}
-            showCommunes={showCommunes}
-            showBioOnly={showBioOnly}
-            showSage={showSage}
-            ref={mapRef}
-            visibleCultures={visibleCultures}
-            style={style}
-            onZoomChange={setMapZoom}
-            onCulturesInViewportChange={handleCulturesInViewportChange}
-            pmtilesUrl={pmtilesUrl}
-            projects={projects}
-            aacSurfaces={aacSurfaces}
-            accessibleAacCodes={accessibleAacCodes}
-          />
-        }
-        rightContent={
-          <VisualisationRightSide
-            showParcelles={showParcelles}
-            setShowParcelles={() => setShowParcelles((prev) => !prev)}
-            showAac={showAac}
-            setShowAac={() => setShowAac((prev) => !prev)}
-            showPpe={showPpe}
-            setShowPpe={() => setShowPpe((prev) => !prev)}
-            showPpr={showPpr}
-            setShowPpr={() => setShowPpr((prev) => !prev)}
-            showCommunes={showCommunes}
-            setShowCommunes={() => setShowCommunes((prev) => !prev)}
-            showBioOnly={showBioOnly}
-            setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
-            showSage={showSage}
-            setShowSage={() => setShowSage((prev) => !prev)}
-            canSwitchToBioOnly={!editMode}
-            parcellesZoomDisabled={mapZoom !== null && mapZoom < 10}
-            visibleCultures={visibleCultures}
-            onToggleCulture={toggleCulture}
-            onSetAllCulturesVisible={setAllCulturesVisible}
-            culturesInViewport={culturesInViewport}
-          />
-        }
-      />
+          }
+          map={
+            <VisualisationMap
+              exploitations={filteredExploitations}
+              selectedExploitation={selectedExploitation}
+              selectedParcelle={selectedParcelle}
+              selectedParcelleId={queryString?.parcelleId as string | undefined}
+              isMapLoading={isMapLoading}
+              setIsMapLoading={setIsMapLoading}
+              onParcelleClick={handleParcelleClick}
+              onMarkerClick={handleMarkerClick}
+              onAacClick={handleAacClick}
+              selectedAacCode={selectedAac?.code}
+              millesime={millesime}
+              showParcelles={showParcelles}
+              showAac={showAac}
+              showPpe={showPpe}
+              showPpr={showPpr}
+              showCommunes={showCommunes}
+              showBioOnly={showBioOnly}
+              showSage={showSage}
+              ref={mapRef}
+              visibleCultures={visibleCultures}
+              style={style}
+              onZoomChange={setMapZoom}
+              onCulturesInViewportChange={handleCulturesInViewportChange}
+              pmtilesUrl={pmtilesUrl}
+              projects={projects}
+              aacSurfaces={aacSurfaces}
+              accessibleAacCodes={accessibleAacCodes}
+            />
+          }
+          rightContent={layersSettings}
+        />
+      </div>
     </Layout>
   )
 }

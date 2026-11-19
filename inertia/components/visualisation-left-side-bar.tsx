@@ -19,17 +19,10 @@ export default function VisualisationLeftSideBar({
   selectedExploitationTab,
   setSelectedExploitationTab,
   isMapLoading,
-  editMode,
   mapRef,
-  setData,
-  setDefaults,
-  setEditMode,
+  onAssignParcelles,
   showBioOnly,
   millesime,
-  isDirty,
-  processing,
-  reset,
-  sendFormAndResetState,
   aacs,
   aacMeta,
   aacQueryString,
@@ -43,17 +36,10 @@ export default function VisualisationLeftSideBar({
   selectedExploitationTab: string
   setSelectedExploitationTab: (tab: string) => void
   isMapLoading: boolean
-  editMode: boolean
   mapRef: RefObject<VisualisationMapRef | null>
-  setData: any
-  setDefaults: any
-  setEditMode: any
+  onAssignParcelles: () => void
   showBioOnly: boolean
   millesime: string
-  isDirty: boolean
-  processing: boolean
-  reset: any
-  sendFormAndResetState: any
   aacs: AacSummaryJson[]
   aacMeta: { total: number; perPage: number; currentPage: number; lastPage: number }
   aacQueryString: { aacRecherche: string; aacCommune: string; aacPage: string }
@@ -153,17 +139,10 @@ export default function VisualisationLeftSideBar({
               handleSearch={handleSearch}
               selectedExploitationTab={selectedExploitationTab}
               setSelectedExploitationTab={setSelectedExploitationTab}
-              editMode={editMode}
               mapRef={mapRef}
-              setData={setData}
-              setDefaults={setDefaults}
-              setEditMode={setEditMode}
+              onAssignParcelles={onAssignParcelles}
               showBioOnly={showBioOnly}
               millesime={millesime}
-              isDirty={isDirty}
-              processing={processing}
-              reset={reset}
-              sendFormAndResetState={sendFormAndResetState}
             />
           )}
 
