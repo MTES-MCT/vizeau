@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
+import MillesimeSelect from '~/components/map/millesime-select'
 import ParcellesSelectionMap, {
   AacEmprise,
   DEFAULT_LAYERS,
@@ -47,6 +48,8 @@ type ParcellesStepOverviewProps = {
   aacs: AacEmprise[]
   /** Territoires de l'entité éditée, mis en valeur ; le premier est cadré à l'ouverture. */
   territoireIds?: string[]
+  /** Titre du résumé, propre à l'entité éditée (« Parcelles du projet »…). */
+  title: string
   onManage: () => void
 }
 
@@ -62,6 +65,7 @@ export default function ParcellesStepOverview({
   parcelles,
   aacs,
   territoireIds,
+  title,
   onManage,
 }: ParcellesStepOverviewProps) {
   // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
@@ -89,10 +93,16 @@ export default function ParcellesStepOverview({
           highlightedAacCodes={highlightedAacCodes}
           layers={MAP_LAYERS}
           hideBaseMapSelect
+          hideMillesimeSelect
         />
       </div>
 
-      <SectionCard title="Parcelles du projet" icon="fr-icon-collage-line" size="small">
+      <SectionCard
+        title={title}
+        icon="fr-icon-collage-line"
+        size="small"
+        additionalAction={<MillesimeSelect value={millesime} onChange={onMillesimeChange} />}
+      >
         {parcelles.length === 0 ? (
           <EmptyPlaceholder
             label={`Aucune parcelle associée pour le RPG ${millesime}`}
@@ -105,7 +115,6 @@ export default function ParcellesStepOverview({
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap gap-4">
-                <LabelInfo icon="fr-icon-calendar-line" label={`RPG ${millesime}`} size="sm" />
                 <LabelInfo
                   icon="fr-icon-collage-line"
                   label={plural(parcelles.length, 'parcelle')}
