@@ -123,6 +123,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         parcelles={millesimeParcelles}
         aacs={aacEmprises}
         territoireIds={data.territoireIds}
+        title="Parcelles du projet"
         onManage={() => setIsWorkspaceOpen(true)}
       />
 
