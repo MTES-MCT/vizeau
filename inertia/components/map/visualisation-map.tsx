@@ -49,6 +49,8 @@ export interface VisualisationMapRef {
   centerOnParcelle: (parcelle: Data.Parcelle) => void
   centerOnAac: (aac: AacSummaryJson) => void
   centerOnCoordinates: (coordinates: { x: number; y: number }) => void
+  /** Emprise affichée, [ouest, sud, est, nord]. */
+  getBounds: () => [number, number, number, number] | undefined
 }
 
 type VisualisationMapProps = {
@@ -66,10 +68,7 @@ type VisualisationMapProps = {
   selectedAacCode?: string
   onMarkerMouseEnter?: (exploitation: Data.Exploitation) => void
   onMarkerMouseLeave?: () => void
-  formParcelleIds?: string[]
-  unavailableParcelleIds?: string[]
   millesime: string
-  editMode?: boolean
   showParcelles?: boolean
   showAac?: boolean
   showPpe?: boolean
@@ -90,6 +89,8 @@ type VisualisationMapProps = {
   accessibleAacCodes?: string[]
 }
 
+const NO_UNAVAILABLE_PARCELLES: string[] = []
+
 const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMapProps>(
   (
     {
@@ -106,10 +107,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       selectedAacCode,
       onMarkerMouseEnter,
       onMarkerMouseLeave,
-      formParcelleIds = [],
-      unavailableParcelleIds = [],
       millesime,
-      editMode = false,
       showParcelles = true,
       showAac = true,
       showPpe = false,
@@ -149,12 +147,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
     const currentAacCodeRef = useRef<string | null>(null)
     const currentStyleRef = useRef<string>('vector')
 
-    // Détermine les parcelles à mettre en évidence selon le mode
     const highlightedParcelleIds = useMemo(() => {
-      if (editMode) {
-        return formParcelleIds
-      }
-
       const selectedParcelleId = selectedParcelle?.rpgId
 
       if (selectedParcelleId && selectedParcelle.year.toString() === millesime) {
@@ -170,14 +163,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       }
 
       return []
-    }, [
-      editMode,
-      formParcelleIds,
-      millesime,
-      selectedExploitation,
-      selectedParcelle,
-      selectedParcelleId,
-    ])
+    }, [millesime, selectedExploitation, selectedParcelle, selectedParcelleId])
 
     // Les parcelles de l'exploitation survolée sont mises en évidence, sauf lorsqu'il s'agit de
     // l'exploitation sélectionnée dont les parcelles le sont déjà.
@@ -207,7 +193,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         visibleCultures,
         highlightedParcelleIds,
         hoveredParcelleIds,
-        unavailableParcelleIds,
+        unavailableParcelleIds: NO_UNAVAILABLE_PARCELLES,
         selectedAacCode,
       }),
       [
@@ -223,7 +209,6 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         visibleCultures,
         highlightedParcelleIds,
         hoveredParcelleIds,
-        unavailableParcelleIds,
         selectedAacCode,
       ]
     )
@@ -274,6 +259,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           })
         }
       },
+      getBounds: () => {
+        const bounds = mapRef.current?.getBounds()
+        return bounds && [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
+      },
     }))
 
     const parcelleCommentMap = useMemo(() => {
@@ -309,7 +298,6 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         const cultureCode = props?.code_cultu
         const surfParc = props?.surf_parc
         const id = props?.id_parcel
-        const isUnavailable = unavailableParcelleIds.includes(id)
 
         const comment = parcelleCommentMap.get(id)
         // Mise à jour la popup uniquement si la parcelle change
@@ -334,9 +322,9 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             surfParc,
             millesime,
             comment,
-            isUnavailable,
+            false,
             isBio,
-            editMode,
+            false,
             selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id,
             projectsWithThisParcelle
           )
@@ -352,22 +340,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         }
 
         if (props) {
-          if (isUnavailable) {
-            mapRef.current.getCanvas().style.cursor = 'not-allowed'
-          } else {
-            mapRef.current.getCanvas().style.cursor = ''
-          }
+          mapRef.current.getCanvas().style.cursor = ''
         }
       },
-      [
-        unavailableParcelleIds,
-        parcelleCommentMap,
-        exploitations,
-        selectedExploitation,
-        editMode,
-        millesime,
-        isMarkerHovered,
-      ]
+      [parcelleCommentMap, exploitations, selectedExploitation, millesime, isMarkerHovered]
     )
 
     const handleParcelleMouseLeave = useCallback(() => {
@@ -382,11 +358,10 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       onParcelleMouseLeave?.()
     }, [onParcelleMouseLeave])
 
-    // Only the AACs of the user's territoires can be opened in the sidebar, and not while
-    // parcelles are being assigned.
+    // Only the AACs of the user's territoires can be opened in the sidebar.
     const isAacClickable = useCallback(
-      (code: string) => !editMode && Boolean(onAacClick) && accessibleAacCodes.includes(code),
-      [editMode, onAacClick, accessibleAacCodes]
+      (code: string) => Boolean(onAacClick) && accessibleAacCodes.includes(code),
+      [onAacClick, accessibleAacCodes]
     )
 
     const getClickableAacCodeAt = useCallback(
@@ -416,13 +391,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         }
 
         const feature = e.features?.[0]
-        const id = feature?.properties?.['id_parcel']
 
-        if (feature?.properties && !unavailableParcelleIds.includes(id)) {
+        if (feature?.properties) {
           onParcelleClick(feature)
         }
       },
-      [onParcelleClick, unavailableParcelleIds, getClickableAacCodeAt]
+      [onParcelleClick, getClickableAacCodeAt]
     )
 
     const handleAacMouseMove = useCallback(
@@ -555,7 +529,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             .addTo(mapRef.current)
 
           const markerElement = marker.getElement()
-          markerElement.style.cursor = editMode ? 'not-allowed' : 'pointer'
+          markerElement.style.cursor = 'pointer'
           markerElement.addEventListener('mouseenter', () => {
             if (!mapRef.current) {
               return
@@ -582,9 +556,6 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           })
 
           markerElement.addEventListener('click', () => {
-            if (editMode) {
-              return
-            }
             popup.remove()
             onMarkerClick?.(exploitation)
           })
@@ -603,7 +574,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         // The removed markers will never emit their `mouseleave`.
         setHoveredExploitationId(null)
       }
-    }, [exploitations, editMode, onMarkerClick, onMarkerMouseEnter, onMarkerMouseLeave])
+    }, [exploitations, onMarkerClick, onMarkerMouseEnter, onMarkerMouseLeave])
 
     // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
     useEffect(() => {
@@ -710,24 +681,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             <Loader size="lg" />
           </div>
         )}
-        <div
-          ref={mapContainerRef}
-          className={`flex justify-between h-full w-full ${editMode ? 'editing-glow' : ''}`}
-        />
-        {editMode && (
-          <div
-            className="absolute left-0 right-0 top-0 fr-text--md flex items-center justify-center fr-p-2v shadow-md"
-            style={{
-              backgroundColor: fr.colors.decisions.background.contrast.info.default,
-              color: fr.colors.decisions.text.default.info.default,
-              fontWeight: '700',
-              minWidth: '30%',
-            }}
-          >
-            <span className="fr-icon-edit-line fr-icon--md fr-mr-1v" aria-hidden="true" />
-            Attribuez des parcelles à cette exploitation
-          </div>
-        )}
+        <div ref={mapContainerRef} className="flex justify-between h-full w-full" />
       </div>
     )
   }
