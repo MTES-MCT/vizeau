@@ -23,8 +23,7 @@ export default function AuthentificationBloc() {
           <div className="m-4 flex justify-center">
             <Avatar fontSize="150px" />
           </div>
-          <h4 className="text-center fr-mb-1w">Authentification</h4>
-          <p>Entrez votre email pour accéder à l'application</p>
+          <h4 className="text-center fr-mb-4w">Connexion</h4>
         </div>
         {flash?.error?.code === 'E_INVALID_CREDENTIALS' && (
           <Alert
@@ -51,6 +50,7 @@ export default function AuthentificationBloc() {
               name: 'email',
               placeholder: 'exemple@mon-email.fr',
               type: 'email',
+              autoComplete: 'username',
               required: true,
             }}
           />
@@ -59,6 +59,7 @@ export default function AuthentificationBloc() {
             nativeInputProps={{
               name: 'password',
               type: 'password',
+              autoComplete: 'current-password',
               required: true,
             }}
           />
@@ -77,7 +78,7 @@ export default function AuthentificationBloc() {
             />
           </div>
           <Button className="w-full justify-center" type="submit">
-            S'authentifier
+            Se connecter
           </Button>
         </Form>
         {supportEmail && (
