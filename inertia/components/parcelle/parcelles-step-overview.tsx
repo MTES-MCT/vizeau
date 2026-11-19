@@ -66,6 +66,7 @@ export default function ParcellesStepOverview({
           initialView={initialView}
           highlightedAacCodes={highlightedAacCodes}
           layers={MAP_LAYERS}
+          hideBaseMapSelect
         />
       </div>
 
