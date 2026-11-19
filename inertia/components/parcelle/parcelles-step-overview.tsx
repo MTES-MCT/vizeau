@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
 import ParcellesSelectionMap, {
@@ -18,6 +19,7 @@ import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import LabelInfo from '~/ui/LabelInfo'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import SectionCard from '~/ui/SectionCard'
+import type { StackedProgressBarSegment } from '~/ui/StackedProgressBar'
 import type { Data } from '@generated/data'
 
 const MAP_LAYERS: ParcellesMapLayers = { ...DEFAULT_LAYERS, showAac: true }
@@ -35,6 +37,22 @@ export function useAacEmprises(aacs: Data.Territoire.Variants['forEmprise'][]): 
   )
 }
 
+/** Au-delà, les cultures les moins présentes sont regroupées pour garder un résumé court. */
+const MAX_CULTURES = 5
+
+function groupMinorCultures(segments: StackedProgressBarSegment[]): StackedProgressBarSegment[] {
+  if (segments.length <= MAX_CULTURES) return segments
+  const minorSegments = segments.slice(MAX_CULTURES - 1)
+  return [
+    ...segments.slice(0, MAX_CULTURES - 1),
+    {
+      label: `Autres cultures (${minorSegments.length})`,
+      color: fr.colors.decisions.background.contrast.grey.active,
+      value: minorSegments.reduce((sum, segment) => sum + segment.value, 0),
+    },
+  ]
+}
+
 type ParcellesStepOverviewProps = {
   pmtilesUrl: string
   millesime: string
@@ -49,7 +67,8 @@ type ParcellesStepOverviewProps = {
 
 /*
  * Aperçu de l'étape « Parcelles » d'un formulaire : carte en lecture seule des parcelles
- * sélectionnées et répartition de leurs cultures, avec le bouton ouvrant le workspace.
+ * sélectionnées et résumé de la sélection (chiffres, puis répartition des cultures), avec le
+ * bouton ouvrant le workspace.
  */
 export default function ParcellesStepOverview({
   pmtilesUrl,
@@ -66,7 +85,10 @@ export default function ParcellesStepOverview({
     () => getHighlightedAacCodes(aacs, { territoireIds }),
     [aacs, territoireIds]
   )
-  const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
+  const culturesSegments = useMemo(
+    () => groupMinorCultures(getCulturesSegments(parcelles)),
+    [parcelles]
+  )
   const culturesTotalHa = culturesSegments.reduce((sum, culture) => sum + culture.value, 0)
 
   return (
@@ -85,28 +107,20 @@ export default function ParcellesStepOverview({
         />
       </div>
 
-      <SectionCard title="Données d'assolement" icon="fr-icon-pie-chart-line" size="small">
-        <div className="flex flex-col gap-4">
-          <Button
-            type="button"
-            iconId="fr-icon-edit-line"
-            className="justify-center"
-            style={{
-              width: '100%',
-            }}
-            onClick={onManage}
-          >
-            Gérer les parcelles
-          </Button>
-
-          {parcelles.length === 0 ? (
-            <EmptyPlaceholder
-              label={`Aucune parcelle associée pour le RPG ${millesime}`}
-              illustrativeIcon="fr-icon-collage-line"
-            />
-          ) : (
-            <>
-              <div className="flex flex-wrap gap-4 fr-text--sm fr-mb-0">
+      <SectionCard title="Parcelles du projet" icon="fr-icon-collage-line" size="small">
+        {parcelles.length === 0 ? (
+          <EmptyPlaceholder
+            label={`Aucune parcelle associée pour le RPG ${millesime}`}
+            illustrativeIcon="fr-icon-collage-line"
+            buttonLabel="Sélectionner des parcelles"
+            buttonIcon="fr-icon-add-line"
+            handleClick={onManage}
+          />
+        ) : (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-4">
+                <LabelInfo icon="fr-icon-calendar-line" label={`RPG ${millesime}`} size="sm" />
                 <LabelInfo
                   icon="fr-icon-collage-line"
                   label={plural(parcelles.length, 'parcelle')}
@@ -118,23 +132,34 @@ export default function ParcellesStepOverview({
                   size="sm"
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                {culturesSegments.map((culture) => (
-                  <LabeledProgressBar
-                    key={culture.label}
-                    label={culture.label}
-                    size="sm"
-                    progressBarValues={{
-                      value: culture.value,
-                      total: culturesTotalHa,
-                      progressColor: culture.color,
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+              <Button
+                type="button"
+                iconId="fr-icon-edit-line"
+                className="justify-center"
+                style={{ width: '100%' }}
+                onClick={onManage}
+              >
+                Gérer les parcelles
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="fr-text fr-text--bold fr-mb-0">Répartition des cultures</p>
+              {culturesSegments.map((culture) => (
+                <LabeledProgressBar
+                  key={culture.label}
+                  label={culture.label}
+                  size="sm"
+                  progressBarValues={{
+                    value: culture.value,
+                    total: culturesTotalHa,
+                    progressColor: culture.color,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </SectionCard>
     </div>
   )
