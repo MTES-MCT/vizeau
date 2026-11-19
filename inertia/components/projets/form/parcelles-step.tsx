@@ -57,7 +57,12 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const { pmtilesUrl, exploitations, aacs, projet } = usePage<ProjetFormPageProps>().props
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false)
   const [millesime, setMillesime] = useState(data.parcelles.millesime)
-  const aacEmprises = useAacEmprises(aacs)
+  const allAacEmprises = useAacEmprises(aacs)
+  // Seules les AAC cochées à l'étape précédente sont proposées sur la carte, toutes à défaut
+  const aacEmprises = useMemo(() => {
+    const checkedAacs = allAacEmprises.filter((aac) => data.territoireIds.includes(aac.id))
+    return checkedAacs.length > 0 ? checkedAacs : allAacEmprises
+  }, [allAacEmprises, data.territoireIds])
 
   const { items } = data.parcelles
   const initialSelection = useMemo(() => toSelection(items), [items])
