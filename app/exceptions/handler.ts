@@ -1,4 +1,5 @@
 import app from '@adonisjs/core/services/app'
+import { errors as authErrors } from '@adonisjs/auth'
 import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
 
@@ -30,7 +31,21 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
-    return super.handle(error, ctx)
+    const result = await super.handle(error, ctx)
+
+    // Sans session, le renderer d'auth mémorise l'URL demandée pour y renvoyer après connexion.
+    // Il exclut les requêtes Inertia, mais pas les fetch() du front (JSON, exports) : on ne la
+    // garde que pour une navigation du navigateur, sinon l'utilisateur atterrirait sur du JSON.
+    const fetchMode = ctx.request.header('sec-fetch-mode')
+    if (
+      error instanceof authErrors.E_UNAUTHORIZED_ACCESS &&
+      fetchMode &&
+      fetchMode !== 'navigate'
+    ) {
+      ctx.session.clearIntendedUrl()
+    }
+
+    return result
   }
 
   /**

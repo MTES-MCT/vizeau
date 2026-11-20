@@ -118,3 +118,53 @@ test.group('Session - Connexion', (group) => {
     otherIp.assertHeader('location', '/accueil')
   })
 })
+
+test.group('Session - Redirection vers la page demandée', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => () => limiter.clear(['memory']))
+
+  test("un accès direct à une page protégée mémorise l'URL demandée", async ({ client }) => {
+    const response = await client.get('/exploitations?page=2').redirects(0)
+
+    response.assertStatus(302)
+    response.assertSession('redirect.intendedUrl', '/exploitations?page=2')
+  })
+
+  test("un fetch() du front ne mémorise pas l'URL demandée", async ({ client }) => {
+    const response = await client
+      .get('/exploitations/siret/12345678900011')
+      .header('Sec-Fetch-Mode', 'cors')
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertSessionMissing('redirect.intendedUrl')
+  })
+
+  test('après connexion, je suis redirigé vers la page demandée', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await login(client, user.email, 'password').withSession({
+      redirect: { intendedUrl: '/exploitations?page=2' },
+    })
+
+    response.assertHeader('location', '/exploitations?page=2')
+    response.assertSessionMissing('redirect.intendedUrl')
+  })
+
+  test('la déconnexion sans session active renvoie vers la page publique', async ({ client }) => {
+    const response = await client.get('/logout').redirects(0)
+
+    response.assertHeader('location', '/')
+    response.assertSessionMissing('redirect.intendedUrl')
+  })
+
+  test('la déconnexion ferme la session', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client.get('/logout').loginAs(user).redirects(0)
+
+    response.assertHeader('location', '/')
+    const accueil = await client.get('/accueil').redirects(0)
+    accueil.assertHeader('location', '/login')
+  })
+})

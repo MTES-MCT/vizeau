@@ -16,12 +16,12 @@ router.get('/', [controllers.Accueil, 'publicIndex']).as('root')
 
 router.get('login', [controllers.Session, 'index'])
 router.post('login', [controllers.Session, 'store'])
+router.get('logout', [controllers.Session, 'delete'])
 
 router.get('accessibilite', ({ inertia }) => inertia.render('accessibilite', {}))
 // Protected routes
 router
   .group(() => {
-    router.get('logout', [controllers.Session, 'delete'])
     router.get('pas-de-territoire', [controllers.Accueil, 'noTerritoire']).as('noTerritoire')
 
     // Routes in this group will redirect to an error page if no territoire is assigned to the user

@@ -51,7 +51,9 @@ export default class SessionController {
       this.eventLogger.logEvent({ userId: user.id, ...EVENTS.LOGIN })
       await auth.use('web').login(user, !!request.input('remember_me'))
 
-      return response.redirect(redirectAfterLogin)
+      // Renvoie vers la page demandée avant la redirection vers /login (mémorisée par le
+      // middleware d'auth), ou vers l'accueil à défaut.
+      return response.redirect().toIntendedRoute('accueil')
     } catch (error) {
       if (error instanceof errors.E_INVALID_CREDENTIALS) {
         session.flash('error', {
@@ -76,10 +78,14 @@ export default class SessionController {
     }
   }
 
+  // Route publique : protégée par le middleware d'auth, un utilisateur dont la session a expiré
+  // serait renvoyé vers /login, puis déconnecté dès sa reconnexion (URL mémorisée).
   async delete({ auth, response }: HttpContext) {
-    const user = auth.getUserOrFail()
-    this.eventLogger.logEvent({ userId: user.id, name: 'session_logout' })
-    await auth.use('web').logout()
+    const guard = auth.use('web')
+    if (await guard.check()) {
+      this.eventLogger.logEvent({ userId: guard.getUserOrFail().id, name: 'session_logout' })
+      await guard.logout()
+    }
     return response.redirect('/')
   }
 }
