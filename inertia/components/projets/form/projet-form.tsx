@@ -38,7 +38,6 @@ export type ProjetFormPageProps = {
 
 export type ProjetFormErrors = {
   projectName?: string
-  territoireIds?: string
 }
 
 export type SelectedParcelleFormData = {
@@ -117,12 +116,6 @@ function validate(step: number, formData: ProjetFormData): ProjetFormErrors {
       projectName: formData.generalInfos.projectName.trim() ? undefined : 'Ce champ est requis',
     }
   }
-  if (step === STEP_KEYS.TERRITOIRES) {
-    return {
-      territoireIds:
-        formData.territoireIds.length > 0 ? undefined : 'Sélectionnez au moins un territoire',
-    }
-  }
   return {}
 }
 
@@ -147,6 +140,10 @@ export default function ProjetForm({
 
   const nextStepKey = stepsList[currentIndex + 1]
   const nextTitle = nextStepKey ? STEPS[nextStepKey].title : undefined
+
+  // Au moins un territoire est requis pour passer l'étape des territoires
+  const isNextStepDisabled =
+    currentStep === STEP_KEYS.TERRITOIRES && data.territoireIds.length === 0
 
   const handleNext = () => {
     const newErrors = validate(currentStep, data)
@@ -204,7 +201,12 @@ export default function ProjetForm({
           </Button>
         )}
         {nextStep !== null ? (
-          <Button type="button" onClick={handleNext} iconId="fr-icon-arrow-right-line">
+          <Button
+            type="button"
+            onClick={handleNext}
+            iconId="fr-icon-arrow-right-line"
+            disabled={isNextStepDisabled}
+          >
             Suivant
           </Button>
         ) : (
