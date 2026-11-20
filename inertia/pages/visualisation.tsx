@@ -15,6 +15,7 @@ import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { urlFor } from '~/client'
 import ParcellesWorkspace, { ParcellesSelection } from '~/components/parcelle/parcelles-workspace'
 import type { Bbox, SelectedParcelle } from '~/components/map/parcelles-selection-map'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
 
 const toSelectedParcelles = (parcelles: Data.Parcelle[] = []): SelectedParcelle[] =>
@@ -79,6 +80,8 @@ export type VisualisationPageProps = {
   accessibleAacCodes: string[]
   pmtilesUrl: string
   projects: Data.Project[]
+  /** Chargées à l'ouverture de l'éditeur de parcelles seulement. */
+  aacEmprises?: Data.Territoire.Variants['forEmprise'][]
 }
 
 export default function VisualisationPage({
@@ -93,6 +96,7 @@ export default function VisualisationPage({
   accessibleAacCodes,
   pmtilesUrl,
   projects,
+  aacEmprises,
 }: VisualisationPageProps) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [mapZoom, setMapZoom] = useState<number | null>(null)
@@ -167,9 +171,16 @@ export default function VisualisationPage({
     setLoadedUnavailableIds({})
   }, [editMode])
 
+  const workspaceAacs = useAacEmprises(aacEmprises ?? [])
+  const focusedTerritoireId = aacEmprises?.find((aac) => aac.code === selectedAac?.code)?.id
+
   const openParcellesWorkspace = () => {
     setWorkspaceBbox(mapRef.current?.getBounds())
-    setEditMode(true)
+    if (aacEmprises) {
+      setEditMode(true)
+      return
+    }
+    router.reload({ only: ['aacEmprises'], onSuccess: () => setEditMode(true) })
   }
 
   const isWorkspaceOpen = editMode && selectedExploitation !== undefined
@@ -415,8 +426,8 @@ export default function VisualisationPage({
           selectionTitle="Parcelles de l’exploitation"
           initialSelection={loadedSelection}
           defaultMillesime={millesime}
-          aacs={[]}
-          initialBbox={workspaceBbox}
+          aacs={workspaceAacs}
+          mapFocus={{ viewport: workspaceBbox, focusedAacId: focusedTerritoireId }}
           pmtilesUrl={pmtilesUrl}
           layers={{
             map: {

@@ -194,7 +194,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         highlightedParcelleIds,
         hoveredParcelleIds,
         unavailableParcelleIds: NO_UNAVAILABLE_PARCELLES,
-        selectedAacCode,
+        highlightedAacCodes: selectedAacCode ? [selectedAacCode] : [],
       }),
       [
         pmtilesUrl,

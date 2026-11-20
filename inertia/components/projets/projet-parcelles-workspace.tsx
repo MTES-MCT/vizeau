@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
-import { useAacEmprises } from '~/components/parcelle/parcelles-step-overview'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,
@@ -21,7 +21,7 @@ type ProjetParcellesPageProps = {
 }
 
 type ProjetParcellesWorkspaceProps = {
-  projet: Pick<Data.Project, 'id' | 'name'> & { parcelles: Data.Parcelle[] }
+  projet: Pick<Data.Project, 'id' | 'name' | 'territoires'> & { parcelles: Data.Parcelle[] }
 }
 
 function toSelection(parcelles: Data.Parcelle[]): ParcellesSelection {
@@ -104,6 +104,7 @@ export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWork
         initialSelection={initialSelection}
         defaultMillesime={defaultMillesime}
         aacs={aacEmprises}
+        mapFocus={{ territoireIds: projet.territoires?.map((territoire) => territoire.id) }}
         pmtilesUrl={pmtilesUrl}
         exploitations={workspaceExploitations}
         submitLabel="Enregistrer les parcelles"

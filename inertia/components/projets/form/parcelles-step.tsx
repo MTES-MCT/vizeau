@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
-import ParcellesStepOverview, {
-  useAacEmprises,
-} from '~/components/parcelle/parcelles-step-overview'
+import ParcellesStepOverview from '~/components/parcelle/parcelles-step-overview'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,
@@ -57,7 +56,12 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
   const { pmtilesUrl, exploitations, aacs, projet } = usePage<ProjetFormPageProps>().props
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false)
   const [millesime, setMillesime] = useState(data.parcelles.millesime)
-  const aacEmprises = useAacEmprises(aacs)
+  const allAacEmprises = useAacEmprises(aacs)
+  // Seules les AAC cochées à l'étape précédente sont proposées sur la carte, toutes à défaut
+  const aacEmprises = useMemo(() => {
+    const checkedAacs = allAacEmprises.filter((aac) => data.territoireIds.includes(aac.id))
+    return checkedAacs.length > 0 ? checkedAacs : allAacEmprises
+  }, [allAacEmprises, data.territoireIds])
 
   const { items } = data.parcelles
   const initialSelection = useMemo(() => toSelection(items), [items])
@@ -117,6 +121,8 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         onMillesimeChange={setMillesime}
         parcelles={millesimeParcelles}
         aacs={aacEmprises}
+        territoireIds={data.territoireIds}
+        title="Parcelles du projet"
         onManage={() => setIsWorkspaceOpen(true)}
       />
 
@@ -129,6 +135,7 @@ export default function ParcellesStep({ data, setData }: ParcellesStepProps) {
         savedSelection={savedSelection}
         defaultMillesime={millesime}
         aacs={aacEmprises}
+        mapFocus={{ territoireIds: data.territoireIds }}
         pmtilesUrl={pmtilesUrl}
         exploitations={workspaceExploitations}
         submitLabel="Valider les parcelles"
