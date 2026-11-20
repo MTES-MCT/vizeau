@@ -66,6 +66,7 @@ function fitBboxShowingParcelles(map: MaplibreMap, bbox: Bbox, duration: number)
     duration,
   })
 }
+
 const EMPTY_IDS: string[] = []
 
 export type SelectedParcelle = {
@@ -92,9 +93,12 @@ type ParcellesSelectionMapProps = {
   layers?: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
-  /** Masque le sélecteur de fond de carte, pour garder l'en-tête sur une ligne dans un aperçu. */
+  /** Masque le sélecteur de fond de carte, par exemple dans un aperçu. */
   hideBaseMapSelect?: boolean
-  /** Masque le sélecteur de millésime, quand l'écran appelant l'affiche ailleurs. */
+  /**
+   * Masque le sélecteur de millésime, quand l'écran appelant l'affiche ailleurs. Sans fond de carte
+   * ni millésime, l'en-tête disparaît et le zoom sur une AAC flotte sur la carte.
+   */
   hideMillesimeSelect?: boolean
 }
 
@@ -361,42 +365,46 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])
 
+  const aacSelect = aacs.length > 1 && (
+    <div className="relative">
+      <span
+        className="fr-icon-zoom-in-line fr-icon--sm absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
+        aria-hidden="true"
+      />
+      <Select
+        label=""
+        className="fr-mb-0 w-fit max-w-80"
+        nativeSelectProps={{
+          'className': 'pl-10!',
+          'value': displayedAacId,
+          'aria-label': 'Zoomer sur une AAC',
+          'onChange': (e) => handleAacChange(e.target.value),
+        }}
+      >
+        <option value="" disabled>
+          Zoomer sur une AAC
+        </option>
+        {aacs.map((aac) => (
+          <option key={aac.id} value={aac.id}>
+            {aac.label}
+          </option>
+        ))}
+      </Select>
+    </div>
+  )
+  // Sans autre sélecteur, le zoom sur une AAC flotte sur la carte plutôt que dans un bandeau
+  const hasHeader = !hideBaseMapSelect || !hideMillesimeSelect
+
   return (
     <div className="flex flex-col h-full w-full">
       {/* Même en-tête que la carte de consultation, aligné sur ceux des panneaux */}
-      {(aacs.length > 1 || !hideBaseMapSelect || !hideMillesimeSelect) && (
+      {hasHeader && (
         <div
           className="flex flex-wrap items-center justify-between gap-4 min-h-17 fr-p-2v shrink-0"
           style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
         >
           <div className="flex flex-wrap items-center gap-4">
-            {aacs.length > 1 && (
-              <div className="relative">
-                <span
-                  className="fr-icon-zoom-in-line fr-icon--sm absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
-                  aria-hidden="true"
-                />
-                <Select
-                  label=""
-                  className="fr-mb-0 w-fit max-w-80"
-                  nativeSelectProps={{
-                    'className': 'pl-10!',
-                    'value': displayedAacId,
-                    'aria-label': 'Zoomer sur une AAC',
-                    'onChange': (e) => handleAacChange(e.target.value),
-                  }}
-                >
-                  <option value="" disabled>
-                    Zoomer sur une AAC
-                  </option>
-                  {aacs.map((aac) => (
-                    <option key={aac.id} value={aac.id}>
-                      {aac.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            )}
+            {aacSelect}
             {!hideBaseMapSelect && (
               <Select
                 label=""
@@ -421,6 +429,7 @@ const ParcellesSelectionMapContent = forwardRef<
         </div>
       )}
       <div className="relative flex-1 min-h-0">
+        {!hasHeader && aacSelect && <div className="absolute top-2 left-2 z-10">{aacSelect}</div>}
         {isMapLoading && (
           <div className="flex absolute left-0 right-0 top-0 bottom-0 items-center justify-center">
             <Loader size="lg" />
