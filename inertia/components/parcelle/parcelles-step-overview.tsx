@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { fr } from '@codegouvfr/react-dsfr'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
 import MillesimeSelect from '~/components/map/millesime-select'
@@ -12,32 +11,14 @@ import ParcellesSelectionMap, {
 import {
   formatSurface,
   getCulturesSegments,
-  plural,
 } from '~/components/parcelle/parcelles-workspace/selection'
 import { getHighlightedAacCodes, pickInitialMapView } from '~/functions/map_focus'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
-import LabelInfo from '~/ui/LabelInfo'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
+import ResumeCard from '~/ui/ResumeCard'
 import SectionCard from '~/ui/SectionCard'
-import type { StackedProgressBarSegment } from '~/ui/StackedProgressBar'
 
 const MAP_LAYERS: ParcellesMapLayers = { ...DEFAULT_LAYERS, showAac: true }
-
-/** Au-delà, les cultures les moins présentes sont regroupées pour garder un résumé court. */
-const MAX_CULTURES = 5
-
-function groupMinorCultures(segments: StackedProgressBarSegment[]): StackedProgressBarSegment[] {
-  if (segments.length <= MAX_CULTURES) return segments
-  const minorSegments = segments.slice(MAX_CULTURES - 1)
-  return [
-    ...segments.slice(0, MAX_CULTURES - 1),
-    {
-      label: `Autres cultures (${minorSegments.length})`,
-      color: fr.colors.decisions.background.contrast.grey.active,
-      value: minorSegments.reduce((sum, segment) => sum + segment.value, 0),
-    },
-  ]
-}
 
 type ParcellesStepOverviewProps = {
   pmtilesUrl: string
@@ -74,14 +55,11 @@ export default function ParcellesStepOverview({
     () => getHighlightedAacCodes(aacs, { territoireIds }),
     [aacs, territoireIds]
   )
-  const culturesSegments = useMemo(
-    () => groupMinorCultures(getCulturesSegments(parcelles)),
-    [parcelles]
-  )
+  const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((sum, culture) => sum + culture.value, 0)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
       <div className="h-[520px]">
         <ParcellesSelectionMap
           pmtilesUrl={pmtilesUrl}
@@ -97,64 +75,75 @@ export default function ParcellesStepOverview({
         />
       </div>
 
-      <SectionCard
-        title={title}
-        icon="fr-icon-collage-line"
-        size="small"
-        additionalAction={<MillesimeSelect value={millesime} onChange={onMillesimeChange} />}
-      >
-        {parcelles.length === 0 ? (
-          <EmptyPlaceholder
-            label={`Aucune parcelle associée pour le RPG ${millesime}`}
-            illustrativeIcon="fr-icon-collage-line"
-            buttonLabel="Sélectionner des parcelles"
-            buttonIcon="fr-icon-add-line"
-            handleClick={onManage}
-          />
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-4">
-                <LabelInfo
-                  icon="fr-icon-collage-line"
-                  label={plural(parcelles.length, 'parcelle')}
-                  size="sm"
-                />
-                <LabelInfo
-                  icon="fr-icon-ruler-line"
-                  label={`${formatSurface(parcelles)} ha`}
-                  size="sm"
-                />
+      {/* Même hauteur que la carte sur grand écran : c'est la répartition des cultures qui défile */}
+      <div className="lg:h-[520px]">
+        <SectionCard
+          title={title}
+          icon="fr-icon-collage-line"
+          additionalAction={<MillesimeSelect value={millesime} onChange={onMillesimeChange} />}
+          fillHeight
+        >
+          {parcelles.length === 0 ? (
+            <EmptyPlaceholder
+              label={`Aucune parcelle associée pour le RPG ${millesime}`}
+              illustrativeIcon="fr-icon-collage-line"
+              buttonLabel="Sélectionner des parcelles"
+              buttonIcon="fr-icon-add-line"
+              handleClick={onManage}
+            />
+          ) : (
+            <div className="flex flex-col gap-6 h-full">
+              <div className="flex flex-col gap-2 shrink-0">
+                <div className="grid grid-cols-2 gap-2">
+                  <ResumeCard
+                    title="Quantité"
+                    iconId="fr-icon-collage-line"
+                    value={parcelles.length}
+                    label={parcelles.length > 1 ? 'parcelles' : 'parcelle'}
+                    priority="secondary"
+                    size="sm"
+                  />
+                  <ResumeCard
+                    title="Surface totale"
+                    iconId="fr-icon-ruler-line"
+                    value={formatSurface(parcelles)}
+                    label="hectares"
+                    priority="secondary"
+                    size="sm"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  iconId="fr-icon-edit-line"
+                  className="justify-center"
+                  style={{ width: '100%' }}
+                  onClick={onManage}
+                >
+                  Gérer les parcelles
+                </Button>
               </div>
-              <Button
-                type="button"
-                iconId="fr-icon-edit-line"
-                className="justify-center"
-                style={{ width: '100%' }}
-                onClick={onManage}
-              >
-                Gérer les parcelles
-              </Button>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <p className="fr-text fr-text--bold fr-mb-0">Répartition des cultures</p>
-              {culturesSegments.map((culture) => (
-                <LabeledProgressBar
-                  key={culture.label}
-                  label={culture.label}
-                  size="sm"
-                  progressBarValues={{
-                    value: culture.value,
-                    total: culturesTotalHa,
-                    progressColor: culture.color,
-                  }}
-                />
-              ))}
+              <div className="flex flex-col gap-2 min-h-0">
+                <p className="fr-text fr-text--bold fr-mb-0">Répartition des cultures</p>
+                <div className="flex flex-col gap-2 overflow-y-auto min-h-0">
+                  {culturesSegments.map((culture) => (
+                    <LabeledProgressBar
+                      key={culture.label}
+                      label={culture.label}
+                      size="sm"
+                      progressBarValues={{
+                        value: culture.value,
+                        total: culturesTotalHa,
+                        progressColor: culture.color,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-      </SectionCard>
+          )}
+        </SectionCard>
+      </div>
     </div>
   )
 }
