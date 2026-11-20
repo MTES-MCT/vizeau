@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
-import { useAacEmprises } from '~/components/parcelle/parcelles-step-overview'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,

@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
-import ParcellesStepOverview, {
-  useAacEmprises,
-} from '~/components/parcelle/parcelles-step-overview'
+import ParcellesStepOverview from '~/components/parcelle/parcelles-step-overview'
+import { useAacEmprises } from '~/hooks/use_aac_emprises'
 import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,
