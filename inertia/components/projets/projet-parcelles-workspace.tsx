@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import { Button } from '@codegouvfr/react-dsfr/Button'
 
-import { useAacEmprises } from '~/hooks/use_aac_emprises'
+import { useCheckedAacEmprises } from '~/hooks/use_aac_emprises'
 import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,
@@ -42,8 +42,12 @@ function toSelection(parcelles: Data.Parcelle[]): ParcellesSelection {
  * les parcelles du projet, sans passer par le formulaire d'édition.
  */
 export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWorkspaceProps) {
-  const { pmtilesUrl, aacs = [], exploitations = [] } = usePage<ProjetParcellesPageProps>().props
-  const aacEmprises = useAacEmprises(aacs)
+  const { pmtilesUrl, aacs, exploitations = [] } = usePage<ProjetParcellesPageProps>().props
+  const territoireIds = useMemo(
+    () => projet.territoires?.map((territoire) => territoire.id) ?? [],
+    [projet.territoires]
+  )
+  const aacEmprises = useCheckedAacEmprises(aacs, territoireIds)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -104,7 +108,7 @@ export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWork
         initialSelection={initialSelection}
         defaultMillesime={defaultMillesime}
         aacs={aacEmprises}
-        mapFocus={{ territoireIds: projet.territoires?.map((territoire) => territoire.id) }}
+        mapFocus={{ territoireIds }}
         pmtilesUrl={pmtilesUrl}
         exploitations={workspaceExploitations}
         submitLabel="Enregistrer les parcelles"

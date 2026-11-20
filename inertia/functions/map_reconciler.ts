@@ -56,7 +56,7 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
-  /** AAC mises en valeur sur la carte : celle de la barre latérale, celles d'un projet… */
+  /** AAC mises en valeur sur la carte : celle de la barre latérale, celles d'un projet ou d'une exploitation */
   highlightedAacCodes: string[]
 }
 

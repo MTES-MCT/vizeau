@@ -1,6 +1,6 @@
 /*
- * Choix de la vue initiale des cartes de sélection des parcelles : quelle emprise afficher à
- * l'ouverture, et quelle AAC présenter dans le sélecteur « Zoomer sur… ».
+ * Vue initiale des cartes de sélection des parcelles : quelle emprise afficher à l'ouverture,
+ * quelle AAC présenter dans le sélecteur « Zoomer sur… » et lesquelles mettre en valeur.
  * Sans aucun import pour rester testable hors du navigateur.
  */
 
@@ -14,14 +14,8 @@ export type AacEmprise = {
   bbox: Bbox
 }
 
-type Point = { x: number; y: number }
-
-/** Ce que l'écran appelant sait du contexte, par ordre de priorité. */
+/** Ce que l'écran appelant sait du contexte. */
 export type MapFocusContext = {
-  /** Vue courante de l'écran appelant, reprise telle quelle pour ne pas dépayser. */
-  viewport?: Bbox
-  /** AAC déjà consultée par l'utilisateur (par exemple ouverte dans la barre latérale). */
-  focusedAacId?: string
   /** Territoires de l'entité éditée (projet, exploitation) : le premier est cadré. */
   territoireIds?: string[]
 }
@@ -31,16 +25,6 @@ export type InitialMapView = {
   aacId?: string
   /** Emprise affichée à l'ouverture, à défaut la France entière. */
   bbox?: Bbox
-  /** L'emprise est à reprendre telle quelle, sans marge ni zoom minimal. */
-  isExact?: boolean
-}
-
-function containsPoint([west, south, east, north]: Bbox, { x, y }: Point) {
-  return x >= west && x <= east && y >= south && y <= north
-}
-
-function getBboxCenter([west, south, east, north]: Bbox): Point {
-  return { x: (west + east) / 2, y: (south + north) / 2 }
 }
 
 function unionBboxes(bboxes: Bbox[]): Bbox {
@@ -53,21 +37,8 @@ function unionBboxes(bboxes: Bbox[]): Bbox {
 }
 
 export function pickInitialMapView(aacs: AacEmprise[], context: MapFocusContext): InitialMapView {
-  const focusedAac = aacs.find((aac) => aac.id === context.focusedAacId)
-
-  if (context.viewport) {
-    const center = getBboxCenter(context.viewport)
-    return {
-      aacId: (focusedAac ?? aacs.find((aac) => containsPoint(aac.bbox, center)))?.id,
-      bbox: context.viewport,
-      isExact: true,
-    }
-  }
-
-  if (focusedAac) return { aacId: focusedAac.id, bbox: focusedAac.bbox }
-
   // Plusieurs AAC pour l'entité éditée : on cadre la première, dans l'ordre de la liste
-  const firstTerritoireAac = aacs.find((item) => context.territoireIds?.includes(item.id))
+  const firstTerritoireAac = aacs.find((aac) => context.territoireIds?.includes(aac.id))
   if (firstTerritoireAac) return { aacId: firstTerritoireAac.id, bbox: firstTerritoireAac.bbox }
 
   return frameAacs(aacs)
@@ -82,9 +53,7 @@ function frameAacs(aacs: AacEmprise[]): InitialMapView {
   }
 }
 
-/** AAC à mettre en valeur sur la carte : celle consultée, à défaut celles de l'entité éditée. */
+/** AAC à mettre en valeur sur la carte : celles de l'entité éditée. */
 export function getHighlightedAacCodes(aacs: AacEmprise[], context: MapFocusContext): string[] {
-  const focusedAac = aacs.find((aac) => aac.id === context.focusedAacId)
-  if (focusedAac) return [focusedAac.code]
   return aacs.filter((aac) => context.territoireIds?.includes(aac.id)).map((aac) => aac.code)
 }

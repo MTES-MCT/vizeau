@@ -55,7 +55,7 @@ export type ParcellesWorkspaceProps = {
   savedSelection?: ParcellesSelection
   defaultMillesime: string
   aacs: AacEmprise[]
-  /** Contexte de l'écran appelant pour choisir la vue à l'ouverture. */
+  /** Contexte de l'écran appelant : choisit la vue à l'ouverture et les AAC mises en valeur. */
   mapFocus?: MapFocusContext
   pmtilesUrl: string
   /** Couches fournies par l'écran appelant pour partager ses réglages, à défaut propres à l'éditeur. */

@@ -115,6 +115,7 @@ export default class VisualisationController {
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)
+          .preload('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode()))
           .preload('parcelles', (parcelleQuery) => {
             parcelleQuery
               .where('year', request.qs().millesime)

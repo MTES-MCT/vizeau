@@ -146,7 +146,7 @@ const ParcellesSelectionMapContent = forwardRef<
       ...(initialView?.bbox
         ? {
             bounds: initialView.bbox,
-            fitBoundsOptions: { padding: initialView.isExact ? 0 : BOUNDS_PADDING },
+            fitBoundsOptions: { padding: BOUNDS_PADDING },
           }
         : { center: [2.24, 46.54], zoom: 5 }),
       maxZoom: 17.5,
@@ -157,7 +157,7 @@ const ParcellesSelectionMapContent = forwardRef<
       touchZoomRotate: false,
     },
     (createdMap) => {
-      if (initialView?.bbox && !initialView.isExact) {
+      if (initialView?.bbox) {
         fitBboxShowingParcelles(createdMap, initialView.bbox, 0)
       }
 

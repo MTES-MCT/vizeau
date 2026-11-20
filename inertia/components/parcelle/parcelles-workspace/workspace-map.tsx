@@ -1,4 +1,4 @@
-import { Ref, useState } from 'react'
+import { Ref, useMemo, useState } from 'react'
 
 import ParcellesSelectionMap, {
   AacEmprise,
@@ -24,7 +24,7 @@ export type WorkspaceMapProps = {
   unavailableParcelleIds?: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   aacs: AacEmprise[]
-  /** Contexte de l'écran appelant, pour choisir la vue à l'ouverture. */
+  /** Contexte de l'écran appelant : choisit la vue à l'ouverture et les AAC mises en valeur. */
   focus: MapFocusContext
   layers: ParcellesMapLayers
   baseMap?: BaseMapId
@@ -42,7 +42,11 @@ export default function WorkspaceMap({
 }: WorkspaceMapProps) {
   // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
   const [initialView] = useState(() => pickInitialMapView(aacs, focus))
-  const [highlightedAacCodes] = useState(() => getHighlightedAacCodes(aacs, focus))
+  const { territoireIds } = focus
+  const highlightedAacCodes = useMemo(
+    () => getHighlightedAacCodes(aacs, { territoireIds }),
+    [aacs, territoireIds]
+  )
 
   return (
     <div className="relative flex-1 min-h-0">
