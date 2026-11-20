@@ -14,31 +14,14 @@ import Select from '@codegouvfr/react-dsfr/SelectNext'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { urlFor } from '~/client'
 import ParcellesWorkspace, { ParcellesSelection } from '~/components/parcelle/parcelles-workspace'
-import type { Bbox, SelectedParcelle } from '~/components/map/parcelles-selection-map'
+import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
+import { useCheckedAacEmprises } from '~/hooks/use_aac_emprises'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
 
 const toSelectedParcelles = (parcelles: Data.Parcelle[] = []): SelectedParcelle[] =>
   parcelles.flatMap(({ rpgId, surface, cultureCode, centroid }) =>
     rpgId ? [{ rpgId, surface, cultureCode, centroid: centroid ?? undefined }] : []
   )
-
-// Marge autour des centroïdes, en degrés, pour que les parcelles ne touchent pas les bords
-const BBOX_MARGIN = 0.01
-
-// Emprise des parcelles d'une exploitation, à défaut un carré autour de son siège
-const exploitationBbox = ({ parcelles = [], location }: Data.Exploitation): Bbox | undefined => {
-  const points = parcelles.flatMap(({ centroid }) => (centroid ? [centroid] : []))
-  if (points.length === 0 && location) points.push(location)
-  if (points.length === 0) return undefined
-  const xs = points.map(({ x }) => x)
-  const ys = points.map(({ y }) => y)
-  return [
-    Math.min(...xs) - BBOX_MARGIN,
-    Math.min(...ys) - BBOX_MARGIN,
-    Math.max(...xs) + BBOX_MARGIN,
-    Math.max(...ys) + BBOX_MARGIN,
-  ]
-}
 
 // Le validateur refuse les null : les valeurs absentes sont omises
 const toAssignPayload = ({ rpgId, surface, cultureCode, centroid }: SelectedParcelle) => ({
@@ -79,6 +62,8 @@ export type VisualisationPageProps = {
   accessibleAacCodes: string[]
   pmtilesUrl: string
   projects: Data.Project[]
+  /** Chargées à l'ouverture de l'éditeur de parcelles seulement. */
+  aacEmprises?: Data.Territoire.Variants['forEmprise'][]
 }
 
 export default function VisualisationPage({
@@ -93,6 +78,7 @@ export default function VisualisationPage({
   accessibleAacCodes,
   pmtilesUrl,
   projects,
+  aacEmprises,
 }: VisualisationPageProps) {
   const [isMapLoading, setIsMapLoading] = useState(true)
   const [mapZoom, setMapZoom] = useState<number | null>(null)
@@ -129,7 +115,6 @@ export default function VisualisationPage({
   const [loadedUnavailableIds, setLoadedUnavailableIds] = useState<Record<string, string[]>>({})
   const [loadingMillesime, setLoadingMillesime] = useState<string | null>(null)
   const [isSubmittingParcelles, setIsSubmittingParcelles] = useState(false)
-  const [workspaceBbox, setWorkspaceBbox] = useState<Bbox | undefined>(undefined)
 
   // We need to memoize the selected exploitation to avoid unnecessary re-renders
   const selectedExploitation = useMemo(
@@ -167,21 +152,36 @@ export default function VisualisationPage({
     setLoadedUnavailableIds({})
   }, [editMode])
 
+  const exploitationTerritoireIds = useMemo(
+    () => selectedExploitation?.territoires?.map((territoire) => territoire.id) ?? [],
+    [selectedExploitation]
+  )
+  const workspaceAacs = useCheckedAacEmprises(aacEmprises, exploitationTerritoireIds)
+  const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(false)
+
+  // La carte de l'éditeur fige sa vue initiale à son montage : on attend les AAC pour l'ouvrir
   const openParcellesWorkspace = () => {
-    setWorkspaceBbox(mapRef.current?.getBounds())
-    setEditMode(true)
+    if (aacEmprises) {
+      setEditMode(true)
+      return
+    }
+    router.reload({
+      only: ['aacEmprises'],
+      onStart: () => setIsWorkspaceLoading(true),
+      onSuccess: () => setEditMode(true),
+      onFinish: () => setIsWorkspaceLoading(false),
+    })
   }
 
   const isWorkspaceOpen = editMode && selectedExploitation !== undefined
 
-  // Ouverture directe de l'éditeur via ?workspace=parcelles (ex. depuis la fiche exploitation), une seule fois
+  // Ouverture directe de l'éditeur via ?workspace=parcelles, une seule fois
   const hasOpenedWorkspaceFromQueryRef = useRef(false)
   useEffect(() => {
     if (hasOpenedWorkspaceFromQueryRef.current) return
     if (queryString?.workspace !== 'parcelles' || !selectedExploitation) return
     hasOpenedWorkspaceFromQueryRef.current = true
-    setWorkspaceBbox(exploitationBbox(selectedExploitation))
-    setEditMode(true)
+    openParcellesWorkspace()
   }, [queryString?.workspace, selectedExploitation])
 
   const layersSettings = (
@@ -415,8 +415,8 @@ export default function VisualisationPage({
           selectionTitle="Parcelles de l’exploitation"
           initialSelection={loadedSelection}
           defaultMillesime={millesime}
-          aacs={[]}
-          initialBbox={workspaceBbox}
+          aacs={workspaceAacs}
+          mapFocus={{ territoireIds: exploitationTerritoireIds }}
           pmtilesUrl={pmtilesUrl}
           layers={{
             map: {
@@ -459,6 +459,7 @@ export default function VisualisationPage({
               isMapLoading={isMapLoading}
               mapRef={mapRef}
               onAssignParcelles={openParcellesWorkspace}
+              isAssignParcellesLoading={isWorkspaceLoading}
               showBioOnly={showBioOnly}
               millesime={millesime}
               aacs={aacs}
