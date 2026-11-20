@@ -27,7 +27,7 @@ type ParcellesStepOverviewProps = {
   /** Parcelles sélectionnées pour le millésime affiché. */
   parcelles: SelectedParcelle[]
   aacs: AacEmprise[]
-  /** Territoires de l'entité éditée, cadrés à l'ouverture de la carte. */
+  /** Territoires de l'entité éditée, mis en valeur ; le premier est cadré à l'ouverture. */
   territoireIds?: string[]
   onManage: () => void
 }

@@ -22,7 +22,7 @@ export type MapFocusContext = {
   viewport?: Bbox
   /** AAC déjà consultée par l'utilisateur (par exemple ouverte dans la barre latérale). */
   focusedAacId?: string
-  /** Territoires de l'entité éditée (projet, exploitation), cadrés ensemble. */
+  /** Territoires de l'entité éditée (projet, exploitation) : le premier est cadré. */
   territoireIds?: string[]
 }
 
@@ -66,8 +66,11 @@ export function pickInitialMapView(aacs: AacEmprise[], context: MapFocusContext)
 
   if (focusedAac) return { aacId: focusedAac.id, bbox: focusedAac.bbox }
 
-  const territoireAacs = aacs.filter((item) => context.territoireIds?.includes(item.id))
-  return frameAacs(territoireAacs.length > 0 ? territoireAacs : aacs)
+  // Plusieurs AAC pour l'entité éditée : on cadre la première, dans l'ordre de la liste
+  const firstTerritoireAac = aacs.find((item) => context.territoireIds?.includes(item.id))
+  if (firstTerritoireAac) return { aacId: firstTerritoireAac.id, bbox: firstTerritoireAac.bbox }
+
+  return frameAacs(aacs)
 }
 
 /** Cadre l'ensemble des AAC, et ne nomme l'AAC dans le sélecteur que si elle est seule. */
