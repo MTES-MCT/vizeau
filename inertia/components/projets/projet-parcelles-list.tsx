@@ -11,7 +11,7 @@ export type ProjetParcellesListProps = {
 export default function ProjetParcellesList({ parcelles }: ProjetParcellesListProps) {
   if (parcelles.length === 0) {
     return (
-      <EmptyPlaceholder illustrativeIcon="fr-icon-collage-fill" label="Aucune parcelle associée" />
+      <EmptyPlaceholder illustrativeIcon="fr-icon-collage-line" label="Aucune parcelle associée" />
     )
   }
 

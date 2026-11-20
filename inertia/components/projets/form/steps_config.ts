@@ -1,3 +1,5 @@
+import { urlFor } from '~/client'
+
 export const STEP_KEYS = {
   GENERAL_INFOS: 1,
   TERRITOIRES: 2,
@@ -61,4 +63,9 @@ export const STEPS: Record<number, ProjetFormStep> = {
     description: 'Associer des points de prélèvements concernés par ce projet.',
     iconId: 'fr-icon-drop-line',
   },
+}
+
+/** URL de l'édition d'un projet, ouverte directement à l'étape voulue. */
+export function projetEditionUrl(projectId: string, step: number) {
+  return urlFor('projets.edition', { projectId }, { qs: { step } })
 }
