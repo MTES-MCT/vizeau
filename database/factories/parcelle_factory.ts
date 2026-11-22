@@ -7,7 +7,7 @@ export const ParcelleFactory = factory
   .define(Parcelle, async () => {
     return {
       year: faker.number.int({ min: 2020, max: 2026 }),
-      rpgId: faker.string.numeric(10),
+      rpgId: faker.string.numeric(16),
       surface: faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 }).toString(),
       cultureCode: null,
       centroid: null,

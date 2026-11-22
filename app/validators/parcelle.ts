@@ -6,7 +6,7 @@ export const assignParcellesToExploitationValidator = vine.compile(
     year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
     parcelles: vine.array(
       vine.object({
-        rpgId: vine.string().maxLength(10),
+        rpgId: vine.string().maxLength(16),
         surface: vine.number().min(0).optional(),
         cultureCode: vine.string().maxLength(3).optional(),
         centroid: vine
@@ -21,7 +21,7 @@ export const detachParcelleValidator = vine.compile(
   vine.object({
     params: vine.object({
       exploitationId: vine.string().uuid(),
-      rpgId: vine.string().maxLength(10),
+      rpgId: vine.string().maxLength(16),
     }),
     year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
   })
@@ -31,7 +31,7 @@ export const getParcelleNoteValidator = vine.compile(
   vine.object({
     params: vine.object({
       exploitationId: vine.string().uuid(),
-      rpgId: vine.string().maxLength(10),
+      rpgId: vine.string().maxLength(16),
     }),
     year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
   })
@@ -41,7 +41,7 @@ export const updateParcelleNoteValidator = vine.compile(
   vine.object({
     params: vine.object({
       exploitationId: vine.string().uuid(),
-      rpgId: vine.string().maxLength(10),
+      rpgId: vine.string().maxLength(16),
     }),
     year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
     comment: vine.string().maxLength(5000).nullable(),
@@ -64,7 +64,7 @@ export const updateExploitationParcellesValidator = vine.compile(
     parcelles: vine.array(
       vine.object({
         year: vine.number().withoutDecimals().min(1900).max(new Date().getFullYear()),
-        rpgId: vine.string().maxLength(10),
+        rpgId: vine.string().maxLength(16),
         surface: vine.number().min(0).optional(),
         cultureCode: vine.string().maxLength(3).optional(),
         centroid: vine
