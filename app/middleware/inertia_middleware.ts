@@ -27,6 +27,9 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
       errors: ctx.inertia.always(this.getValidationErrors(ctx)),
       // URL de base des tuiles du RPG, lue par les cartes qui affichent les parcelles agricoles
       rpgPmtilesUrl: env.get('RPG_PMTILES_URL', ''),
+      // Millésimes du RPG, du plus récent au plus ancien, et celui affiché par défaut
+      rpgMillesimes: env.get('RPG_MILLESIMES'),
+      rpgDefaultMillesime: env.get('RPG_DEFAULT_MILLESIME'),
     }
   }
 

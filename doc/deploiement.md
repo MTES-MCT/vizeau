@@ -15,6 +15,8 @@ Quelques notes sur les variables d’environnement :
 - `NODE_ENV` : Doit être défini à `'production'` dans un environnement de production ou de préproduction.
 - `PMTILES_URL` : URL de base des tuiles vectorielles du zonage (`zonage.pmtiles`). Probablement un bucket S3.
 - `RPG_PMTILES_URL` : URL de base des tuiles des parcelles agricoles du RPG, produites par le projet rpg : un fichier par millésime, `{RPG_PMTILES_URL}/{millésime}/rpg.pmtiles`. Le serveur doit accepter les requêtes `Range` depuis l'origine de vizeau (CORS). Chaque livraison du projet rpg a son propre préfixe dans le bucket `vizeau-data`, par exemple `https://vizeau-data.s3.fr-par.scw.cloud/rpg/pmtiles-2026-11-20` : passer à une autre livraison, c'est changer cette variable.
+- `RPG_MILLESIMES` : millésimes du RPG proposés par les cartes, séparés par des virgules, par exemple `2024,2023,2022,2021,2020`. L'ordre n'importe pas : ils sont affichés du plus récent au plus ancien. Chacun doit avoir son fichier `{RPG_PMTILES_URL}/{millésime}/rpg.pmtiles`. Pour ajouter un millésime, il suffit de modifier cette variable puis de redémarrer l'application.
+- `RPG_DEFAULT_MILLESIME` : millésime affiché par défaut, par exemple `2024`. Il doit faire partie de `RPG_MILLESIMES`, sinon l'application ne démarre pas.
 - `DRIVE_DISK` : Le disque de stockage à utiliser pour les fichiers téléchargés. En production, il doit être défini sur `userUploadsS3`.
 - `USER_UPLOADS_S3_ACCESS_KEY` : Le nom de votre clef d'accès à votre bucket S3.
 - `USER_UPLOADS_S3_SECRET_KEY` : La valeur de votre clef d'accès à votre bucket S3.

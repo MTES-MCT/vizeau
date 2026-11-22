@@ -79,23 +79,26 @@ export type ProjetFormData = {
   territoireIds: string[]
 }
 
-export const defaultFormData: ProjetFormData = {
-  generalInfos: {
-    projectName: '',
-    label: '',
-    description: '',
-    type_action: '',
-    statut: 'to_be_started',
-  },
-  steps: [{ title: '', notes: '', tags: [], date: '', documents: [] }],
-  parcelles: {
-    millesime: '2024',
-    items: [],
-    addedExploitationIds: {},
-  },
-  exploitations: [],
-  captages: [],
-  territoireIds: [],
+// `millesime` : millésime du RPG affiché par défaut (RPG_DEFAULT_MILLESIME)
+export function createDefaultFormData(millesime: string): ProjetFormData {
+  return {
+    generalInfos: {
+      projectName: '',
+      label: '',
+      description: '',
+      type_action: '',
+      statut: 'to_be_started',
+    },
+    steps: [{ title: '', notes: '', tags: [], date: '', documents: [] }],
+    parcelles: {
+      millesime,
+      items: [],
+      addedExploitationIds: {},
+    },
+    exploitations: [],
+    captages: [],
+    territoireIds: [],
+  }
 }
 
 export type ProjetFormProps = {

@@ -11,6 +11,17 @@
 
 import { Env } from '@adonisjs/core/env'
 
+// Millésimes du RPG séparés par des virgules, rendus du plus récent au plus ancien
+function parseRpgMillesimes(key: string, value?: string): string[] {
+  const millesimes = [...new Set((value ?? '').split(',').map((millesime) => millesime.trim()))]
+  if (millesimes.some((millesime) => !/^\d{4}$/.test(millesime))) {
+    throw new Error(
+      `"${key}" doit lister des années séparées par des virgules, par exemple 2024,2023`
+    )
+  }
+  return millesimes.sort().reverse()
+}
+
 export default await Env.create(new URL('../', import.meta.url), {
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   PORT: Env.schema.number(),
@@ -53,6 +64,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
   // URL de base des tuiles du RPG : un fichier par millésime, {RPG_PMTILES_URL}/{millésime}/rpg.pmtiles
   RPG_PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
+  // Millésimes du RPG proposés par les cartes, et celui qu'elles affichent par défaut
+  RPG_MILLESIMES: parseRpgMillesimes,
+  RPG_DEFAULT_MILLESIME: (key: string, value?: string) => {
+    // Les fichiers .env sont déjà chargés dans process.env quand les variables sont validées
+    const millesimes = parseRpgMillesimes('RPG_MILLESIMES', process.env.RPG_MILLESIMES)
+    if (!value || !millesimes.includes(value)) {
+      throw new Error(`"${key}" doit être l'un des millésimes de RPG_MILLESIMES`)
+    }
+    return value
+  },
 
   // Set when running db:seed, never in the .env file: preview the changes without writing
   DRY_RUN: Env.schema.boolean.optional(),

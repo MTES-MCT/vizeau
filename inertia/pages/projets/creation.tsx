@@ -8,7 +8,7 @@ import Layout from '~/ui/layouts/Layout'
 import ProjetForm, {
   ProjetFormData,
   ProjetFormErrors,
-  defaultFormData,
+  createDefaultFormData,
 } from '~/components/projets/form/projet-form'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 
@@ -27,8 +27,9 @@ export default function ProjetCreationPage({}: any) {
     stepsList.includes(stepFromUrl) ? stepFromUrl : STEP_KEYS.GENERAL_INFOS
   ) as keyof typeof STEPS
 
-  const { data, setData, errors, setError, post, transform } =
-    useForm<ProjetFormData>(defaultFormData)
+  const { data, setData, errors, setError, post, transform } = useForm<ProjetFormData>(
+    createDefaultFormData(props.rpgDefaultMillesime)
+  )
 
   transform((formData) => {
     const step = formData.steps[0]

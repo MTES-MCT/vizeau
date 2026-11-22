@@ -1,5 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { Head, router } from '@inertiajs/react'
+import { Head, router, usePage } from '@inertiajs/react'
 import { debounce } from 'lodash-es'
 import VisualisationMap, { VisualisationMapRef } from '~/components/map/visualisation-map'
 import Layout from '~/ui/layouts/Layout'
@@ -110,6 +110,7 @@ export default function VisualisationPage({
   // Edit mode allows selecting multiple parcelles to assign to the exploitation. View mode only shows details of a single parcelle, or a whole exploitation.
   const [editMode, setEditMode] = useState(false)
   const millesime = queryString?.millesime as string
+  const { rpgMillesimes } = usePage().props
 
   // Millésimes chargés au fil de l'édition, conservés pour ne rien perdre en changeant de RPG
   const [loadedSelection, setLoadedSelection] = useState<ParcellesSelection>({})
@@ -506,13 +507,7 @@ export default function VisualisationPage({
                       })
                     },
                   }}
-                  options={[
-                    { value: '2024', label: 'RPG 2024' },
-                    { value: '2023', label: 'RPG 2023' },
-                    { value: '2022', label: 'RPG 2022' },
-                    { value: '2021', label: 'RPG 2021' },
-                    { value: '2020', label: 'RPG 2020' },
-                  ]}
+                  options={rpgMillesimes.map((value) => ({ value, label: `RPG ${value}` }))}
                 />
               </div>
             </div>

@@ -36,7 +36,7 @@ export default class VisualisationController {
     // Ensure millesime is present in query string
     if (!request.qs().millesime) {
       const qs = request.qs()
-      qs.millesime = '2024'
+      qs.millesime = env.get('RPG_DEFAULT_MILLESIME')
       return response.redirect().toPath(`/visualisation?${new URLSearchParams(qs).toString()}`)
     }
 

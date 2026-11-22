@@ -1,5 +1,5 @@
 import { Select } from '@codegouvfr/react-dsfr/Select'
-import { RPG_YEARS } from '~/functions/map'
+import { usePage } from '@inertiajs/react'
 
 type MillesimeSelectProps = {
   value: string
@@ -8,6 +8,8 @@ type MillesimeSelectProps = {
 }
 
 export default function MillesimeSelect({ value, onChange, className }: MillesimeSelectProps) {
+  const { rpgMillesimes } = usePage().props
+
   return (
     <Select
       label=""
@@ -18,7 +20,7 @@ export default function MillesimeSelect({ value, onChange, className }: Millesim
         'onChange': (e) => onChange(e.target.value),
       }}
     >
-      {RPG_YEARS.map((millesime) => (
+      {rpgMillesimes.map((millesime) => (
         <option key={millesime} value={millesime}>
           RPG {millesime}
         </option>
