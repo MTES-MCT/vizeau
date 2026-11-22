@@ -51,6 +51,8 @@ export default await Env.create(new URL('../', import.meta.url), {
    */
   // If set, enables the integration with the PMTiles server for map tile hosting
   PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
+  // URL de base des tuiles du RPG : un fichier par millésime, {RPG_PMTILES_URL}/{millésime}/rpg.pmtiles
+  RPG_PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
 
   // Set when running db:seed, never in the .env file: preview the changes without writing
   DRY_RUN: Env.schema.boolean.optional(),

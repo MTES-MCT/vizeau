@@ -17,6 +17,7 @@ import ParcellesWorkspace, { ParcellesSelection } from '~/components/parcelle/pa
 import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import { useCheckedAacEmprises } from '~/hooks/use_aac_emprises'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
+import { readParcelleAgricole } from '~/components/map/styles/parcelles-agricoles'
 
 const toSelectedParcelles = (parcelles: Data.Parcelle[] = []): SelectedParcelle[] =>
   parcelles.flatMap(({ rpgId, surface, cultureCode, centroid }) =>
@@ -253,8 +254,7 @@ export default function VisualisationPage({
    */
   const handleParcelleClick: (parcelleFeature: MapGeoJSONFeature) => void = useCallback(
     (parcelleFeature) => {
-      const properties = parcelleFeature.properties || {}
-      const newId = properties['id_parcel'] || properties['ID_PARCEL']
+      const newId = readParcelleAgricole(parcelleFeature)?.rpgId
 
       // Find the exploitation that owns this parcelle and navigate to it
       const owningExploitation = filteredExploitations.find((exp) =>

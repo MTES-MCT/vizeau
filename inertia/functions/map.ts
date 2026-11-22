@@ -1,37 +1,5 @@
-import type { Map as MaplibreMap } from 'maplibre-gl'
 import type { Geometry } from 'geojson'
 import type { Data } from '@generated/data'
-
-export function setParcellesHighlight(
-  map: MaplibreMap | null,
-  parcelleIds: string[],
-  highlighted: boolean = true
-) {
-  if (!map) return
-
-  const highlight = () => {
-    if (
-      !map.getSource('parcelles') ||
-      !map.getLayer('parcelles-fill') ||
-      !map.getLayer('parcelles-outline')
-    ) {
-      console.warn('Cannot highlight parcelles: map source/layers not ready.')
-      return
-    }
-    for (const id of parcelleIds) {
-      map.setFeatureState(
-        { source: 'parcelles', sourceLayer: 'parcelles', id: id },
-        { highlighted }
-      )
-    }
-  }
-
-  if (map.isStyleLoaded()) {
-    highlight()
-  } else {
-    map.once('load', highlight)
-  }
-}
 
 function getRingCentroid(ring: number[][]): { x: number; y: number; area: number } | undefined {
   if (ring.length < 3) return undefined

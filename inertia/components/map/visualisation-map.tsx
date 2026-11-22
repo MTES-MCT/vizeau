@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { fr } from '@codegouvfr/react-dsfr'
+import { usePage } from '@inertiajs/react'
 import { Marker, Popup, ScaleControl } from 'maplibre-gl'
 import type { LngLatBounds, LngLatLike, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
 import type { AacSummaryJson } from '#types/models'
@@ -16,6 +17,11 @@ import type { Data } from '@generated/data'
 import PopupExploitation from '~/components/map/popup-exploitation'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
+import {
+  PARCELLES_BIO_FILL_LAYER_ID,
+  PARCELLES_FILL_LAYER_ID,
+  readParcelleAgricole,
+} from '~/components/map/styles/parcelles-agricoles'
 
 import { renderPopupParcelle } from './popup-parcelle'
 import { renderPopupAac } from './popup-aac'
@@ -179,9 +185,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       return getRpgIdsFromParcellesForYear(hoveredExploitation?.parcelles ?? undefined, millesime)
     }, [exploitations, hoveredExploitationId, millesime, selectedExploitation])
 
+    const { rpgPmtilesUrl } = usePage().props
+
     const desiredMapState: MapDesiredState = useMemo(
       () => ({
         pmtilesUrl,
+        rpgPmtilesUrl,
         millesime,
         showParcelles,
         showAac,
@@ -198,6 +207,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       }),
       [
         pmtilesUrl,
+        rpgPmtilesUrl,
         millesime,
         showParcelles,
         showAac,
@@ -293,22 +303,17 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           return
         }
 
-        const props = e.features?.[0]?.properties
+        const feature = e.features?.[0]
+        const parcelle = feature ? readParcelleAgricole(feature) : null
 
-        const cultureCode = props?.code_cultu
-        const surfParc = props?.surf_parc
-        const id = props?.id_parcel
+        if (!parcelle) {
+          return
+        }
 
+        const id = parcelle.rpgId
         const comment = parcelleCommentMap.get(id)
         // Mise à jour la popup uniquement si la parcelle change
         if (currentParcelleIdRef.current !== id) {
-          // Vérifier si une parcelle bio existe à la position du curseur
-          const bioFeatures = mapRef.current.queryRenderedFeatures(e.point, {
-            layers: ['parcellesbio-fill'],
-          })
-
-          const isBio = bioFeatures.length > 0
-
           const exploitation = exploitations.find((exp) =>
             exp.parcelles?.some((p) => p.rpgId === id)
           )
@@ -318,12 +323,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           })
 
           const popupContent = renderPopupParcelle(
-            cultureCode,
-            surfParc,
+            parcelle.cultureCode ?? undefined,
+            String(parcelle.surface ?? ''),
             millesime,
             comment,
             false,
-            isBio,
+            parcelle.bio,
             false,
             selectedExploitation?.id !== undefined && exploitation?.id === selectedExploitation?.id,
             projectsWithThisParcelle
@@ -339,9 +344,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
           parcellePopupRef.current.setLngLat(e.lngLat)
         }
 
-        if (props) {
-          mapRef.current.getCanvas().style.cursor = ''
-        }
+        mapRef.current.getCanvas().style.cursor = ''
       },
       [parcelleCommentMap, exploitations, selectedExploitation, millesime, isMarkerHovered]
     )
@@ -578,7 +581,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
 
     // Map event update handlers. We attach/detach event listeners only when the handlers change to avoid performance issues.
     useEffect(() => {
-      const layers = showBioOnly ? ['parcellesbio-fill'] : ['parcelles-fill']
+      const layers = showBioOnly ? [PARCELLES_BIO_FILL_LAYER_ID] : [PARCELLES_FILL_LAYER_ID]
       const events = [
         { event: 'click', handler: handleParcelleClick },
         { event: 'mousemove', handler: handleParcelleMouseMove },

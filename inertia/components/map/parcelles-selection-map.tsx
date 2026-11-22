@@ -9,17 +9,22 @@ import {
 } from 'react'
 import { Popup, ScaleControl } from 'maplibre-gl'
 import type { LngLatBounds, Map as MaplibreMap, MapLayerMouseEvent } from 'maplibre-gl'
+import { usePage } from '@inertiajs/react'
 import { getCentroid } from '~/functions/map'
 import type { AacEmprise, Bbox, InitialMapView } from '~/functions/map_focus'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
-import { PARCELLES_MIN_ZOOM } from './styles/parcelles'
 import { useMap } from '~/hooks/use_map'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 import MapErrorBoundary from './map-error-boundary'
 import MillesimeSelect from './millesime-select'
 import { renderPopupParcelle } from './popup-parcelle'
 import { BASE_MAPS, BASE_MAP_OPTIONS, type BaseMapId } from './styles/base_maps'
+import {
+  PARCELLES_FILL_LAYER_ID,
+  PARCELLES_MIN_ZOOM,
+  readParcelleAgricole,
+} from './styles/parcelles-agricoles'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Select } from '@codegouvfr/react-dsfr/Select'
 import Loader from '~/ui/Loader'
@@ -190,9 +195,12 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   )
 
+  const { rpgPmtilesUrl } = usePage().props
+
   const desiredMapState: MapDesiredState = useMemo(
     () => ({
       pmtilesUrl,
+      rpgPmtilesUrl,
       millesime,
       showParcelles: layers.showParcelles,
       showAac: layers.showAac,
@@ -210,6 +218,7 @@ const ParcellesSelectionMapContent = forwardRef<
     }),
     [
       pmtilesUrl,
+      rpgPmtilesUrl,
       millesime,
       layers,
       selectedParcelleIds,
@@ -251,15 +260,16 @@ const ParcellesSelectionMapContent = forwardRef<
   const handleParcelleMouseMove = useCallback(
     (e: MapLayerMouseEvent) => {
       if (!mapRef.current) return
-      const props = e.features?.[0]?.properties
-      if (!props) return
-      const id = props['id_parcel']
+      const feature = e.features?.[0]
+      const parcelle = feature ? readParcelleAgricole(feature) : null
+      if (!parcelle) return
+      const id = parcelle.rpgId
       const isUnavailable = unavailableParcelleIdsRef.current.includes(id)
 
       if (currentParcelleIdRef.current !== id) {
         const popupContent = renderPopupParcelle(
-          props['code_cultu'],
-          String(props['surf_parc'] ?? ''),
+          parcelle.cultureCode ?? undefined,
+          String(parcelle.surface ?? ''),
           millesime,
           undefined,
           isUnavailable,
@@ -292,18 +302,15 @@ const ParcellesSelectionMapContent = forwardRef<
   const handleParcelleClick = useCallback(
     (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0]
-      if (!onParcelleToggle || !feature?.properties) return
+      const parcelle = feature ? readParcelleAgricole(feature) : null
+      if (!onParcelleToggle || !feature || !parcelle) return
 
-      const id = feature.properties['id_parcel']
-      if (unavailableParcelleIdsRef.current.includes(id)) return
+      if (unavailableParcelleIdsRef.current.includes(parcelle.rpgId)) return
 
       onParcelleToggle({
-        rpgId: id,
-        surface:
-          feature.properties['surf_parc'] != null
-            ? parseFloat(feature.properties['surf_parc'])
-            : null,
-        cultureCode: feature.properties['code_cultu'] ?? null,
+        rpgId: parcelle.rpgId,
+        surface: parcelle.surface,
+        cultureCode: parcelle.cultureCode,
         centroid: getCentroid(feature.geometry),
       })
 
@@ -346,12 +353,12 @@ const ParcellesSelectionMapContent = forwardRef<
     ]
 
     events.forEach(({ event, handler }) => {
-      mapRef.current?.on(event as any, 'parcelles-fill', handler)
+      mapRef.current?.on(event as any, PARCELLES_FILL_LAYER_ID, handler)
     })
 
     return () => {
       events.forEach(({ event, handler }) => {
-        mapRef.current?.off(event as any, 'parcelles-fill', handler)
+        mapRef.current?.off(event as any, PARCELLES_FILL_LAYER_ID, handler)
       })
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])

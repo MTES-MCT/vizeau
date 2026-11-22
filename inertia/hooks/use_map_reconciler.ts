@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { Map as MaplibreMap, MapSourceDataEvent } from 'maplibre-gl'
+import { PARCELLES_SOURCE_ID } from '~/components/map/styles/parcelles-agricoles'
 import {
   EMPTY_FEATURE_STATES,
   getDesiredStateKey,
@@ -61,7 +62,7 @@ export function useMapReconciler(map: MaplibreMap | null, desiredState: MapDesir
     // The parcelles tiles are not available yet: replay the parcelles part of the pass
     // once they are, so no filter or feature state is left unapplied.
     const onSourceData = (event: MapSourceDataEvent) => {
-      if (event.sourceId !== 'parcelles' || !event.isSourceLoaded) {
+      if (event.sourceId !== PARCELLES_SOURCE_ID || !event.isSourceLoaded) {
         return
       }
 
