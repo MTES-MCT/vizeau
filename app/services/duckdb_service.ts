@@ -22,8 +22,35 @@ function toMb(bytes: number | bigint): number {
   return Math.round(Number(bytes) / MB)
 }
 
-function sqlEscape(value: string): string {
+export function sqlEscape(value: string): string {
   return value.replace(/'/g, "''")
+}
+
+/**
+ * Copy the AAC S3 connection information as a DuckDB Secret, used for every s3:// URL read
+ * by the instance. DuckDB's S3 secret expects a bare host for ENDPOINT (no protocol) and
+ * controls HTTPS separately via USE_SSL, unlike the AWS SDK / Drive endpoint, which is a
+ * full URL. Derive both from the same source.
+ */
+export async function createAacS3Secret(connection: DuckDBConnection) {
+  const { region, endpoint, credentials } = getAacFilesS3Driver().options as {
+    region: string
+    endpoint: string
+    credentials: { accessKeyId: string; secretAccessKey: string }
+  }
+  const { accessKeyId, secretAccessKey } = credentials
+  const endpointUrl = new URL(endpoint)
+  await connection.run(`
+    CREATE SECRET aac_s3_secret (
+      TYPE S3,
+      KEY_ID '${sqlEscape(accessKeyId)}',
+      SECRET '${sqlEscape(secretAccessKey)}',
+      REGION '${sqlEscape(region)}',
+      ENDPOINT '${sqlEscape(endpointUrl.host)}',
+      USE_SSL ${endpointUrl.protocol === 'https:'},
+      URL_STYLE 'path'
+    );
+  `)
 }
 
 /**
@@ -175,28 +202,7 @@ export class DuckdbService {
     await connection.run('SET GLOBAL enable_http_metadata_cache = true;')
     await connection.run('SET GLOBAL parquet_metadata_cache = true;')
 
-    // Copy the AAC S3 connection information as a DuckDB Secret.
-    // DuckDB's S3 secret expects a bare host for ENDPOINT (no protocol) and
-    // controls HTTPS separately via USE_SSL, unlike the AWS SDK / Drive
-    // endpoint below, which is a full URL. Derive both from the same source.
-    const { region, endpoint, credentials } = getAacFilesS3Driver().options as {
-      region: string
-      endpoint: string
-      credentials: { accessKeyId: string; secretAccessKey: string }
-    }
-    const { accessKeyId, secretAccessKey } = credentials
-    const endpointUrl = new URL(endpoint)
-    await connection.run(`
-      CREATE SECRET aac_s3_secret (
-        TYPE S3,
-        KEY_ID '${sqlEscape(accessKeyId)}',
-        SECRET '${sqlEscape(secretAccessKey)}',
-        REGION '${sqlEscape(region)}',
-        ENDPOINT '${sqlEscape(endpointUrl.host)}',
-        USE_SSL ${endpointUrl.protocol === 'https:'},
-        URL_STYLE 'path'
-      );
-    `)
+    await createAacS3Secret(connection)
 
     // Activée après le CREATE SECRET : le log des requêtes SQL contiendrait sinon la clé S3.
     // Les logs HTTP (une ligne par appel à S3, reliée à sa requête SQL par le query_id)
