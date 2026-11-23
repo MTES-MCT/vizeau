@@ -4,6 +4,7 @@ import type { InferSharedProps } from '@adonisjs/inertia/types'
 import BaseInertiaMiddleware from '@adonisjs/inertia/inertia_middleware'
 import type { FlashMessageType, FlashMessageValue } from '#types/flash_messages'
 import UserTransformer from '#transformers/user_transformer'
+import env from '#start/env'
 
 export default class InertiaMiddleware extends BaseInertiaMiddleware {
   share(ctx: HttpContext) {
@@ -24,6 +25,11 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
     return {
       user: ctx.inertia.always(auth?.user ? UserTransformer.transform(auth.user) : undefined),
       errors: ctx.inertia.always(this.getValidationErrors(ctx)),
+      // URL de base des tuiles du RPG, lue par les cartes qui affichent les parcelles agricoles
+      rpgPmtilesUrl: env.get('RPG_PMTILES_URL', ''),
+      // Millésimes du RPG, du plus récent au plus ancien, et celui affiché par défaut
+      rpgMillesimes: env.get('RPG_MILLESIMES'),
+      rpgDefaultMillesime: env.get('RPG_DEFAULT_MILLESIME'),
     }
   }
 

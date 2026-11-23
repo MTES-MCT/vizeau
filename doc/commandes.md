@@ -90,3 +90,21 @@ node ace user:reset-password <email>
 ```
 
 Le nouveau mot de passe est affiché directement dans la sortie standard afin de ne jamais apparaître dans les logs applicatifs.
+
+---
+
+## `parcelles:rpg-id`
+
+Remplace l'identifiant RPG des parcelles enregistrées (celui du RPG public) par l'identifiant stable des tuiles du projet rpg. L'ancien est gardé dans `legacy_rpg_id`. À lancer une fois par millésime présent en base, au déploiement qui bascule sur ces tuiles.
+
+```bash
+# À blanc : affiche ce qui serait fait
+node ace parcelles:rpg-id 2024 s3://vizeau-data/rpg/parquet-2026-11-20/2024/parcelles.parquet
+node ace parcelles:rpg-id 2024 s3://vizeau-data/rpg/parquet-2026-11-20/2024/parcelles.parquet --apply
+```
+
+Le second argument est le `parcelles.parquet` du millésime, pris dans la livraison dont les tuiles sont dans `RPG_PMTILES_URL` (`rpg/parquet-<date>/<millésime>/` du bucket `vizeau-data`). Ce fichier est privé : la commande le lit avec la clé `AAC_FILES_S3_*`, qui doit y avoir accès. Sinon, on le télécharge et on donne son chemin local.
+
+- Les parcelles introuvables sont listées : il faut les rattacher à la main. Les autres sont migrées quand même, et la commande se termine avec le code 1.
+- En cas de conflit (parcelle modifiée pendant le calcul, ou identifiant déjà pris la même année), rien n'est écrit : il faut relancer la commande.
+- La commande peut être relancée : les parcelles déjà migrées sont ignorées.

@@ -40,7 +40,8 @@ export default function TerritoiresAlertes({
             <img src="/Illustration-qualite-assolement.webp" />
             <Tag
               linkProps={{
-                href: '/visualisation?millesime=2024&tab=aac&aacDepassementsAlerte=true&aacPage=1&aacDepassementsReglementaires=true',
+                // Sans millésime : la page de visualisation prend celui par défaut
+                href: '/visualisation?tab=aac&aacDepassementsAlerte=true&aacPage=1&aacDepassementsReglementaires=true',
               }}
               iconId="fr-icon-arrow-right-line"
               className="absolute bottom-3 left-3"

@@ -1,17 +1,27 @@
 import type {
   AddLayerObject,
   DataDrivenPropertyValueSpecification,
-  FilterSpecification,
+  ExpressionSpecification,
   LayerSpecification,
   Map as MaplibreMap,
   SourceSpecification,
 } from 'maplibre-gl'
 import {
+  BIO_FILTER,
+  getCultureGroupCode,
+  getCultureGroupsFilter,
   getParcellesLayers,
   getParcellesSource,
+  isBioLayerId,
+  PARCELLES_BIO_FILL_LAYER_ID,
+  PARCELLES_BIO_OUTLINE_LAYER_ID,
+  PARCELLES_FILL_LAYER_ID,
   PARCELLES_MIN_ZOOM,
+  PARCELLES_OUTLINE_LAYER_ID,
   PARCELLES_PROBE_LAYER_ID,
-} from '~/components/map/styles/parcelles'
+  PARCELLES_SOURCE_ID,
+  PARCELLES_SOURCE_LAYER,
+} from '~/components/map/styles/parcelles-agricoles'
 import {
   getAacLayer,
   getAacSource,
@@ -27,9 +37,6 @@ import {
 /** Basemap layer the overlays are inserted before, when the current style provides it. */
 const BASEMAP_ANCHOR_LAYER_ID = 'water-name-lakeline'
 
-const PARCELLES_SOURCE_ID = 'parcelles'
-const PARCELLES_SOURCE_LAYER = 'parcelles'
-
 const BIO_FILL_OPACITY: DataDrivenPropertyValueSpecification<number> = [
   'case',
   ['boolean', ['feature-state', 'unavailable'], false],
@@ -42,6 +49,8 @@ const BIO_FILL_OPACITY: DataDrivenPropertyValueSpecification<number> = [
 /** Everything the map has to reflect, derived from the component props. */
 export type MapDesiredState = {
   pmtilesUrl: string
+  /** URL de base des tuiles du RPG (`RPG_PMTILES_URL`) */
+  rpgPmtilesUrl: string
   millesime: string
   showParcelles: boolean
   showAac: boolean
@@ -60,7 +69,7 @@ export type MapDesiredState = {
   highlightedAacCodes: string[]
 }
 
-/** Feature states currently applied to the `parcelles` source. */
+/** Feature states currently applied to the `parcelles-agricoles` source. */
 export type AppliedFeatureStates = {
   highlighted: string[]
   unavailable: string[]
@@ -94,7 +103,7 @@ const toManagedLayers = (
 ): ManagedLayer[] => (specs as LayerSpecification[]).map((spec) => ({ spec, isVisible }))
 
 const parcellesLayerSpecs = getParcellesLayers()
-const isBioLayer = (spec: LayerSpecification) => spec.id.startsWith('parcellesbio')
+const isBioLayer = (spec: LayerSpecification) => isBioLayerId(spec.id)
 const isProbeLayer = (spec: LayerSpecification) => spec.id === PARCELLES_PROBE_LAYER_ID
 
 /**
@@ -125,7 +134,7 @@ const MAP_OVERLAYS: MapOverlay[] = [
   {
     source: {
       id: PARCELLES_SOURCE_ID,
-      build: ({ pmtilesUrl, millesime }) => getParcellesSource({ pmtilesUrl, millesime }),
+      build: ({ rpgPmtilesUrl, millesime }) => getParcellesSource({ rpgPmtilesUrl, millesime }),
     },
     layers: [
       ...toManagedLayers(
@@ -156,7 +165,7 @@ const getLayerIdsOfSource = (sourceId: string): string[] =>
     ({ spec }) => spec.id
   )
 
-/** Layers backed by the `parcelles` source, in stacking order. */
+/** Layers backed by the `parcelles-agricoles` source, in stacking order. */
 export const PARCELLES_LAYER_IDS = getLayerIdsOfSource(PARCELLES_SOURCE_ID)
 
 const getAnchorLayerId = (map: MaplibreMap): string | undefined =>
@@ -278,32 +287,27 @@ const applyLayerVisibility = (map: MaplibreMap, state: MapDesiredState) => {
  * `queryRenderedFeatures` can still detect bio parcelles under the cursor.
  */
 const applyBioPresentation = (map: MaplibreMap, state: MapDesiredState) => {
-  if (map.getLayer('parcellesbio-fill')) {
+  if (map.getLayer(PARCELLES_BIO_FILL_LAYER_ID)) {
     map.setPaintProperty(
-      'parcellesbio-fill',
+      PARCELLES_BIO_FILL_LAYER_ID,
       'fill-opacity',
       state.showBioOnly ? BIO_FILL_OPACITY : 0
     )
   }
 
-  if (map.getLayer('parcellesbio-outline')) {
-    map.setPaintProperty('parcellesbio-outline', 'line-opacity', state.showBioOnly ? 1 : 0)
+  if (map.getLayer(PARCELLES_BIO_OUTLINE_LAYER_ID)) {
+    map.setPaintProperty(PARCELLES_BIO_OUTLINE_LAYER_ID, 'line-opacity', state.showBioOnly ? 1 : 0)
   }
 }
 
 const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
-  const filter: FilterSpecification =
-    state.visibleCultures.length === 0
-      ? ['==', ['get', 'id_parcel'], '']
-      : [
-          'in',
-          ['to-number', ['get', 'code_group']],
-          ['literal', state.visibleCultures.map((code) => Number.parseInt(code, 10))],
-        ]
+  const filter = getCultureGroupsFilter(state.visibleCultures)
+  // Les couches bio gardent leur propre filtre, combiné à celui des cultures
+  const bioFilter: ExpressionSpecification = ['all', BIO_FILTER, filter]
 
   for (const layerId of PARCELLES_LAYER_IDS) {
     if (layerId !== PARCELLES_PROBE_LAYER_ID && map.getLayer(layerId)) {
-      map.setFilter(layerId, filter)
+      map.setFilter(layerId, isBioLayerId(layerId) ? bioFilter : filter)
     }
   }
 }
@@ -321,8 +325,8 @@ const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
 const areParcellesLayersReady = (map: MaplibreMap) =>
   Boolean(
     map.getSource(PARCELLES_SOURCE_ID) &&
-    map.getLayer('parcelles-fill') &&
-    map.getLayer('parcelles-outline')
+    map.getLayer(PARCELLES_FILL_LAYER_ID) &&
+    map.getLayer(PARCELLES_OUTLINE_LAYER_ID)
   )
 
 const setFeatureStates = (
@@ -395,7 +399,7 @@ export const getCulturesInViewport = (map: MaplibreMap): string[] | null => {
 
   const features = map.queryRenderedFeatures({ layers: [PARCELLES_PROBE_LAYER_ID] })
 
-  return dedupe(features.map((feature) => String(feature.properties?.code_group)))
+  return dedupe(features.map((feature) => getCultureGroupCode(feature.properties?.code_culture)))
 }
 
 export type ReconcileResult = {
@@ -458,6 +462,7 @@ const serializeIds = (ids: string[]): string => dedupe(ids).sort().join(',')
 export const getDesiredStateKey = (state: MapDesiredState): string =>
   [
     state.pmtilesUrl,
+    state.rpgPmtilesUrl,
     state.millesime,
     [
       state.showParcelles,

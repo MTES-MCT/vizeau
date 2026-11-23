@@ -7,7 +7,6 @@ import ParcellesWorkspace, {
   ParcellesSelection,
   WorkspaceExploitations,
 } from '~/components/parcelle/parcelles-workspace'
-import { RPG_YEARS } from '~/functions/map'
 import type { Data } from '@generated/data'
 
 /*
@@ -42,7 +41,12 @@ function toSelection(parcelles: Data.Parcelle[]): ParcellesSelection {
  * les parcelles du projet, sans passer par le formulaire d'édition.
  */
 export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWorkspaceProps) {
-  const { pmtilesUrl, aacs, exploitations = [] } = usePage<ProjetParcellesPageProps>().props
+  const {
+    pmtilesUrl,
+    aacs,
+    exploitations = [],
+    rpgDefaultMillesime,
+  } = usePage<ProjetParcellesPageProps>().props
   const territoireIds = useMemo(
     () => projet.territoires?.map((territoire) => territoire.id) ?? [],
     [projet.territoires]
@@ -53,7 +57,7 @@ export default function ProjetParcellesWorkspace({ projet }: ProjetParcellesWork
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const initialSelection = useMemo(() => toSelection(projet.parcelles), [projet.parcelles])
-  const defaultMillesime = String(projet.parcelles[0]?.year ?? RPG_YEARS[0])
+  const defaultMillesime = String(projet.parcelles[0]?.year ?? rpgDefaultMillesime)
   const workspaceExploitations = useMemo<WorkspaceExploitations>(
     () => ({ list: exploitations, initialAddedIds: {} }),
     [exploitations]

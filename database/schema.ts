@@ -286,7 +286,7 @@ export class ParcelleCommentSchema extends BaseModel {
 }
 
 export class ParcelleSchema extends BaseModel {
-  static $columns = ['centroid', 'createdAt', 'cultureCode', 'exploitationId', 'id', 'rpgId', 'surface', 'updatedAt', 'year'] as const
+  static $columns = ['centroid', 'createdAt', 'cultureCode', 'exploitationId', 'id', 'legacyRpgId', 'rpgId', 'surface', 'updatedAt', 'year'] as const
   $columns = ParcelleSchema.$columns
   @column()
   declare centroid: string | null
@@ -298,6 +298,8 @@ export class ParcelleSchema extends BaseModel {
   declare exploitationId: string | null
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare legacyRpgId: string | null
   @column()
   declare rpgId: string | null
   @column()

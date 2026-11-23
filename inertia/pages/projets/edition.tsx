@@ -66,7 +66,8 @@ export default function ProjetEditionPage({ projet }: any) {
     // But the rest of the form is simpler by assuming there's something here at all times
     steps: [],
     parcelles: {
-      millesime: projet.parcelles.length > 0 ? String(projet.parcelles[0].year) : '2024',
+      millesime:
+        projet.parcelles.length > 0 ? String(projet.parcelles[0].year) : props.rpgDefaultMillesime,
       items: initialParcelles,
       // Le back ne stocke pas les exploitations ajoutées : on les déduit des parcelles enregistrées
       addedExploitationIds: deriveAddedExploitationIds(
