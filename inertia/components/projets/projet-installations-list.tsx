@@ -5,14 +5,21 @@ import ListItem from '~/ui/ListItem'
 
 export type ProjetInstallationsListProps = {
   captages: Data.Captage[]
+  /** Si fourni, le placeholder affiché sans point de prélèvement propose d'en ajouter. */
+  onAdd?: () => void
 }
 
-export default function ProjetInstallationsList({ captages }: ProjetInstallationsListProps) {
+export default function ProjetInstallationsList({ captages, onAdd }: ProjetInstallationsListProps) {
   if (captages.length === 0) {
     return (
       <EmptyPlaceholder
-        illustrativeIcon="fr-icon-collage-fill"
-        label="Aucune installation associée"
+        illustrativeIcon="fr-icon-drop-line"
+        label="Aucun point de prélèvement associé"
+        {...(onAdd && {
+          buttonLabel: 'Associer des points de prélèvement',
+          buttonIcon: 'fr-icon-add-line',
+          handleClick: onAdd,
+        })}
       />
     )
   }

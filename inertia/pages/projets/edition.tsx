@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Head, useForm, usePage, router } from '@inertiajs/react'
 import { fr } from '@codegouvfr/react-dsfr'
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb'
@@ -8,6 +8,12 @@ import Layout from '~/ui/layouts/Layout'
 import ProjetForm, { ProjetFormData, ProjetFormErrors } from '~/components/projets/form/projet-form'
 import { STEP_KEYS, STEPS } from '~/components/projets/form/steps_config'
 import { deriveAddedExploitationIds, getProjectExploitations } from '~/functions/projet_parcelles'
+
+const OPTIONAL_STEP_KEYS: number[] = [
+  STEP_KEYS.EXPLOITATIONS,
+  STEP_KEYS.PARCELLES,
+  STEP_KEYS.CAPTAGES,
+]
 
 export default function ProjetEditionPage({ projet }: any) {
   const { url, props } = usePage()
@@ -24,6 +30,12 @@ export default function ProjetEditionPage({ projet }: any) {
     if (projet.exploitations.length > 0) stepIndexes.push(STEP_KEYS.EXPLOITATIONS)
     if (projet.parcelles.length > 0) stepIndexes.push(STEP_KEYS.PARCELLES)
     if (projet.captages.length > 0) stepIndexes.push(STEP_KEYS.CAPTAGES)
+
+    // Lien direct vers une étape optionnelle, ex. « Associer des exploitations » sur la fiche projet
+    if (OPTIONAL_STEP_KEYS.includes(stepFromUrl) && !stepIndexes.includes(stepFromUrl)) {
+      stepIndexes.push(stepFromUrl)
+      stepIndexes.sort((a, b) => a - b)
+    }
 
     return stepIndexes
   })
@@ -96,12 +108,6 @@ export default function ProjetEditionPage({ projet }: any) {
     }
   })
 
-  useEffect(() => {
-    if (stepFromUrl > 1) {
-      router.visit(`/projets/edition/${projet.id}?step=1`, { replace: true })
-    }
-  }, [])
-
   const visitStep = (step: number) =>
     router.visit(`/projets/edition/${projet.id}?step=${step}`, { preserveState: true })
 
@@ -144,6 +150,7 @@ export default function ProjetEditionPage({ projet }: any) {
           errors={errors as ProjetFormErrors}
           setErrors={setError}
           onSubmit={handleSubmit}
+          canSubmitFromAnyStep
         />
       </div>
     </Layout>
