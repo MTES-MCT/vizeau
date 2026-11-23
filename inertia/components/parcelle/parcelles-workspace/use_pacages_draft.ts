@@ -5,6 +5,7 @@ import {
   PACAGE_FORMAT,
   type PacageParcelle,
   PacageSearchError,
+  findParcellePacage,
   searchPacage,
 } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import type { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
@@ -17,6 +18,14 @@ const SEARCH_FAILED_ERROR = 'La recherche a échoué. Réessayez dans quelques i
 
 /** PACAGE ajouté au brouillon, avec toutes ses parcelles disponibles. */
 export type AddedPacage = { pacage: string; parcelles: SelectedParcelle[] }
+
+/** Proposition d'ajouter tout le PACAGE d'une parcelle choisie sur la carte. */
+export type PacageSuggestion = AddedPacage & {
+  /** Parcelle choisie sur la carte, à l'origine de la proposition. */
+  rpgId: string
+  /** Parcelles du PACAGE qui ne sont pas encore sélectionnées. */
+  missing: SelectedParcelle[]
+}
 
 const toSelectedParcelle = ({ rattacheeA: _, ...parcelle }: PacageParcelle): SelectedParcelle =>
   parcelle
@@ -39,8 +48,12 @@ export function usePacagesDraft(
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [added, setAdded] = useState<Record<string, AddedPacage[]>>({})
-  // Une réponse arrivée après un changement de millésime est ignorée
+  const [suggested, setSuggested] = useState<(AddedPacage & { rpgId: string }) | null>(null)
+  // PACAGE dont l'utilisateur a masqué la proposition, par millésime
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  // Une réponse arrivée après un changement de millésime ou un autre clic est ignorée
   const requestId = useRef(0)
+  const suggestionRequestId = useRef(0)
 
   const selectedIds = useMemo(() => new Set(selectedParcelleIds), [selectedParcelleIds])
   // Sélection à jour au retour d'une requête, la carte restant cliquable pendant la recherche
@@ -52,9 +65,11 @@ export function usePacagesDraft(
 
   const clear = useCallback(() => {
     requestId.current++
+    suggestionRequestId.current++
     setValue('')
     setError(null)
     setIsLoading(false)
+    setSuggested(null)
   }, [])
 
   // Chaque millésime a ses propres parcelles : une recherche en cours n'est plus valable
@@ -114,6 +129,60 @@ export function usePacagesDraft(
     }
   }
 
+  /**
+   * À appeler quand une parcelle est ajoutée ou retirée sur la carte : propose d'ajouter les
+   * autres parcelles de son PACAGE, ou retire la proposition liée à une parcelle désélectionnée.
+   */
+  const onParcelleToggled = async (parcelle: SelectedParcelle, isSelected: boolean) => {
+    if (!isSelected) {
+      setSuggested((current) => (current?.rpgId === parcelle.rpgId ? null : current))
+      return
+    }
+    const id = ++suggestionRequestId.current
+    setSuggested(null)
+    try {
+      const found = await findParcellePacage(parcelle, millesime, getFakeCandidates?.())
+      if (id !== suggestionRequestId.current || !found) return
+      // Parcelle retirée entre-temps : la proposition n'a plus lieu d'être
+      if (!latestSelectedIds.current.has(parcelle.rpgId)) return
+      const parcelles = found.parcelles
+        .filter((p) => !p.rattacheeA && !unavailableIds.has(p.rpgId))
+        .map(toSelectedParcelle)
+      setSuggested({
+        pacage: found.pacage,
+        parcelles,
+        rpgId: parcelle.rpgId,
+      })
+    } catch {
+      // Proposition facultative : en cas d'échec, la parcelle est simplement ajoutée seule
+    }
+  }
+
+  const suggestion: PacageSuggestion | null = useMemo(() => {
+    if (!suggested || dismissed.has(`${millesime}:${suggested.pacage}`)) return null
+    const missing = suggested.parcelles.filter((p) => !selectedIds.has(p.rpgId))
+    return missing.length > 0 ? { ...suggested, missing } : null
+  }, [suggested, dismissed, millesime, selectedIds])
+
+  const acceptSuggestion = () => {
+    if (!suggestion) return
+    addParcelles(suggestion.missing)
+    remember({
+      pacage: suggestion.pacage,
+      parcelles: suggestion.parcelles,
+    })
+    notifySuccess(
+      `${pluralize(suggestion.missing.length, 'parcelle ajoutée', 'parcelles ajoutées')} depuis le PACAGE ${suggestion.pacage}`
+    )
+    setSuggested(null)
+  }
+
+  const dismissSuggestion = () => {
+    if (!suggestion) return
+    setDismissed((previous) => new Set(previous).add(`${millesime}:${suggestion.pacage}`))
+    setSuggested(null)
+  }
+
   /** Ajoute les parcelles d'un PACAGE déjà ajouté qui ont été retirées depuis. */
   const addMissing = (group: AddedPacage) => {
     const missing = group.parcelles.filter((p) => !selectedIds.has(p.rpgId))
@@ -123,9 +192,12 @@ export function usePacagesDraft(
     )
   }
 
+  const millesimeAdded = useMemo(() => added[millesime] ?? [], [added, millesime])
+
   const reset = useCallback(() => {
     clear()
     setAdded({})
+    setDismissed(new Set())
   }, [clear])
 
   return {
@@ -139,11 +211,15 @@ export function usePacagesDraft(
     error,
     isLoading,
     search,
-    added: added[millesime] ?? [],
+    added: millesimeAdded,
     /** Parcelles du PACAGE encore sélectionnées, indépendamment des filtres du panneau. */
     getSelectedParcelles: (group: AddedPacage) =>
       group.parcelles.filter((p) => selectedIds.has(p.rpgId)),
     addMissing,
+    onParcelleToggled,
+    suggestion,
+    acceptSuggestion,
+    dismissSuggestion,
     reset,
   }
 }

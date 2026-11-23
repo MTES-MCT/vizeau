@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   AacEmprise,
   ParcellesSelectionMapHandle,
+  SelectedParcelle,
 } from '~/components/map/parcelles-selection-map'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
 import AddInstructions, {
@@ -12,6 +13,7 @@ import AddInstructions, {
 import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
 import { isPacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import PacageMethod from '~/components/parcelle/parcelles-workspace/pacage-method'
+import PacageSuggestion from '~/components/parcelle/parcelles-workspace/pacage-suggestion'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
 import { useRemoveExploitationConfirm } from '~/components/parcelle/parcelles-workspace/remove-exploitation-modal'
@@ -142,6 +144,13 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
     }
   }
 
+  // Une parcelle choisie sur la carte peut amener à proposer tout son PACAGE
+  const handleParcelleToggle = (parcelle: SelectedParcelle) => {
+    const isSelected = !draft.selectedParcelleIds.includes(parcelle.rpgId)
+    draft.toggleParcelle(parcelle)
+    if (isPacageSearchAvailable) pacages.onParcelleToggled(parcelle, isSelected)
+  }
+
   const requestClose = () => {
     if (draft.changes.length > 0) {
       discardModal.open()
@@ -181,19 +190,29 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         ),
         subtitle: variant === 'inline' ? title : undefined,
         tabLabel: 'Ajouter',
-        content:
-          method === 'pacage' ? (
-            <PacageMethod pacages={pacages} />
-          ) : method === 'exploitations' ? (
-            <ExploitationsMethod
-              millesime={millesime}
-              exploitations={exploitations}
-              onRemoveRequest={removeExploitation.request}
-              pickerContainerRef={pickerContainerRef}
-            />
-          ) : (
-            <AddInstructions hasUnavailable={Boolean(unavailableRpgIds)} />
-          ),
+        content: (
+          <div className="flex flex-col gap-3">
+            {pacages.suggestion && (
+              <PacageSuggestion
+                suggestion={pacages.suggestion}
+                onAccept={pacages.acceptSuggestion}
+                onDismiss={pacages.dismissSuggestion}
+              />
+            )}
+            {method === 'pacage' ? (
+              <PacageMethod pacages={pacages} />
+            ) : method === 'exploitations' ? (
+              <ExploitationsMethod
+                millesime={millesime}
+                exploitations={exploitations}
+                onRemoveRequest={removeExploitation.request}
+                pickerContainerRef={pickerContainerRef}
+              />
+            ) : (
+              <AddInstructions hasUnavailable={Boolean(unavailableRpgIds)} />
+            )}
+          </div>
+        ),
       }}
       center={{
         tabLabel: 'Carte',
@@ -206,7 +225,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
             onMillesimeChange={handleMillesimeChange}
             selectedParcelleIds={draft.selectedParcelleIds}
             unavailableParcelleIds={unavailableRpgIds?.[millesime]}
-            onParcelleToggle={draft.toggleParcelle}
+            onParcelleToggle={handleParcelleToggle}
             aacs={props.aacs}
             focus={props.mapFocus ?? {}}
             layers={layers.map}

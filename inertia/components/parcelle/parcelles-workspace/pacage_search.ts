@@ -64,5 +64,38 @@ export async function searchPacage(
   return { pacage, millesime, parcelles: fakeParcelles(pacage, candidates) }
 }
 
+/*
+ * Fictif : le PACAGE d'une parcelle cliquée regroupe les parcelles visibles dont le centroïde
+ * tombe dans la même maille d'environ 1 km, numérotée d'après cette maille. Deux parcelles
+ * voisines donnent donc le même PACAGE et les mêmes parcelles.
+ */
+const FAKE_CELL_DEGREES = 0.01
+
+const fakeCell = ({ centroid }: SelectedParcelle) =>
+  centroid &&
+  `${Math.floor(centroid.x / FAKE_CELL_DEGREES)}:${Math.floor(centroid.y / FAKE_CELL_DEGREES)}`
+
+const fakeCellPacage = (cell: string) => {
+  let hash = 7
+  for (const char of cell) hash = (hash * 31 + char.charCodeAt(0)) % 1_000_000_000
+  return String(hash).padStart(9, '0')
+}
+
+/** PACAGE sous lequel la parcelle est déclarée, avec toutes ses parcelles, ou `null`. */
+export async function findParcellePacage(
+  parcelle: SelectedParcelle,
+  millesime: string,
+  /** Fictif uniquement : parcelles parmi lesquelles chercher celles du même PACAGE. */
+  candidates: SelectedParcelle[] = []
+): Promise<PacageSearchResult | null> {
+  await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS / 2))
+  const cell = fakeCell(parcelle)
+  if (!cell) return null
+  const parcelles = [parcelle, ...candidates.filter((p) => p.rpgId !== parcelle.rpgId)].filter(
+    (p) => fakeCell(p) === cell
+  )
+  return { pacage: fakeCellPacage(cell), millesime, parcelles }
+}
+
 /** Méthode PACAGE proposée seulement en développement tant que la recherche est fictive. */
 export const isPacageSearchAvailable = import.meta.env.DEV
