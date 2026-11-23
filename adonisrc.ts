@@ -78,7 +78,8 @@ export default defineConfig({
   preloads: [
     () => import('#start/routes'),
     () => import('#start/kernel'),
-    () => import('#start/aac'),
+    // Serveur seulement : dans une commande, le préchauffage ne sert à rien et prend de la mémoire
+    { file: () => import('#start/aac'), environment: ['web'] },
   ],
 
   /*

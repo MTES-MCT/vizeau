@@ -105,6 +105,12 @@ node ace parcelles:rpg-id 2024 s3://vizeau-data/rpg/parquet-2026-11-20/2024/parc
 
 Le second argument est le `parcelles.parquet` du millésime, pris dans la livraison dont les tuiles sont dans `RPG_PMTILES_URL` (`rpg/parquet-<date>/<millésime>/` du bucket `vizeau-data`). Ce fichier est privé : la commande le lit avec la clé `AAC_FILES_S3_*`, qui doit y avoir accès. Sinon, on le télécharge et on donne son chemin local.
 
+Sur Scalingo, la commande demande un conteneur L (1 Go) : elle est tuée dans un conteneur M.
+
+```bash
+scalingo --app <application> run --size L "cd build && node ace parcelles:rpg-id 2024 s3://…/parcelles.parquet"
+```
+
 - Les parcelles introuvables sont listées : il faut les rattacher à la main. Les autres sont migrées quand même, et la commande se termine avec le code 1.
 - En cas de conflit (parcelle modifiée pendant le calcul, ou identifiant déjà pris la même année), rien n'est écrit : il faut relancer la commande.
 - La commande peut être relancée : les parcelles déjà migrées sont ignorées.

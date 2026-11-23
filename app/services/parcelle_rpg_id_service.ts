@@ -55,6 +55,10 @@ export type RpgIdMigrationReport = {
 const WINDOW = 0.02
 // Côté des zones lues séparément, en degrés (environ 10 km)
 const ZONE = 0.1
+// Par défaut, DuckDB s'accorde 80 % de la mémoire du conteneur. Il en prend aussi hors de cette
+// limite pour lire le Parquet, et Node a la sienne : la commande est alors tuée, quelle que soit
+// la taille du conteneur. Avec cette valeur, elle tient dans 1 Go (conteneur L de Scalingo).
+const MEMORY_LIMIT = '256MB'
 
 export class ParcelleRpgIdService {
   /**
@@ -69,7 +73,7 @@ export class ParcelleRpgIdService {
       .select('id', 'exploitationId', 'rpgId', 'surface', 'cultureCode', 'centroid')
     if (parcelles.length === 0) return { correspondances: [], unmatched: [] }
 
-    const instance = await DuckDBInstance.create(':memory:')
+    const instance = await DuckDBInstance.create(':memory:', { memory_limit: MEMORY_LIMIT })
     const connection = await instance.connect()
     try {
       await connection.run('INSTALL spatial; LOAD spatial;')
