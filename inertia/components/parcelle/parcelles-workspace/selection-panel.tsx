@@ -75,9 +75,14 @@ export default function SelectionPanel({
     () => exploitations && getParcelleExploitations(exploitations.list, millesime),
     [exploitations, millesime]
   )
-  const getExploitationName = (parcelle: SelectedParcelle) =>
-    parcelleExploitations &&
-    (parcelleExploitations.get(parcelle.rpgId)?.name ?? 'Hors exploitations du projet')
+  const getExploitationName = (parcelle: SelectedParcelle) => {
+    if (!parcelleExploitations) return undefined
+    const projectName = parcelleExploitations.get(parcelle.rpgId)?.name
+    if (projectName) return projectName
+    // Exploitation connue par le PACAGE qui a servi à ajouter la parcelle
+    const exploitant = pacages?.getExploitant(parcelle.rpgId)
+    return exploitant ? `${exploitant} (hors projet)` : 'Hors exploitations du projet'
+  }
 
   const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((a, culture) => {

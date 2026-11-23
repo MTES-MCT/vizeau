@@ -17,7 +17,12 @@ const PACAGE_NOT_FOUND_ERROR =
 const SEARCH_FAILED_ERROR = 'La recherche a échoué. Réessayez dans quelques instants.'
 
 /** PACAGE ajouté au brouillon, avec toutes ses parcelles disponibles. */
-export type AddedPacage = { pacage: string; parcelles: SelectedParcelle[] }
+export type AddedPacage = {
+  pacage: string
+  /** Nom de l'exploitation déclarante, `null` s'il n'est pas connu. */
+  exploitant: string | null
+  parcelles: SelectedParcelle[]
+}
 
 /** Proposition d'ajouter tout le PACAGE d'une parcelle choisie sur la carte. */
 export type PacageSuggestion = AddedPacage & {
@@ -89,7 +94,7 @@ export function usePacagesDraft(
     setError(null)
     setIsLoading(true)
     try {
-      const { parcelles } = await searchPacage(pacage, millesime, getFakeCandidates?.())
+      const { parcelles, exploitant } = await searchPacage(pacage, millesime, getFakeCandidates?.())
       if (id !== requestId.current) return
       if (parcelles.length === 0) {
         setError(PACAGE_NOT_FOUND_ERROR)
@@ -107,7 +112,7 @@ export function usePacagesDraft(
       }
       const toAdd = available.filter((p) => !latestSelectedIds.current.has(p.rpgId))
       addParcelles(toAdd)
-      remember({ pacage, parcelles: available })
+      remember({ pacage, exploitant, parcelles: available })
       const rattacheesCount = parcelles.length - available.length
       notifySuccess(
         [
@@ -150,6 +155,7 @@ export function usePacagesDraft(
         .map(toSelectedParcelle)
       setSuggested({
         pacage: found.pacage,
+        exploitant: found.exploitant,
         parcelles,
         rpgId: parcelle.rpgId,
       })
@@ -169,6 +175,7 @@ export function usePacagesDraft(
     addParcelles(suggestion.missing)
     remember({
       pacage: suggestion.pacage,
+      exploitant: suggestion.exploitant,
       parcelles: suggestion.parcelles,
     })
     notifySuccess(
@@ -194,6 +201,16 @@ export function usePacagesDraft(
 
   const millesimeAdded = useMemo(() => added[millesime] ?? [], [added, millesime])
 
+  // Nom de l'exploitation déclarante des parcelles ajoutées par PACAGE, quand il est connu
+  const exploitantByRpgId = useMemo(() => {
+    const names = new Map<string, string>()
+    for (const group of millesimeAdded) {
+      if (!group.exploitant) continue
+      for (const parcelle of group.parcelles) names.set(parcelle.rpgId, group.exploitant)
+    }
+    return names
+  }, [millesimeAdded])
+
   const reset = useCallback(() => {
     clear()
     setAdded({})
@@ -212,6 +229,7 @@ export function usePacagesDraft(
     isLoading,
     search,
     added: millesimeAdded,
+    getExploitant: (rpgId: string) => exploitantByRpgId.get(rpgId),
     /** Parcelles du PACAGE encore sélectionnées, indépendamment des filtres du panneau. */
     getSelectedParcelles: (group: AddedPacage) =>
       group.parcelles.filter((p) => selectedIds.has(p.rpgId)),

@@ -11,6 +11,11 @@ export type PacageParcelle = SelectedParcelle & {
 export type PacageSearchResult = {
   pacage: string
   millesime: string
+  /**
+   * Nom de l'exploitation déclarante (EARL, GAEC…), `null` s'il n'est pas connu. Le RPG n'en
+   * contient pas : la source reste à définir côté serveur.
+   */
+  exploitant: string | null
   parcelles: PacageParcelle[]
 }
 
@@ -32,6 +37,15 @@ export class PacageSearchError extends Error {}
  * - autre : toutes les parcelles sont disponibles.
  */
 const FAKE_DELAY_MS = 600
+const FAKE_EXPLOITANTS = [
+  'EARL du Moulin',
+  'GAEC des Trois Sources',
+  'Ferme Martin',
+  'SCEA de la Vallée',
+  'GAEC Roux',
+]
+const fakeExploitant = (pacage: string) =>
+  FAKE_EXPLOITANTS[Number(pacage) % FAKE_EXPLOITANTS.length]
 
 function fakeParcelles(pacage: string, candidates: SelectedParcelle[]): PacageParcelle[] {
   const last = Number(pacage.at(-1))
@@ -61,7 +75,12 @@ export async function searchPacage(
       'Données fictives : zoomez sur la carte jusqu’à voir des parcelles, puis relancez la recherche.'
     )
   }
-  return { pacage, millesime, parcelles: fakeParcelles(pacage, candidates) }
+  return {
+    pacage,
+    millesime,
+    exploitant: fakeExploitant(pacage),
+    parcelles: fakeParcelles(pacage, candidates),
+  }
 }
 
 /*
@@ -94,7 +113,8 @@ export async function findParcellePacage(
   const parcelles = [parcelle, ...candidates.filter((p) => p.rpgId !== parcelle.rpgId)].filter(
     (p) => fakeCell(p) === cell
   )
-  return { pacage: fakeCellPacage(cell), millesime, parcelles }
+  const pacage = fakeCellPacage(cell)
+  return { pacage, millesime, exploitant: fakeExploitant(pacage), parcelles }
 }
 
 /** Méthode PACAGE proposée seulement en développement tant que la recherche est fictive. */

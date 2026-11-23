@@ -48,13 +48,14 @@ export default function PacagesGrouping({
     return { group, parcelles: groupParcelles }
   })
 
-  const renderList = (list: SelectedParcelle[]) => (
+  const renderList = (list: SelectedParcelle[], exploitant: string | null) => (
     <ul className={listClassName} style={listStyle}>
       {list.map((parcelle) => (
         <ParcelleItem
           key={parcelle.rpgId}
           parcelle={parcelle}
           isNew={addedParcelleIds.has(parcelle.rpgId)}
+          exploitationName={exploitant ?? undefined}
           onClick={onParcelleClick}
         />
       ))}
@@ -124,7 +125,7 @@ export default function PacagesGrouping({
                 illustrativeIcon="fr-icon-collage-line"
               />
             ) : (
-              renderList(groupParcelles)
+              renderList(groupParcelles, group.exploitant)
             )}
           </ParcellesDrawer>
         )
