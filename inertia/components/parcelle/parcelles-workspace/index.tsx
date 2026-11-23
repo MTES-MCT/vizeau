@@ -10,6 +10,7 @@ import AddInstructions, {
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
 import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
+import PacageMethod from '~/components/parcelle/parcelles-workspace/pacage-method'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
 import { useRemoveExploitationConfirm } from '~/components/parcelle/parcelles-workspace/remove-exploitation-modal'
@@ -24,6 +25,7 @@ import {
   useExploitationsDraft,
   type WorkspaceExploitations,
 } from '~/components/parcelle/parcelles-workspace/use_exploitations_draft'
+import { usePacagesDraft } from '~/components/parcelle/parcelles-workspace/use_pacages_draft'
 import { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
 import WorkspaceFooter, {
   discardModal,
@@ -97,6 +99,12 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const [groupBy, setGroupBy] = useState<GroupBy>('toutes')
   const draft = useParcellesDraft(initialSelection, millesime, props.savedSelection)
   const exploitations = useExploitationsDraft(props.exploitations, millesime, draft)
+  const pacages = usePacagesDraft(
+    millesime,
+    draft,
+    unavailableRpgIds?.[millesime],
+    () => mapRef.current?.getVisibleParcelles() ?? []
+  )
   const pickerContainerRef = useRef<HTMLDivElement>(null)
   const removeExploitation = useRemoveExploitationConfirm({
     getSelectedCount: exploitations.getSelectedCount,
@@ -113,6 +121,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
     if (!isOpen) return
     draft.resetDraft()
     exploitations.reset()
+    pacages.reset()
     setMillesime(defaultMillesime)
   }, [isOpen])
 
@@ -171,7 +180,9 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         subtitle: variant === 'inline' ? title : undefined,
         tabLabel: 'Ajouter',
         content:
-          method === 'exploitations' ? (
+          method === 'pacage' ? (
+            <PacageMethod pacages={pacages} />
+          ) : method === 'exploitations' ? (
             <ExploitationsMethod
               millesime={millesime}
               exploitations={exploitations}

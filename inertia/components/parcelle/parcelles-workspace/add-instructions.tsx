@@ -1,3 +1,4 @@
+import { isPacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import type { Method } from '~/ui/MethodTabs'
 
 export type MethodValue = 'carte' | 'exploitations' | 'pacage' | 'coordonnees'
@@ -14,8 +15,15 @@ const EXPLOITATIONS_METHOD: Method<MethodValue> = {
   iconId: 'fr-icon-building-line',
 }
 
+// Grisée hors développement tant que la recherche par PACAGE renvoie des données fictives
+const PACAGE_METHOD: Method<MethodValue> = {
+  value: 'pacage',
+  label: 'PACAGE',
+  iconId: 'fr-icon-hashtag',
+  isUpcoming: !isPacageSearchAvailable,
+}
+
 const UPCOMING_METHODS: Method<MethodValue>[] = [
-  { value: 'pacage', label: 'PACAGE', iconId: 'fr-icon-hashtag', isUpcoming: true },
   {
     value: 'coordonnees',
     label: 'Coordonnées',
@@ -28,6 +36,7 @@ const UPCOMING_METHODS: Method<MethodValue>[] = [
 export const getMethods = (hasExploitations: boolean): Method<MethodValue>[] => [
   CARTE_METHOD,
   ...(hasExploitations ? [EXPLOITATIONS_METHOD] : []),
+  PACAGE_METHOD,
   ...UPCOMING_METHODS,
 ]
 
