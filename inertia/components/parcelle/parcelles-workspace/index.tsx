@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 
 import type {
   AacEmprise,
-  Bbox,
   ParcellesSelectionMapHandle,
 } from '~/components/map/parcelles-selection-map'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
@@ -31,6 +30,7 @@ import WorkspaceFooter, {
 } from '~/components/parcelle/parcelles-workspace/workspace-footer'
 import WorkspaceMap from '~/components/parcelle/parcelles-workspace/workspace-map'
 import { showFlashToasts } from '~/functions/flash_messages'
+import type { MapFocusContext } from '~/functions/map_focus'
 import WorkspaceLayout from '~/ui/layouts/WorkspaceLayout'
 import MethodTabs from '~/ui/MethodTabs'
 
@@ -55,7 +55,8 @@ export type ParcellesWorkspaceProps = {
   savedSelection?: ParcellesSelection
   defaultMillesime: string
   aacs: AacEmprise[]
-  initialBbox?: Bbox
+  /** Contexte de l'écran appelant : choisit la vue à l'ouverture et les AAC mises en valeur. */
+  mapFocus?: MapFocusContext
   pmtilesUrl: string
   /** Couches fournies par l'écran appelant pour partager ses réglages, à défaut propres à l'éditeur. */
   layers?: WorkspaceLayers
@@ -194,7 +195,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
             unavailableParcelleIds={unavailableRpgIds?.[millesime]}
             onParcelleToggle={draft.toggleParcelle}
             aacs={props.aacs}
-            initialBbox={props.initialBbox}
+            focus={props.mapFocus ?? {}}
             layers={layers.map}
             baseMap={props.baseMap}
             onBaseMapChange={props.onBaseMapChange}

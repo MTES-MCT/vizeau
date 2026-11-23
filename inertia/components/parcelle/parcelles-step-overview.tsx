@@ -3,7 +3,6 @@ import { Button } from '@codegouvfr/react-dsfr/Button'
 
 import ParcellesSelectionMap, {
   AacEmprise,
-  Bbox,
   DEFAULT_LAYERS,
   ParcellesMapLayers,
   SelectedParcelle,
@@ -13,26 +12,13 @@ import {
   getCulturesSegments,
   plural,
 } from '~/components/parcelle/parcelles-workspace/selection'
+import { getHighlightedAacCodes, pickInitialMapView } from '~/functions/map_focus'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import LabelInfo from '~/ui/LabelInfo'
 import LabeledProgressBar from '~/ui/LabeledProgressBar'
 import SectionCard from '~/ui/SectionCard'
-import type { Data } from '@generated/data'
 
 const MAP_LAYERS: ParcellesMapLayers = { ...DEFAULT_LAYERS, showAac: true }
-
-/** Seules les AAC dont l'emprise est connue permettent de centrer la carte. */
-export function useAacEmprises(aacs: Data.Territoire.Variants['forEmprise'][]): AacEmprise[] {
-  return useMemo(
-    () =>
-      aacs.flatMap((aac) =>
-        aac.bbox
-          ? [{ id: aac.id, label: aac.name ?? aac.code ?? aac.id, bbox: aac.bbox as Bbox }]
-          : []
-      ),
-    [aacs]
-  )
-}
 
 type ParcellesStepOverviewProps = {
   pmtilesUrl: string
@@ -41,8 +27,8 @@ type ParcellesStepOverviewProps = {
   /** Parcelles sélectionnées pour le millésime affiché. */
   parcelles: SelectedParcelle[]
   aacs: AacEmprise[]
-  /** Emprise affichée à l'ouverture, à défaut celle de la première AAC. */
-  initialBbox?: Bbox
+  /** Territoires de l'entité éditée, mis en valeur ; le premier est cadré à l'ouverture. */
+  territoireIds?: string[]
   onManage: () => void
 }
 
@@ -56,10 +42,15 @@ export default function ParcellesStepOverview({
   onMillesimeChange,
   parcelles,
   aacs,
-  initialBbox,
+  territoireIds,
   onManage,
 }: ParcellesStepOverviewProps) {
-  const [selectedAacId, setSelectedAacId] = useState(aacs[0]?.id)
+  // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
+  const [initialView] = useState(() => pickInitialMapView(aacs, { territoireIds }))
+  const highlightedAacCodes = useMemo(
+    () => getHighlightedAacCodes(aacs, { territoireIds }),
+    [aacs, territoireIds]
+  )
   const culturesSegments = useMemo(() => getCulturesSegments(parcelles), [parcelles])
   const culturesTotalHa = culturesSegments.reduce((sum, culture) => sum + culture.value, 0)
 
@@ -72,9 +63,8 @@ export default function ParcellesStepOverview({
           handleMillesimeChange={onMillesimeChange}
           selectedParcelleIds={parcelles.map((parcelle) => parcelle.rpgId)}
           aacs={aacs}
-          selectedAacId={selectedAacId}
-          initialBbox={initialBbox}
-          onAacChange={setSelectedAacId}
+          initialView={initialView}
+          highlightedAacCodes={highlightedAacCodes}
           layers={MAP_LAYERS}
         />
       </div>

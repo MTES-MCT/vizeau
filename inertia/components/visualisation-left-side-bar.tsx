@@ -21,6 +21,7 @@ export default function VisualisationLeftSideBar({
   isMapLoading,
   mapRef,
   onAssignParcelles,
+  isAssignParcellesLoading,
   showBioOnly,
   millesime,
   aacs,
@@ -38,6 +39,7 @@ export default function VisualisationLeftSideBar({
   isMapLoading: boolean
   mapRef: RefObject<VisualisationMapRef | null>
   onAssignParcelles: () => void
+  isAssignParcellesLoading: boolean
   showBioOnly: boolean
   millesime: string
   aacs: AacSummaryJson[]
@@ -141,6 +143,7 @@ export default function VisualisationLeftSideBar({
               setSelectedExploitationTab={setSelectedExploitationTab}
               mapRef={mapRef}
               onAssignParcelles={onAssignParcelles}
+              isAssignParcellesLoading={isAssignParcellesLoading}
               showBioOnly={showBioOnly}
               millesime={millesime}
             />

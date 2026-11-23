@@ -1,13 +1,17 @@
-import { Ref, useState } from 'react'
+import { Ref, useMemo, useState } from 'react'
 
 import ParcellesSelectionMap, {
   AacEmprise,
-  Bbox,
   ParcellesMapLayers,
   ParcellesSelectionMapHandle,
   SelectedParcelle,
 } from '~/components/map/parcelles-selection-map'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
+import {
+  getHighlightedAacCodes,
+  type MapFocusContext,
+  pickInitialMapView,
+} from '~/functions/map_focus'
 import Loader from '~/ui/Loader'
 
 export type WorkspaceMapProps = {
@@ -20,7 +24,8 @@ export type WorkspaceMapProps = {
   unavailableParcelleIds?: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
   aacs: AacEmprise[]
-  initialBbox?: Bbox
+  /** Contexte de l'écran appelant : choisit la vue à l'ouverture et les AAC mises en valeur. */
+  focus: MapFocusContext
   layers: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
@@ -32,9 +37,16 @@ export default function WorkspaceMap({
   isMillesimeLoading,
   onMillesimeChange,
   aacs,
+  focus,
   ...mapProps
 }: WorkspaceMapProps) {
-  const [selectedAacId, setSelectedAacId] = useState(aacs[0]?.id)
+  // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
+  const [initialView] = useState(() => pickInitialMapView(aacs, focus))
+  const { territoireIds } = focus
+  const highlightedAacCodes = useMemo(
+    () => getHighlightedAacCodes(aacs, { territoireIds }),
+    [aacs, territoireIds]
+  )
 
   return (
     <div className="relative flex-1 min-h-0">
@@ -53,8 +65,8 @@ export default function WorkspaceMap({
         millesime={millesime}
         handleMillesimeChange={onMillesimeChange}
         aacs={aacs}
-        selectedAacId={selectedAacId}
-        onAacChange={setSelectedAacId}
+        initialView={initialView}
+        highlightedAacCodes={highlightedAacCodes}
       />
     </div>
   )

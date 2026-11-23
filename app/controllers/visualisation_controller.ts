@@ -12,6 +12,8 @@ import { AacService } from '#services/aac_service'
 import { AacDto } from '../dto/aac_dto.js'
 import Project from '#models/project'
 import ProjectTransformer from '#transformers/project_transformer'
+import TerritoireTransformer from '#transformers/territoire_transformer'
+import { TerritoireEmpriseService } from '#services/territoire_emprise_service'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -26,7 +28,8 @@ export default class VisualisationController {
     public exploitationService: ExploitationService,
     public parcelleService: ParcelleService,
     public eventLogger: EventLoggerService,
-    public aacService: AacService
+    public aacService: AacService,
+    public territoireEmpriseService: TerritoireEmpriseService
   ) {}
 
   async index({ request, response, inertia, auth }: HttpContext) {
@@ -112,6 +115,7 @@ export default class VisualisationController {
       filteredExploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations(request.input('recherche'), user.id)
+          .preload('territoires', (query) => query.withScopes((scopes) => scopes.orderByCode()))
           .preload('parcelles', (parcelleQuery) => {
             parcelleQuery
               .where('year', request.qs().millesime)
@@ -148,6 +152,12 @@ export default class VisualisationController {
           request.qs().millesime,
           request.qs().exploitationId
         )
+      }),
+      // Emprises des AAC de l'utilisateur, chargées à l'ouverture de l'éditeur de parcelles
+      aacEmprises: inertia.optional(async () => {
+        const { territoires, emprisesByCode } =
+          await this.territoireEmpriseService.getTerritoiresWithEmprises(user.id)
+        return TerritoireTransformer.transform(territoires, emprisesByCode).useVariant('forEmprise')
       }),
       queryString: request.qs(),
       pmtilesUrl: env.get('PMTILES_URL', ''),
