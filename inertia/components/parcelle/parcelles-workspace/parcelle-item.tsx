@@ -12,6 +12,8 @@ type ParcelleItemProps = {
   onRestore?: (parcelle: SelectedParcelle) => void
   /** Exploitation du projet qui déclare la parcelle, ou mention de son absence. */
   exploitationName?: string
+  /** Petite pastille sous la ligne de détails, par exemple « Hors exploitations du projet ». */
+  tag?: string
   onClick: (parcelle: SelectedParcelle) => void
 }
 
@@ -21,6 +23,7 @@ export default function ParcelleItem({
   isNew = false,
   onRestore,
   exploitationName,
+  tag,
   onClick,
 }: ParcelleItemProps) {
   const culture = getCultureByCode(parcelle.cultureCode)
@@ -54,6 +57,11 @@ export default function ParcelleItem({
         <span className="fr-text--xs fr-mb-0" style={{ color: mentionColor }}>
           {metas.join(' · ')}
         </span>
+        {tag && (
+          <Badge small noIcon className="fr-mt-1v self-start">
+            {tag}
+          </Badge>
+        )}
       </span>
       {isNew && (
         <Badge small noIcon severity="success" className="shrink-0">

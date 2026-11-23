@@ -19,6 +19,8 @@ type PacagesGroupingProps = {
   pacages: PacagesDraft
   /** Filtre actif : les tiroirs sans parcelle filtrée sont masqués. */
   isFiltered?: boolean
+  /** Dans un projet : parcelle rattachée à aucune exploitation du projet. */
+  isHorsProjet?: (parcelle: SelectedParcelle) => boolean
   onParcelleClick: (parcelle: SelectedParcelle) => void
 }
 
@@ -36,6 +38,7 @@ export default function PacagesGrouping({
   addedParcelleIds,
   pacages,
   isFiltered = false,
+  isHorsProjet,
   onParcelleClick,
 }: PacagesGroupingProps) {
   const groupedRpgIds = new Set<string>()
@@ -56,6 +59,7 @@ export default function PacagesGrouping({
           parcelle={parcelle}
           isNew={addedParcelleIds.has(parcelle.rpgId)}
           exploitationName={exploitant ?? undefined}
+          tag={isHorsProjet?.(parcelle) ? 'Hors exploitations du projet' : undefined}
           onClick={onParcelleClick}
         />
       ))}

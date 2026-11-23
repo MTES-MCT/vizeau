@@ -1,4 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr'
+import Badge from '@codegouvfr/react-dsfr/Badge'
 import { useId, useState, type ReactNode } from 'react'
 
 import CulturesRepartition from '~/components/parcelle/parcelles-workspace/cultures-repartition'
@@ -7,6 +8,8 @@ import type { StackedProgressBarSegment } from '~/ui/StackedProgressBar'
 
 type ParcellesDrawerProps = {
   title: string
+  /** Pastille affichée à côté du titre, pour qualifier le groupe. */
+  tag?: string
   /** Ligne de résumé sous le titre : nombre de parcelles, surface… */
   summary: string
   /** Parcelles ajoutées dans le brouillon. */
@@ -20,6 +23,7 @@ type ParcellesDrawerProps = {
 /* Tiroir d'un groupe de parcelles : en-tête résumé avec la répartition des cultures, puis la liste. */
 export default function ParcellesDrawer({
   title,
+  tag,
   summary,
   newCount = 0,
   culturesSegments = [],
@@ -70,6 +74,11 @@ export default function ParcellesDrawer({
               }}
             >
               {title}
+              {tag && (
+                <Badge small noIcon className="fr-ml-1w align-middle">
+                  {tag}
+                </Badge>
+              )}
             </span>
             <span className="fr-text--xs fr-mb-0" style={{ color: mentionColor }}>
               {summary}

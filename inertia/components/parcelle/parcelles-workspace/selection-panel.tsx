@@ -232,6 +232,7 @@ export default function SelectionPanel({
         )}
         {canGroupByExploitation && groupBy === 'exploitations' ? (
           <ExploitationsGrouping
+            getHorsExploitationName={pacages?.getExploitant}
             millesime={millesime}
             parcelles={filteredParcelles}
             addedParcelleIds={addedParcelleIds}
@@ -246,6 +247,7 @@ export default function SelectionPanel({
             addedParcelleIds={addedParcelleIds}
             pacages={pacages}
             isFiltered={cultureFilter.length > 0 || Boolean(exploitationNeedle)}
+            isHorsProjet={parcelleExploitations && ((p) => !parcelleExploitations.has(p.rpgId))}
             onParcelleClick={onParcelleClick}
           />
         ) : filteredParcelles.length === 0 ? (
