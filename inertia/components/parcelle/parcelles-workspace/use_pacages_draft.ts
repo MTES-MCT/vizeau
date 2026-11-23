@@ -140,8 +140,9 @@ export function usePacagesDraft(
     isLoading,
     search,
     added: added[millesime] ?? [],
-    getSelectedCount: (group: AddedPacage) =>
-      group.parcelles.filter((p) => selectedIds.has(p.rpgId)).length,
+    /** Parcelles du PACAGE encore sélectionnées, indépendamment des filtres du panneau. */
+    getSelectedParcelles: (group: AddedPacage) =>
+      group.parcelles.filter((p) => selectedIds.has(p.rpgId)),
     addMissing,
     reset,
   }

@@ -1,5 +1,8 @@
 import { fr } from '@codegouvfr/react-dsfr'
-import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl'
+import {
+  SegmentedControl,
+  type SegmentedControlProps,
+} from '@codegouvfr/react-dsfr/SegmentedControl'
 import Tag from '@codegouvfr/react-dsfr/Tag'
 import { useMemo, useState } from 'react'
 
@@ -7,6 +10,7 @@ import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import CulturesRepartition from '~/components/parcelle/parcelles-workspace/cultures-repartition'
 import ExploitationsGrouping from '~/components/parcelle/parcelles-workspace/exploitations-grouping'
 import ParcelleItem from '~/components/parcelle/parcelles-workspace/parcelle-item'
+import PacagesGrouping from '~/components/parcelle/parcelles-workspace/pacages-grouping'
 import ParcellesDrawer from '~/components/parcelle/parcelles-workspace/parcelles-drawer'
 import {
   formatHectares,
@@ -15,13 +19,14 @@ import {
   plural,
 } from '~/components/parcelle/parcelles-workspace/selection'
 import type { ExploitationsDraft } from '~/components/parcelle/parcelles-workspace/use_exploitations_draft'
+import type { PacagesDraft } from '~/components/parcelle/parcelles-workspace/use_pacages_draft'
 import { getCultureByCode } from '~/functions/cultures_group'
 import { getParcelleExploitations } from '~/functions/projet_parcelles'
 import ButtonWithSelector from '~/ui/ButtonWithSelector'
 import EmptyPlaceholder from '~/ui/EmptyPlaceholder'
 import SearchWithFilters from '~/ui/SearchWithFilters'
 
-export type GroupBy = 'toutes' | 'exploitations'
+export type GroupBy = 'toutes' | 'exploitations' | 'pacage'
 
 const listClassName = 'flex flex-col fr-mb-0'
 const listStyle = { listStyle: 'none', padding: 0 }
@@ -39,6 +44,8 @@ export type SelectionPanelProps = {
   onParcelleRestore: (parcelle: SelectedParcelle) => void
   /** Exploitations du projet : permet de regrouper les parcelles par exploitation ajoutée. */
   exploitations?: ExploitationsDraft
+  /** PACAGE ajoutés : permet de regrouper les parcelles par PACAGE. */
+  pacages?: PacagesDraft
   /** Regroupement de la liste, gardé par l'écran parent pour suivre la méthode d'ajout. */
   groupBy: GroupBy
   onGroupByChange: (groupBy: GroupBy) => void
@@ -53,10 +60,16 @@ export default function SelectionPanel({
   onParcelleClick,
   onParcelleRestore,
   exploitations,
+  pacages,
   groupBy,
   onGroupByChange,
 }: SelectionPanelProps) {
   const canGroupByExploitation = Boolean(exploitations)
+  const groupBySegments: { value: GroupBy; label: string }[] = [
+    { value: 'toutes', label: 'Toutes' },
+    ...(exploitations ? [{ value: 'exploitations' as const, label: 'Exploitations' }] : []),
+    ...(pacages ? [{ value: 'pacage' as const, label: 'PACAGE' }] : []),
+  ]
   // Sans exploitations fournies (hors projet), la parcelle ne porte pas de meta d'exploitation
   const parcelleExploitations = useMemo(
     () => exploitations && getParcelleExploitations(exploitations.list, millesime),
@@ -79,7 +92,9 @@ export default function SelectionPanel({
     .map((culture) => culture.label)
     .filter((label) => selectedCultures.has(label))
   const [exploitationSearch, setExploitationSearch] = useState('')
-  const exploitationNeedle = normalizeSearch(exploitationSearch)
+  // Les tiroirs PACAGE portent un numéro, pas un nom d'exploitation : pas de recherche par nom
+  const hasExploitationSearch = canGroupByExploitation && groupBy !== 'pacage'
+  const exploitationNeedle = hasExploitationSearch ? normalizeSearch(exploitationSearch) : ''
   const matchesExploitationSearch = (name: string) =>
     normalizeSearch(name).includes(exploitationNeedle)
 
@@ -179,36 +194,30 @@ export default function SelectionPanel({
         <CulturesRepartition segments={culturesSegments} />
       </section>
 
-      {canGroupByExploitation && (
+      {groupBySegments.length > 1 && (
         <div className="fr-pb-3v">
           <SegmentedControl
             small
             inlineLegend
             legend="Regrouper par"
-            segments={[
-              {
-                label: 'Toutes',
+            segments={
+              groupBySegments.map(({ value, label }) => ({
+                label,
                 nativeInputProps: {
-                  checked: groupBy === 'toutes',
-                  onChange: () => onGroupByChange('toutes'),
+                  checked: groupBy === value,
+                  onChange: () => onGroupByChange(value),
                 },
-              },
-              {
-                label: 'Exploitations',
-                nativeInputProps: {
-                  checked: groupBy === 'exploitations',
-                  onChange: () => onGroupByChange('exploitations'),
-                },
-              },
-            ]}
+              })) as SegmentedControlProps.Segments
+            }
           />
         </div>
       )}
 
       <div className="flex flex-col gap-2">
-        {canGroupByExploitation ? (
+        {hasExploitationSearch ? (
           <SearchWithFilters
             searchPlaceholder="Rechercher par exploitation"
+            defaultSearchValue={exploitationSearch}
             onSearchChange={(event) => setExploitationSearch(event.target.value)}
           >
             {cultureFilterBlock}
@@ -222,6 +231,15 @@ export default function SelectionPanel({
             parcelles={filteredParcelles}
             addedParcelleIds={addedParcelleIds}
             exploitations={exploitations!}
+            isFiltered={cultureFilter.length > 0 || Boolean(exploitationNeedle)}
+            onParcelleClick={onParcelleClick}
+          />
+        ) : pacages && groupBy === 'pacage' ? (
+          <PacagesGrouping
+            millesime={millesime}
+            parcelles={filteredParcelles}
+            addedParcelleIds={addedParcelleIds}
+            pacages={pacages}
             isFiltered={cultureFilter.length > 0 || Boolean(exploitationNeedle)}
             onParcelleClick={onParcelleClick}
           />

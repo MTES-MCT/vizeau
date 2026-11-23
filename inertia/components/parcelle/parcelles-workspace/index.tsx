@@ -10,6 +10,7 @@ import AddInstructions, {
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
 import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
+import { isPacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import PacageMethod from '~/components/parcelle/parcelles-workspace/pacage-method'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
@@ -41,6 +42,7 @@ export type { ParcellesSelection, WorkspaceExploitations }
 const METHOD_GROUP_BY: Partial<Record<MethodValue, GroupBy>> = {
   carte: 'toutes',
   exploitations: 'exploitations',
+  pacage: 'pacage',
 }
 
 export type ParcellesWorkspaceProps = {
@@ -237,6 +239,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
               onParcelleRestore={draft.toggleParcelle}
               onParcelleClick={(parcelle) => mapRef.current?.flyTo(parcelle.centroid!)}
               exploitations={exploitations.isEnabled ? exploitations : undefined}
+              pacages={isPacageSearchAvailable ? pacages : undefined}
               groupBy={groupBy}
               onGroupByChange={setGroupBy}
             />
