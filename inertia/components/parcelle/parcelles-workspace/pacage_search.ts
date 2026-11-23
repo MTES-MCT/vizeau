@@ -117,5 +117,24 @@ export async function findParcellePacage(
   return { pacage, millesime, exploitant: fakeExploitant(pacage), parcelles }
 }
 
+/**
+ * Exploitation déclarante de chaque parcelle, `null` si elle n'est pas connue. Pour ranger par
+ * exploitation les parcelles qui ne sont rattachées à aucune exploitation du projet.
+ *
+ * Fictif : même maille, même PACAGE et même nom que `findParcellePacage`.
+ */
+export async function findExploitants(
+  parcelles: SelectedParcelle[],
+  _millesime: string
+): Promise<Record<string, string | null>> {
+  await new Promise((resolve) => setTimeout(resolve, FAKE_DELAY_MS / 2))
+  return Object.fromEntries(
+    parcelles.map((parcelle) => {
+      const cell = fakeCell(parcelle)
+      return [parcelle.rpgId, cell ? fakeExploitant(fakeCellPacage(cell)) : null]
+    })
+  )
+}
+
 /** Méthode PACAGE proposée seulement en développement tant que la recherche est fictive. */
 export const isPacageSearchAvailable = import.meta.env.DEV

@@ -5,7 +5,9 @@ import {
   PACAGE_FORMAT,
   type PacageParcelle,
   PacageSearchError,
+  findExploitants,
   findParcellePacage,
+  isPacageSearchAvailable,
   searchPacage,
 } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import type { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
@@ -48,7 +50,7 @@ export function usePacagesDraft(
   /** Fictif uniquement : parcelles où piocher le résultat, à retirer avec le vrai back. */
   getFakeCandidates?: () => SelectedParcelle[]
 ) {
-  const { selectedParcelleIds, addParcelles } = draft
+  const { selectedParcelles, selectedParcelleIds, addParcelles } = draft
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -201,15 +203,38 @@ export function usePacagesDraft(
 
   const millesimeAdded = useMemo(() => added[millesime] ?? [], [added, millesime])
 
-  // Nom de l'exploitation déclarante des parcelles ajoutées par PACAGE, quand il est connu
+  // Exploitation des autres parcelles sélectionnées (carte, sélection initiale), par millésime
+  const [resolved, setResolved] = useState<Record<string, Record<string, string | null>>>({})
+  const requestedIds = useRef<Record<string, Set<string>>>({})
+  useEffect(() => {
+    if (!isPacageSearchAvailable) return
+    const requested = (requestedIds.current[millesime] ??= new Set())
+    const toResolve = selectedParcelles.filter((p) => !requested.has(p.rpgId))
+    if (toResolve.length === 0) return
+    toResolve.forEach((p) => requested.add(p.rpgId))
+    findExploitants(toResolve, millesime)
+      .then((names) =>
+        setResolved((previous) => ({
+          ...previous,
+          [millesime]: { ...previous[millesime], ...names },
+        }))
+      )
+      // Pourra être redemandé à la prochaine modification de la sélection
+      .catch(() => toResolve.forEach((p) => requested.delete(p.rpgId)))
+  }, [selectedParcelles, millesime])
+
+  // Nom de l'exploitation déclarante, d'abord celui du PACAGE qui a servi à ajouter la parcelle
   const exploitantByRpgId = useMemo(() => {
     const names = new Map<string, string>()
+    for (const [rpgId, name] of Object.entries(resolved[millesime] ?? {})) {
+      if (name) names.set(rpgId, name)
+    }
     for (const group of millesimeAdded) {
       if (!group.exploitant) continue
       for (const parcelle of group.parcelles) names.set(parcelle.rpgId, group.exploitant)
     }
     return names
-  }, [millesimeAdded])
+  }, [millesimeAdded, resolved, millesime])
 
   const reset = useCallback(() => {
     clear()
