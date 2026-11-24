@@ -43,13 +43,21 @@ export const getMethods = (
   ...UPCOMING_METHODS,
 ]
 
-export default function AddInstructions({ hasUnavailable }: { hasUnavailable: boolean }) {
+export default function AddInstructions({
+  hasUnavailable,
+  isPacageSearchAvailable,
+}: {
+  hasUnavailable: boolean
+  isPacageSearchAvailable: boolean
+}) {
   return (
     <div>
       <p className="fr-text--sm fr-mb-1w">
-        Cliquez sur une parcelle pour la sélectionner ou la désélectionner.
+        Cliquez sur une parcelle pour ouvrir sa fiche : vous pourrez l’ajouter ou la retirer
+        {isPacageSearchAvailable && ', et voir les autres parcelles de son PACAGE'}.
       </p>
       <ul className="fr-text--sm fr-mb-0">
+        <li>Maj+clic ajoute ou retire directement une parcelle.</li>
         <li>Survolez une parcelle pour voir sa culture et sa surface.</li>
         <li>
           Changez de millésime RPG au-dessus de la carte : chaque millésime garde sa propre

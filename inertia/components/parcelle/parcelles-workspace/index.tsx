@@ -1,19 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type {
   AacEmprise,
+  ParcelleOwner,
   ParcellesSelectionMapHandle,
   SelectedParcelle,
 } from '~/components/map/parcelles-selection-map'
 import type { BaseMapId } from '~/components/map/styles/base_maps'
+import { EXPLOITATION_FILL_COLORS } from '~/components/map/styles/parcelles-agricoles'
 import AddInstructions, {
   getMethods,
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
+import ColorModePanel from '~/components/parcelle/parcelles-workspace/color-mode-panel'
 import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
+import ParcelleFiche from '~/components/parcelle/parcelles-workspace/parcelle-fiche'
 import { usePacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import PacageMethod from '~/components/parcelle/parcelles-workspace/pacage-method'
-import PacageSuggestion from '~/components/parcelle/parcelles-workspace/pacage-suggestion'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
 import type { ParcellesSelection } from '~/components/parcelle/parcelles-workspace/selection'
 import { useRemoveExploitationConfirm } from '~/components/parcelle/parcelles-workspace/remove-exploitation-modal'
@@ -29,6 +32,11 @@ import {
   type WorkspaceExploitations,
 } from '~/components/parcelle/parcelles-workspace/use_exploitations_draft'
 import { usePacagesDraft } from '~/components/parcelle/parcelles-workspace/use_pacages_draft'
+import {
+  type ColorMode,
+  useZoneExploitations,
+} from '~/components/parcelle/parcelles-workspace/use_zone_exploitations'
+import { useParcelleFiche } from '~/components/parcelle/parcelles-workspace/use_parcelle_fiche'
 import { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
 import WorkspaceFooter, {
   discardModal,
@@ -71,6 +79,11 @@ export type ParcellesWorkspaceProps = {
   unavailableRpgIds?: Record<string, string[]>
   onMillesimeChange?: (millesime: string) => void
   isMillesimeLoading?: boolean
+  /**
+   * Exploitation dont on édite les parcelles : quand la carte est colorée par exploitation, la
+   * sélection porte son nom et ses parcelles enregistrées ne comptent pas parmi les autres.
+   */
+  currentExploitation?: { id?: string; name: string }
   /** Exploitations dont on peut ajouter les parcelles d'un bloc, avec la méthode « Exploitations ». */
   exploitations?: WorkspaceExploitations
   submitLabel: string
@@ -105,6 +118,46 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const exploitations = useExploitationsDraft(props.exploitations, millesime, draft)
   const isPacageSearchAvailable = usePacageSearchAvailable()
   const pacages = usePacagesDraft(millesime, draft, unavailableRpgIds?.[millesime])
+  const fiche = useParcelleFiche(millesime, isPacageSearchAvailable)
+  const [colorMode, setColorMode] = useState<ColorMode>('culture')
+  const zoneExploitations = useZoneExploitations(millesime, colorMode === 'exploitation')
+  const currentExploitationId = props.currentExploitation?.id
+  // Parcelle survolée dans la liste du PACAGE : elle prend sur la carte la place de la parcelle
+  // ouverte, qui rejoint les autres parcelles du PACAGE le temps du survol
+  const [hoveredParcelleId, setHoveredParcelleId] = useState<string | null>(null)
+  useEffect(() => setHoveredParcelleId(null), [fiche.parcelle])
+  const selectedIds = useMemo(() => new Set(draft.selectedParcelleIds), [draft.selectedParcelleIds])
+  const unavailableIds = useMemo(
+    () => new Set(unavailableRpgIds?.[millesime] ?? []),
+    [unavailableRpgIds, millesime]
+  )
+  // Parcelles des autres exploitations de la zone, avec leur exploitation, montrée au survol
+  const otherOwners = useMemo(() => {
+    const owners = new Map<string, ParcelleOwner>()
+    for (const { id, name, rpgIds } of zoneExploitations.exploitations) {
+      if (id === currentExploitationId) continue
+      const owner = { name, rpgIds }
+      for (const rpgId of rpgIds) owners.set(rpgId, owner)
+    }
+    return owners
+  }, [zoneExploitations.exploitations, currentExploitationId])
+  // Couleur des parcelles par exploitation : une parcelle sélectionnée compte pour l'exploitation
+  // éditée, même avant d'être enregistrée
+  const parcelleColors = useMemo(() => {
+    if (colorMode !== 'exploitation') return null
+    const colors: Record<string, string> = {}
+    for (const rpgId of [...otherOwners.keys(), ...unavailableIds]) {
+      colors[rpgId] = EXPLOITATION_FILL_COLORS.other
+    }
+    for (const rpgId of draft.selectedParcelleIds) colors[rpgId] = EXPLOITATION_FILL_COLORS.current
+    return colors
+  }, [colorMode, otherOwners, unavailableIds, draft.selectedParcelleIds])
+  const colorCounts = {
+    current: draft.selectedParcelleIds.length,
+    other: Object.values(parcelleColors ?? {}).filter(
+      (color) => color === EXPLOITATION_FILL_COLORS.other
+    ).length,
+  }
   const pickerContainerRef = useRef<HTMLDivElement>(null)
   const removeExploitation = useRemoveExploitationConfirm({
     getSelectedCount: exploitations.getSelectedCount,
@@ -122,6 +175,8 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
     draft.resetDraft()
     exploitations.reset()
     pacages.reset()
+    fiche.reset()
+    zoneExploitations.reset()
     setMillesime(defaultMillesime)
   }, [isOpen])
 
@@ -133,6 +188,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   // Le panneau de droite montre la sélection rangée selon la méthode d'ajout choisie
   const handleMethodChange = (newMethod: MethodValue) => {
     setMethod(newMethod)
+    fiche.close()
     const methodGroupBy = METHOD_GROUP_BY[newMethod]
     if (methodGroupBy) {
       setPanelTab('selection')
@@ -140,11 +196,10 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
     }
   }
 
-  // Une parcelle choisie sur la carte peut amener à proposer tout son PACAGE
-  const handleParcelleToggle = (parcelle: SelectedParcelle) => {
-    const isSelected = !draft.selectedParcelleIds.includes(parcelle.rpgId)
-    draft.toggleParcelle(parcelle)
-    if (isPacageSearchAvailable) pacages.onParcelleToggled(parcelle, isSelected)
+  // Une parcelle d'une liste : la carte se centre dessus et sa fiche s'ouvre
+  const showParcelle = (parcelle: SelectedParcelle) => {
+    if (parcelle.centroid) mapRef.current?.flyTo(parcelle.centroid)
+    fiche.open(parcelle)
   }
 
   const requestClose = () => {
@@ -188,14 +243,21 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         tabLabel: 'Ajouter',
         content: (
           <div className="flex flex-col gap-3">
-            {pacages.suggestion && (
-              <PacageSuggestion
-                suggestion={pacages.suggestion}
-                onAccept={pacages.acceptSuggestion}
-                onDismiss={pacages.dismissSuggestion}
+            {fiche.parcelle ? (
+              <ParcelleFiche
+                millesime={millesime}
+                parcelle={fiche.parcelle}
+                pacage={fiche.pacage}
+                selectedIds={selectedIds}
+                unavailableIds={unavailableIds}
+                onToggle={draft.toggleParcelle}
+                onAddPacage={pacages.addPacage}
+                onRetry={fiche.retry}
+                onClose={fiche.close}
+                onParcelleClick={showParcelle}
+                onParcelleHover={(parcelle) => setHoveredParcelleId(parcelle?.rpgId ?? null)}
               />
-            )}
-            {method === 'pacage' ? (
+            ) : method === 'pacage' ? (
               <PacageMethod pacages={pacages} />
             ) : method === 'exploitations' ? (
               <ExploitationsMethod
@@ -205,7 +267,10 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
                 pickerContainerRef={pickerContainerRef}
               />
             ) : (
-              <AddInstructions hasUnavailable={Boolean(unavailableRpgIds)} />
+              <AddInstructions
+                hasUnavailable={Boolean(unavailableRpgIds)}
+                isPacageSearchAvailable={isPacageSearchAvailable}
+              />
             )}
           </div>
         ),
@@ -221,7 +286,12 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
             onMillesimeChange={handleMillesimeChange}
             selectedParcelleIds={draft.selectedParcelleIds}
             unavailableParcelleIds={unavailableRpgIds?.[millesime]}
-            onParcelleToggle={handleParcelleToggle}
+            onParcelleToggle={draft.toggleParcelle}
+            onParcelleOpen={fiche.open}
+            focusedParcelleId={hoveredParcelleId ?? fiche.parcelle?.rpgId}
+            relatedParcelleIds={fiche.pacageParcelleIds}
+            parcelleColors={parcelleColors}
+            parcelleOwners={colorMode === 'exploitation' ? otherOwners : null}
             aacs={props.aacs}
             focus={props.mapFocus ?? {}}
             layers={layers.map}
@@ -243,7 +313,17 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         ),
         content:
           panelTab === 'couches' ? (
-            layers.panel
+            <div className="flex flex-col gap-4">
+              <ColorModePanel
+                mode={colorMode}
+                onModeChange={setColorMode}
+                currentName={props.currentExploitation?.name}
+                counts={colorCounts}
+                namesStatus={zoneExploitations.status}
+                onNamesRetry={zoneExploitations.retry}
+              />
+              {layers.panel}
+            </div>
           ) : (
             <SelectionPanel
               title={selectionTitle}
@@ -252,7 +332,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
               addedParcelleIds={draft.addedParcelleIds}
               removedParcelles={draft.removedParcelles}
               onParcelleRestore={draft.toggleParcelle}
-              onParcelleClick={(parcelle) => mapRef.current?.flyTo(parcelle.centroid!)}
+              onParcelleClick={showParcelle}
               exploitations={exploitations.isEnabled ? exploitations : undefined}
               pacages={isPacageSearchAvailable ? pacages : undefined}
               groupBy={groupBy}

@@ -90,6 +90,7 @@ export default function VisualisationPage({
   const [showCommunes, setShowCommunes] = useState(false)
   const [showBioOnly, setShowBioOnly] = useState(false)
   const [showSage, setShowSage] = useState(false)
+  const [showBaseMap, setShowBaseMap] = useState(true)
   const mapRef = useRef<VisualisationMapRef>(null)
   const {
     visibleCultures,
@@ -99,6 +100,11 @@ export default function VisualisationPage({
     handleCulturesInViewportChange,
   } = useCulturesFilter()
   const [style, setStyle] = useState<BaseMapId>('vector')
+  // Choisir un fond de carte, c'est vouloir le voir
+  const changeStyle = (newStyle: BaseMapId) => {
+    setStyle(newStyle)
+    setShowBaseMap(true)
+  }
 
   // Selected exploitation in the sidebar
   const [selectedExploitationId, setSelectedExploitationId] = useState<string | undefined>(
@@ -202,6 +208,8 @@ export default function VisualisationPage({
       setShowBioOnly={() => setShowBioOnly((prev) => !prev)}
       showSage={showSage}
       setShowSage={() => setShowSage((prev) => !prev)}
+      showBaseMap={showBaseMap}
+      setShowBaseMap={() => setShowBaseMap((prev) => !prev)}
       canSwitchToBioOnly={!editMode}
       parcellesZoomDisabled={mapZoom !== null && mapZoom < 10}
       visibleCultures={visibleCultures}
@@ -427,6 +435,8 @@ export default function VisualisationPage({
               showPpr,
               showCommunes,
               showSage,
+              showBaseMap,
+              onShowBaseMapChange: setShowBaseMap,
               visibleCultures,
               onCulturesInViewportChange: handleCulturesInViewportChange,
               onZoomChange: setMapZoom,
@@ -434,7 +444,7 @@ export default function VisualisationPage({
             panel: layersSettings,
           }}
           baseMap={style}
-          onBaseMapChange={setStyle}
+          onBaseMapChange={changeStyle}
           unavailableRpgIds={loadedUnavailableIds}
           onMillesimeChange={handleWorkspaceMillesimeChange}
           isMillesimeLoading={loadingMillesime !== null}
@@ -477,7 +487,7 @@ export default function VisualisationPage({
                   label=""
                   nativeSelectProps={{
                     value: style,
-                    onChange: (e) => setStyle(e.target.value as BaseMapId),
+                    onChange: (e) => changeStyle(e.target.value as BaseMapId),
                   }}
                   options={[
                     { value: 'vector', label: 'Carte vectorielle' },
@@ -532,6 +542,7 @@ export default function VisualisationPage({
               showCommunes={showCommunes}
               showBioOnly={showBioOnly}
               showSage={showSage}
+              showBaseMap={showBaseMap}
               ref={mapRef}
               visibleCultures={visibleCultures}
               style={style}

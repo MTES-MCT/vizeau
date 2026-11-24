@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Popup, ScaleControl } from 'maplibre-gl'
+import { ScaleControl } from 'maplibre-gl'
 import type { LngLatBounds, Map as MaplibreMap, MapLayerMouseEvent } from 'maplibre-gl'
 import { usePage } from '@inertiajs/react'
 import { getCentroid } from '~/functions/map'
@@ -18,11 +18,12 @@ import { useMap } from '~/hooks/use_map'
 import { useMapReconciler } from '~/hooks/use_map_reconciler'
 import MapErrorBoundary from './map-error-boundary'
 import MillesimeSelect from './millesime-select'
-import { renderPopupParcelle } from './popup-parcelle'
+import ParcelleHoverBand, { type HoveredParcelleStatus } from './parcelle-hover-band'
 import { BASE_MAPS, BASE_MAP_OPTIONS, type BaseMapId } from './styles/base_maps'
 import {
   PARCELLES_FILL_LAYER_ID,
   PARCELLES_MIN_ZOOM,
+  type ParcelleAgricole,
   readParcelleAgricole,
 } from './styles/parcelles-agricoles'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -39,6 +40,10 @@ export type ParcellesMapLayers = {
   showPpr: boolean
   showCommunes: boolean
   showSage: boolean
+  /** Fond de carte affiché, par défaut : masqué, les couches se détachent sur un fond uni. */
+  showBaseMap?: boolean
+  /** Appelée avec `true` quand l'utilisateur choisit un fond de carte : il veut alors le voir. */
+  onShowBaseMapChange?: (showBaseMap: boolean) => void
   visibleCultures: string[]
   /** Cultures présentes dans la zone visible, `null` quand les parcelles n'y sont pas affichées. */
   onCulturesInViewportChange?: (cultureCodes: string[] | null, bounds: LngLatBounds) => void
@@ -74,6 +79,9 @@ function fitBboxShowingParcelles(map: MaplibreMap, bbox: Bbox, duration: number)
 
 const EMPTY_IDS: string[] = []
 
+/** Exploitation d'une parcelle, avec toutes ses parcelles, montrée au survol. */
+export type ParcelleOwner = { name: string; rpgIds: string[] }
+
 export type SelectedParcelle = {
   rpgId: string
   surface: number | null
@@ -88,6 +96,22 @@ type ParcellesSelectionMapProps = {
   unavailableParcelleIds?: string[]
   /** Sans ce callback, la carte est en lecture seule : les parcelles ne sont pas cliquables. */
   onParcelleToggle?: (parcelle: SelectedParcelle) => void
+  /**
+   * Avec ce callback, un clic ouvre la parcelle, même rattachée à une autre exploitation, et
+   * Maj+clic l'ajoute ou la retire directement avec `onParcelleToggle`.
+   */
+  onParcelleOpen?: (parcelle: SelectedParcelle) => void
+  /** Parcelle ouverte, mise en valeur sur la carte. */
+  focusedParcelleId?: string
+  /** Parcelles liées à la parcelle ouverte, comme celles de son PACAGE, mises en valeur aussi. */
+  relatedParcelleIds?: string[]
+  /** Couleur des parcelles par exploitation, à la place de celle des cultures ; grises sinon. */
+  parcelleColors?: Record<string, string> | null
+  /**
+   * Exploitation de certaines parcelles : au survol de l'une d'elles, son nom s'affiche dans
+   * l'infobulle et toutes ses parcelles sont mises en valeur.
+   */
+  parcelleOwners?: Map<string, ParcelleOwner> | null
   handleMillesimeChange: (newMillesime: string) => void
   /** AAC sur lesquelles centrer la carte : un sélecteur s'affiche s'il y en a plusieurs. */
   aacs?: AacEmprise[]
@@ -115,6 +139,11 @@ const ParcellesSelectionMapContent = forwardRef<
     selectedParcelleIds,
     unavailableParcelleIds = EMPTY_IDS,
     onParcelleToggle,
+    onParcelleOpen,
+    focusedParcelleId,
+    relatedParcelleIds = EMPTY_IDS,
+    parcelleColors = null,
+    parcelleOwners = null,
     handleMillesimeChange,
     aacs = [],
     initialView,
@@ -131,19 +160,19 @@ const ParcellesSelectionMapContent = forwardRef<
   const currentBaseMapRef = useRef(baseMap)
   // Le sélecteur ne nomme une AAC que tant que l'utilisateur n'a pas déplacé la carte
   const [displayedAacId, setDisplayedAacId] = useState(initialView?.aacId ?? '')
-  const selectedParcelleIdsRef = useRef<string[]>(selectedParcelleIds)
   const unavailableParcelleIdsRef = useRef<string[]>(unavailableParcelleIds)
   const layersRef = useRef(layers)
+  // Parcelle sous le pointeur, décrite dans le bandeau au-dessus de la carte
+  const [hoveredParcelle, setHoveredParcelle] = useState<ParcelleAgricole | null>(null)
   const isReadOnly = !onParcelleToggle
+  const canOpen = Boolean(onParcelleOpen)
   const culturesInViewportPendingRef = useRef(true)
-  const currentParcelleIdRef = useRef<string | null>(null)
-  const parcellePopupRef = useRef<Popup>(
-    new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
-  )
 
-  selectedParcelleIdsRef.current = selectedParcelleIds
   unavailableParcelleIdsRef.current = unavailableParcelleIds
   layersRef.current = layers
+
+  // Exploitation de la parcelle survolée : toutes ses parcelles sont mises en valeur
+  const hoveredOwner = (hoveredParcelle && parcelleOwners?.get(hoveredParcelle.rpgId)) || null
 
   const { mapContainerRef, mapRef, map } = useMap(
     {
@@ -160,6 +189,8 @@ const ParcellesSelectionMapContent = forwardRef<
       dragRotate: false,
       pitchWithRotate: false,
       touchZoomRotate: false,
+      // Maj+clic ajoute ou retire une parcelle : pas de zoom sur un rectangle tracé avec Maj
+      boxZoom: false,
     },
     (createdMap) => {
       if (initialView?.bbox) {
@@ -202,6 +233,7 @@ const ParcellesSelectionMapContent = forwardRef<
       pmtilesUrl,
       rpgPmtilesUrl,
       millesime,
+      showBaseMap: layers.showBaseMap ?? true,
       showParcelles: layers.showParcelles,
       showAac: layers.showAac,
       showPpe: layers.showPpe,
@@ -214,6 +246,10 @@ const ParcellesSelectionMapContent = forwardRef<
       highlightedParcelleIds: selectedParcelleIds,
       hoveredParcelleIds: EMPTY_IDS,
       unavailableParcelleIds,
+      focusedParcelleIds: focusedParcelleId ? [focusedParcelleId] : EMPTY_IDS,
+      relatedParcelleIds,
+      parcelleColors,
+      groupParcelleIds: hoveredOwner?.rpgIds ?? EMPTY_IDS,
       highlightedAacCodes,
     }),
     [
@@ -223,6 +259,10 @@ const ParcellesSelectionMapContent = forwardRef<
       layers,
       selectedParcelleIds,
       unavailableParcelleIds,
+      focusedParcelleId,
+      relatedParcelleIds,
+      parcelleColors,
+      hoveredOwner,
       highlightedAacCodes,
     ]
   )
@@ -252,8 +292,7 @@ const ParcellesSelectionMapContent = forwardRef<
   }, [baseMap, reconcileMapState])
 
   useEffect(() => {
-    parcellePopupRef.current.remove()
-    currentParcelleIdRef.current = null
+    setHoveredParcelle(null)
     culturesInViewportPendingRef.current = true
   }, [millesime])
 
@@ -263,40 +302,22 @@ const ParcellesSelectionMapContent = forwardRef<
       const feature = e.features?.[0]
       const parcelle = feature ? readParcelleAgricole(feature) : null
       if (!parcelle) return
-      const id = parcelle.rpgId
-      const isUnavailable = unavailableParcelleIdsRef.current.includes(id)
-
-      if (currentParcelleIdRef.current !== id) {
-        const popupContent = renderPopupParcelle(
-          parcelle.cultureCode ?? undefined,
-          String(parcelle.surface ?? ''),
-          millesime,
-          undefined,
-          isUnavailable,
-          false,
-          !isReadOnly,
-          selectedParcelleIdsRef.current.includes(id)
-        )
-        parcellePopupRef.current
-          .setLngLat(e.lngLat)
-          .setDOMContent(popupContent)
-          .addTo(mapRef.current)
-        currentParcelleIdRef.current = id
-      } else {
-        parcellePopupRef.current.setLngLat(e.lngLat)
-      }
+      // Même parcelle : rien ne change, pas de rendu
+      setHoveredParcelle((previous) => (previous?.rpgId === parcelle.rpgId ? previous : parcelle))
+      const isUnavailable = unavailableParcelleIdsRef.current.includes(parcelle.rpgId)
       if (!isReadOnly) {
-        mapRef.current.getCanvas().style.cursor = isUnavailable ? 'not-allowed' : 'pointer'
+        // Une parcelle rattachée ailleurs s'ouvre, mais ne s'ajoute pas
+        mapRef.current.getCanvas().style.cursor =
+          isUnavailable && !canOpen ? 'not-allowed' : 'pointer'
       }
     },
-    [millesime, isReadOnly]
+    [isReadOnly, canOpen]
   )
 
   const handleParcelleMouseLeave = useCallback(() => {
     if (!mapRef.current) return
     mapRef.current.getCanvas().style.cursor = ''
-    parcellePopupRef.current.remove()
-    currentParcelleIdRef.current = null
+    setHoveredParcelle(null)
   }, [])
 
   const handleParcelleClick = useCallback(
@@ -305,20 +326,19 @@ const ParcellesSelectionMapContent = forwardRef<
       const parcelle = feature ? readParcelleAgricole(feature) : null
       if (!onParcelleToggle || !feature || !parcelle) return
 
-      if (unavailableParcelleIdsRef.current.includes(parcelle.rpgId)) return
-
-      onParcelleToggle({
+      const clicked = {
         rpgId: parcelle.rpgId,
         surface: parcelle.surface,
         cultureCode: parcelle.cultureCode,
         centroid: getCentroid(feature.geometry),
-      })
-
-      // Dismiss popup so it refreshes on next mousemove with updated selection state
-      parcellePopupRef.current.remove()
-      currentParcelleIdRef.current = null
+      }
+      if (onParcelleOpen && !e.originalEvent.shiftKey) {
+        onParcelleOpen(clicked)
+      } else if (!unavailableParcelleIdsRef.current.includes(parcelle.rpgId)) {
+        onParcelleToggle(clicked)
+      }
     },
-    [onParcelleToggle]
+    [onParcelleToggle, onParcelleOpen]
   )
 
   useImperativeHandle(ref, () => ({
@@ -339,9 +359,16 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }
 
+  const getHoveredStatus = (rpgId: string): HoveredParcelleStatus | undefined => {
+    if (isReadOnly) return undefined
+    if (selectedParcelleIds.includes(rpgId)) return 'selected'
+    return unavailableParcelleIds.includes(rpgId) ? 'unavailable' : 'available'
+  }
+
   const handleBaseMapChange = (value: BaseMapId) => {
     setLocalBaseMap(value)
     onBaseMapChange?.(value)
+    layers.onShowBaseMapChange?.(true)
   }
 
   // Attach / detach event listeners when handlers change
@@ -409,6 +436,11 @@ const ParcellesSelectionMapContent = forwardRef<
         </div>
         <MillesimeSelect value={millesime} onChange={handleMillesimeChange} />
       </div>
+      <ParcelleHoverBand
+        parcelle={hoveredParcelle}
+        status={hoveredParcelle ? getHoveredStatus(hoveredParcelle.rpgId) : undefined}
+        exploitationName={hoveredOwner?.name}
+      />
       <div className="relative flex-1 min-h-0">
         {isMapLoading && (
           <div className="flex absolute left-0 right-0 top-0 bottom-0 items-center justify-center">
@@ -418,6 +450,8 @@ const ParcellesSelectionMapContent = forwardRef<
         <div
           ref={mapContainerRef}
           className={`flex justify-between h-full w-full${isReadOnly ? '' : ' editing-glow'}`}
+          // Visible quand le fond de carte est masqué
+          style={{ background: fr.colors.decisions.background.default.grey.default }}
         />
       </div>
     </div>

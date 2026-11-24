@@ -23,6 +23,7 @@ import {
 export function useMapReconciler(map: MaplibreMap | null, desiredState: MapDesiredState) {
   const desiredStateRef = useRef(desiredState)
   const featureStatesRef = useRef<AppliedFeatureStates>(EMPTY_FEATURE_STATES)
+  const hiddenBaseMapLayerIdsRef = useRef<string[]>([])
   const pendingSourceListenerRef = useRef<((event: MapSourceDataEvent) => void) | null>(null)
   // `map.isStyleLoaded()` stays false until every source of the style is loaded, which is
   // too late: the style can be configured as soon as its specification has been parsed.
@@ -47,13 +48,15 @@ export function useMapReconciler(map: MaplibreMap | null, desiredState: MapDesir
 
     clearPendingSourceListener()
 
-    const { parcellesSourcePending, appliedFeatureStates } = reconcileMap(
+    const { parcellesSourcePending, appliedFeatureStates, hiddenBaseMapLayerIds } = reconcileMap(
       map,
       desiredStateRef.current,
-      featureStatesRef.current
+      featureStatesRef.current,
+      hiddenBaseMapLayerIdsRef.current
     )
 
     featureStatesRef.current = appliedFeatureStates
+    hiddenBaseMapLayerIdsRef.current = hiddenBaseMapLayerIds
 
     if (!parcellesSourcePending) {
       return

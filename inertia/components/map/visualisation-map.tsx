@@ -83,6 +83,8 @@ type VisualisationMapProps = {
   showBioOnly?: boolean
   visibleCultures?: string[]
   showSage?: boolean
+  /** Masqué, le fond de carte laisse les couches sur un fond uni. */
+  showBaseMap?: boolean
   style?: string
   onZoomChange?: (zoom: number) => void
   /** `null` lorsque les parcelles ne sont pas affichées au niveau de zoom courant. */
@@ -122,6 +124,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       showBioOnly = false,
       visibleCultures = [],
       showSage = false,
+      showBaseMap = true,
       style = 'vector',
       onZoomChange,
       onCulturesInViewportChange,
@@ -192,6 +195,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         pmtilesUrl,
         rpgPmtilesUrl,
         millesime,
+        showBaseMap,
         showParcelles,
         showAac,
         showPpe,
@@ -209,6 +213,7 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
         pmtilesUrl,
         rpgPmtilesUrl,
         millesime,
+        showBaseMap,
         showParcelles,
         showAac,
         showPpe,
@@ -684,7 +689,12 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
             <Loader size="lg" />
           </div>
         )}
-        <div ref={mapContainerRef} className="flex justify-between h-full w-full" />
+        <div
+          ref={mapContainerRef}
+          className="flex justify-between h-full w-full"
+          // Visible quand le fond de carte est masqué
+          style={{ background: fr.colors.decisions.background.default.grey.default }}
+        />
       </div>
     )
   }

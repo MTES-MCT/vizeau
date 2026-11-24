@@ -10,6 +10,7 @@ export default function VisualisationRightSideBar({
   showCommunes = false,
   showBioOnly = false,
   showSage = false,
+  showBaseMap = true,
   setShowParcelles = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowAac = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowPpe = (_update: boolean | ((prev: boolean) => boolean)) => {},
@@ -17,6 +18,7 @@ export default function VisualisationRightSideBar({
   setShowCommunes = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowBioOnly = (_update: boolean | ((prev: boolean) => boolean)) => {},
   setShowSage = (_update: boolean | ((prev: boolean) => boolean)) => {},
+  setShowBaseMap = (_update: boolean | ((prev: boolean) => boolean)) => {},
   canSwitchToBioOnly = true,
   parcellesZoomDisabled = false,
   visibleCultures,
@@ -31,6 +33,7 @@ export default function VisualisationRightSideBar({
   showCommunes?: boolean
   showBioOnly?: boolean
   showSage?: boolean
+  showBaseMap?: boolean
   setShowParcelles?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowAac?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowPpe?: (update: boolean | ((prev: boolean) => boolean)) => void
@@ -38,6 +41,7 @@ export default function VisualisationRightSideBar({
   setShowCommunes?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowBioOnly?: (update: boolean | ((prev: boolean) => boolean)) => void
   setShowSage?: (update: boolean | ((prev: boolean) => boolean)) => void
+  setShowBaseMap?: (update: boolean | ((prev: boolean) => boolean)) => void
   canSwitchToBioOnly?: boolean
   parcellesZoomDisabled?: boolean
   visibleCultures?: string[]
@@ -68,6 +72,8 @@ export default function VisualisationRightSideBar({
           setShowBioOnly={setShowBioOnly}
           showSage={showSage}
           setShowSage={setShowSage}
+          showBaseMap={showBaseMap}
+          setShowBaseMap={setShowBaseMap}
           canSwitchToBioOnly={canSwitchToBioOnly}
           parcellesZoomDisabled={parcellesZoomDisabled}
         />

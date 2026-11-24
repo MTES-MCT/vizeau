@@ -110,6 +110,66 @@ const defaultZoomedOutLineWidth = 0.1
 const defaultZoomedInLineWidth = 1
 const selectedZoomedOutLineWidth = 2
 const selectedZoomedInLineWidth = 4
+// Parcelle ouverte dans l'éditeur de sélection, et celles de son PACAGE
+const focusedLineColor = '#000091'
+const relatedLineColor = '#6a6af4'
+const focusedZoomedOutLineWidth = 4
+const focusedZoomedInLineWidth = 6
+const relatedZoomedOutLineWidth = 3
+const relatedZoomedInLineWidth = 4
+// Parcelles d'une autre exploitation, quand le pointeur survole l'une d'elles
+const groupLineColor = '#5e2238'
+const groupZoomedOutLineWidth = 2
+const groupZoomedInLineWidth = 3
+
+const isFocused: ExpressionSpecification = ['boolean', ['feature-state', 'focused'], false]
+const isRelated: ExpressionSpecification = ['boolean', ['feature-state', 'related'], false]
+const isGroup: ExpressionSpecification = ['boolean', ['feature-state', 'group'], false]
+const isHighlighted: ExpressionSpecification = ['boolean', ['feature-state', 'highlighted'], false]
+
+/**
+ * Couleurs du mode « par exploitation » : la sélection, c'est-à-dire l'exploitation éditée, les
+ * autres exploitations, et les parcelles non rattachées. Le couple sarcelle / prune reste
+ * distinct pour les daltoniens (écart de 13,5 en vision simulée, 26 en vision normale) et ne
+ * se confond pas avec les contours bleus de la parcelle ouverte.
+ */
+export const EXPLOITATION_FILL_COLORS = {
+  current: '#1ea28f',
+  other: '#944561',
+  none: '#d6d6d6',
+}
+
+/** Remplissage des parcelles selon leur culture : celui des couches par défaut. */
+export const FILL_BY_CULTURE = {
+  color: CULTURE_GROUP_COLOR,
+  opacity: [
+    'case',
+    ['boolean', ['feature-state', 'unavailable'], false],
+    unavailableOpacity,
+    isHighlighted,
+    selectedOpacity,
+    defaultOpacity,
+  ] as ExpressionSpecification,
+}
+
+/**
+ * Remplissage selon l'exploitation Viz'Eau, lue dans l'état `couleur` de chaque parcelle. Les
+ * parcelles d'une autre exploitation gardent leur couleur au lieu d'être estompées.
+ */
+export const FILL_BY_EXPLOITATION = {
+  color: [
+    'to-color',
+    ['coalesce', ['feature-state', 'couleur'], EXPLOITATION_FILL_COLORS.none],
+  ] as ExpressionSpecification,
+  opacity: [
+    'case',
+    ['any', isHighlighted, isGroup],
+    selectedOpacity,
+    ['!=', ['feature-state', 'couleur'], null],
+    0.8,
+    0.5,
+  ] as ExpressionSpecification,
+}
 
 export const getParcellesLayers = (): LayerSpecification[] => [
   {
@@ -119,15 +179,8 @@ export const getParcellesLayers = (): LayerSpecification[] => [
     'source-layer': PARCELLES_SOURCE_LAYER,
     'minzoom': PARCELLES_MIN_ZOOM,
     'paint': {
-      'fill-color': CULTURE_GROUP_COLOR,
-      'fill-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'unavailable'], false],
-        unavailableOpacity,
-        ['boolean', ['feature-state', 'highlighted'], false],
-        selectedOpacity,
-        defaultOpacity,
-      ],
+      'fill-color': FILL_BY_CULTURE.color,
+      'fill-opacity': FILL_BY_CULTURE.opacity,
     },
   },
   {
@@ -137,7 +190,16 @@ export const getParcellesLayers = (): LayerSpecification[] => [
     'source-layer': PARCELLES_SOURCE_LAYER,
     'minzoom': PARCELLES_MIN_ZOOM,
     'paint': {
-      'line-color': '#000000',
+      'line-color': [
+        'case',
+        isFocused,
+        focusedLineColor,
+        isRelated,
+        relatedLineColor,
+        isGroup,
+        groupLineColor,
+        '#000000',
+      ],
       'line-width': [
         'interpolate',
         ['linear'],
@@ -145,6 +207,12 @@ export const getParcellesLayers = (): LayerSpecification[] => [
         15,
         [
           'case',
+          isFocused,
+          focusedZoomedOutLineWidth,
+          isRelated,
+          relatedZoomedOutLineWidth,
+          isGroup,
+          groupZoomedOutLineWidth,
           ['boolean', ['feature-state', 'highlighted'], false],
           selectedZoomedOutLineWidth,
           defaultZoomedOutLineWidth,
@@ -152,12 +220,18 @@ export const getParcellesLayers = (): LayerSpecification[] => [
         18,
         [
           'case',
+          isFocused,
+          focusedZoomedInLineWidth,
+          isRelated,
+          relatedZoomedInLineWidth,
+          isGroup,
+          groupZoomedInLineWidth,
           ['boolean', ['feature-state', 'highlighted'], false],
           selectedZoomedInLineWidth,
           defaultZoomedInLineWidth,
         ],
       ],
-      'line-opacity': 0.8,
+      'line-opacity': ['case', ['any', isFocused, isRelated, isGroup], 1, 0.8],
     },
   },
   {

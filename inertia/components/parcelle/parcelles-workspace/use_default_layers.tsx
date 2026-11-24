@@ -14,6 +14,7 @@ export function useDefaultLayers(): WorkspaceLayers {
   const [showPpr, setShowPpr] = useState(false)
   const [showCommunes, setShowCommunes] = useState(false)
   const [showSage, setShowSage] = useState(false)
+  const [showBaseMap, setShowBaseMap] = useState(true)
   const [zoom, setZoom] = useState<number | null>(null)
   const {
     visibleCultures,
@@ -31,6 +32,8 @@ export function useDefaultLayers(): WorkspaceLayers {
       showPpr,
       showCommunes,
       showSage,
+      showBaseMap,
+      onShowBaseMapChange: setShowBaseMap,
       visibleCultures,
       onCulturesInViewportChange: handleCulturesInViewportChange,
       onZoomChange: setZoom,
@@ -49,6 +52,8 @@ export function useDefaultLayers(): WorkspaceLayers {
         setShowCommunes={() => setShowCommunes((prev) => !prev)}
         showSage={showSage}
         setShowSage={() => setShowSage((prev) => !prev)}
+        showBaseMap={showBaseMap}
+        setShowBaseMap={() => setShowBaseMap((prev) => !prev)}
         canSwitchToBioOnly={false}
         parcellesZoomDisabled={zoom !== null && zoom < 10}
         visibleCultures={visibleCultures}

@@ -17,7 +17,7 @@ export const toSelectedParcelle = ({
  * Demande au serveur une prop `rpg*` de la page, par un rechargement partiel qui laisse l'URL
  * telle quelle (voir doc/front-end/parcelles-rpg.md). `null` si les paramètres sont invalides.
  */
-function loadRpgProp<T>(prop: string, data: Record<string, string>) {
+export function loadRpgProp<T>(prop: string, data: Record<string, string>) {
   return new Promise<T | null>((resolve, reject) => {
     const fail = () => {
       reject(new Error(`Chargement de ${prop} impossible`))

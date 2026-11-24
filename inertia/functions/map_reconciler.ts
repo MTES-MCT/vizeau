@@ -8,6 +8,8 @@ import type {
 } from 'maplibre-gl'
 import {
   BIO_FILTER,
+  FILL_BY_CULTURE,
+  FILL_BY_EXPLOITATION,
   getCultureGroupCode,
   getCultureGroupsFilter,
   getParcellesLayers,
@@ -52,6 +54,8 @@ export type MapDesiredState = {
   /** URL de base des tuiles du RPG (`RPG_PMTILES_URL`) */
   rpgPmtilesUrl: string
   millesime: string
+  /** Fond de carte affiché, `true` par défaut : masqué, les couches se détachent sur un fond uni. */
+  showBaseMap?: boolean
   showParcelles: boolean
   showAac: boolean
   showPpe: boolean
@@ -65,6 +69,17 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
+  /** Parcelle ouverte dans l'éditeur de sélection, mise en valeur par son contour. */
+  focusedParcelleIds?: string[]
+  /** Parcelles liées à la parcelle ouverte, comme celles de son PACAGE. */
+  relatedParcelleIds?: string[]
+  /**
+   * Couleur de chaque parcelle d'une exploitation, quand la carte colore par exploitation au
+   * lieu de la culture. Les parcelles absentes sont grises.
+   */
+  parcelleColors?: Record<string, string> | null
+  /** Parcelles d'une même exploitation, mises en valeur quand le pointeur survole l'une d'elles. */
+  groupParcelleIds?: string[]
   /** AAC mises en valeur sur la carte : celle de la barre latérale, celles d'un projet ou d'une exploitation */
   highlightedAacCodes: string[]
 }
@@ -73,11 +88,19 @@ export type MapDesiredState = {
 export type AppliedFeatureStates = {
   highlighted: string[]
   unavailable: string[]
+  focused: string[]
+  related: string[]
+  group: string[]
+  colored: string[]
 }
 
 export const EMPTY_FEATURE_STATES: AppliedFeatureStates = {
   highlighted: [],
   unavailable: [],
+  focused: [],
+  related: [],
+  group: [],
+  colored: [],
 }
 
 type ManagedSource = {
@@ -112,26 +135,6 @@ const isProbeLayer = (spec: LayerSpecification) => spec.id === PARCELLES_PROBE_L
  */
 const MAP_OVERLAYS: MapOverlay[] = [
   {
-    source: { id: 'ppr', build: ({ pmtilesUrl }) => getPprSource({ pmtilesUrl }) },
-    layers: toManagedLayers(getPprLayer(), (state) => state.showPpr),
-  },
-  {
-    source: { id: 'ppe', build: ({ pmtilesUrl }) => getPpeSource({ pmtilesUrl }) },
-    layers: toManagedLayers(getPpeLayer(), (state) => state.showPpe),
-  },
-  {
-    source: { id: 'aac', build: ({ pmtilesUrl }) => getAacSource({ pmtilesUrl }) },
-    layers: toManagedLayers(getAacLayer(), (state) => state.showAac),
-  },
-  {
-    // The communes outline is drawn from a source owned by the basemap style.
-    layers: toManagedLayers(getCommunesLayer(), (state) => state.showCommunes),
-  },
-  {
-    source: { id: 'sage', build: ({ pmtilesUrl }) => getSageSource({ pmtilesUrl }) },
-    layers: toManagedLayers(getSageLayer(), (state) => state.showSage),
-  },
-  {
     source: {
       id: PARCELLES_SOURCE_ID,
       build: ({ rpgPmtilesUrl, millesime }) => getParcellesSource({ rpgPmtilesUrl, millesime }),
@@ -148,6 +151,27 @@ const MAP_OVERLAYS: MapOverlay[] = [
       ...toManagedLayers(parcellesLayerSpecs.filter(isProbeLayer)),
     ],
   },
+  // Zonages above the parcelles, from the widest to the most specific
+  {
+    source: { id: 'sage', build: ({ pmtilesUrl }) => getSageSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getSageLayer(), (state) => state.showSage),
+  },
+  {
+    source: { id: 'aac', build: ({ pmtilesUrl }) => getAacSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getAacLayer(), (state) => state.showAac),
+  },
+  {
+    // The communes outline is drawn from a source owned by the basemap style.
+    layers: toManagedLayers(getCommunesLayer(), (state) => state.showCommunes),
+  },
+  {
+    source: { id: 'ppe', build: ({ pmtilesUrl }) => getPpeSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getPpeLayer(), (state) => state.showPpe),
+  },
+  {
+    source: { id: 'ppr', build: ({ pmtilesUrl }) => getPprSource({ pmtilesUrl }) },
+    layers: toManagedLayers(getPprLayer(), (state) => state.showPpr),
+  },
 ]
 
 const MANAGED_SOURCES: ManagedSource[] = MAP_OVERLAYS.flatMap((overlay) =>
@@ -156,6 +180,8 @@ const MANAGED_SOURCES: ManagedSource[] = MAP_OVERLAYS.flatMap((overlay) =>
 
 /** Every managed layer, flattened in stacking order. */
 const MANAGED_LAYERS: ManagedLayer[] = MAP_OVERLAYS.flatMap((overlay) => overlay.layers)
+
+const MANAGED_LAYER_IDS = new Set(MANAGED_LAYERS.map(({ spec }) => spec.id))
 
 const getLayerSourceId = (spec: LayerSpecification): string | undefined =>
   'source' in spec && typeof spec.source === 'string' ? spec.source : undefined
@@ -283,6 +309,39 @@ const applyLayerVisibility = (map: MaplibreMap, state: MapDesiredState) => {
 }
 
 /**
+ * Hides the basemap, i.e. every layer of the style that is not managed here, and shows back
+ * only the layers it hid itself: those the basemap style hides on its own stay hidden. Returns
+ * the layers now hidden, to be passed back on the next reconciliation.
+ */
+const applyBaseMapVisibility = (
+  map: MaplibreMap,
+  state: MapDesiredState,
+  previouslyHiddenLayerIds: string[]
+): string[] => {
+  // A basemap change may have dropped some of them
+  const hiddenLayerIds = new Set(previouslyHiddenLayerIds.filter((id) => map.getLayer(id)))
+
+  if (state.showBaseMap ?? true) {
+    for (const layerId of hiddenLayerIds) {
+      map.setLayoutProperty(layerId, 'visibility', 'visible')
+    }
+
+    return []
+  }
+
+  for (const layerId of map.getLayersOrder()) {
+    if (MANAGED_LAYER_IDS.has(layerId) || map.getLayoutProperty(layerId, 'visibility') === 'none') {
+      continue
+    }
+
+    map.setLayoutProperty(layerId, 'visibility', 'none')
+    hiddenLayerIds.add(layerId)
+  }
+
+  return [...hiddenLayerIds]
+}
+
+/**
  * The bio layers stay in the style even when hidden: they are kept transparent so that
  * `queryRenderedFeatures` can still detect bio parcelles under the cursor.
  */
@@ -298,6 +357,14 @@ const applyBioPresentation = (map: MaplibreMap, state: MapDesiredState) => {
   if (map.getLayer(PARCELLES_BIO_OUTLINE_LAYER_ID)) {
     map.setPaintProperty(PARCELLES_BIO_OUTLINE_LAYER_ID, 'line-opacity', state.showBioOnly ? 1 : 0)
   }
+}
+
+/** Couleur des parcelles : celle de leur culture, ou celle de leur exploitation. */
+const applyParcelleFill = (map: MaplibreMap, state: MapDesiredState) => {
+  if (!map.getLayer(PARCELLES_FILL_LAYER_ID)) return
+  const fill = state.parcelleColors ? FILL_BY_EXPLOITATION : FILL_BY_CULTURE
+  map.setPaintProperty(PARCELLES_FILL_LAYER_ID, 'fill-color', fill.color)
+  map.setPaintProperty(PARCELLES_FILL_LAYER_ID, 'fill-opacity', fill.opacity)
 }
 
 const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
@@ -332,7 +399,14 @@ const areParcellesLayersReady = (map: MaplibreMap) =>
 const setFeatureStates = (
   map: MaplibreMap,
   parcelleIds: string[],
-  state: { highlighted?: boolean; unavailable?: boolean }
+  state: {
+    highlighted?: boolean
+    unavailable?: boolean
+    focused?: boolean
+    related?: boolean
+    group?: boolean
+    couleur?: string | null
+  }
 ) => {
   for (const id of parcelleIds) {
     map.setFeatureState(
@@ -347,6 +421,15 @@ const dedupe = (ids: string[]): string[] => [...new Set(ids)]
 /** Selection and hover are both rendered through the `highlighted` feature state. */
 const getHighlightedParcelleIds = (state: MapDesiredState): string[] =>
   dedupe([...state.highlightedParcelleIds, ...state.hoveredParcelleIds])
+
+const getFocusedParcelleIds = (state: MapDesiredState): string[] =>
+  dedupe(state.focusedParcelleIds ?? [])
+
+/** The opened parcelle keeps its own outline, even when it belongs to the related ones. */
+const getRelatedParcelleIds = (state: MapDesiredState): string[] => {
+  const focused = getFocusedParcelleIds(state)
+  return dedupe(state.relatedParcelleIds ?? []).filter((id) => !focused.includes(id))
+}
 
 /**
  * Applies the desired feature states and clears the ones that were applied previously
@@ -364,16 +447,42 @@ const applyParcelleFeatureStates = (
 
   const highlighted = getHighlightedParcelleIds(state)
   const unavailable = dedupe(state.unavailableParcelleIds)
+  const focused = getFocusedParcelleIds(state)
+  const related = getRelatedParcelleIds(state)
 
   const staleHighlighted = previous.highlighted.filter((id) => !highlighted.includes(id))
   const staleUnavailable = previous.unavailable.filter((id) => !unavailable.includes(id))
+  const staleFocused = previous.focused.filter((id) => !focused.includes(id))
+  const staleRelated = previous.related.filter((id) => !related.includes(id))
+  const group = dedupe(state.groupParcelleIds ?? [])
+  const staleGroup = previous.group.filter((id) => !group.includes(id))
 
   setFeatureStates(map, staleHighlighted, { highlighted: false })
   setFeatureStates(map, staleUnavailable, { unavailable: false })
+  setFeatureStates(map, staleFocused, { focused: false })
+  setFeatureStates(map, staleRelated, { related: false })
+  setFeatureStates(map, staleGroup, { group: false })
   setFeatureStates(map, highlighted, { highlighted: true })
   setFeatureStates(map, unavailable, { unavailable: true })
+  setFeatureStates(map, focused, { focused: true })
+  setFeatureStates(map, related, { related: true })
+  setFeatureStates(map, group, { group: true })
 
-  return { highlighted, unavailable }
+  const colors = state.parcelleColors ?? {}
+  const colored = Object.keys(colors)
+  setFeatureStates(
+    map,
+    previous.colored.filter((id) => !(id in colors)),
+    { couleur: null }
+  )
+  for (const id of colored) {
+    map.setFeatureState(
+      { source: PARCELLES_SOURCE_ID, sourceLayer: PARCELLES_SOURCE_LAYER, id },
+      { couleur: colors[id] }
+    )
+  }
+
+  return { highlighted, unavailable, focused, related, group, colored }
 }
 
 const isParcellesSourceLoaded = (map: MaplibreMap) => {
@@ -407,6 +516,8 @@ export type ReconcileResult = {
   parcellesSourcePending: boolean
   /** Feature states now applied to the map, to be passed back on the next reconciliation. */
   appliedFeatureStates: AppliedFeatureStates
+  /** Basemap layers now hidden, to be passed back on the next reconciliation. */
+  hiddenBaseMapLayerIds: string[]
 }
 
 /**
@@ -420,13 +531,16 @@ export type ReconcileResult = {
 export const reconcileMap = (
   map: MaplibreMap,
   state: MapDesiredState,
-  previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES
+  previousFeatureStates: AppliedFeatureStates = EMPTY_FEATURE_STATES,
+  previouslyHiddenBaseMapLayerIds: string[] = []
 ): ReconcileResult => {
   // Feature states are dropped along with the source they belong to, whether the source was
   // replaced because it went out of date or wiped by a basemap change.
   const createdSourceIds = syncSources(map, state)
 
   ensureLayers(map)
+  const hiddenBaseMapLayerIds = applyBaseMapVisibility(map, state, previouslyHiddenBaseMapLayerIds)
+  applyParcelleFill(map, state)
   applyLayerVisibility(map, state)
   applyBioPresentation(map, state)
   applyCultureFilter(map, state)
@@ -438,7 +552,11 @@ export const reconcileMap = (
     createdSourceIds.has(PARCELLES_SOURCE_ID) ? EMPTY_FEATURE_STATES : previousFeatureStates
   )
 
-  return { parcellesSourcePending: !isParcellesSourceLoaded(map), appliedFeatureStates }
+  return {
+    parcellesSourcePending: !isParcellesSourceLoaded(map),
+    appliedFeatureStates,
+    hiddenBaseMapLayerIds,
+  }
 }
 
 /** Re-applies the parcelles state once the source tiles are available. */
@@ -465,6 +583,7 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     state.rpgPmtilesUrl,
     state.millesime,
     [
+      state.showBaseMap ?? true,
       state.showParcelles,
       state.showAac,
       state.showPpe,
@@ -478,5 +597,14 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(state.visibleCultures),
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
+    serializeIds(getFocusedParcelleIds(state)),
+    serializeIds(getRelatedParcelleIds(state)),
+    serializeIds(state.groupParcelleIds ?? []),
+    state.parcelleColors
+      ? Object.entries(state.parcelleColors)
+          .map(([id, color]) => `${id}:${color}`)
+          .sort()
+          .join(',')
+      : '-',
     serializeIds(state.highlightedAacCodes),
   ].join('|')

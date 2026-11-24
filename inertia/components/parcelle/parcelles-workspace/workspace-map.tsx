@@ -2,6 +2,7 @@ import { Ref, useMemo, useState } from 'react'
 
 import ParcellesSelectionMap, {
   AacEmprise,
+  ParcelleOwner,
   ParcellesMapLayers,
   ParcellesSelectionMapHandle,
   SelectedParcelle,
@@ -23,6 +24,14 @@ export type WorkspaceMapProps = {
   selectedParcelleIds: string[]
   unavailableParcelleIds?: string[]
   onParcelleToggle: (parcelle: SelectedParcelle) => void
+  /** Un clic ouvre la parcelle, Maj+clic l'ajoute ou la retire. */
+  onParcelleOpen?: (parcelle: SelectedParcelle) => void
+  focusedParcelleId?: string
+  relatedParcelleIds?: string[]
+  /** Couleur des parcelles par exploitation, à la place de celle des cultures. */
+  parcelleColors?: Record<string, string> | null
+  /** Exploitation de certaines parcelles, montrée au survol avec toutes ses parcelles. */
+  parcelleOwners?: Map<string, ParcelleOwner> | null
   aacs: AacEmprise[]
   /** Contexte de l'écran appelant : choisit la vue à l'ouverture et les AAC mises en valeur. */
   focus: MapFocusContext

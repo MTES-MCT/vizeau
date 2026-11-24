@@ -10,6 +10,7 @@ export default function MapLayerFilters({
   showCommunes = false,
   showBioOnly = false,
   showSage = false,
+  showBaseMap = true,
   setShowParcelles = (_update) => {},
   setShowAac = (_update) => {},
   setShowPpe = (_update) => {},
@@ -17,6 +18,7 @@ export default function MapLayerFilters({
   setShowCommunes = (_update) => {},
   setShowBioOnly = (_update) => {},
   setShowSage = (_update) => {},
+  setShowBaseMap = (_update) => {},
   canSwitchToBioOnly = true,
   parcellesZoomDisabled = false,
 }: {
@@ -27,6 +29,7 @@ export default function MapLayerFilters({
   showCommunes?: boolean
   showBioOnly?: boolean
   showSage?: boolean
+  showBaseMap?: boolean
   setShowParcelles?: Dispatch<SetStateAction<boolean>>
   setShowAac?: Dispatch<SetStateAction<boolean>>
   setShowPpe?: Dispatch<SetStateAction<boolean>>
@@ -34,11 +37,46 @@ export default function MapLayerFilters({
   setShowCommunes?: Dispatch<SetStateAction<boolean>>
   setShowBioOnly?: Dispatch<SetStateAction<boolean>>
   setShowSage?: Dispatch<SetStateAction<boolean>>
+  setShowBaseMap?: Dispatch<SetStateAction<boolean>>
   canSwitchToBioOnly?: boolean
   parcellesZoomDisabled?: boolean
 }) {
   return (
+    // Dans l'ordre de la carte : la couche du dessus en premier
     <div className="flex flex-col gap-1">
+      <LegendItem
+        label="PPR"
+        hint="Périmètre de protection rapprochée"
+        color="bg-orange-500"
+        checked={showPpr}
+        onChange={() => setShowPpr((prev) => !prev)}
+      />
+      <LegendItem
+        label="PPE"
+        hint="Périmètre de protection éloignée"
+        color="bg-blue-500"
+        checked={showPpe}
+        onChange={() => setShowPpe((prev) => !prev)}
+      />
+      <LegendItem
+        label="Délimitations des communes"
+        checked={showCommunes}
+        onChange={() => setShowCommunes((prev) => !prev)}
+      />
+      <LegendItem
+        label="AAC"
+        hint="Aire d'alimentation de captage"
+        color="bg-[#000091]"
+        checked={showAac}
+        onChange={() => setShowAac((prev) => !prev)}
+      />
+      <LegendItem
+        label="SAGE"
+        hint="Schéma d'Aménagement et de Gestion des Eaux"
+        color="bg-green-600"
+        checked={showSage}
+        onChange={() => setShowSage((prev) => !prev)}
+      />
       <LegendItem
         label="Parcelles"
         hint={
@@ -57,37 +95,10 @@ export default function MapLayerFilters({
         onChange={() => setShowBioOnly((prev) => !prev)}
       />
       <LegendItem
-        label="AAC"
-        hint="Aire d'alimentation de captage"
-        color="bg-[#000091]"
-        checked={showAac}
-        onChange={() => setShowAac((prev) => !prev)}
-      />
-      <LegendItem
-        label="PPE"
-        hint="Périmètre de protection éloignée"
-        color="bg-blue-500"
-        checked={showPpe}
-        onChange={() => setShowPpe((prev) => !prev)}
-      />
-      <LegendItem
-        label="PPR"
-        hint="Périmètre de protection rapprochée"
-        color="bg-orange-500"
-        checked={showPpr}
-        onChange={() => setShowPpr((prev) => !prev)}
-      />
-      <LegendItem
-        label="SAGE"
-        hint="Schéma d'Aménagement et de Gestion des Eaux"
-        color="bg-green-600"
-        checked={showSage}
-        onChange={() => setShowSage((prev) => !prev)}
-      />
-      <LegendItem
-        label="Délimitations des communes"
-        checked={showCommunes}
-        onChange={() => setShowCommunes((prev) => !prev)}
+        label="Fond de carte"
+        hint="Masquez-le pour mieux distinguer les parcelles"
+        checked={showBaseMap}
+        onChange={() => setShowBaseMap((prev) => !prev)}
       />
     </div>
   )
