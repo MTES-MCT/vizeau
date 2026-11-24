@@ -54,8 +54,7 @@ Pour un seul fichier : `node ace test --files=tests/functional/xxx.spec.ts`.
 Pour vérifier le typage sans lancer les tests : `npm run typecheck`.
 
 Prérequis : un PostgreSQL accessible selon `.env.test` (port 5433, base `vizeau_test`).
-Pour le démarrer, lancer `./start_test_db.sh`, qui crée le conteneur Docker `vizeau-test-db`.
-Si le conteneur existe déjà mais est arrêté, utiliser `docker start vizeau-test-db`.
+Pour le démarrer, lancer `./start_test_db.sh`, qui crée le conteneur Docker `vizeau-test-db` ou le redémarre s'il existe déjà.
 Les migrations sont exécutées puis annulées automatiquement par `tests/bootstrap.ts`, il ne faut pas les lancer manuellement.
 
 Les tests utilisent Japa (https://docs.adonisjs.com/guides/testing/introduction). Créer les modèles avec les factories de `database/factories`.
