@@ -14,6 +14,7 @@ import Project from '#models/project'
 import ProjectTransformer from '#transformers/project_transformer'
 import TerritoireTransformer from '#transformers/territoire_transformer'
 import { TerritoireEmpriseService } from '#services/territoire_emprise_service'
+import { isRpgEditorReload, rpgEditorProps } from '../helpers/rpg_editor_props.js'
 
 // Définition centralisée des noms d'événements pour ce contrôleur
 const EVENTS = {
@@ -49,11 +50,15 @@ export default class VisualisationController {
       }
     }
 
-    this.eventLogger.logEvent({
-      userId: user.id,
-      ...EVENTS.PAGE_VIEW,
-      context: request.all(),
-    })
+    // Un rechargement de l'éditeur de parcelles n'est pas une visite, et ses paramètres (PACAGE…)
+    // n'ont rien à faire dans le journal
+    if (!isRpgEditorReload(request)) {
+      this.eventLogger.logEvent({
+        userId: user.id,
+        ...EVENTS.PAGE_VIEW,
+        context: request.all(),
+      })
+    }
 
     const aacPage = Math.max(1, Number.parseInt(request.input('aacPage', '1'), 10) || 1)
     const aacRecherche = request.input('aacRecherche') || undefined
@@ -81,6 +86,7 @@ export default class VisualisationController {
     }
 
     return inertia.render('visualisation', {
+      ...rpgEditorProps({ request, auth, inertia }),
       aacs: async () => {
         const { data } = await getAacResult()
         return data.map(AacDto.fromRawSummary)
