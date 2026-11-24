@@ -3,10 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SelectedParcelle } from '~/components/map/parcelles-selection-map'
 import {
   PACAGE_FORMAT,
-  type PacageParcelle,
-  PacageSearchError,
   findParcellePacage,
   searchPacage,
+  toSelectedParcelle,
 } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import type { useParcellesDraft } from '~/components/parcelle/parcelles-workspace/use_parcelles_draft'
 import { showFlashToasts } from '~/functions/flash_messages'
@@ -32,21 +31,17 @@ export type PacageSuggestion = AddedPacage & {
   missing: SelectedParcelle[]
 }
 
-const toSelectedParcelle = ({ rattacheeA: _, ...parcelle }: PacageParcelle): SelectedParcelle =>
-  parcelle
-
 const notifySuccess = (message: string) => showFlashToasts({ success: { message } })
 
 /**
  * Recherche par numéro PACAGE et PACAGE ajoutés au brouillon, par millésime. La recherche
- * ajoute directement les parcelles trouvées, sauf celles rattachées à une autre exploitation.
+ * ajoute directement les parcelles trouvées, sauf celles rattachées à une autre exploitation
+ * (`unavailableRpgIds`).
  */
 export function usePacagesDraft(
   millesime: string,
   draft: ReturnType<typeof useParcellesDraft>,
-  unavailableRpgIds: string[] = [],
-  /** Fictif uniquement : parcelles où piocher le résultat, à retirer avec le vrai back. */
-  getFakeCandidates?: () => SelectedParcelle[]
+  unavailableRpgIds: string[] = []
 ) {
   const { selectedParcelleIds, addParcelles } = draft
   const [value, setValue] = useState('')
@@ -94,17 +89,20 @@ export function usePacagesDraft(
     setError(null)
     setIsLoading(true)
     try {
-      const { parcelles, exploitant } = await searchPacage(pacage, millesime, getFakeCandidates?.())
+      const result = await searchPacage(pacage, millesime)
       if (id !== requestId.current) return
-      if (parcelles.length === 0) {
+      // Hors de la zone de l'utilisateur ou absent du millésime : même message
+      if (result?.status !== 'found') {
         setError(PACAGE_NOT_FOUND_ERROR)
         return
       }
+      const { parcelles } = result
+      const exploitant = result.exploitation?.name ?? null
       const available = parcelles
-        .filter((p) => !p.rattacheeA && !unavailableIds.has(p.rpgId))
+        .filter((p) => !unavailableIds.has(p.rpgId))
         .map(toSelectedParcelle)
       if (available.length === 0) {
-        const owner = parcelles.find((p) => p.rattacheeA)?.rattacheeA
+        const owner = parcelles.find((p) => p.exploitation)?.exploitation?.name
         setError(
           `Les parcelles de ce PACAGE sont déjà rattachées à ${owner ?? 'une autre exploitation'}. Une parcelle ne peut appartenir qu’à une seule exploitation par millésime.`
         )
@@ -126,9 +124,9 @@ export function usePacagesDraft(
           .join(' · ')
       )
       setValue('')
-    } catch (searchError) {
+    } catch {
       if (id !== requestId.current) return
-      setError(searchError instanceof PacageSearchError ? searchError.message : SEARCH_FAILED_ERROR)
+      setError(SEARCH_FAILED_ERROR)
     } finally {
       if (id === requestId.current) setIsLoading(false)
     }
@@ -146,16 +144,16 @@ export function usePacagesDraft(
     const id = ++suggestionRequestId.current
     setSuggested(null)
     try {
-      const found = await findParcellePacage(parcelle, millesime, getFakeCandidates?.())
-      if (id !== suggestionRequestId.current || !found) return
+      const found = await findParcellePacage(parcelle, millesime)
+      if (id !== suggestionRequestId.current || found?.status !== 'found') return
       // Parcelle retirée entre-temps : la proposition n'a plus lieu d'être
       if (!latestSelectedIds.current.has(parcelle.rpgId)) return
       const parcelles = found.parcelles
-        .filter((p) => !p.rattacheeA && !unavailableIds.has(p.rpgId))
+        .filter((p) => !unavailableIds.has(p.rpgId))
         .map(toSelectedParcelle)
       setSuggested({
         pacage: found.pacage,
-        exploitant: found.exploitant,
+        exploitant: found.exploitation?.name ?? null,
         parcelles,
         rpgId: parcelle.rpgId,
       })
@@ -219,9 +217,14 @@ export function usePacagesDraft(
 
   return {
     value,
-    /** Ne garde que les chiffres, 9 au plus. */
+    /** Ne garde que les chiffres, et les lettres A et B des PACAGE corses, 9 au plus. */
     setValue: (input: string) => {
-      setValue(input.replace(/\D/g, '').slice(0, 9))
+      setValue(
+        input
+          .toUpperCase()
+          .replace(/[^\dAB]/g, '')
+          .slice(0, 9)
+      )
       setError(null)
     },
     isValid: PACAGE_FORMAT.test(value),

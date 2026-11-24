@@ -11,7 +11,7 @@ import AddInstructions, {
   MethodValue,
 } from '~/components/parcelle/parcelles-workspace/add-instructions'
 import ExploitationsMethod from '~/components/parcelle/parcelles-workspace/exploitations-method'
-import { isPacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
+import { usePacageSearchAvailable } from '~/components/parcelle/parcelles-workspace/pacage_search'
 import PacageMethod from '~/components/parcelle/parcelles-workspace/pacage-method'
 import PacageSuggestion from '~/components/parcelle/parcelles-workspace/pacage-suggestion'
 import PanelTabs, { PanelTab } from '~/components/parcelle/parcelles-workspace/panel-tabs'
@@ -103,12 +103,8 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
   const [groupBy, setGroupBy] = useState<GroupBy>('toutes')
   const draft = useParcellesDraft(initialSelection, millesime, props.savedSelection)
   const exploitations = useExploitationsDraft(props.exploitations, millesime, draft)
-  const pacages = usePacagesDraft(
-    millesime,
-    draft,
-    unavailableRpgIds?.[millesime],
-    () => mapRef.current?.getVisibleParcelles() ?? []
-  )
+  const isPacageSearchAvailable = usePacageSearchAvailable()
+  const pacages = usePacagesDraft(millesime, draft, unavailableRpgIds?.[millesime])
   const pickerContainerRef = useRef<HTMLDivElement>(null)
   const removeExploitation = useRemoveExploitationConfirm({
     getSelectedCount: exploitations.getSelectedCount,
@@ -182,7 +178,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         title: 'Ajouter des parcelles',
         toolbar: (
           <MethodTabs
-            methods={getMethods(exploitations.isEnabled)}
+            methods={getMethods(exploitations.isEnabled, isPacageSearchAvailable)}
             value={method}
             onChange={handleMethodChange}
             legend="Méthode d'ajout"

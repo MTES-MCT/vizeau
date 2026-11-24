@@ -23,7 +23,6 @@ import { BASE_MAPS, BASE_MAP_OPTIONS, type BaseMapId } from './styles/base_maps'
 import {
   PARCELLES_FILL_LAYER_ID,
   PARCELLES_MIN_ZOOM,
-  PARCELLES_PROBE_LAYER_ID,
   readParcelleAgricole,
 } from './styles/parcelles-agricoles'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -104,8 +103,6 @@ type ParcellesSelectionMapProps = {
 export type ParcellesSelectionMapHandle = {
   flyTo: (centroid: { x: number; y: number }) => void
   getBounds: () => Bbox | undefined
-  /** Parcelles affichées dans la zone visible, vide sous le zoom d'affichage des parcelles. */
-  getVisibleParcelles: () => SelectedParcelle[]
 }
 
 const ParcellesSelectionMapContent = forwardRef<
@@ -331,23 +328,6 @@ const ParcellesSelectionMapContent = forwardRef<
     getBounds() {
       const bounds = mapRef.current?.getBounds()
       return bounds && [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
-    },
-    getVisibleParcelles() {
-      const map = mapRef.current
-      if (!map?.getLayer(PARCELLES_PROBE_LAYER_ID)) return []
-      // Une parcelle à cheval sur plusieurs tuiles est renvoyée une fois par tuile
-      const parcelles = new Map<string, SelectedParcelle>()
-      for (const feature of map.queryRenderedFeatures({ layers: [PARCELLES_PROBE_LAYER_ID] })) {
-        const parcelle = readParcelleAgricole(feature)
-        if (!parcelle || parcelles.has(parcelle.rpgId)) continue
-        parcelles.set(parcelle.rpgId, {
-          rpgId: parcelle.rpgId,
-          surface: parcelle.surface,
-          cultureCode: parcelle.cultureCode,
-          centroid: getCentroid(feature.geometry),
-        })
-      }
-      return [...parcelles.values()]
     },
   }))
 

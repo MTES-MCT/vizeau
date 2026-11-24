@@ -30,11 +30,12 @@ export default function PacageMethod({ pacages }: { pacages: PacagesDraft }) {
         <Input
           className="fr-mb-0"
           label="Numéro PACAGE"
-          hintText="9 chiffres, indiqué sur les déclarations PAC"
+          hintText="Indiqué sur les déclarations PAC : 9 chiffres, ou 02A et 02B puis 6 chiffres en Corse"
           state={pacages.error ? 'error' : 'default'}
           stateRelatedMessage={pacages.error ?? undefined}
           nativeInputProps={{
-            inputMode: 'numeric',
+            // Pas de clavier numérique : les PACAGE corses contiennent une lettre
+            autoCapitalize: 'characters',
             autoComplete: 'off',
             maxLength: 9,
             readOnly: pacages.isLoading,
