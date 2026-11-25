@@ -41,6 +41,9 @@ const notifySuccess = (message: string) => showFlashToasts({ success: { message 
 
 const knownKey = (millesime: string, rpgId: string) => `${millesime}:${rpgId}`
 
+// Valeur par défaut stable : un nouveau tableau à chaque rendu relancerait les calculs mémoïsés
+const NO_RPG_IDS: string[] = []
+
 /**
  * Recherche par numéro PACAGE et PACAGE ajoutés au brouillon, par millésime. La recherche
  * ajoute directement les parcelles trouvées, sauf celles rattachées à une autre exploitation
@@ -49,7 +52,7 @@ const knownKey = (millesime: string, rpgId: string) => `${millesime}:${rpgId}`
 export function usePacagesDraft(
   millesime: string,
   draft: ReturnType<typeof useParcellesDraft>,
-  unavailableRpgIds: string[] = []
+  unavailableRpgIds: string[] = NO_RPG_IDS
 ) {
   const { selectedParcelleIds, addParcelles } = draft
   const [value, setValue] = useState('')
