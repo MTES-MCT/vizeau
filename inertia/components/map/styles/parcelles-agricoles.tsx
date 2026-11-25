@@ -91,8 +91,9 @@ export const getFocusedParcelleFilter = (
   focusedParcelleId: string | null
 ): ExpressionSpecification =>
   focusedParcelleId === null
-    ? // Une entité sans identifiant donnerait `''` ci-dessous : rien ne doit passer
-      ['==', 1, 0]
+    ? // Une entité sans identifiant donnerait `''` ci-dessous : rien ne doit passer. Pas de
+      // `['==', 1, 0]`, que MapLibre lit comme un ancien filtre invalide et refuse
+      ['boolean', false]
     : // Les identifiants des tuiles sont numériques, ceux de l'application des chaînes
       ['==', ['to-string', ['id']], focusedParcelleId]
 
