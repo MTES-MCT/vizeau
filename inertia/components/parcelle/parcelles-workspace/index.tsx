@@ -255,7 +255,11 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
               addedParcelleIds={draft.addedParcelleIds}
               removedParcelles={draft.removedParcelles}
               onParcelleRestore={draft.toggleParcelle}
-              onParcelleClick={(parcelle) => mapRef.current?.focusParcelle(parcelle)}
+              onParcelleClick={(parcelle) => {
+                // Le halo passe sur cette parcelle : la proposition désignerait la mauvaise
+                pacages.closeSuggestion()
+                mapRef.current?.focusParcelle(parcelle)
+              }}
               exploitations={exploitations.isEnabled ? exploitations : undefined}
               pacages={isPacageSearchAvailable ? pacages : undefined}
               groupBy={groupBy}

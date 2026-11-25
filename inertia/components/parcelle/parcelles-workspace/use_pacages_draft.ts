@@ -68,8 +68,8 @@ export function usePacagesDraft(
   const pendingSuggestionRpgId = useRef<string | null>(null)
   // PACAGE déjà reçus du serveur, par millésime et parcelle, avec toutes leurs parcelles (y
   // compris les indisponibles, filtrées à l'usage) : une parcelle voisine du même PACAGE se
-  // passe alors de requête
-  const knownPacages = useRef(new Map<string, AddedPacage>())
+  // passe alors de requête. `null` : parcelle sans PACAGE connu dans la zone.
+  const knownPacages = useRef(new Map<string, AddedPacage | null>())
 
   const selectedIds = useMemo(() => new Set(selectedParcelleIds), [selectedParcelleIds])
   // Sélection à jour au retour d'une requête, la carte restant cliquable pendant la recherche
@@ -79,6 +79,8 @@ export function usePacagesDraft(
   }, [selectedIds])
   const unavailableIds = useMemo(() => new Set(unavailableRpgIds), [unavailableRpgIds])
 
+  // L'annulation n'arrête que l'attente côté navigateur : le serveur termine sa recherche. Le
+  // délai avant envoi et les PACAGE déjà connus évitent, eux, les requêtes superflues.
   const cancelPendingSuggestion = useCallback(() => {
     suggestionRequestId.current++
     clearTimeout(suggestionTimer.current)
@@ -180,16 +182,10 @@ export function usePacagesDraft(
     }
     // Seule la dernière parcelle choisie compte : la recherche précédente n'a plus d'objet
     cancelPendingSuggestion()
-    const suggest = (group: AddedPacage) =>
-      setSuggested({
-        ...group,
-        parcelles: group.parcelles.filter((p) => !unavailableIds.has(p.rpgId)),
-        rpgId: parcelle.rpgId,
-      })
-
-    const known = knownPacages.current.get(knownKey(millesime, parcelle.rpgId))
-    if (known) {
-      suggest(known)
+    const key = knownKey(millesime, parcelle.rpgId)
+    if (knownPacages.current.has(key)) {
+      const known = knownPacages.current.get(key)
+      setSuggested(known ? { ...known, rpgId: parcelle.rpgId } : null)
       return
     }
 
@@ -201,7 +197,12 @@ export function usePacagesDraft(
         const found = await findParcellePacage(parcelle, millesime, (cancel) => {
           cancelSuggestionRequest.current = cancel
         })
-        if (found?.status !== 'found') return
+        // `null` : paramètres invalides, rien à retenir
+        if (!found) return
+        if (found.status !== 'found') {
+          knownPacages.current.set(key, null)
+          return
+        }
         const group: AddedPacage = {
           pacage: found.pacage,
           exploitant: found.exploitation?.name ?? null,
@@ -211,7 +212,7 @@ export function usePacagesDraft(
         if (id !== suggestionRequestId.current) return
         // Parcelle retirée entre-temps : la proposition n'a plus lieu d'être
         if (!latestSelectedIds.current.has(parcelle.rpgId)) return
-        suggest(group)
+        setSuggested({ ...group, rpgId: parcelle.rpgId })
       } catch {
         // Proposition facultative : en cas d'échec ou d'annulation, la parcelle est ajoutée seule
       } finally {
@@ -225,9 +226,11 @@ export function usePacagesDraft(
 
   const suggestion: PacageSuggestion | null = useMemo(() => {
     if (!suggested || dismissed.has(`${millesime}:${suggested.pacage}`)) return null
-    const missing = suggested.parcelles.filter((p) => !selectedIds.has(p.rpgId))
-    return missing.length > 0 ? { ...suggested, missing } : null
-  }, [suggested, dismissed, millesime, selectedIds])
+    // Rattachées à une autre exploitation : ni proposées ni retenues avec le PACAGE
+    const parcelles = suggested.parcelles.filter((p) => !unavailableIds.has(p.rpgId))
+    const missing = parcelles.filter((p) => !selectedIds.has(p.rpgId))
+    return missing.length > 0 ? { ...suggested, parcelles, missing } : null
+  }, [suggested, dismissed, millesime, selectedIds, unavailableIds])
 
   const acceptSuggestion = () => {
     if (!suggestion) return
@@ -240,6 +243,12 @@ export function usePacagesDraft(
     notifySuccess(
       `${pluralize(suggestion.missing.length, 'parcelle ajoutée', 'parcelles ajoutées')} depuis le PACAGE ${suggestion.pacage}`
     )
+    setSuggested(null)
+  }
+
+  /** Referme la proposition sans la refuser : elle reviendra au prochain clic sur ce PACAGE. */
+  const closeSuggestion = () => {
+    cancelPendingSuggestion()
     setSuggested(null)
   }
 
@@ -302,6 +311,7 @@ export function usePacagesDraft(
     onParcelleToggled,
     suggestion,
     acceptSuggestion,
+    closeSuggestion,
     dismissSuggestion,
     reset,
   }
