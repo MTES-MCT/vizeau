@@ -64,6 +64,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
   // URL de base des tuiles du RPG : un fichier par millésime, {RPG_PMTILES_URL}/{millésime}/rpg.pmtiles
   RPG_PMTILES_URL: Env.schema.string.optional({ format: 'url' }),
+  // Dossier privé des Parquet du RPG, {RPG_PARQUET_URL}/{millésime}/parcelles.parquet : URL s3://,
+  // lue avec la clé AAC_FILES_S3_*, ou chemin local. Sans lui, pas de recherche par PACAGE.
+  RPG_PARQUET_URL: Env.schema.string.optional(),
   // Millésimes du RPG proposés par les cartes, et celui qu'elles affichent par défaut
   RPG_MILLESIMES: parseRpgMillesimes,
   RPG_DEFAULT_MILLESIME: (key: string, value?: string) => {

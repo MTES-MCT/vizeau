@@ -14,8 +14,13 @@ const EXPLOITATIONS_METHOD: Method<MethodValue> = {
   iconId: 'fr-icon-building-line',
 }
 
+const PACAGE_METHOD: Method<MethodValue> = {
+  value: 'pacage',
+  label: 'PACAGE',
+  iconId: 'fr-icon-hashtag',
+}
+
 const UPCOMING_METHODS: Method<MethodValue>[] = [
-  { value: 'pacage', label: 'PACAGE', iconId: 'fr-icon-hashtag', isUpcoming: true },
   {
     value: 'coordonnees',
     label: 'Coordonnées',
@@ -24,10 +29,17 @@ const UPCOMING_METHODS: Method<MethodValue>[] = [
   },
 ]
 
-/** La méthode « Exploitations » n'est proposée que si l'écran fournit des exploitations. */
-export const getMethods = (hasExploitations: boolean): Method<MethodValue>[] => [
+/**
+ * La méthode « Exploitations » n'est proposée que si l'écran fournit des exploitations. La
+ * méthode « PACAGE » est grisée si le serveur ne lit pas les Parquet du RPG.
+ */
+export const getMethods = (
+  hasExploitations: boolean,
+  isPacageSearchAvailable: boolean
+): Method<MethodValue>[] => [
   CARTE_METHOD,
   ...(hasExploitations ? [EXPLOITATIONS_METHOD] : []),
+  { ...PACAGE_METHOD, isUpcoming: !isPacageSearchAvailable },
   ...UPCOMING_METHODS,
 ]
 

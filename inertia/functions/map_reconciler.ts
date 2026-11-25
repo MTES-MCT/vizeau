@@ -10,9 +10,11 @@ import {
   BIO_FILTER,
   getCultureGroupCode,
   getCultureGroupsFilter,
+  getFocusedParcelleFilter,
   getParcellesLayers,
   getParcellesSource,
   isBioLayerId,
+  isFocusLayerId,
   PARCELLES_BIO_FILL_LAYER_ID,
   PARCELLES_BIO_OUTLINE_LAYER_ID,
   PARCELLES_FILL_LAYER_ID,
@@ -65,6 +67,8 @@ export type MapDesiredState = {
   /** Parcelles transiently highlighted, typically while an exploitation marker is hovered. */
   hoveredParcelleIds: string[]
   unavailableParcelleIds: string[]
+  /** Parcelle mise en avant par un halo. */
+  focusedParcelleId?: string | null
   /** AAC mises en valeur sur la carte : celle de la barre latérale, celles d'un projet ou d'une exploitation */
   highlightedAacCodes: string[]
 }
@@ -306,7 +310,7 @@ const applyCultureFilter = (map: MaplibreMap, state: MapDesiredState) => {
   const bioFilter: ExpressionSpecification = ['all', BIO_FILTER, filter]
 
   for (const layerId of PARCELLES_LAYER_IDS) {
-    if (layerId !== PARCELLES_PROBE_LAYER_ID && map.getLayer(layerId)) {
+    if (layerId !== PARCELLES_PROBE_LAYER_ID && !isFocusLayerId(layerId) && map.getLayer(layerId)) {
       map.setFilter(layerId, isBioLayerId(layerId) ? bioFilter : filter)
     }
   }
@@ -319,6 +323,17 @@ const applyAacSelection = (map: MaplibreMap, state: MapDesiredState) => {
       ['get', 'CdAAC'],
       ['literal', dedupe(state.highlightedAacCodes)],
     ])
+  }
+}
+
+/** Le halo reste visible même si la culture de la parcelle est masquée par le filtre. */
+const applyParcelleFocus = (map: MaplibreMap, state: MapDesiredState) => {
+  const filter = getFocusedParcelleFilter(state.focusedParcelleId ?? null)
+
+  for (const layerId of PARCELLES_LAYER_IDS) {
+    if (isFocusLayerId(layerId) && map.getLayer(layerId)) {
+      map.setFilter(layerId, filter)
+    }
   }
 }
 
@@ -411,7 +426,8 @@ export type ReconcileResult = {
 
 /**
  * Brings the map in line with the desired state: sources, layers, layer order, layer
- * visibility, culture filter, bio presentation, AAC selection and parcelle feature states.
+ * visibility, culture filter, bio presentation, AAC selection, parcelle focus and parcelle
+ * feature states.
  *
  * The function is idempotent and is the only place where the map is configured. It must
  * be called after the map has loaded, after every `style.load` and whenever the desired
@@ -431,6 +447,7 @@ export const reconcileMap = (
   applyBioPresentation(map, state)
   applyCultureFilter(map, state)
   applyAacSelection(map, state)
+  applyParcelleFocus(map, state)
 
   const appliedFeatureStates = applyParcelleFeatureStates(
     map,
@@ -479,4 +496,5 @@ export const getDesiredStateKey = (state: MapDesiredState): string =>
     serializeIds(getHighlightedParcelleIds(state)),
     serializeIds(state.unavailableParcelleIds),
     serializeIds(state.highlightedAacCodes),
+    state.focusedParcelleId ?? '',
   ].join('|')

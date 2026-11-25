@@ -64,4 +64,5 @@ Storybook est alors accessible sur [http://localhost:6006](http://localhost:6006
 - [Pages et données](pages-et-donnees.md) : du controller à la page, formulaires, messages flash, SSR
 - [Composants](composants.md) : DSFR, Tailwind, `ui` face à `components`, Storybook
 - [Carte](carte.md) : MapLibre, PMTiles, couches et réconciliation
+- [Données du RPG dans l'éditeur de parcelles](parcelles-rpg.md) : PACAGE, zone de l'utilisateur, exploitations Viz'Eau, en props Inertia
 - [Conventions](conventions.md) : nommage, typage, recette pour ajouter une page

@@ -22,6 +22,7 @@ import ExploitationTransformer from '#transformers/exploitation_transformer'
 import ProjectStepTagTransformer from '#transformers/project_step_tag_transformer'
 import CaptageTransformer from '#transformers/captage_transformer'
 import TerritoireTransformer from '#transformers/territoire_transformer'
+import { rpgEditorProps } from '../helpers/rpg_editor_props.js'
 
 @inject()
 export default class ProjectsController {
@@ -138,6 +139,7 @@ export default class ProjectsController {
     )
 
     return inertia.render('projets/creation', {
+      ...rpgEditorProps({ request, auth, inertia }),
       exploitations: async () => {
         const results = await this.exploitationService
           .getAllActiveExploitations('', user.id)
@@ -209,6 +211,7 @@ export default class ProjectsController {
     ])
 
     return inertia.render('projets/id', {
+      ...rpgEditorProps({ request, auth, inertia }),
       projet: ProjectTransformer.transform(project).useVariant('forShow'),
       // Chargées à l'ouverture du workspace de parcelles seulement
       pmtilesUrl: env.get('PMTILES_URL', ''),
@@ -468,6 +471,7 @@ export default class ProjectsController {
     )
 
     return inertia.render('projets/edition', {
+      ...rpgEditorProps({ request, auth, inertia }),
       projet: ProjectTransformer.transform(project),
       exploitations: async () => {
         const results = await this.exploitationService

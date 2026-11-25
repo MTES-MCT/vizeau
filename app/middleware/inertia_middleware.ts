@@ -30,6 +30,8 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
       // Millésimes du RPG, du plus récent au plus ancien, et celui affiché par défaut
       rpgMillesimes: env.get('RPG_MILLESIMES'),
       rpgDefaultMillesime: env.get('RPG_DEFAULT_MILLESIME'),
+      // Recherche de parcelles par PACAGE, possible quand les Parquet du RPG sont configurés
+      rpgPacageSearch: Boolean(env.get('RPG_PARQUET_URL')),
     }
   }
 

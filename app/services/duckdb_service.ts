@@ -143,7 +143,7 @@ const DEFAULT_MAX_CONCURRENT_QUERIES = 3
 // Délai (en secondes) au-delà duquel DuckDB abandonne une lecture S3 et la relance.
 // Les lectures prennent habituellement moins de 50 ms, mais certaines restent bloquées côté S3 :
 // avec la valeur par défaut (30 s), une seule lecture bloquée immobilise toute la requête.
-const HTTP_TIMEOUT_SECONDS = 5
+export const HTTP_TIMEOUT_SECONDS = 5
 
 @inject()
 export class DuckdbService {
