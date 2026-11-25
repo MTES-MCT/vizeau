@@ -1,4 +1,4 @@
-import { Ref, useMemo, useState } from 'react'
+import { ReactNode, Ref, useMemo, useState } from 'react'
 
 import ParcellesSelectionMap, {
   AacEmprise,
@@ -29,6 +29,8 @@ export type WorkspaceMapProps = {
   layers: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
+  /** Encart posé en bas de la carte, près du geste qui l'a fait apparaître. */
+  overlay?: ReactNode
 }
 
 export default function WorkspaceMap({
@@ -38,6 +40,7 @@ export default function WorkspaceMap({
   onMillesimeChange,
   aacs,
   focus,
+  overlay,
   ...mapProps
 }: WorkspaceMapProps) {
   // Calculée au montage seulement : la carte ne lit sa vue initiale qu'à sa création
@@ -68,6 +71,13 @@ export default function WorkspaceMap({
         initialView={initialView}
         highlightedAacCodes={highlightedAacCodes}
       />
+      {/* Toujours rendue pour que les lecteurs d'écran annoncent l'encart à son apparition */}
+      <div
+        aria-live="polite"
+        className="absolute inset-x-0 bottom-8 z-10 flex justify-center px-4 pointer-events-none"
+      >
+        {overlay && <div className="pointer-events-auto w-full max-w-md">{overlay}</div>}
+      </div>
     </div>
   )
 }

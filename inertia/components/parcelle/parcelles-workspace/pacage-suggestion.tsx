@@ -12,7 +12,7 @@ type PacageSuggestionProps = {
 }
 
 /*
- * Encart du panneau d'ajout qui propose d'ajouter tout le PACAGE de la parcelle qui vient
+ * Encart flottant sur la carte qui propose d'ajouter tout le PACAGE de la parcelle qui vient
  * d'être choisie sur la carte.
  */
 export default function PacageSuggestion({
@@ -27,11 +27,11 @@ export default function PacageSuggestion({
   return (
     <section
       aria-labelledby={titleId}
-      aria-live="polite"
       className="flex flex-col gap-2 fr-p-2w"
       style={{
+        backgroundColor: fr.colors.decisions.background.default.grey.default,
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        boxShadow: `inset 4px 0 0 ${fr.colors.decisions.border.plain.blueFrance.default}`,
+        boxShadow: `inset 4px 0 0 ${fr.colors.decisions.border.plain.blueFrance.default}, 0 6px 18px rgba(0, 0, 18, 0.16)`,
       }}
     >
       <h3 id={titleId} className="fr-text--md fr-text--bold fr-mb-0">

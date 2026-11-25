@@ -188,13 +188,6 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
         tabLabel: 'Ajouter',
         content: (
           <div className="flex flex-col gap-3">
-            {pacages.suggestion && (
-              <PacageSuggestion
-                suggestion={pacages.suggestion}
-                onAccept={pacages.acceptSuggestion}
-                onDismiss={pacages.dismissSuggestion}
-              />
-            )}
             {method === 'pacage' ? (
               <PacageMethod pacages={pacages} />
             ) : method === 'exploitations' ? (
@@ -227,6 +220,15 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
             layers={layers.map}
             baseMap={props.baseMap}
             onBaseMapChange={props.onBaseMapChange}
+            overlay={
+              pacages.suggestion && (
+                <PacageSuggestion
+                  suggestion={pacages.suggestion}
+                  onAccept={pacages.acceptSuggestion}
+                  onDismiss={pacages.dismissSuggestion}
+                />
+              )
+            }
           />
         ),
       }}
