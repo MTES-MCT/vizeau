@@ -67,8 +67,8 @@ export default function SelectionPanel({
   const canGroupByExploitation = Boolean(exploitations)
   const groupBySegments: { value: GroupBy; label: string }[] = [
     { value: 'toutes', label: 'Toutes' },
-    ...(exploitations ? [{ value: 'exploitations' as const, label: 'Exploitations' }] : []),
-    ...(pacages ? [{ value: 'pacage' as const, label: 'PACAGE' }] : []),
+    ...(exploitations ? [{ value: 'exploitations' as const, label: 'Par exploitation' }] : []),
+    ...(pacages ? [{ value: 'pacage' as const, label: 'Par PACAGE' }] : []),
   ]
   // Sans exploitations fournies (hors projet), la parcelle ne porte pas de meta d'exploitation
   const parcelleExploitations = useMemo(
@@ -204,7 +204,7 @@ export default function SelectionPanel({
           <SegmentedControl
             small
             inlineLegend
-            legend="Regrouper par"
+            legend="Afficher :"
             segments={
               groupBySegments.map(({ value, label }) => ({
                 label,
