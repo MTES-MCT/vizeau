@@ -38,7 +38,7 @@ export default function PacageSuggestion({
         Ajouter les autres parcelles de ce PACAGE ?
       </h3>
       <p className="fr-text--sm fr-mb-0">
-        La parcelle que vous venez d’ajouter est déclarée à la PAC sous le numéro PACAGE{' '}
+        La parcelle entourée sur la carte est déclarée à la PAC sous le numéro PACAGE{' '}
         <strong>{suggestion.pacage}</strong>, avec {others} ({formatSurface(suggestion.missing)} ha)
         qui {count > 1 ? 'ne sont' : 'n’est'} pas encore dans votre sélection.
       </p>

@@ -29,6 +29,8 @@ export type WorkspaceMapProps = {
   layers: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
+  /** Parcelle entourée d'un halo, celle à l'origine de l'encart. */
+  markedParcelleId?: string | null
   /** Encart posé en bas de la carte, près du geste qui l'a fait apparaître. */
   overlay?: ReactNode
 }

@@ -220,6 +220,7 @@ export default function ParcellesWorkspace(props: ParcellesWorkspaceProps) {
             layers={layers.map}
             baseMap={props.baseMap}
             onBaseMapChange={props.onBaseMapChange}
+            markedParcelleId={pacages.suggestion?.rpgId}
             overlay={
               pacages.suggestion && (
                 <PacageSuggestion

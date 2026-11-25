@@ -103,6 +103,11 @@ type ParcellesSelectionMapProps = {
   initialView?: InitialMapView
   /** Codes des AAC mises en valeur par un fond coloré. */
   highlightedAacCodes?: string[]
+  /**
+   * Parcelle entourée d'un halo sans déplacer la carte, par exemple celle à l'origine d'une
+   * proposition. Le halo de `focusParcelle` passe devant.
+   */
+  markedParcelleId?: string | null
   layers?: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
@@ -128,6 +133,7 @@ const ParcellesSelectionMapContent = forwardRef<
     aacs = [],
     initialView,
     highlightedAacCodes = EMPTY_IDS,
+    markedParcelleId = null,
     layers = DEFAULT_LAYERS,
     baseMap: baseMapProp,
     onBaseMapChange,
@@ -147,6 +153,7 @@ const ParcellesSelectionMapContent = forwardRef<
   const culturesInViewportPendingRef = useRef(true)
   const currentParcelleIdRef = useRef<string | null>(null)
   const [focusedParcelleId, setFocusedParcelleId] = useState<string | null>(null)
+  const haloParcelleId = focusedParcelleId ?? markedParcelleId
   // Lu par l'écouteur `moveend`, posé une fois pour toutes à la création de la carte
   const focusedCentroidRef = useRef<[number, number] | null>(null)
   const parcellePopupRef = useRef<Popup>(
@@ -239,7 +246,7 @@ const ParcellesSelectionMapContent = forwardRef<
       highlightedParcelleIds: selectedParcelleIds,
       hoveredParcelleIds: EMPTY_IDS,
       unavailableParcelleIds,
-      focusedParcelleId,
+      focusedParcelleId: haloParcelleId,
       highlightedAacCodes,
     }),
     [
@@ -249,7 +256,7 @@ const ParcellesSelectionMapContent = forwardRef<
       layers,
       selectedParcelleIds,
       unavailableParcelleIds,
-      focusedParcelleId,
+      haloParcelleId,
       highlightedAacCodes,
     ]
   )
@@ -280,7 +287,7 @@ const ParcellesSelectionMapContent = forwardRef<
 
   // Fait pulser le halo de la parcelle mise en avant, sauf si l'utilisateur limite les animations
   useEffect(() => {
-    if (!map || !focusedParcelleId) return
+    if (!map || !haloParcelleId) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const applyGlow = (phase: number) => {
@@ -306,7 +313,7 @@ const ParcellesSelectionMapContent = forwardRef<
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [map, focusedParcelleId])
+  }, [map, haloParcelleId])
 
   useEffect(() => {
     parcellePopupRef.current.remove()
