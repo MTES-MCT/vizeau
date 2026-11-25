@@ -31,7 +31,15 @@ export type PacageSuggestion = AddedPacage & {
   missing: SelectedParcelle[]
 }
 
+/**
+ * Pause attendue après un clic avant de chercher le PACAGE de la parcelle : des clics rapprochés
+ * ne déclenchent qu'une recherche, pour la dernière parcelle choisie.
+ */
+const SUGGESTION_DELAY_MS = 300
+
 const notifySuccess = (message: string) => showFlashToasts({ success: { message } })
+
+const knownKey = (millesime: string, rpgId: string) => `${millesime}:${rpgId}`
 
 /**
  * Recherche par numéro PACAGE et PACAGE ajoutés au brouillon, par millésime. La recherche
@@ -54,6 +62,14 @@ export function usePacagesDraft(
   // Une réponse arrivée après un changement de millésime ou un autre clic est ignorée
   const requestId = useRef(0)
   const suggestionRequestId = useRef(0)
+  const suggestionTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const cancelSuggestionRequest = useRef<(() => void) | null>(null)
+  // Parcelle dont la recherche est en attente ou en cours
+  const pendingSuggestionRpgId = useRef<string | null>(null)
+  // PACAGE déjà reçus du serveur, par millésime et parcelle, avec toutes leurs parcelles (y
+  // compris les indisponibles, filtrées à l'usage) : une parcelle voisine du même PACAGE se
+  // passe alors de requête
+  const knownPacages = useRef(new Map<string, AddedPacage>())
 
   const selectedIds = useMemo(() => new Set(selectedParcelleIds), [selectedParcelleIds])
   // Sélection à jour au retour d'une requête, la carte restant cliquable pendant la recherche
@@ -63,17 +79,35 @@ export function usePacagesDraft(
   }, [selectedIds])
   const unavailableIds = useMemo(() => new Set(unavailableRpgIds), [unavailableRpgIds])
 
+  const cancelPendingSuggestion = useCallback(() => {
+    suggestionRequestId.current++
+    clearTimeout(suggestionTimer.current)
+    cancelSuggestionRequest.current?.()
+    cancelSuggestionRequest.current = null
+    pendingSuggestionRpgId.current = null
+  }, [])
+
+  // Pas de recherche lancée une fois le composant démonté
+  useEffect(() => cancelPendingSuggestion, [cancelPendingSuggestion])
+
   const clear = useCallback(() => {
     requestId.current++
-    suggestionRequestId.current++
+    cancelPendingSuggestion()
     setValue('')
     setError(null)
     setIsLoading(false)
     setSuggested(null)
-  }, [])
+  }, [cancelPendingSuggestion])
 
   // Chaque millésime a ses propres parcelles : une recherche en cours n'est plus valable
   useEffect(clear, [millesime])
+
+  /** Garde le PACAGE reçu, pour reconnaître ensuite chacune de ses parcelles sans requête. */
+  const learn = (group: AddedPacage) => {
+    for (const { rpgId } of group.parcelles) {
+      knownPacages.current.set(knownKey(millesime, rpgId), group)
+    }
+  }
 
   const remember = (group: AddedPacage) =>
     setAdded((previous) => {
@@ -98,6 +132,7 @@ export function usePacagesDraft(
       }
       const { parcelles } = result
       const exploitant = result.exploitation?.name ?? null
+      learn({ pacage, exploitant, parcelles: parcelles.map(toSelectedParcelle) })
       const available = parcelles
         .filter((p) => !unavailableIds.has(p.rpgId))
         .map(toSelectedParcelle)
@@ -136,30 +171,56 @@ export function usePacagesDraft(
    * À appeler quand une parcelle est ajoutée ou retirée sur la carte : propose d'ajouter les
    * autres parcelles de son PACAGE, ou retire la proposition liée à une parcelle désélectionnée.
    */
-  const onParcelleToggled = async (parcelle: SelectedParcelle, isSelected: boolean) => {
+  const onParcelleToggled = (parcelle: SelectedParcelle, isSelected: boolean) => {
     if (!isSelected) {
+      // Retirée aussitôt ajoutée (double clic) : sa recherche n'a plus lieu d'être
+      if (pendingSuggestionRpgId.current === parcelle.rpgId) cancelPendingSuggestion()
       setSuggested((current) => (current?.rpgId === parcelle.rpgId ? null : current))
       return
     }
-    const id = ++suggestionRequestId.current
-    setSuggested(null)
-    try {
-      const found = await findParcellePacage(parcelle, millesime)
-      if (id !== suggestionRequestId.current || found?.status !== 'found') return
-      // Parcelle retirée entre-temps : la proposition n'a plus lieu d'être
-      if (!latestSelectedIds.current.has(parcelle.rpgId)) return
-      const parcelles = found.parcelles
-        .filter((p) => !unavailableIds.has(p.rpgId))
-        .map(toSelectedParcelle)
+    // Seule la dernière parcelle choisie compte : la recherche précédente n'a plus d'objet
+    cancelPendingSuggestion()
+    const suggest = (group: AddedPacage) =>
       setSuggested({
-        pacage: found.pacage,
-        exploitant: found.exploitation?.name ?? null,
-        parcelles,
+        ...group,
+        parcelles: group.parcelles.filter((p) => !unavailableIds.has(p.rpgId)),
         rpgId: parcelle.rpgId,
       })
-    } catch {
-      // Proposition facultative : en cas d'échec, la parcelle est simplement ajoutée seule
+
+    const known = knownPacages.current.get(knownKey(millesime, parcelle.rpgId))
+    if (known) {
+      suggest(known)
+      return
     }
+
+    setSuggested(null)
+    const id = suggestionRequestId.current
+    pendingSuggestionRpgId.current = parcelle.rpgId
+    suggestionTimer.current = setTimeout(async () => {
+      try {
+        const found = await findParcellePacage(parcelle, millesime, (cancel) => {
+          cancelSuggestionRequest.current = cancel
+        })
+        if (found?.status !== 'found') return
+        const group: AddedPacage = {
+          pacage: found.pacage,
+          exploitant: found.exploitation?.name ?? null,
+          parcelles: found.parcelles.map(toSelectedParcelle),
+        }
+        learn(group)
+        if (id !== suggestionRequestId.current) return
+        // Parcelle retirée entre-temps : la proposition n'a plus lieu d'être
+        if (!latestSelectedIds.current.has(parcelle.rpgId)) return
+        suggest(group)
+      } catch {
+        // Proposition facultative : en cas d'échec ou d'annulation, la parcelle est ajoutée seule
+      } finally {
+        if (id === suggestionRequestId.current) {
+          cancelSuggestionRequest.current = null
+          pendingSuggestionRpgId.current = null
+        }
+      }
+    }, SUGGESTION_DELAY_MS)
   }
 
   const suggestion: PacageSuggestion | null = useMemo(() => {
@@ -211,6 +272,7 @@ export function usePacagesDraft(
 
   const reset = useCallback(() => {
     clear()
+    knownPacages.current.clear()
     setAdded({})
     setDismissed(new Set())
   }, [clear])

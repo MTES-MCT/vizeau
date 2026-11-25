@@ -16,8 +16,13 @@ export const toSelectedParcelle = ({
 /**
  * Demande au serveur une prop `rpg*` de la page, par un rechargement partiel qui laisse l'URL
  * telle quelle (voir doc/front-end/parcelles-rpg.md). `null` si les paramètres sont invalides.
+ * `onCancelable` reçoit de quoi annuler la requête : la promesse est alors rejetée.
  */
-function loadRpgProp<T>(prop: string, data: Record<string, string>) {
+function loadRpgProp<T>(
+  prop: string,
+  data: Record<string, string>,
+  onCancelable?: (cancel: () => void) => void
+) {
   return new Promise<T | null>((resolve, reject) => {
     const fail = () => {
       reject(new Error(`Chargement de ${prop} impossible`))
@@ -28,6 +33,7 @@ function loadRpgProp<T>(prop: string, data: Record<string, string>) {
       only: [prop],
       data,
       preserveUrl: true,
+      onCancelToken: (token) => onCancelable?.(() => token.cancel()),
       onSuccess: (page) => resolve(((page.props as Record<string, unknown>)[prop] as T) ?? null),
       onError: fail,
       onCancel: fail,
@@ -43,15 +49,18 @@ export function searchPacage(pacage: string, millesime: string) {
 }
 
 /** PACAGE sous lequel la parcelle est déclarée, avec ses parcelles. */
-export async function findParcellePacage(parcelle: SelectedParcelle, millesime: string) {
+export async function findParcellePacage(
+  parcelle: SelectedParcelle,
+  millesime: string,
+  onCancelable?: (cancel: () => void) => void
+) {
   if (!parcelle.centroid) return null
   const { x, y } = parcelle.centroid
-  return loadRpgProp<RpgPacageResult>('rpgParcellePacage', {
-    millesime,
-    rpgId: parcelle.rpgId,
-    x: String(x),
-    y: String(y),
-  })
+  return loadRpgProp<RpgPacageResult>(
+    'rpgParcellePacage',
+    { millesime, rpgId: parcelle.rpgId, x: String(x), y: String(y) },
+    onCancelable
+  )
 }
 
 /** La recherche par PACAGE n'est proposée que si le serveur lit les Parquet du RPG. */
