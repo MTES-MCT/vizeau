@@ -21,7 +21,9 @@ import MillesimeSelect from './millesime-select'
 import { renderPopupParcelle } from './popup-parcelle'
 import { BASE_MAPS, BASE_MAP_OPTIONS, type BaseMapId } from './styles/base_maps'
 import {
+  getFocusGlowPaint,
   PARCELLES_FILL_LAYER_ID,
+  PARCELLES_FOCUS_GLOW_LAYER_ID,
   PARCELLES_MIN_ZOOM,
   readParcelleAgricole,
 } from './styles/parcelles-agricoles'
@@ -56,6 +58,12 @@ export const DEFAULT_LAYERS: ParcellesMapLayers = {
 }
 
 const BOUNDS_PADDING = 40
+/** Zoom sur une parcelle mise en avant : la mise en avant cesse dès qu'on dézoome en deçà. */
+const FOCUS_ZOOM = 15
+/** Durée d'une pulsation du halo de la parcelle mise en avant, en millisecondes. */
+const FOCUS_PULSE_PERIOD = 1600
+/** Nombre de pulsations avant que le halo se fige, pour ne pas redessiner la carte sans fin. */
+const FOCUS_PULSE_COUNT = 3
 
 /*
  * Cadre une emprise sans descendre sous le zoom d'affichage des parcelles : une emprise trop
@@ -101,7 +109,8 @@ type ParcellesSelectionMapProps = {
 }
 
 export type ParcellesSelectionMapHandle = {
-  flyTo: (centroid: { x: number; y: number }) => void
+  /** Zoome sur la parcelle et l'entoure d'un halo, jusqu'à ce qu'elle sorte du cadre. */
+  focusParcelle: (parcelle: SelectedParcelle) => void
   getBounds: () => Bbox | undefined
 }
 
@@ -137,6 +146,9 @@ const ParcellesSelectionMapContent = forwardRef<
   const isReadOnly = !onParcelleToggle
   const culturesInViewportPendingRef = useRef(true)
   const currentParcelleIdRef = useRef<string | null>(null)
+  const [focusedParcelleId, setFocusedParcelleId] = useState<string | null>(null)
+  // Lu par l'écouteur `moveend`, posé une fois pour toutes à la création de la carte
+  const focusedCentroidRef = useRef<[number, number] | null>(null)
   const parcellePopupRef = useRef<Popup>(
     new Popup({ closeButton: false, offset: 10, className: 'custom-popup' })
   )
@@ -144,6 +156,11 @@ const ParcellesSelectionMapContent = forwardRef<
   selectedParcelleIdsRef.current = selectedParcelleIds
   unavailableParcelleIdsRef.current = unavailableParcelleIds
   layersRef.current = layers
+
+  const clearFocus = () => {
+    focusedCentroidRef.current = null
+    setFocusedParcelleId(null)
+  }
 
   const { mapContainerRef, mapRef, map } = useMap(
     {
@@ -187,6 +204,14 @@ const ParcellesSelectionMapContent = forwardRef<
       createdMap.on('zoomend', () => layersRef.current.onZoomChange?.(createdMap.getZoom()))
       createdMap.on('moveend', () => {
         culturesInViewportPendingRef.current = true
+        const focusedCentroid = focusedCentroidRef.current
+        if (
+          focusedCentroid &&
+          (createdMap.getZoom() < FOCUS_ZOOM - 0.01 ||
+            !createdMap.getBounds().contains(focusedCentroid))
+        ) {
+          clearFocus()
+        }
       })
       // Seuls les déplacements de l'utilisateur portent un `originalEvent`, pas les zooms programmés
       createdMap.on('movestart', (event) => {
@@ -214,6 +239,7 @@ const ParcellesSelectionMapContent = forwardRef<
       highlightedParcelleIds: selectedParcelleIds,
       hoveredParcelleIds: EMPTY_IDS,
       unavailableParcelleIds,
+      focusedParcelleId,
       highlightedAacCodes,
     }),
     [
@@ -223,6 +249,7 @@ const ParcellesSelectionMapContent = forwardRef<
       layers,
       selectedParcelleIds,
       unavailableParcelleIds,
+      focusedParcelleId,
       highlightedAacCodes,
     ]
   )
@@ -251,10 +278,42 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [baseMap, reconcileMapState])
 
+  // Fait pulser le halo de la parcelle mise en avant, sauf si l'utilisateur limite les animations
+  useEffect(() => {
+    if (!map || !focusedParcelleId) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const applyGlow = (phase: number) => {
+      if (!map.getLayer(PARCELLES_FOCUS_GLOW_LAYER_ID)) return
+      const paint = getFocusGlowPaint(phase)
+      map.setPaintProperty(PARCELLES_FOCUS_GLOW_LAYER_ID, 'line-width', paint['line-width'])
+      map.setPaintProperty(PARCELLES_FOCUS_GLOW_LAYER_ID, 'line-blur', paint['line-blur'])
+      map.setPaintProperty(PARCELLES_FOCUS_GLOW_LAYER_ID, 'line-opacity', paint['line-opacity'])
+    }
+
+    let start: number | null = null
+    let frame = requestAnimationFrame(function pulse(time) {
+      start ??= time
+      const elapsed = time - start
+      if (elapsed >= FOCUS_PULSE_COUNT * FOCUS_PULSE_PERIOD) {
+        // Figé au repos, halo resserré, comme à la création de la couche
+        applyGlow(0)
+        return
+      }
+      // Le halo s'étale puis se resserre, sans à-coup entre deux pulsations
+      applyGlow((1 - Math.cos((2 * Math.PI * elapsed) / FOCUS_PULSE_PERIOD)) / 2)
+      frame = requestAnimationFrame(pulse)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [map, focusedParcelleId])
+
   useEffect(() => {
     parcellePopupRef.current.remove()
     currentParcelleIdRef.current = null
     culturesInViewportPendingRef.current = true
+    // Les identifiants des parcelles changent d'un millésime à l'autre
+    clearFocus()
   }, [millesime])
 
   const handleParcelleMouseMove = useCallback(
@@ -317,13 +376,21 @@ const ParcellesSelectionMapContent = forwardRef<
       // Dismiss popup so it refreshes on next mousemove with updated selection state
       parcellePopupRef.current.remove()
       currentParcelleIdRef.current = null
+      // La sélection se modifie sur la carte : la mise en avant masquerait le résultat du clic
+      clearFocus()
     },
     [onParcelleToggle]
   )
 
   useImperativeHandle(ref, () => ({
-    flyTo(centroid: { x: number; y: number }) {
-      mapRef.current?.flyTo({ center: [centroid.x, centroid.y], zoom: 15, duration: 800 })
+    focusParcelle({ rpgId, centroid }: SelectedParcelle) {
+      if (!mapRef.current || !centroid) return
+      const center: [number, number] = [centroid.x, centroid.y]
+      // Le vol interrompt un éventuel déplacement en cours, dont le `moveend` lèverait sinon le
+      // nouveau focus : il n'est posé qu'une fois le vol lancé.
+      mapRef.current.flyTo({ center, zoom: FOCUS_ZOOM, duration: 800 })
+      focusedCentroidRef.current = center
+      setFocusedParcelleId(rpgId)
     },
     getBounds() {
       const bounds = mapRef.current?.getBounds()

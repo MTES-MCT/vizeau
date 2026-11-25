@@ -28,6 +28,9 @@ export const PARCELLES_FILL_LAYER_ID = 'parcelles-agricoles-fill'
 export const PARCELLES_OUTLINE_LAYER_ID = 'parcelles-agricoles-outline'
 export const PARCELLES_BIO_FILL_LAYER_ID = 'parcelles-agricoles-bio-fill'
 export const PARCELLES_BIO_OUTLINE_LAYER_ID = 'parcelles-agricoles-bio-outline'
+/** Halo pulsant puis contour de la parcelle mise en avant, filtrés sur son identifiant. */
+export const PARCELLES_FOCUS_GLOW_LAYER_ID = 'parcelles-agricoles-focus-glow'
+export const PARCELLES_FOCUS_OUTLINE_LAYER_ID = 'parcelles-agricoles-focus-outline'
 /** Couche transparente et jamais filtrée, pour lister les cultures présentes dans la zone visible. */
 export const PARCELLES_PROBE_LAYER_ID = 'parcelles-agricoles-probe'
 
@@ -79,6 +82,32 @@ export const BIO_FILTER: ExpressionSpecification = ['==', ['get', 'bio'], 1]
 
 export const isBioLayerId = (layerId: string) =>
   layerId === PARCELLES_BIO_FILL_LAYER_ID || layerId === PARCELLES_BIO_OUTLINE_LAYER_ID
+
+export const isFocusLayerId = (layerId: string) =>
+  layerId === PARCELLES_FOCUS_GLOW_LAYER_ID || layerId === PARCELLES_FOCUS_OUTLINE_LAYER_ID
+
+/** Filtre des couches de mise en avant : aucune parcelle sans identifiant mis en avant. */
+export const getFocusedParcelleFilter = (
+  focusedParcelleId: string | null
+): ExpressionSpecification =>
+  focusedParcelleId === null
+    ? // Une entité sans identifiant donnerait `''` ci-dessous : rien ne doit passer
+      ['==', 1, 0]
+    : // Les identifiants des tuiles sont numériques, ceux de l'application des chaînes
+      ['==', ['to-string', ['id']], focusedParcelleId]
+
+/** Halo lumineux, lisible sur toutes les couleurs de culture et sur les deux fonds de carte. */
+const focusColor = '#ffffff'
+
+/**
+ * Halo de la parcelle mise en avant à un instant de sa pulsation, `phase` allant de 0 (halo
+ * resserré et opaque) à 1 (halo étalé et estompé).
+ */
+export const getFocusGlowPaint = (phase: number) => ({
+  'line-width': 6 + 12 * phase,
+  'line-blur': 4 + 8 * phase,
+  'line-opacity': 1 - 0.5 * phase,
+})
 
 export type ParcelleAgricole = {
   rpgId: string
@@ -158,6 +187,28 @@ export const getParcellesLayers = (): LayerSpecification[] => [
         ],
       ],
       'line-opacity': 0.8,
+    },
+  },
+  {
+    // Au-dessus des contours des parcelles voisines, qu'il déborde
+    'id': PARCELLES_FOCUS_GLOW_LAYER_ID,
+    'type': 'line',
+    'source': PARCELLES_SOURCE_ID,
+    'source-layer': PARCELLES_SOURCE_LAYER,
+    'minzoom': PARCELLES_MIN_ZOOM,
+    'filter': getFocusedParcelleFilter(null),
+    'paint': { 'line-color': focusColor, ...getFocusGlowPaint(0) },
+  },
+  {
+    'id': PARCELLES_FOCUS_OUTLINE_LAYER_ID,
+    'type': 'line',
+    'source': PARCELLES_SOURCE_ID,
+    'source-layer': PARCELLES_SOURCE_LAYER,
+    'minzoom': PARCELLES_MIN_ZOOM,
+    'filter': getFocusedParcelleFilter(null),
+    'paint': {
+      'line-color': focusColor,
+      'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 15, 2, 18, 3],
     },
   },
   {
