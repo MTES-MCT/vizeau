@@ -98,6 +98,13 @@ type ParcellesSelectionMapProps = {
   layers?: ParcellesMapLayers
   baseMap?: BaseMapId
   onBaseMapChange?: (baseMap: BaseMapId) => void
+  /** Masque le sélecteur de fond de carte, par exemple dans un aperçu. */
+  hideBaseMapSelect?: boolean
+  /**
+   * Masque le sélecteur de millésime, quand l'écran appelant l'affiche ailleurs. Sans fond de carte
+   * ni millésime, l'en-tête disparaît et le zoom sur une AAC flotte sur la carte.
+   */
+  hideMillesimeSelect?: boolean
 }
 
 export type ParcellesSelectionMapHandle = {
@@ -122,6 +129,8 @@ const ParcellesSelectionMapContent = forwardRef<
     layers = DEFAULT_LAYERS,
     baseMap: baseMapProp,
     onBaseMapChange,
+    hideBaseMapSelect = false,
+    hideMillesimeSelect = false,
   }: ParcellesSelectionMapProps,
   ref: React.Ref<ParcellesSelectionMapHandle>
 ) {
@@ -363,53 +372,71 @@ const ParcellesSelectionMapContent = forwardRef<
     }
   }, [handleParcelleClick, handleParcelleMouseMove, handleParcelleMouseLeave])
 
+  const aacSelect = aacs.length > 1 && (
+    <div className="relative">
+      <span
+        className="fr-icon-zoom-in-line fr-icon--sm absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
+        aria-hidden="true"
+      />
+      <Select
+        label=""
+        className="fr-mb-0 w-fit max-w-80"
+        nativeSelectProps={{
+          'className': 'pl-10!',
+          'value': displayedAacId,
+          'aria-label': 'Zoomer sur une AAC',
+          'onChange': (e) => handleAacChange(e.target.value),
+        }}
+      >
+        <option value="" disabled>
+          Zoomer sur une AAC
+        </option>
+        {aacs.map((aac) => (
+          <option key={aac.id} value={aac.id}>
+            {aac.label}
+          </option>
+        ))}
+      </Select>
+    </div>
+  )
+  // Sans autre sélecteur, le zoom sur une AAC flotte sur la carte plutôt que dans un bandeau
+  const hasHeader = !hideBaseMapSelect || !hideMillesimeSelect
+
   return (
     <div className="flex flex-col h-full w-full">
       {/* Même en-tête que la carte de consultation, aligné sur ceux des panneaux */}
-      <div
-        className="flex flex-wrap items-center justify-between gap-4 min-h-17 fr-p-2v shrink-0"
-        style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
-      >
-        <div className="flex flex-wrap items-center gap-4">
-          {aacs.length > 1 && (
-            <Select
-              label=""
-              className="fr-mb-0 w-fit max-w-80"
-              nativeSelectProps={{
-                'value': displayedAacId,
-                'aria-label': 'Zoomer sur une AAC',
-                'onChange': (e) => handleAacChange(e.target.value),
-              }}
-            >
-              <option value="" disabled>
-                Zoomer sur une AAC…
-              </option>
-              {aacs.map((aac) => (
-                <option key={aac.id} value={aac.id}>
-                  Zoomer sur {aac.label}
-                </option>
-              ))}
-            </Select>
+      {hasHeader && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-4 min-h-17 fr-p-2v shrink-0"
+          style={{ background: fr.colors.decisions.background.alt.blueFrance.default }}
+        >
+          <div className="flex flex-wrap items-center gap-4">
+            {aacSelect}
+            {!hideBaseMapSelect && (
+              <Select
+                label=""
+                className="fr-mb-0 w-fit"
+                nativeSelectProps={{
+                  'value': baseMap,
+                  'aria-label': 'Fond de carte',
+                  'onChange': (e) => handleBaseMapChange(e.target.value as BaseMapId),
+                }}
+              >
+                {BASE_MAP_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </div>
+          {!hideMillesimeSelect && (
+            <MillesimeSelect value={millesime} onChange={handleMillesimeChange} />
           )}
-          <Select
-            label=""
-            className="fr-mb-0 w-fit"
-            nativeSelectProps={{
-              'value': baseMap,
-              'aria-label': 'Fond de carte',
-              'onChange': (e) => handleBaseMapChange(e.target.value as BaseMapId),
-            }}
-          >
-            {BASE_MAP_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
         </div>
-        <MillesimeSelect value={millesime} onChange={handleMillesimeChange} />
-      </div>
+      )}
       <div className="relative flex-1 min-h-0">
+        {!hasHeader && aacSelect && <div className="absolute top-2 left-2 z-10">{aacSelect}</div>}
         {isMapLoading && (
           <div className="flex absolute left-0 right-0 top-0 bottom-0 items-center justify-center">
             <Loader size="lg" />
