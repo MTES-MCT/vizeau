@@ -65,10 +65,19 @@ export default function SelectionPanel({
   onGroupByChange,
 }: SelectionPanelProps) {
   const canGroupByExploitation = Boolean(exploitations)
-  const groupBySegments: { value: GroupBy; label: string }[] = [
-    { value: 'toutes', label: 'Toutes' },
-    ...(exploitations ? [{ value: 'exploitations' as const, label: 'Par exploitation' }] : []),
-    ...(pacages ? [{ value: 'pacage' as const, label: 'Par PACAGE' }] : []),
+  const canGroupBy = Boolean(exploitations || pacages)
+  const toSegment = (value: GroupBy, label: string): SegmentedControlProps.SegmentWithoutIcon => ({
+    label,
+    nativeInputProps: {
+      checked: groupBy === value,
+      onChange: () => onGroupByChange(value),
+    },
+  })
+  // Tuple fixe, au format exigé par le DSFR, qui ignore les segments `undefined`
+  const groupBySegments: SegmentedControlProps.Segments = [
+    toSegment('toutes', 'Toutes'),
+    exploitations ? toSegment('exploitations', 'Par exploitation') : undefined,
+    pacages ? toSegment('pacage', 'Par PACAGE') : undefined,
   ]
   // Sans exploitations fournies (hors projet), la parcelle ne porte pas de meta d'exploitation
   const parcelleExploitations = useMemo(
@@ -199,22 +208,9 @@ export default function SelectionPanel({
         <CulturesRepartition segments={culturesSegments} />
       </section>
 
-      {groupBySegments.length > 1 && (
+      {canGroupBy && (
         <div className="fr-pb-3v">
-          <SegmentedControl
-            small
-            inlineLegend
-            legend="Afficher :"
-            segments={
-              groupBySegments.map(({ value, label }) => ({
-                label,
-                nativeInputProps: {
-                  checked: groupBy === value,
-                  onChange: () => onGroupByChange(value),
-                },
-              })) as SegmentedControlProps.Segments
-            }
-          />
+          <SegmentedControl small inlineLegend legend="Afficher :" segments={groupBySegments} />
         </div>
       )}
 
