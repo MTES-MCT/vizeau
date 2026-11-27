@@ -31,7 +31,7 @@ import photo from '~/components/map/styles/photo.json'
 import planIGN from '~/components/map/styles/plan-ign.json'
 import vector from '~/components/map/styles/vector.json'
 
-import { getRpgIdsFromParcellesForYear } from '~/functions/map'
+import { getRpgIdsFromParcellesForYear, zoomOnBbox, zoomOnPoint } from '~/functions/map'
 import { useMap } from '~/hooks/use_map'
 import MapErrorBoundary from './map-error-boundary'
 import Loader from '~/ui/Loader'
@@ -227,46 +227,25 @@ const VisualisationMapContent = forwardRef<VisualisationMapRef, VisualisationMap
       centerOnExploitation: (exploitation: Data.Exploitation) => {
         const map = mapRef.current
         if (map && exploitation.location) {
-          const coords: LngLatLike = [exploitation.location.x, exploitation.location.y]
-          map.flyTo({
-            center: coords,
-            zoom: 12,
-            essential: true,
-          })
+          zoomOnPoint(map, [exploitation.location.x, exploitation.location.y], 12)
         }
       },
       centerOnParcelle: (parcelle: Data.Parcelle) => {
         const map = mapRef.current
         if (map && parcelle.centroid) {
-          const coords: LngLatLike = [parcelle.centroid.x, parcelle.centroid.y]
-          map.flyTo({
-            center: coords,
-            zoom: 15,
-            essential: true,
-          })
+          zoomOnPoint(map, [parcelle.centroid.x, parcelle.centroid.y], 15)
         }
       },
       centerOnAac: (aac: AacSummaryJson) => {
         const map = mapRef.current
         if (map && aac.bbox) {
-          map.fitBounds(
-            [
-              [aac.bbox[0], aac.bbox[1]],
-              [aac.bbox[2], aac.bbox[3]],
-            ],
-            { padding: 40, essential: true }
-          )
+          zoomOnBbox(map, aac.bbox, { padding: 40 })
         }
       },
       centerOnCoordinates: (coordinates: { x: number; y: number }) => {
         const map = mapRef.current
         if (map) {
-          const coords: LngLatLike = [coordinates.x, coordinates.y]
-          map.flyTo({
-            center: coords,
-            zoom: 15,
-            essential: true,
-          })
+          zoomOnPoint(map, [coordinates.x, coordinates.y], 15)
         }
       },
       getBounds: () => {

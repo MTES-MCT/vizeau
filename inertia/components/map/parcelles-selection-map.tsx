@@ -10,7 +10,7 @@ import {
 import { Popup, ScaleControl } from 'maplibre-gl'
 import type { LngLatBounds, Map as MaplibreMap, MapLayerMouseEvent } from 'maplibre-gl'
 import { usePage } from '@inertiajs/react'
-import { getCentroid } from '~/functions/map'
+import { getCentroid, zoomOnBbox, zoomOnPoint } from '~/functions/map'
 import type { AacEmprise, Bbox, InitialMapView } from '~/functions/map_focus'
 import { getCulturesInViewport, type MapDesiredState } from '~/functions/map_reconciler'
 import { GROUPES_CULTURAUX } from '~/functions/cultures_group'
@@ -71,13 +71,7 @@ const FOCUS_PULSE_COUNT = 3
  * repérables à leur fond coloré).
  */
 function fitBboxShowingParcelles(map: MaplibreMap, bbox: Bbox, duration: number) {
-  const camera = map.cameraForBounds(bbox, { padding: BOUNDS_PADDING })
-  if (!camera) return
-  map.easeTo({
-    center: camera.center,
-    zoom: Math.max(camera.zoom ?? PARCELLES_MIN_ZOOM, PARCELLES_MIN_ZOOM),
-    duration,
-  })
+  zoomOnBbox(map, bbox, { padding: BOUNDS_PADDING, minZoom: PARCELLES_MIN_ZOOM, duration })
 }
 
 const EMPTY_IDS: string[] = []
@@ -402,9 +396,9 @@ const ParcellesSelectionMapContent = forwardRef<
     focusParcelle({ rpgId, centroid }: SelectedParcelle) {
       if (!mapRef.current || !centroid) return
       const center: [number, number] = [centroid.x, centroid.y]
-      // Le vol interrompt un éventuel déplacement en cours, dont le `moveend` lèverait sinon le
-      // nouveau focus : il n'est posé qu'une fois le vol lancé.
-      mapRef.current.flyTo({ center, zoom: FOCUS_ZOOM, duration: 800 })
+      // Le zoom interrompt un éventuel déplacement en cours, dont le `moveend` lèverait sinon le
+      // nouveau focus : celui-ci n'est posé qu'une fois le zoom lancé.
+      zoomOnPoint(mapRef.current, center, FOCUS_ZOOM)
       focusedCentroidRef.current = center
       setFocusedParcelleId(rpgId)
     },
