@@ -1,5 +1,6 @@
 import type { Geometry } from 'geojson'
 import type { Data } from '@generated/data'
+import type { LngLatLike, Map as MaplibreMap } from 'maplibre-gl'
 
 function getRingCentroid(ring: number[][]): { x: number; y: number; area: number } | undefined {
   if (ring.length < 3) return undefined
@@ -76,4 +77,33 @@ export function getRpgIdsFromParcellesForYear(
     }
   }
   return rpgIds
+}
+
+/*
+ * Déplace la caméra sans l'arc dézoom-rezoom de `flyTo` (utilisé aussi par défaut par
+ * `fitBounds`) ni le long glissement de `easeTo`, qui charge les tuiles de tout le trajet : une
+ * destination hors de la vue est rejointe d'un saut au zoom courant, puis la carte zoome dessus.
+ * Une destination visible est rejointe en glissant. Sans `essential`, l'animation est sautée si
+ * l'utilisateur limite les animations (`prefers-reduced-motion`).
+ */
+function moveCamera(map: MaplibreMap, center: LngLatLike, zoom: number, duration = 800) {
+  if (!map.getBounds().contains(center)) map.jumpTo({ center })
+  map.easeTo({ center, zoom, duration })
+}
+
+/** Centre la carte sur un point, en zoomant au moins jusqu'à `minZoom` mais sans dézoomer. */
+export function zoomOnPoint(map: MaplibreMap, center: LngLatLike, minZoom: number) {
+  moveCamera(map, center, Math.max(map.getZoom(), minZoom))
+}
+
+/** Cadre une emprise, sans descendre sous `minZoom` s'il est fourni. */
+export function zoomOnBbox(
+  map: MaplibreMap,
+  bbox: [number, number, number, number],
+  { padding, minZoom, duration }: { padding: number; minZoom?: number; duration?: number }
+) {
+  const camera = map.cameraForBounds(bbox, { padding })
+  if (!camera?.center) return
+  const zoom = camera.zoom ?? map.getZoom()
+  moveCamera(map, camera.center, minZoom === undefined ? zoom : Math.max(zoom, minZoom), duration)
 }
